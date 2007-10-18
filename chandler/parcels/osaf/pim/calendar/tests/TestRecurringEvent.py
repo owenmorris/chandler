@@ -26,7 +26,6 @@ from application import schema
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim import *
 from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
-from repository.item.Item import Item
 from i18n.tests import uw
 
 from application.dialogs.RecurrenceDialog import getProxy
@@ -34,19 +33,16 @@ from itertools import chain
 
 from chandlerdb.item.ItemError import NoSuchAttributeError
 
-class RecurringEventTest(testcase.SingleRepositoryTestCase):
+class RecurringEventTest(testcase.SharedSandboxTestCase):
     """ Test CalendarEvent Recurrence """
     
     index = None
 
     def setUp(self):
-        if not hasattr(RecurringEventTest, 'view'):
-            super(RecurringEventTest,self).setUp()
-            RecurringEventTest.view = self.view
-            del self.view
-            
-        view = RecurringEventTest.view
-        self.sandbox = Item("sandbox", view, None)
+        super(RecurringEventTest, self).setUp()
+        
+        view = self.sandbox.itsView
+        
         self.start = datetime(2005, 7, 4, 13,
                               tzinfo=view.tzinfo.default) #1PM, July 4, 2005
 
@@ -66,11 +62,6 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
                        'count' : 5}
         self.event = self._createEvent()
         
-    def tearDown(self):
-        self.sandbox.delete(recursive=True)
-        self.sandbox.itsView.commit()
-        self.sandbox = None
-
     def _createEvent(self):
         event = Calendar.CalendarEvent(None, itsParent=self.sandbox)
         event.startTime = self.start

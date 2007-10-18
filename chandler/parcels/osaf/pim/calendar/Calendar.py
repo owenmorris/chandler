@@ -833,6 +833,7 @@ class EventStamp(Stamp):
             anyTime = getattr(uuidOrEvent, 'anyTime', False)
             startTime = getattr(uuidOrEvent, 'startTime', None)
             duration = getattr(uuidOrEvent, 'duration', None)
+            view = uuidOrEvent.itsItem.itsView
         
                     
         if startTime is None:
@@ -840,14 +841,14 @@ class EventStamp(Stamp):
         elif duration is None:
             duration = timedelta(0)
 
-        endTime = startTime + duration
         if anyTime or allDay:
             # all day events include their endtime, so they end at midnight
             # one day later than their normal end date.
-            return datetime.combine(endTime + timedelta(1),
-                                    time(0, tzinfo=endTime.tzinfo))
+            effectiveDuration = timedelta(duration.days + 1)
+            return datetime.combine(startTime.date() + effectiveDuration,
+                                    time(0, tzinfo=view.tzinfo.floating))
         else:
-            return endTime
+            return startTime + duration
 
     def getEffectiveEndTime(self):
         """

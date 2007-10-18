@@ -17,7 +17,7 @@ A helper class which sets up and tears down dual RamDB repositories
 """
 
 import unittest, os, sys
-from util.testcase import SingleRepositoryTestCase, NRVTestCase
+from util.testcase import SharedSandboxTestCase, NRVTestCase
 import repository.persistence.DBRepository as DBRepository
 import repository.item.Item as Item
 import application.Parcel as Parcel
@@ -43,14 +43,11 @@ def getVObjectData(view, events):
                      ics.ICSSerializer)
     return vobject.readOne(text)
 
-class ICalendarTestCase(SingleRepositoryTestCase):
+class ICalendarTestCase(SharedSandboxTestCase):
 
     def setUp(self):
         super(ICalendarTestCase, self).setUp()
         
-        # create a sandbox root
-        self.sandbox = Item.Item("sandbox", self.view, None)
-        self.view.commit()
         self.utc = self.view.tzinfo.getInstance('utc')
 
     def Import(self, view, filename):
@@ -216,7 +213,10 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         from osaf.pim.calendar.TimeZone import TimeZoneInfo
         
         tzinfo = TimeZoneInfo.get(self.view)
+        tzPrefs = schema.ns('osaf.pim', self.view).TimezonePrefs
+        
         saveTz = tzinfo.default
+        saveShowUI = tzPrefs.showUI
         
         tzinfo.default = self.view.tzinfo.getInstance(tzName)
         
@@ -256,6 +256,8 @@ class ICalendarTestCase(SingleRepositoryTestCase):
             self.assertEqual(vcalendar.vevent.rruleset._rrule[0]._count, 10)
             
         finally:
+            # Restore global settings
+            tzPrefs.showUI = saveShowUI
             tzinfo.default = saveTz
 
     def testRoundTripRecurrenceCount_America_New_York(self):
@@ -457,7 +459,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
 
 # test import/export unicode
 
-class TimeZoneTestCase(SingleRepositoryTestCase):
+class TimeZoneTestCase(SharedSandboxTestCase):
 
     def getICalTzinfo(self, lines):
         fileobj = cStringIO.StringIO("\r\n".join(lines))
@@ -595,7 +597,7 @@ class TimeZoneTestCase(SingleRepositoryTestCase):
             self.view.tzinfo.getInstance("America/New_York"),
             zone)
 
-class SharingTestCase(SingleRepositoryTestCase):
+class SharingTestCase(SharedSandboxTestCase):
     def setUp(self):
         super(SharingTestCase, self).setUp()
         self.peer = pim.EmailAddress.getEmailAddress(self.view, 
@@ -1051,7 +1053,7 @@ class ICalUIDTestCase(NRVTestCase):
         self.failUnless(event.itsItem is sharing.findUID(self.view, uid))
 
 
-class ICalendarMergeTestCase(SingleRepositoryTestCase):
+class ICalendarMergeTestCase(SharedSandboxTestCase):
     ETAG = 0
     before = None
     after = None
@@ -1061,9 +1063,6 @@ class ICalendarMergeTestCase(SingleRepositoryTestCase):
         
         view = self.view
 
-        # create a sandbox root
-        self.sandbox = Item.Item("sandbox", view, None)
-        
         collection = ListCollection("testCollection", self.sandbox,
                                     displayName=uw("Test Collection"))
 

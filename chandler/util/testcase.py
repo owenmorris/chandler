@@ -18,6 +18,7 @@ import unittest, sys, os
 from application import Utility, Globals
 from chandlerdb.util.c import Default
 from repository.persistence.RepositoryView import NullRepositoryView
+from repository.item.Item import Item
 
 # This test class is a possible replacement for RepositoryTestCase, and it
 # makes use of Utility.py startup helper methods.  I'm trying it out for a
@@ -49,6 +50,40 @@ class SingleRepositoryTestCase(unittest.TestCase):
         view.openView(timezone=Default)
         Utility.initTimezone(Globals.options, view)
         
+class SharedSandboxTestCase(SingleRepositoryTestCase):
+    """
+    This test case class uses a single repository view, which is left
+    in place across invocation of individual tests. At the start of each
+    test case (i.e. in C{setUp}) an Item is created at the path '//sandbox',
+    and this is destroyed afterwards (i.e. in C{tearDown}). This means that
+    if you specify itsParent=self.sandbox when creating persistent items
+    in your test code, these items will be cleaned up after each test.
+    
+    @ivar sandbox: The poarent for items you want cleaned up in the test
+    @type sandbox: C{Item}
+    """
+
+    view = None
+
+    def setUp(self):
+        if SharedSandboxTestCase.view is None:
+            super(SharedSandboxTestCase,self).setUp()
+            SharedSandboxTestCase.view = self.view
+            del self.view
+            
+        self.sandbox = Item("sandbox", SharedSandboxTestCase.view, None)
+        
+    def tearDown(self):
+        self.sandbox.delete(recursive=True)
+        self.sandbox.itsView.commit()
+        self.sandbox = None
+        
+    def reopenRepository(self):
+        self.view = self.sandbox.itsView
+        path = self.sandbox.itsPath
+        super(SharedSandboxTestCase, self).reopenRepository()
+        self.sandbox = self.view.findPath(path)
+        del self.view
 
 class DualRepositoryTestCase(unittest.TestCase):
 

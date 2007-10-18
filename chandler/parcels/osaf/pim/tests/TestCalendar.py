@@ -17,11 +17,12 @@ Unit tests for calendar
 """
 
 import unittest, os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 
 import osaf.pim.calendar.Calendar as Calendar
+from osaf.pim.calendar.TimeZone import TimeZoneInfo
 import osaf.pim.stamping as stamping
-import osaf.pim.tests.TestDomainModel as TestDomainModel
+import util.testcase as testcase
 
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 from application import schema
@@ -29,15 +30,12 @@ from repository.util.Path import Path
 from i18n.tests import uw
 
 
-class CalendarTest(TestDomainModel.DomainModelTestCase):
+class CalendarTest(testcase.SharedSandboxTestCase):
     """ Test Calendar Domain Model """
-
 
     def testCalendar(self):
         """ Simple test for creating instances of calendar related kinds """
 
-        self.loadParcel("osaf.pim.calendar")
-        
         def getEventValue(event, attrName):
             try:
                 attrName = getattr(type(event), attrName).name
@@ -67,7 +65,7 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
 
         # Check that the globals got created by the parcel
         calendarPath = Path('//parcels/osaf/pim/calendar')
-        view = self.view
+        view = self.sandbox.itsView
 
         self.assertEqual(schema.itemFor(Calendar.EventStamp, view),
                          view.find(Path(calendarPath, 'EventStamp')))
@@ -78,9 +76,10 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
 
         # Construct a sample item
         calendarEventItem = Calendar.CalendarEvent("calendarEventItem",
-                                                   itsView=view)
-        locationItem = Calendar.Location("locationItem", itsView=view)
-        recurrenceItem = Calendar.RecurrencePattern("recurrenceItem", itsView=view)
+                                                   itsParent=self.sandbox)
+        locationItem = Calendar.Location("locationItem", itsParent=self.sandbox)
+        recurrenceItem = Calendar.RecurrencePattern("recurrenceItem",
+                                                    itsParent=self.sandbox)
 
         # CalendarEvent properties
         calendarEventItem.summary = uw("simple headline")
@@ -97,14 +96,13 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
         self.assertEqual(len(items), 2)
 
         # Re-examine items
-        self._reopenRepository()
-        view = self.view
-        contentItemParent = view.findPath("//userdata")
+        self.reopenRepository()
+        view = self.sandbox.itsView
 
         calendarEventItem = Calendar.EventStamp(
-                    contentItemParent.getItemChild("calendarEventItem"))
-        locationItem = contentItemParent.getItemChild("locationItem")
-        recurrenceItem = contentItemParent.getItemChild("recurrenceItem")
+                    self.sandbox.getItemChild("calendarEventItem"))
+        locationItem = self.sandbox.getItemChild("locationItem")
+        recurrenceItem = self.sandbox.getItemChild("recurrenceItem")
 
         _verifyCalendarEvent(calendarEventItem)
         _verifyCalendarItems(locationItem, recurrenceItem)
@@ -113,7 +111,7 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
         from i18n import ChandlerMessageFactory
         
         event = Calendar.CalendarEvent(
-            itsView=self.view,
+            itsParent=self.sandbox,
         )
         
         # Call InitOutgoingAttributes() on the created event, the
@@ -126,7 +124,7 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
         self.failUnless(stamping.has_stamp(event, Calendar.EventStamp))
         self.failUnlessEqual(item.displayName, newEventTitle)
         
-        newNote = type(item)(itsView=self.view)
+        newNote = type(item)(itsParent=self.sandbox)
         newNote.InitOutgoingAttributes() # Should be _(u"Untitled")
         
         # Make sure the new event title gets reset on unstamp
@@ -137,40 +135,60 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
             newNote.displayName
         )
 
+    def testDefaultSettings(self):
+        defaultTz = TimeZoneInfo.get(self.sandbox.itsView).default
+        ROUND = 30
         
+        # A new event, by default, has its startTime set to the current time
+        # rounded to a 30-minute boundary
+        start = datetime.now(defaultTz)
+        event = Calendar.CalendarEvent(itsParent=self.sandbox, anyTime=False,
+                                       allDay=False)
+        end = datetime.now(defaultTz)
+
+        # Check that it falls within 30 minutes of now
+        self.failUnless(start - timedelta(minutes=ROUND) <= event.startTime and
+                        event.startTime <= end + timedelta(minutes=ROUND))
+        
+        # Check that the correct rounding occurred
+        self.failUnlessEqual(event.startTime.second, 0)
+        self.failUnlessEqual(event.startTime.microsecond, 0)
+        self.failUnlessEqual(event.startTime.minute % ROUND, 0)
+        
+        # Make sure it's in the right timezone
+        self.failUnlessEqual(event.startTime.tzinfo, defaultTz)
+        
+        # Lastly, check the dates if possible
+        if start.date() == end.date():
+            self.failUnlessEqual(start.date(), event.startTime.date())
+        
+        self.failUnlessEqual(event.effectiveStartTime, event.startTime)
+        self.failUnlessEqual(event.effectiveEndTime, event.endTime)
 
     def testTimeFields(self):
         """ Test time related fields and methods """
 
-        self.loadParcel("osaf.pim.calendar")
-
         # Test getting duration, setting endTime
-        view = self.view
-        firstEvent = Calendar.CalendarEvent(itsView=view)
+        defaultTz = self.sandbox.itsView.tzinfo.default
+        firstEvent = Calendar.CalendarEvent(itsParent=self.sandbox)
         firstEvent.anyTime = False
-        firstEvent.startTime = datetime(2003, 2, 1, 10,
-                                        tzinfo=view.tzinfo.default)
-        firstEvent.endTime = datetime(2003, 2, 1, 11, 30,
-                                     tzinfo=view.tzinfo.default)
+        firstEvent.startTime = datetime(2003, 2, 1, 10, tzinfo=defaultTz)
+        firstEvent.endTime = datetime(2003, 2, 1, 11, 30, tzinfo=defaultTz)
         self.assertEqual(firstEvent.duration, timedelta(hours=1.5))
 
         # Test setting duration and getting endTime
-        secondEvent = Calendar.CalendarEvent(itsView=view)
+        secondEvent = Calendar.CalendarEvent(itsParent=self.sandbox)
         secondEvent.anyTime = False
-        secondEvent.startTime = datetime(2003, 3, 5, 9,
-                                         tzinfo=view.tzinfo.default)
+        secondEvent.startTime = datetime(2003, 3, 5, 9, tzinfo=defaultTz)
         secondEvent.duration = timedelta(hours=1.5)
         self.assertEqual(secondEvent.endTime,
-                         datetime(2003, 3, 5, 10, 30,
-                                  tzinfo=view.tzinfo.default))
+                         datetime(2003, 3, 5, 10, 30, tzinfo=defaultTz))
 
         # Test changing startTime (shouldn't change duration)
-        firstEvent.startTime = datetime(2003, 3, 4, 12, 45,
-                                       tzinfo=view.tzinfo.default)
+        firstEvent.startTime = datetime(2003, 3, 4, 12, 45, tzinfo=defaultTz)
         self.assertEqual(firstEvent.duration, timedelta(hours=1.5))
         self.assertEqual(firstEvent.startTime,
-                         datetime(2003, 3, 4, 12, 45,
-                                  tzinfo=view.tzinfo.default))
+                         datetime(2003, 3, 4, 12, 45, tzinfo=defaultTz))
 
         # Test allDay
         firstEvent.allDay = True
@@ -188,25 +206,132 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
 
         """ Test calendar event deletion """
 
-        self.loadParcel("osaf.pim.calendar")
-
-        view = self.view
-        event = Calendar.CalendarEvent(itsView=view)
+        view = self.sandbox.itsView
+        event = Calendar.CalendarEvent(itsParent=self.sandbox)
         item = event.itsItem
         path = item.itsPath
         item.delete()
         del item
-        view.commit()
+        self.sandbox.itsView.commit()
 
         itemShouldBeGone = view.find(path)
         self.assertEqual(itemShouldBeGone, None)
 
+class EffectiveTimeTestCase(testcase.SharedSandboxTestCase):
+        
+    @property
+    def floatingMidnight(self):
+        return time(0, tzinfo=self.sandbox.itsView.tzinfo.floating)
 
-class AdjustTimesTestCase(RepositoryTestCase):
+    def testAtTime(self):
+        event = Calendar.CalendarEvent(itsParent=self.sandbox, anyTime=False,
+                                       allDay=False, duration=timedelta(0))
+        self.failUnlessEqual(event.effectiveStartTime, event.startTime)
+        self.failUnlessEqual(event.endTime, event.startTime)
+        self.failUnlessEqual(event.effectiveEndTime, event.startTime)
+                             
+    def testTimed(self):
+        event = Calendar.CalendarEvent(
+            itsParent=self.sandbox,
+            anyTime=False,
+            allDay=False,
+            startTime=datetime(2006, 11, 4, 13, 25,
+                               tzinfo=self.sandbox.itsView.tzinfo.default),
+            duration=timedelta(hours=1)
+        )
+        self.failUnlessEqual(event.effectiveStartTime, event.startTime)
+        self.failUnlessEqual(event.endTime - timedelta(hours=1),
+                             event.startTime)
+        self.failUnlessEqual(event.effectiveEndTime, event.endTime)
+
+    def testAnyTime(self):
+        event = Calendar.CalendarEvent(itsParent=self.sandbox, anyTime=False)
+        self.failUnlessEqual(event.effectiveStartTime, event.startTime)
+        
+        event.anyTime = True
+        self.failUnlessEqual(event.effectiveStartTime.timetz(),
+                             self.floatingMidnight)
+        self.failUnlessEqual(event.effectiveStartTime.date(),
+                             event.startTime.date())
+        self.failUnlessEqual(event.effectiveEndTime,
+                             event.effectiveStartTime + timedelta(days=1))
+
+
+    def testAllDay(self):
+        event = Calendar.CalendarEvent(itsParent=self.sandbox,
+                                       anyTime=False, allDay=True)
+        self.failUnlessEqual(event.effectiveStartTime.timetz(),
+                             self.floatingMidnight)
+        self.failUnlessEqual(event.effectiveStartTime.date(),
+                             event.startTime.date())
+        self.failUnlessEqual(event.effectiveEndTime,
+                             event.effectiveStartTime + timedelta(days=1))
+        
+        event.anyTime = True
+        self.failUnlessEqual(event.effectiveStartTime.timetz(),
+                             self.floatingMidnight)
+        self.failUnlessEqual(event.effectiveStartTime.date(),
+                             event.startTime.date())
+        self.failUnlessEqual(event.effectiveEndTime,
+                             event.effectiveStartTime + timedelta(days=1))
+
+        event.anyTime = event.allDay = False
+        self.failUnlessEqual(event.startTime, event.effectiveStartTime)
+        self.failUnlessEqual(event.effectiveStartTime.date(),
+                             event.startTime.date())
+        self.failUnlessEqual(event.effectiveEndTime,
+                             event.effectiveStartTime + event.duration)
+                             
+    def testDayBoundary(self):
+        tzinfo = self.sandbox.itsView.tzinfo
+        
+        event = Calendar.CalendarEvent(
+                    itsParent=self.sandbox,
+                    allDay=True,
+                    anyTime=False,
+                    startTime=datetime(2007, 10, 16, 23, 30,
+                                       tzinfo=tzinfo.default),
+                    duration=timedelta(hours=1),
+                )
+        self.failUnlessEqual(event.effectiveStartTime,
+                             datetime(2007, 10, 16, tzinfo=tzinfo.floating))
+        self.failUnlessEqual(event.effectiveEndTime,
+                             datetime(2007, 10, 17, tzinfo=tzinfo.floating))
+                             
+    def testMultidayEdgeCase(self):
+        tzinfo = self.sandbox.itsView.tzinfo
+        
+        event = Calendar.CalendarEvent(
+                    itsParent=self.sandbox,
+                    allDay=True,
+                    anyTime=False,
+                    startTime=datetime(2007, 7, 20,
+                                       tzinfo=tzinfo.floating),
+                    duration=timedelta(days=0),
+                )
+        self.failUnlessEqual(event.effectiveStartTime,
+                             datetime(2007, 7, 20, tzinfo=tzinfo.floating))
+        self.failUnlessEqual(event.effectiveEndTime,
+                             datetime(2007, 7, 21, tzinfo=tzinfo.floating))
+
+        event.duration = timedelta(days=1)
+        # Really, the following should be 2007/07/21. However, for a while
+        # Chandler has treated an all-day event with duration of exactly
+        # one day as lasting two days. Jeffrey pointed out that there is
+        # import/export code we would need to change in addition to the
+        # domain model here. [grant 2007/10/17]
+        self.failUnlessEqual(event.effectiveEndTime,
+                             datetime(2007, 7, 22, tzinfo=tzinfo.floating))
+
+        event.duration = timedelta(days=2, hours=3)
+        self.failUnlessEqual(event.effectiveEndTime,
+                             datetime(2007, 7, 23, tzinfo=tzinfo.floating))
+
+class AdjustTimesTestCase(testcase.SharedSandboxTestCase):
 
     def setUp(self):
         super(AdjustTimesTestCase, self).setUp()
-        view = self.view
+        view = self.sandbox.itsView
 
         self.start = datetime(2006, 4, 21,
                               tzinfo=view.tzinfo.getInstance("Europe/Paris"))

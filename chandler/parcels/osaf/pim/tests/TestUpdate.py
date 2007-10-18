@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from util.testcase import NRVTestCase
+from util.testcase import SharedSandboxTestCase
 from osaf.pim import *
 from datetime import *
 from repository.item.Item import Item
@@ -23,18 +23,11 @@ Tests for domain model support of edit/update workflows.
 TODO: lastModifiedBy support
 """
 
-class UpdateTestCase(NRVTestCase):
+class UpdateTestCase(SharedSandboxTestCase):
     def setUp(self):
-        if not hasattr(type(self), 'view'):
-            super(UpdateTestCase, self).setUp()
-            type(self).view = self.view
-            
-        self.sandbox = Item("sandbox", self.view, None)
+        super(UpdateTestCase, self).setUp()
+        self.view = self.sandbox.itsView
         
-    def tearDown(self):
-        self.sandbox.delete(recursive=True)
-
-
     def testInitial(self):
         item = ContentItem(itsParent=self.sandbox)
         
