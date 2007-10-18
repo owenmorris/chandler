@@ -632,7 +632,7 @@ def makeSummaryBlocks(parcel):
 
     whoColumn = makeColumnAndIndexes('SumColWho',
         heading=_(u'Who'),
-        width=100,
+        width=85,
         scaleColumn = wxGrid.Grid.GRID_COLUMN_SCALABLE,
         readOnly=True,
         indexName='%s.displayWho' % __name__,
@@ -666,7 +666,7 @@ def makeSummaryBlocks(parcel):
 
     dateColumn = makeColumnAndIndexes('SumColDate',
         heading = _(u'Date'),
-        width = 100,
+        width = 115,
         scaleColumn = wxGrid.Grid.GRID_COLUMN_SCALABLE,
         readOnly = True,
         attributeName = 'displayDate',
