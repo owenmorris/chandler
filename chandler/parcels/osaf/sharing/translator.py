@@ -2442,7 +2442,7 @@ class DumpTranslator(SharingTranslator):
                 record.isDefault:
                 ns = schema.ns("osaf.pim", self.rv)
 
-                oldAccount = ns.currentOutgoingAccount.item
+                oldAccount = getattr(ns.currentOutgoingAccount, "item", None)
 
                 if oldAccount and not oldAccount.host.strip():
                     # The current account is empty
@@ -2462,7 +2462,9 @@ class DumpTranslator(SharingTranslator):
         else:
             fromAddress = None
 
-        isDefault = ns.currentOutgoingAccount.item == account and 1 or 0
+        currentOutgoing = getattr(ns.currentOutgoingAccount, "item", None)
+
+        isDefault = currentOutgoing == account and 1 or 0
 
         yield model.SMTPAccountRecord(
             account,
@@ -2515,7 +2517,7 @@ class DumpTranslator(SharingTranslator):
                 record.isDefault:
                 ns = schema.ns("osaf.pim", self.rv)
 
-                oldAccount = ns.currentIncomingAccount.item
+                oldAccount = getattr(ns.currentIncomingAccount, "item", None)
 
                 if oldAccount and not oldAccount.host.strip():
                     # The current account is empty
@@ -2536,7 +2538,9 @@ class DumpTranslator(SharingTranslator):
         else:
             replyToAddress = None
 
-        isDefault = ns.currentIncomingAccount.item == account and 1 or 0
+        currentIncoming = getattr(ns.currentIncomingAccount, "item", None)
+
+        isDefault = currentIncoming == account and 1 or 0
 
         yield model.IMAPAccountRecord(
             account,
@@ -2625,7 +2629,7 @@ class DumpTranslator(SharingTranslator):
                 record.isDefault:
                 ns = schema.ns("osaf.pim", self.rv)
 
-                oldAccount = ns.currentIncomingAccount.item
+                oldAccount = getattr(ns.currentIncomingAccount, "item", None)
 
                 if oldAccount and not oldAccount.host.strip():
                     # The current account is empty
@@ -2656,7 +2660,9 @@ class DumpTranslator(SharingTranslator):
         else:
             seenUIDS = None
 
-        isDefault = ns.currentIncomingAccount.item == account and 1 or 0
+        currentIncoming = getattr(ns.currentIncomingAccount, "item", None)
+
+        isDefault = currentIncoming == account and 1 or 0
 
         yield model.POPAccountRecord(
             account,
