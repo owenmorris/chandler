@@ -93,9 +93,12 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
 
         pacific = view.tzinfo.getInstance("America/Los_Angeles")
         now = timemachine.getNow(pacific)
-        # make sure to use eleven PM if the current time is AM, so recurring
-        # events don't get auto-triaged to NOW
-        eleven = datetime.time(11 if now.hour > 12 else 23, 0, tzinfo=pacific)
+        # try to make sure that recurring events don't get auto-triaged to NOW.
+        # this is somewhat tricky, since there are THISANDFUTURE changes of
+        # startTime in some code. So, we go ahead and make sure we set 11PM
+        # for times between 5AM and 5PM, and 11AM otherwise. 
+        eleven = datetime.time(23 if 5 < now.hour < 17 else 11,
+                               0, tzinfo=pacific)
         
         self.elevenToday = datetime.datetime.combine(now.date(), eleven)
         
