@@ -35,7 +35,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "454" # stearns: triage column auto-width
+SCHEMA_VERSION = "455" # grant: change ReminderTimer's contents in mainblocks.py
 
 logger = None # initialized in initLogging()
 
