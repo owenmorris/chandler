@@ -140,7 +140,7 @@ def makeMainView(parcel):
         ToolBarItem.template('ApplicationBarSyncButton',
             event = main.SyncAll,
             bitmap = 'ApplicationBarSync.png',
-            title = _(u'Sync All'),
+            title = _(u'Sync'),
             helpString = _(u'Sync all shared collections and download new messages')),
         ToolBarItem.template('ApplicationBarNewButton',
             event = main.NewItem,
@@ -190,22 +190,13 @@ def makeMainView(parcel):
                 toolBarItemKind = 'QuickEntry',
                 size = SizeType (quickEntryWidth,-1),
                 helpString = _(u'Quick entry field: enter search string, or command beginning with "/"'))
-    # ToolBar tools are larger on Linux than other platforms
-    if wx.Platform != '__WXGTK__':
-        appBarBlocks.extend((
-            quickEntryItem,
-            ToolBarItem.template('ApplicationSeparator4',
-                toolBarItemKind = 'Separator'),
-            sendToolBarItem,
-        ))
-    else:
-        # for Linux move "Send" to the left of the quick-entry field
-        appBarBlocks.extend((
-            sendToolBarItem,
-            ToolBarItem.template('ApplicationSeparator4',
-                toolBarItemKind = 'Separator'),
-            quickEntryItem
-        ))
+    # put "Send" to the left of the quick-entry field
+    appBarBlocks.extend((
+        sendToolBarItem,
+        ToolBarItem.template('ApplicationSeparator4',
+            toolBarItemKind = 'Separator'),
+        quickEntryItem
+    ))
 
     ApplicationBar = ToolBar.template(
         'ApplicationBar',
