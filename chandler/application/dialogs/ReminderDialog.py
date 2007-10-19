@@ -272,6 +272,9 @@ class ReminderDialog(wx.Frame):
         results = []
         for index in range(listCtrl.GetItemCount()):
             if not selectedOnly or listCtrl.GetItemState(index, wx.LIST_STATE_SELECTED):
-                results.append(self.remindersInList[index])
+                entryTuple = self.remindersInList[index]
+                if (not pim.isDead(entryTuple[1]) and
+                    not pim.isDead(entryTuple[2])):
+                    results.append(entryTuple)
         return results
 

@@ -47,11 +47,6 @@ def makeMainView(parcel):
     # So we're moving to a smaller default size. See bug 4718 for complete discussion.
     defaultChandlerSize = SizeType (970, 685)
     
-    ReminderTimer.update(
-        parcel, 'ReminderTimer',
-        event = main.ReminderTime,
-        contents = pim_ns.allFutureReminders)
-
     SidebarBranchPointDelegateInstance = SidebarBranchPointDelegate.update(
         parcel, 'SidebarBranchPointDelegateInstance',
         calendarTemplatePath = 'osaf.views.main.CalendarSummaryViewTemplate',
@@ -232,7 +227,7 @@ def makeMainView(parcel):
             StatusBar.template('StatusBar'),
             ReminderTimer.template('ReminderTimer',
                                    event = main.ReminderTime,
-                                   contents=pim_ns.allFutureReminders),
+                                   contents=pim_ns.allReminders),
             ApplicationBar,
             SplitterWindow.template('SidebarSplitterWindow',
                 border = RectType(4, 0, 0, 0),
