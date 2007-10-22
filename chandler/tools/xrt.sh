@@ -22,11 +22,8 @@ Xephyr :1 -ac -br -screen 1280x1024&
 
 # Start metacity and an auxiliary console
 metacity --display=:1&
-DISPLAY=:1 gnome-terminal&
+xterm -sb -rightbar -display :1&
 
-# Now launch sleep_xrt.sh which simply calls rt.py and sleeps a long
-# time so you can read the results at your leasure.
-# Note that I haven't been able to figure out this sleep thing without
-# the sleep_xrt.sh script.
-DISPLAY=:1 gnome-terminal --geometry=-0-30 --working-directory=`pwd` --command="./tools/sleep_xrt.sh $*"&
-
+# Now run the actual tests and sleep a long time so you can read the results
+# from the terminal.
+xterm -sb -rightbar -display :1 -geometry -0-30 -e "cd `pwd` && ./tools/rt.py $* && sleep 7d || sleep 7d"&
