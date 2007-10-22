@@ -91,10 +91,12 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
     
                 if err.args[0] in ssl.unknown_issuer:
                     d = ssl.askTrustServerCertificate(
+                        err.host,
                         err.untrustedCertificates[0], 
                         retry)
                 else:
                     d = ssl.askIgnoreSSLError(
+                        err.host,
                         err.untrustedCertificates[0], 
                         err.args[0], 
                         retry)
@@ -108,8 +110,9 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
                 retry = lambda: True
         
                 d = ssl.askIgnoreSSLError(
+                    err.expectedHost,
                     err.pem, 
-                    messages.SSL_HOST_MISMATCH % {'expectedHost': err.expectedHost, 'actualHost': err.actualHost},
+                    messages.SSL_HOST_MISMATCH % {'actualHost': err.actualHost},
                     retry)
 
                 if not waitForDeferred(d):
@@ -303,10 +306,14 @@ class TestChandlerServerHandle(ChandlerServerHandle):
                 # Weird, huh? Welcome to the world of wx...
                 callMethodInUIThread(self.callback, result)
                 if err.args[0] in ssl.unknown_issuer:
-                    d = ssl.askTrustServerCertificate(err.untrustedCertificates[0], self.reconnect)
+                    d = ssl.askTrustServerCertificate(err.host,
+                                                      err.untrustedCertificates[0],
+                                                      self.reconnect)
                 else:
-                    d = ssl.askIgnoreSSLError(err.untrustedCertificates[0],
-                                              err.args[0], self.reconnect)
+                    d = ssl.askIgnoreSSLError(err.host,
+                                              err.untrustedCertificates[0],
+                                              err.args[0],
+                                              self.reconnect)
 
                 waitForDeferred(d)
 
@@ -324,10 +331,10 @@ class TestChandlerServerHandle(ChandlerServerHandle):
             # the progress dialog will also kill the SSL error dialog.
             # Weird, huh? Welcome to the world of wx...
             callMethodInUIThread(self.callback, result)
-            d = ssl.askIgnoreSSLError(err.pem,
+            d = ssl.askIgnoreSSLError(err.expectedHost,
+                                      err.pem,
                                       messages.SSL_HOST_MISMATCH % \
-                                        {'expectedHost': err.expectedHost,
-                                        'actualHost': err.actualHost},
+                                        {'actualHost': err.actualHost},
                                       self.reconnect)
             waitForDeferred(d)
 

@@ -597,10 +597,12 @@ class SMTPClient(object):
             try:
                 if not dryRun:
                     if err.args[0] in ssl.unknown_issuer:
-                        d = ssl.askTrustServerCertificate(err.untrustedCertificates[0],
+                        d = ssl.askTrustServerCertificate(err.host,
+                                                          err.untrustedCertificates[0],
                                                           self.reconnect)
                     else:
-                        d = ssl.askIgnoreSSLError(err.untrustedCertificates[0],
+                        d = ssl.askIgnoreSSLError(err.host,
+                                                  err.untrustedCertificates[0],
                                                   err.args[0],
                                                   self.reconnect)
                         
@@ -614,10 +616,10 @@ class SMTPClient(object):
 
         elif isinstance(err, WrongHost):
             if not dryRun:
-                d = ssl.askIgnoreSSLError(err.pem,
+                d = ssl.askIgnoreSSLError(err.expectedHost,
+                                          err.pem,
                                           messages.SSL_HOST_MISMATCH % \
-                                            {'expectedHost': err.expectedHost, 
-                                             'actualHost': err.actualHost},
+                                            {'actualHost': err.actualHost},
                                           self.reconnect)
 
                 d.addCallback(lambda dummy: True)

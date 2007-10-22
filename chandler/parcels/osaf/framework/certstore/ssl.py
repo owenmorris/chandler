@@ -300,9 +300,15 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
         try:
             wrapper.TLSProtocolWrapper.dataReceived(self, data)
         except M2Crypto.BIO.BIOError, e:
+            if self.isClient:
+                host = self.transport.addr[0]
+            else:
+                host = self.transport.getPeer().host
+
             if e.args[1] == 'certificate verify failed':
-                raise Utility.CertificateVerificationError(e.args[0], e.args[1],
-                                                   self.untrustedCertificates)
+                raise Utility.CertificateVerificationError(host,
+                                                           e.args[0], e.args[1],
+                                                           self.untrustedCertificates)
             raise
 
 
@@ -388,7 +394,7 @@ def connectTCP(host, port, factory, repositoryView,
                               bindAddress)    
 
 @runInUIThread
-def askTrustServerCertificate(pem, reconnect):
+def askTrustServerCertificate(host, pem, reconnect):
     """
     Ask user if they would like to trust the certificate that was returned by
     the server. This will only happen if the certificate is not already
@@ -397,6 +403,7 @@ def askTrustServerCertificate(pem, reconnect):
     @note: If you want to reconnect on background thread, pass in a dummy
            reconnect and reconnect manually after receiving True.
     
+    @param host:      The host we think we are connected with.
     @param pem:       The certificate in PEM format.
     @param reconnect: The reconnect callback that will be called if the
                       user chooses to trust the certificate.
@@ -410,6 +417,7 @@ def askTrustServerCertificate(pem, reconnect):
     untrustedCertificate = certificate.findCertificate(repositoryView, pem)
     dlg = dialogs.TrustServerCertificateDialog(wx.GetApp().mainFrame,
                                                x509,
+                                               host,
                                                untrustedCertificate)
     try:
         if dlg.ShowModal() == wx.ID_OK:
@@ -440,7 +448,7 @@ def askTrustServerCertificate(pem, reconnect):
 
 
 @runInUIThread
-def askIgnoreSSLError(pem, err, reconnect):
+def askIgnoreSSLError(host, pem, err, reconnect):
     """
     Ask user if they would like to ignore an error with the SSL connection,
     and if so, reconnect automatically.
@@ -452,6 +460,7 @@ def askIgnoreSSLError(pem, err, reconnect):
     @note: If you want to reconnect on background thread, pass in a dummy
            reconnect and reconnect manually after receiving True.
     
+    @param host:      The host we think we are connected with.
     @param pem:       The certificate with which we noticed the error (the
                       error could be in the certificate itself, or it could be
                       a mismatch between the certificate and the server).
@@ -464,6 +473,7 @@ def askIgnoreSSLError(pem, err, reconnect):
     x509 = X509.load_cert_string(pem)
     dlg = dialogs.IgnoreSSLErrorDialog(wx.GetApp().mainFrame,
                                        x509,
+                                       host,
                                        err)
     try:
         if dlg.ShowModal() == wx.ID_OK:

@@ -512,9 +512,10 @@ class AbstractDownloadClient(object):
                     callMethodInUIThread(self.callback, (2, None))
 
                 if err.args[0] in ssl.unknown_issuer:
-                    d = ssl.askTrustServerCertificate(err.untrustedCertificates[0], self.reconnect)
+                    d = ssl.askTrustServerCertificate(err.host, err.untrustedCertificates[0], self.reconnect)
                 else:
-                    d = ssl.askIgnoreSSLError(err.untrustedCertificates[0],
+                    d = ssl.askIgnoreSSLError(err.host,
+                                              err.untrustedCertificates[0],
                                               err.args[0],
                                               self.reconnect)
                 
@@ -539,10 +540,10 @@ class AbstractDownloadClient(object):
                 # Weird, huh? Welcome to the world of wx...
                 callMethodInUIThread(self.callback, (2, None))
 
-            d = ssl.askIgnoreSSLError(err.pem,
+            d = ssl.askIgnoreSSLError(err.expectedHost,
+                                      err.pem,
                                       messages.SSL_HOST_MISMATCH % \
-                                        {'expectedHost': err.expectedHost,
-                                         'actualHost': err.actualHost},
+                                        {'actualHost': err.actualHost},
                                       self.reconnect)
 
             d.addCallback(lambda dummy: True)

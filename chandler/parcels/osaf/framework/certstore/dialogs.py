@@ -126,12 +126,13 @@ class TrustServerCertificateDialog(wx.Dialog):
     certificates either permanently or until program exit.
     """
     
-    def __init__(self, parent, x509, storedUntrusted, size=wx.DefaultSize,
+    def __init__(self, parent, x509, host, storedUntrusted, size=wx.DefaultSize,
      pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER):
         """
         Initialize dialog.
 
         @param x509:            The certificate the site returned.
+        @param host:            The host we think we are connected with.
         @param storedUntrusted: The certificate (if any) that is already stored
                                 in the repository but is not trusted.
         """ 
@@ -155,9 +156,11 @@ class TrustServerCertificateDialog(wx.Dialog):
         # Static text
 
         if storedUntrusted is None:
-            message = _(u'Do you want to trust this certificate?\nSHA1 fingerprint: %(fingerprint)s') % {'fingerprint': utils.fingerprint(x509)}
+            message = _(u'Host: %(host)s.\nDo you want to trust this certificate?\nSHA1 fingerprint: %(fingerprint)s') % \
+                       {'host': host, 'fingerprint': utils.fingerprint(x509)}
         else:
-            message = _(u'This certificate is already known but not trusted.\nDo you want to trust this certificate now?\nSHA1 fingerprint: %(fingerprint)s') % {'fingerprint': utils.fingerprint(x509)}
+            message = _(u'Host: %(host)s.\nThis certificate is already known but not trusted.\nDo you want to trust this certificate now?\nSHA1 fingerprint: %(fingerprint)s') % \
+                       {'host': host, 'fingerprint': utils.fingerprint(x509)}
         label = wx.StaticText(self, -1, message)
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
@@ -236,12 +239,13 @@ class IgnoreSSLErrorDialog(wx.Dialog):
     by choosing to ignore errors.
     """
 
-    def __init__(self, parent, x509, err, size=wx.DefaultSize,
+    def __init__(self, parent, x509, host, err, size=wx.DefaultSize,
      pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER):
         """
         Initialize dialog.
 
         @param x509: The certificate the site returned.
+        @param host: The host we think we are connected with.
         @param err:  The verification error code
         """ 
 
@@ -268,7 +272,8 @@ class IgnoreSSLErrorDialog(wx.Dialog):
             errString = err
         except AttributeError:
             errString = errors.getCertificateVerifyErrorString(err)
-        message = _(u'There was an error with this SSL connection.\nThe error was: %(sslError)s.\nIgnoring this error may be dangerous!\nSHA1 fingerprint: %(fingerprint)s') % {'sslError': errString, 'fingerprint': utils.fingerprint(x509)}
+        message = _(u'There was an error with this SSL connection.\nHost: %(host)s.\nThe error was: %(sslError)s.\nIgnoring this error may be dangerous!\nSHA1 fingerprint: %(fingerprint)s') % \
+                   {'host': host, 'sslError': errString, 'fingerprint': utils.fingerprint(x509)}
         label = wx.StaticText(self, -1, message)
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 

@@ -70,5 +70,5 @@ ACCOUNT_PREFERENCES = _(u"Account Preferences")
 ACCOUNT = _(u"%(accountName)s Account")
 
 # SSL
-SSL_HOST_MISMATCH = _(u'Peer certificate does not match host, expected %(expectedHost)s, got %(actualHost)s')
+SSL_HOST_MISMATCH = _(u'Peer certificate does not match host, got %(actualHost)s')
 

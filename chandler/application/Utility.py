@@ -930,16 +930,18 @@ class CertificateVerificationError(Exception):
     An error that will be raised when, as part of an SSL/TLS connection
     attempt, the X.509 certificate returned by the peer does not verify.
     """
-    def __init__(self, code, message, untrustedCertificates):
+    def __init__(self, host, code, message, untrustedCertificates):
         """
         Inialize.
         
+        @param host:                  Host we think we are connected to.
         @param code:                  The error code.
         @param message:               The error string. 
         @param untrustedCertificates: List of untrusted certificates in PEM
                                       format.
         """
         Exception.__init__(self, code, message)
+        self.host = host
         self.untrustedCertificates = untrustedCertificates
         
 
