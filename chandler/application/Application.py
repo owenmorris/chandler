@@ -1348,6 +1348,7 @@ class StartupSplash(wx.Frame):
     def __init__(self, parent, bmp):
         padding = 7     # padding under and right of the progress percent text (in pixels)
         fontsize = 10   # font size of the progress text (in pixels)
+        self.progressWrap = 210 # If progress message is longer than this, it gets wrapped
         
         super(StartupSplash, self).__init__(parent=parent,
                                             title=_(u'Chandler starting...'),
@@ -1394,7 +1395,7 @@ class StartupSplash(wx.Frame):
         sizer.Add(text2, 1,  wx.ALIGN_CENTER)
         text2.SetFont(font)
 
-        # Add OSAF text
+        # Add OSAF text, this also sets window width, being the longest string
         text3 = wx.StaticText(self, -1, (u"Open Source Applications Foundation"))
         text3.SetBackgroundColour(wx.WHITE)
         sizer.Add(text3, 1,  wx.ALIGN_CENTER)
@@ -1413,6 +1414,7 @@ class StartupSplash(wx.Frame):
         progressSizer.Add((padding, padding), 1)
         progressSizer.Add(self.progressText, 0, wx.ALIGN_CENTER_HORIZONTAL)
         self.progressText.SetFont(font)
+        self.progressText.Wrap(self.progressWrap)
 
         # Create the text box for the "%" display
         self.progressPercent = wx.StaticText(self, -1, style=wx.ALIGN_RIGHT)
@@ -1420,6 +1422,12 @@ class StartupSplash(wx.Frame):
         progressSizer.Add(self.progressPercent, 1, wx.ALIGN_RIGHT | wx.RIGHT, padding)
         self.progressPercent.SetFont(font)
         
+        # Add extra whitespace below for wrapping progress text
+        text4 = wx.StaticText(self, -1, "")
+        text4.SetBackgroundColour(wx.WHITE)
+        sizer.Add(text4, 1,  wx.ALIGN_CENTER)
+        text4.SetFont(font)
+
         self.workingTicks = 0
         self.completedTicks = 0
         self.message = None
@@ -1438,8 +1446,9 @@ class StartupSplash(wx.Frame):
         else:
             message = self.message
         self.progressText.SetLabel(message)
-        percentString = _(u"%(percent)d%%") % {'percent' : self.completedTicks}
+        percentString = u"%d%%" % self.completedTicks
         self.progressPercent.SetLabel(percentString)
+        self.progressText.Wrap(self.progressWrap)
 
         self.Layout()
         if wx.Platform == '__WXMSW__':
