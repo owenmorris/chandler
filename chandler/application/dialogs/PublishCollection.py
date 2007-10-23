@@ -562,6 +562,8 @@ class PublishCollectionDialog(wx.Dialog):
         else:
             share = sharing.getShare(self.collection)
 
+        msg = _(u"Give out the URLs below to invite others to subscribe to:")
+        self._showStatus("\n" + msg + "\n")
         urlString = "\n\n".join(sharing.getLabeledUrls(share))
         self._showStatus("\n%s\n" % urlString)
 

@@ -23,7 +23,7 @@ from application.AboutBox import AboutBox
 from application.Application import wxBlockFrameWindow
 from application.dialogs import ( AccountPreferences, PublishCollection,
     SubscribeCollection, RestoreShares, autosyncprefs, TurnOnTimezones,
-    ActivityViewer, Progress
+    ActivityViewer, Progress, Invite
 )
 
 from repository.item.Item import MissingClass
@@ -1307,18 +1307,14 @@ class MainView(View):
                                     not Globals.options.offline and \
                                     sharing.isShared(collection)
 
-    def onCopyCollectionURLEvent(self, event):
+    def onCollectionInviteEvent(self, event):
         collection = self.getSidebarSelectedCollection()
         if collection is not None:
             share = sharing.getShare(collection)
             if share is not None:
-                urlString = (os.linesep * 2).join(sharing.getLabeledUrls(share))
-                gotClipboard = wx.TheClipboard.Open()
-                if gotClipboard:
-                    wx.TheClipboard.SetData(wx.TextDataObject(unicode(urlString)))
-                    wx.TheClipboard.Close()
+                Invite.Show(collection=collection)
 
-    def onCopyCollectionURLEventUpdateUI(self, event):
+    def onCollectionInviteEventUpdateUI(self, event):
         enable = False
         collection = self.getSidebarSelectedCollection()
         if collection is not None:

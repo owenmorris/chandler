@@ -260,7 +260,7 @@ def makeMainEvents(parcel):
     BlockEvent.template('ImportICalendar').install(parcel)
     BlockEvent.template('ExportICalendar').install(parcel)
 
-    BlockEvent.template('CopyCollectionURL').install(parcel)
+    BlockEvent.template('CollectionInvite').install(parcel)
 
     BlockEvent.template('TakeOnlineOffline',
                        commitAfterDispatch = True).install(parcel)
