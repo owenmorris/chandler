@@ -87,14 +87,15 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
             if self.hoverDate != value:
                 self.hoverDate = value
                 self.Refresh()
-        else:
+        elif self.hoverDate is not None:
             self.hoverDate = None
+            self.Refresh()
 
         # only allow drag and drop of items
         if self.GetDraggedFromWidget() is None:
             return wx.DragNone
         else:
-            return dragResult
+            return wx.DragMove
 
     def AddItems(self, itemList):
         """
@@ -120,6 +121,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
         Override this to perform an action when hovering terminates.
         """
         self.hoverDate = None
+        self.Refresh()
 
     def __init__(self, *arguments, **keywords):
         super (wxMiniCalendar, self).__init__(*arguments, **keywords)
