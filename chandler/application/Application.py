@@ -461,7 +461,7 @@ class wxApplication (wx.App):
             options.getPassword = getPassword
             view = Utility.initRepository(repoDir, options)
         except RepositoryVersionError, e:
-            if showMigrationWindow(schemaError=True):
+            if showSchemaWindow():
                 options.create = True
                 view = Utility.initRepository(repoDir, options)
             else:
@@ -478,7 +478,7 @@ class wxApplication (wx.App):
         # Verify Schema Version
         verify, repoVersion, schemaVersion = Utility.verifySchema(view)
         if not verify:
-            if showMigrationWindow(schemaError=True):
+            if showSchemaWindow():
                 # Blow away the repository
                 self.repository.close()
                 options.create = True
@@ -1478,13 +1478,20 @@ def checkPlatform():
         sys.exit(1)
 
 
-def showMigrationWindow(schemaError=False):
+def showSchemaWindow():
     from application.dialogs.UpgradeDialog import UpgradeDialog
 
-    if schemaError:
-        logger.info("Schema version of repository does not match Chandler's")
+    logger.info("Schema version of repository does not match Chandler's")
 
-    response = UpgradeDialog.run(schemaError=schemaError)
+    response = UpgradeDialog.run()
+
+    return response == wx.OK
+
+
+def showMigrationWindow():
+    from application.dialogs.UpgradeDialog import MigrationDialog
+
+    response = MigrationDialog.run()
 
     return response == wx.OK
 

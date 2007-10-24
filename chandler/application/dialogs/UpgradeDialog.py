@@ -20,14 +20,18 @@ Provides the user with the option of starting Chandler with reload options
 
 # borrowed almost verbatim from StartupOptionsDialog - any mistakes are mine (bear)
 
+import webbrowser
 import os, sys, wx, glob
 from application.Utility import locateProfileDir
 from i18n import ChandlerSafeTranslationMessageFactory as _
 
+MIGRATION_URL          = u'http://chandlerproject.org/migration'
+MIGRATION_DIALOG_WIDTH = 450
+
 class UpgradeDialog(wx.Dialog):
     @classmethod
-    def run(cls, exception=None, schemaError=False):
-        dialog = UpgradeDialog(exception, schemaError=schemaError)
+    def run(cls, exception=None):
+        dialog = UpgradeDialog(exception)
 
         result = dialog.ShowModal()
 
@@ -35,7 +39,7 @@ class UpgradeDialog(wx.Dialog):
 
         return result
 
-    def __init__(self, exception=None, schemaError=False):
+    def __init__(self, exception=None):
         # Instead of calling wx.Dialog.__init__ we precreate the dialog
         # so we can set an extra style that must be set before
         # creation, and then we create the GUI dialog using the Create
@@ -58,12 +62,8 @@ class UpgradeDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.AddSpacer((0, 3)) 
 
-        if schemaError:
-            staticText    = _(u"Your repository was created by an incompatible version of Chandler.")
-            normalCaption = _(u'Would you like to remove all data from your repository?')
-        else:
-            staticText    = _(u"This new version of Chandler is incompatible with your data. Would you like to:")
-            normalCaption = _(u"Start up with a fresh Chandler. (Any data you have from a previous version of Chandler will be lost.)")
+        staticText    = _(u"Your repository was created by an incompatible version of Chandler.")
+        normalCaption = _(u'Would you like to remove all data from your repository?')
 
         self.msgText = wx.StaticText(self, -1, staticText)
         sizer.Add(self.msgText, flag=wx.ALL, border=5)
@@ -77,7 +77,7 @@ class UpgradeDialog(wx.Dialog):
         sizer.Add(self.exitReload, flag=wx.ALL, border=5)
         self.exitReload.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
 
-        self.linkText = wx.HyperlinkCtrl(self, -1, _(u'Migration Directions'), u'http://chandlerproject.org/migration')
+        self.linkText = wx.HyperlinkCtrl(self, -1, _(u'Migration Directions'), MIGRATION_URL)
         sizer.Add(self.linkText, flag=wx.ALL, border=5)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
@@ -98,4 +98,85 @@ class UpgradeDialog(wx.Dialog):
             result = wx.OK
 
         self.EndModal(result)
+
+
+class MigrationDialog(wx.Dialog):
+    @classmethod
+    def run(cls, exception=None):
+        dialog = MigrationDialog(exception)
+
+        result = dialog.ShowModal()
+
+        dialog.Destroy()
+
+        return result
+
+    def __init__(self, exception=None):
+        # Instead of calling wx.Dialog.__init__ we precreate the dialog
+        # so we can set an extra style that must be set before
+        # creation, and then we create the GUI dialog using the Create
+        # method.
+        pre = wx.PreDialog()
+        style = wx.CAPTION
+        pre.Create(None, -1, _(u"Incompatible Data"),
+                   wx.DefaultPosition, wx.DefaultSize, style)
+
+        # This next step is the most important, it turns this Python
+        # object into the real wrapper of the dialog (instead of pre)
+        # as far as the wxPython extension is concerned.
+        self.this = pre.this
+
+        icon = wx.Icon("Chandler.egg-info/resources/icons/Chandler_32.ico", wx.BITMAP_TYPE_ICO)
+        self.SetIcon(icon)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.AddSpacer((0, 3)) 
+
+        self.msgText1 = wx.StaticText(self, -1, _(u'Your data was created by an incompatible version of Chandler. In order to proceed, all of your existing data must be deleted.'))
+        self.msgText1.Wrap(MIGRATION_DIALOG_WIDTH)
+        sizer.Add(self.msgText1, flag=wx.ALL, border=5)
+
+        self.msgText2 = wx.StaticText(self, -1, _(u'To preserve your data, select "Move Data" to follow instructions on how to move your data from one version of Chandler to another.'))
+        self.msgText2.Wrap(MIGRATION_DIALOG_WIDTH)
+        sizer.Add(self.msgText2, flag=wx.ALL, border=5)
+
+        box = wx.BoxSizer(wx.HORIZONTAL)
+
+        cancelButton = wx.Button(self, wx.ID_CANCEL)
+        cancelButton.Bind(wx.EVT_BUTTON, self.onCancelButton)
+        box.Add(cancelButton, flag=wx.ALL, border=5)
+
+        box.Add((0,0), proportion=1, flag=wx.ALL)
+
+        moveButton = wx.Button(self, wx.HELP, _(u"&Move Data"))
+        moveButton.Bind(wx.EVT_BUTTON, self.onMoveDataButton)
+        box.Add(moveButton, flag=wx.ALL, border=5)
+
+        #self.linkText = wx.HyperlinkCtrl(self, -1, _(u'Move Data'), MIGRATION_URL)
+        #box.Add(self.linkText, flag=wx.ALL, border=5)
+
+        deleteButton = wx.Button(self, wx.OK, _(u"&Delete Data"))
+        deleteButton.Bind(wx.EVT_BUTTON, self.onDeleteDataButton)
+        box.Add(deleteButton, flag=wx.ALL, border=5)
+
+        sizer.Add(box, 1, flag=wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, border=5)
+
+        self.SetSizer(sizer)
+        self.SetAutoLayout(True)
+        sizer.Fit(self)
+        self.CenterOnScreen()
+
+        moveButton.SetDefault()
+        moveButton.SetFocus()
+
+    def onCancelButton(self, event):
+        self.EndModal(wx.CANCEL)
+
+    def onMoveDataButton(self, event):
+        webbrowser.open(MIGRATION_URL)
+        self.EndModal(wx.CANCEL)
+
+    def onDeleteDataButton(self, event):
+        self.EndModal(wx.OK)
+
 
