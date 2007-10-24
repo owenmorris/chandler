@@ -22,9 +22,7 @@ build: expand apply
           install_lib --force
 
 else
-ifeq ($(OS),Darwin)
-    WITH_OPENSSL=--openssl=$(BUILD_ROOT)/$(SNAP)
-endif
+WITH_OPENSSL=--openssl=$(BUILD_ROOT)/$(SNAP)
 
 build: expand apply
 	cd $(SRC); \

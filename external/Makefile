@@ -18,8 +18,7 @@ BUILD_ONLY_SYSTEMS=swig
 
 SYSTEMS=db \
         icu \
-        $(OPENSSL_OSX) \
-        $(OPENSSL_WIN) \
+        $(OPENSSL) \
         $(READLINE_OSX) \
         $(READLINE_WIN) \
         $(OPENJDK) \

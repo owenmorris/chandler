@@ -1,8 +1,8 @@
 
 VERSION=0.9.8d
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
-OPENSSL=$(BUILD_ROOT)/openssl
-SRC=$(OPENSSL)/openssl-$(VERSION)
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
+OPENSSLSRC=$(BUILD_ROOT)/openssl
+SRC=$(OPENSSLSRC)/openssl-$(VERSION)
 BUILD=build_$(SNAP)
 TARBALL=openssl-$(SNAP)-$(RELVER).tar.gz
 
@@ -56,7 +56,7 @@ openssl: apply $(SRC)/$(BUILD)/ms/$(DOMASM) config masm ntdll copy
 
 # Need to put the files into M2Crypto dir so that Windows finds our versions
 binaries: strip
-	tar -C $(BUILD_ROOT) -cvzf $(OPENSSL)/$(TARBALL) \
+	tar -C $(BUILD_ROOT) -cvzf $(OPENSSLSRC)/$(TARBALL) \
           $(SNAP)/$(SITE)/M2Crypto/ssleay32.dll \
           $(SNAP)/$(SITE)/M2Crypto/libeay32.dll
 
@@ -83,7 +83,7 @@ tests:
 ifeq ($(OS),Darwin)
 
 binaries: strip
-	tar -C $(BUILD_ROOT) -cvzf $(OPENSSL)/$(TARBALL) \
+	tar -C $(BUILD_ROOT) -cvzf $(OPENSSLSRC)/$(TARBALL) \
           $(SNAP)/lib/libcrypto.0.9.8.dylib \
           $(SNAP)/lib/libcrypto.dylib \
           $(SNAP)/lib/libssl.0.9.8.dylib \
@@ -92,7 +92,7 @@ binaries: strip
 else
 
 binaries: strip
-	tar -C $(BUILD_ROOT) -cvzf $(OPENSSL)/$(TARBALL) \
+	tar -C $(BUILD_ROOT) -cvzf $(OPENSSLSRC)/$(TARBALL) \
           $(SNAP)/lib/libcrypto.so.0.9.8 \
           $(SNAP)/lib/libcrypto.so \
           $(SNAP)/lib/libssl.so.0.9.8 \

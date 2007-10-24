@@ -66,7 +66,7 @@ PLATFORM=windows
 SWIG=$(PREFIX)/bin/swig/swig.exe
 UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
 READLINE_WIN=readline
-OPENSSL_WIN=openssl
+OPENSSL=openssl
 OPENJDK=openjdk
 else
 ifeq ($(OS),Darwin)
@@ -79,7 +79,7 @@ MACOSX_DEPLOYMENT_TARGET=10.4
 endif
 endif
 READLINE_OSX=readline
-OPENSSL_OSX=openssl
+OPENSSL=openssl
 PYTHON_BINDIR:=$(FRAMEWORK)/bin
 PYTHON:=$(PREFIX)/$(PYTHON_BINDIR)/$(PYTHON)
 SITE=$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
@@ -92,6 +92,7 @@ UPLOAD=builder@builds.osafoundation.org:/www/docs/external/macosx
 endif
 else
 OPENJDK=openjdk
+OPENSSL=openssl
 PYTHON_BINDIR:=bin
 PYTHON:=$(PREFIX)/$(PYTHON_BINDIR)/$(PYTHON)
 SITE=lib/python$(PYTHON_VER)/site-packages
