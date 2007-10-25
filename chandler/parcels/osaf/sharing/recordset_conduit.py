@@ -782,7 +782,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 # don't treat changes to recurrence master's triage status or
                 # lastPastOccurrence as real changes, bug 9643
-                if (item is not None and
+                if (item is not None and translator.isMajorChange(rs) and
                      (not item.hasLocalAttributeValue('inheritTo') or
                       triageFilter.sync_filter(rs) or
                       triageFixes.get(alias) == 'inbound')):
@@ -1828,3 +1828,4 @@ def updateConflicts(state, uuid):
         item = view.findUUID(uuid)
         if item is not None:
             state.updateConflicts(item)
+

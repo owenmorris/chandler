@@ -1938,6 +1938,35 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
 
 
 
+        # Regression test for bug 10799 (Ignore certain fields when marking
+        # an item unread and popping to NOW)
+        # Start over with a new item
+        item0 = pim.Note(itsView=view0)
+        ms0 = pim.MailStamp(item0)
+        ms0.add()
+        self.share0.contents.add(item0)
+        ms0.fromAddress = pim.EmailAddress.getEmailAddress(view0,
+            u"a@example.com", u"User A")
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        item1 = view1.findUUID(item0.itsUUID)
+        ms1 = pim.MailStamp(item1)
+        self.assertEquals(ms1.fromAddress.emailAddress,
+            ms0.fromAddress.emailAddress)
+        item1.read = True
+        item0.displayName = "changed"
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assertEquals(item1.displayName, "changed")
+        self.assertEquals(item1.read, False)
+        item1.read = True
+        ms0.fromAddress = pim.EmailAddress.getEmailAddress(view0,
+            u"b@example.com", u"User B")
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assertEquals(ms1.fromAddress.emailAddress,
+            ms0.fromAddress.emailAddress)
+        self.assertEquals(item1.read, True)
 
 
         self.share0.destroy() # clean up

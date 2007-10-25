@@ -17,11 +17,12 @@ from osaf import pim
 from osaf.pim import mail
 from osaf.sharing import (
     eim, model, shares, utility, accounts, conduits, cosmo, webdav_conduit,
-    recordset_conduit, eimml, ootb
+    recordset_conduit, eimml, ootb, MailMessageRecord
 )
 from utility import (splitUUID, fromICalendarDateTime, getDateUtilRRuleSet,
     code_to_triagestatus, triagestatus_to_code, getMasterAlias)
 
+from itertools import chain
 import os
 import calendar
 from email import Utils
@@ -407,6 +408,25 @@ class SharingTranslator(eim.Translator):
                 return -1 if internal else 1 # let the non-None value win
 
         return 0
+
+
+
+    ignoreFields = { MailMessageRecord : ("fromAddress", ) }
+
+    def isMajorChange(self, diff):
+        # Does this diff warrant moving to NOW and marking as Unread?
+
+        for record in chain(diff.inclusions, diff.exclusions):
+            if type(record) not in self.ignoreFields.keys():
+                return True
+            for field in record.__fields__:
+                if (not isinstance(field, eim.key) and
+                    record[field.offset] != eim.NoChange and
+                    field.name not in self.ignoreFields[type(record)]):
+                    return True
+
+        return False
+
 
 
     def obfuscate(self, text):
