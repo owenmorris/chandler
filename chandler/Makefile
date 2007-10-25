@@ -48,26 +48,24 @@ endif
 
 # When a version changes, the ARCHIVES lists below need to be updated.
 
+OPENSSL = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)2.tar.gz
+
 ifeq ($(PLATFORM),linux)
-    OPENSSL =
     OPENJDK = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b21-$(BP)2.tar.gz
     READLINE = 
 endif
 
 ifeq ($(PLATFORM),macosx)
-    OPENSSL = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)1.tar.gz
     OPENJDK = 
     READLINE = $(CHANDLERARCHIVES)/readline-$(SNAP)-5.2-$(BP)1.tar.gz
 endif
 
 ifeq ($(PLATFORM),maciosx)
-    OPENSSL = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)1.tar.gz
     OPENJDK = 
     READLINE = $(CHANDLERARCHIVES)/readline-$(SNAP)-5.2-$(BP)1.tar.gz
 endif
 
 ifeq ($(PLATFORM),windows)
-    OPENSSL = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)1.tar.gz
     OPENJDK = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b21-$(BP)2.tar.gz
     READLINE = 
 endif
