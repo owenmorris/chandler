@@ -128,7 +128,8 @@ int APIENTRY WinMain (HINSTANCE hInstance,
      */
     _putenv(_T("PYTHONPATH=") + \
             chandlerHome + _T(";") + \
-            chandlerHome + _T("\\parcels"));
+            chandlerHome + _T("\\parcels;") + \
+            chandlerHome + _T("\\localizations\\Chandler.en"));
 
     /*
      * PATH must be set because some DLLs don't get found
