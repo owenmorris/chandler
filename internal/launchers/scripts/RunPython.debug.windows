@@ -11,6 +11,8 @@ echo Using %CHANDLERBIN%\debug\bin\python_d.exe %*
 set PATH=%CHANDLERBIN%\debug\bin;%CHANDLERBIN%\debug\j2re-image\bin;%CHANDLERBIN%\debug\j2re-image\bin\client;%PATH%
 set LC_PATH=%CHANDLERBIN%\debug\share\locale
 set PYTHONPATH=%CHANDLERHOME%;%CHANDLERHOME%\parcels;%CHANDLERHOME%\localizations\Chandler.en
+set PYTHONHOME=%CHANDLERBIN%\debug
+
 if not "%PARCELPATH%"=="" set PYTHONPATH=%PYTHONPATH%;%PARCELPATH%
 
 "%CHANDLERBIN%\debug\bin\python_d.exe" %*

@@ -132,6 +132,13 @@ int APIENTRY WinMain (HINSTANCE hInstance,
             chandlerHome + _T("\\localizations\\Chandler.en"));
 
     /*
+     * PYTHONHOME must be set to prevent other values from influencing
+     * the application.
+     */
+    _putenv(_T("PYTHONHOME=") + \
+            chandlerBin);
+
+    /*
      * PATH must be set because some DLLs don't get found
      * pre XP SP1 and to find j2re DLLs
      */
