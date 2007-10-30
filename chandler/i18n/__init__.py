@@ -18,7 +18,8 @@ from types import UnicodeType, StringType
 
 __all__ = ["MessageFactory", "ChandlerMessageFactory", "NoTranslationMessageFactory",
            "SafeTranslationMessageFactory", "ChandlerSafeTranslationMessageFactory",
-           "wxMessageFactory", "getLocale", "getLocaleSet", "getImage", "getHTML"]
+           "wxMessageFactory", "getLocale", "getLocaleSet", "getOSLocale",
+           "getAvailableChandlerLocales", "getImage", "getHTML", "Message"]
 
 CHANDLER_PROJECT = u"Chandler"
 DEFAULT_CATALOG  = u"gettext.catalog"
@@ -38,6 +39,25 @@ Expose the I18nManager instance methods
 getLocaleSet = _I18nManager.getLocaleSet
 getImage = _I18nManager.getImage
 getHTML = _I18nManager.getHTML
+getOSLocale = _I18nManager.discoverLocaleSet
+
+class Message(unicode):
+    __slots__ = ('msgid', 'project', 'catalog_name')
+
+    def __new__(cls, project, catalog_name, msgid, msgstr):
+        self = unicode.__new__(cls, msgstr)
+        self.project = project
+        self.catalog_name = catalog_name
+        self.msgid = msgid
+
+        return self
+
+def getAvailableChandlerLocales():
+    """
+       Return the list of translation egg locales
+       registered for Chandler
+    """
+    return _I18nManager.getAvailableLocales(CHANDLER_PROJECT)
 
 def getLocale():
    """
@@ -46,10 +66,10 @@ def getLocale():
    return getLocaleSet()[0]
 
 
-def NoTranslationMessageFactory(defaultText):
+def NoTranslationMessageFactory(msgid):
     """
     The c{NoTranslationMessageFactory} method
-    returns the defaultText passed
+    returns the msgid passed
     in its original form. No translation is
     performed.
 
@@ -58,7 +78,7 @@ def NoTranslationMessageFactory(defaultText):
     parsed and rendered to a .pot when
     the translation is done by other means.
     """
-    return defaultText
+    return msgid
 
 
 def MessageFactory(project, catalog_name=DEFAULT_CATALOG):
@@ -94,59 +114,61 @@ def MessageFactory(project, catalog_name=DEFAULT_CATALOG):
     @return: A MessageFactory.getText function instance
     """
 
-    def getText(defaultText):
+    def getText(msgid):
         """
-        Performs a translation lookup using the defaultText as the key.
+        Performs a translation lookup using the msgid as the key.
         Translation files are stored in the gettext .mo format and
-        cached on startup. The defaultText key is looked up for
+        cached on startup. The msgid key is looked up for
         each locale in the curent locale set until a match is found.
-        If no match is found the defaultText is returned as the value.
+        If no match is found the msgid is returned as the value.
 
-        @param defaultText: the unicode or ascii default key
-        @type defaultText: c{unicode} or ASCII c{str}
+        @param msgid: the unicode or ascii default key
+        @type msgid: c{unicode} or ASCII c{str}
 
-        @rtype: unicode
-        @return: The unicode localized string for key defaultText or the
-                 defaultText if no match found
+        @rtype: c{Message} a unicode sub-class
+        @return: c{Message} object sub-class of unicode containing the
+                localization or msgid if no localization found.
         """
 
-        if type(defaultText) == StringType:
-            defaultText = unicode(defaultText)
+        if type(msgid) == StringType:
+            msgid = unicode(msgid)
 
-        assert(type(defaultText) == UnicodeType)
+        assert(type(msgid) == UnicodeType)
 
-        return _I18nManager.getText(project, catalog_name, defaultText)
+        msgstr = _I18nManager.getText(project, catalog_name, msgid)
+
+        return Message(project, catalog_name, msgid, msgstr)
 
     return getText
 
-def wxMessageFactory(defaultText):
+def wxMessageFactory(msgid):
     """
     The translation message factory for WxWidgets.
-    The wxMessageFactory is intended as shortcut to allow easy
+    The wxMessageFactory is intended as a shortcut to allow easy
     access to translations in the "wxstd" project.
 
     The "wxstd" project must have been loaded by the c{I18nManager}
     in order to access the translations. Otherwise the
-    defaultText will be returned.
+    msgid will be returned.
 
     A c{wxMessageFactory} example:
 
     >>> from i18n import wxMessageFactory as w
     >>> translatedString = w("Cancel")
 
-    @param defaultText: the unicode or ASCII default key
-    @type defaultText: ASCII c{str} or c{unicode}
+    @param msgid: the unicode or ASCII default key
+    @type msgid: ASCII c{str} or c{unicode}
 
     @rtype: unicode
-    @return: The unicode localized string for key defaultText or the
-             defaultText if no match found
+    @return: The unicode localized string for key msgid or the
+             msgid if no match found
     """
-    if type(defaultText) == StringType:
-        defaultText = unicode(defaultText)
+    if type(msgid) == StringType:
+        msgid = unicode(msgid)
 
-    assert(type(defaultText) == UnicodeType)
+    assert(type(msgid) == UnicodeType)
 
-    return _I18nManager.wxTranslate(defaultText)
+    return _I18nManager.wxTranslate(msgid)
 
 
 def SafeTranslationMessageFactory(project, catalog_name=DEFAULT_CATALOG):
@@ -193,35 +215,35 @@ def SafeTranslationMessageFactory(project, catalog_name=DEFAULT_CATALOG):
 
     mf =  MessageFactory(project, catalog_name)
 
-    def getText(defaultText):
+    def getText(msgid):
         """
-        Performs a translation lookup using the defaultText as the key.
+        Performs a translation lookup using the msgid as the key.
         Translation files are stored in the gettext .mo format and
-        cached on startup. The defaultText key is looked up for
+        cached on startup. The msgid key is looked up for
         each locale in the curent locale set until a match is found.
-        If no match is found the defaultText is returned as the value.
+        If no match is found the msgid is returned as the value.
 
-        @param defaultText: the unicode or ascii default key
-        @type defaultText: c{unicode} or ASCII c{str}
+        @param msgid: the unicode or ascii default key
+        @type msgid: c{unicode} or ASCII c{str}
 
-        @rtype: unicode
-        @return: The unicode localized string for key defaultText or the
-                 defaultText if no match found
+        @rtype: c{Message} a unicode sub-class
+        @return: c{Message} object sub-class of unicode containing the
+                localization or msgid if no localization found.
         """
-        if type(defaultText) == StringType:
-            defaultText = unicode(defaultText)
+        if type(msgid) == StringType:
+            msgid = unicode(msgid)
 
-        assert(type(defaultText) == UnicodeType)
+        assert(type(msgid) == UnicodeType)
 
         try:
-            return mf(defaultText)
+            return mf(msgid)
         except:
-            return defaultText
+            return msgid
 
     return getText
 
 
-def ChandlerMessageFactory(defaultText):
+def ChandlerMessageFactory(msgid):
     """
     The translation message factory for Chandler.
     The ChandlerMessageFactory is intended as shortcut to allow easy
@@ -240,17 +262,17 @@ def ChandlerMessageFactory(defaultText):
     >>> _ = MessageFactory(CHANDLER_PROJECT, DEFAULT_CATALOG)
     >>> translatedString = _(u"Some text for translation")
 
-    @param defaultText: the unicode or ASCII default key
-    @type defaultText: ASCII c{str} or c{unicode}
+    @param msgid: the unicode or ASCII default key
+    @type msgid: ASCII c{str} or c{unicode}
 
-    @rtype: unicode
-    @return: The unicode localized string for key defaultText or the
-             defaultText if no match found
+    @rtype: c{Message} a unicode sub-class
+    @return: c{Message} object sub-class of unicode containing the
+            localization or msgid if no localization found.
     """
-    return MessageFactory(CHANDLER_PROJECT, DEFAULT_CATALOG)(defaultText)
+    return MessageFactory(CHANDLER_PROJECT, DEFAULT_CATALOG)(msgid)
 
 
-def ChandlerSafeTranslationMessageFactory(defaultText):
+def ChandlerSafeTranslationMessageFactory(msgid):
     """
     A safe translation message factory for Chandler.
     The c{ChandlerSafeTranslationMessageFactory} is intended as
@@ -278,11 +300,11 @@ def ChandlerSafeTranslationMessageFactory(defaultText):
     >>> _ = SafeTranslationMessageFactory(CHANDLER_PROJECT, DEFAULT_CATALOG)
     >>> translatedString = _(u"Some text for translation")
 
-    @param defaultText: the unicode or ASCII default key
-    @type defaultText: ASCII c{str} or c{unicode}
+    @param msgid: the unicode or ASCII default key
+    @type msgid: ASCII c{str} or c{unicode}
 
-    @rtype: unicode
-    @return: The unicode localized string for key defaultText or the
-             defaultText if no match found
+    @rtype: c{Message} a unicode sub-class
+    @return: c{Message} object sub-class of unicode containing the
+             localization or msgid if no localization found.
     """
-    return SafeTranslationMessageFactory(CHANDLER_PROJECT, DEFAULT_CATALOG)(defaultText)
+    return SafeTranslationMessageFactory(CHANDLER_PROJECT, DEFAULT_CATALOG)(msgid)

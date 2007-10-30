@@ -176,6 +176,8 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('EditAccountPreferences').install(parcel)
 
+    BlockEvent.template('LocalePicker').install(parcel)
+
     BlockEvent.template('ProtectPasswords',
                         commitAfterDispatch = True).install(parcel)
 

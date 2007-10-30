@@ -28,6 +28,7 @@ from osaf.pim.triage import Triageable
 import logging
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
+from types import LocalizableString
 
 logger = logging.getLogger(__name__)
 
@@ -72,11 +73,11 @@ class ContentItem(Triageable):
     """
     isProxy = False
     
-    displayName = schema.One(schema.Text,
+    displayName = schema.One(LocalizableString,
         defaultValue = u"",
         indexed=True)
     body = schema.One(
-        schema.Text,
+        LocalizableString,
         indexed = True,
         defaultValue = u"",
         doc="All Content Items may have a body to contain notes.  It's "

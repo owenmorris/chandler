@@ -168,7 +168,7 @@
             <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxCheckBox" name="OUTGOING_USE_AUTH">
-              <label>&amp;Use Authentication:</label>
+              <label>&amp;Use authentication:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -670,7 +670,7 @@
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
               <size>300,-1</size>
-              <label>Chandler Server sharing</label>
+              <label>Chandler Server Sharing</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -811,7 +811,7 @@
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
               <size>300,-1</size>
-              <label>Chandler Hub sharing</label>
+              <label>Chandler Hub Sharing</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -924,7 +924,7 @@
         <object class="wxChoice" name="CHOICE_NEW_ACCOUNT">
           <size>180,-1</size>
           <content>
-            <item>Create new account...</item>
+            <item>Create New Account...</item>
           </content>
         </object>
       </object>
@@ -932,7 +932,7 @@
         <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
         <border>5</border>
         <object class="wxButton" name="BUTTON_DELETE">
-          <label>&amp;Delete account...</label>
+          <label>&amp;Delete Account...</label>
         </object>
       </object>
     </object>

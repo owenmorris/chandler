@@ -730,7 +730,7 @@ def makeSummaryBlocks(parcel):
                         miniCalendar = main.MiniCalendar,
                         activeView = True),
                     HTML.template('SummaryEmptyDashBoardView',
-                        text = _(u'<html><body><center>&nbsp;<br>&nbsp;<br>0 items</center></body></html>'),
+                        text = u'<html><body><center>&nbsp;<br>&nbsp;<br>%s</center></body></html>' % _(u'0 items'),
                         treatAsURL = False,
                         emptyContentsShow = True)
                 ]
@@ -869,7 +869,7 @@ def makeSummaryBlocks(parcel):
                         emptyContentsShow = False,
                         activeView = True),
                     HTML.template('SearchResultsEmptyDashBoardView',
-                        text = _(u'<html><body><center>&nbsp;<br>&nbsp;<br>0 items</center></body></html>'),
+                        text = u'<html><body><center>&nbsp;<br>&nbsp;<br>%s</center></body></html>' % _(u'0 items'),
                         treatAsURL = False,
                         emptyContentsShow = True)
                 ]

@@ -12,11 +12,15 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from i18n import ChandlerMessageFactory
+from i18n import MessageFactory, Message
 from application import schema
 
 from chandlerdb.schema.c import CAttribute
+from chandlerdb.persistence.c import Record
 from repository.schema.Types import UString
+
+STRING  = 0
+LSTRING = 1
 
 
 class LocalizableString(UString):
@@ -25,9 +29,39 @@ class LocalizableString(UString):
     def getFlags(self):
         return CAttribute.PURE
 
-    def makeValue(self, data):
-        return ChandlerMessageFactory(unicode(data))
+    def recognizes(self, value):
+        res = type(value) is Message
+
+        if res:
+            return True
+
+        return super(LocalizableString, self).recognizes(value)
+
+
+    def getImplementationType(self):
+        return Message
+
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
+
+        if type(value) == unicode or type(value) ==  str:
+            record += (Record.BYTE, STRING,
+                       Record.STRING, value)
+
+        else:
+            record += (Record.BYTE, LSTRING,
+                       Record.STRING, value.project,
+                       Record.STRING, value.catalog_name,
+                       Record.STRING, value.msgid)
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
-        return offset+1, ChandlerMessageFactory(data[offset])
+
+        type = data[offset]
+
+        if type == LSTRING:
+            project, catalog_name, msgid = data[offset+1:offset+4]
+            return offset+4, MessageFactory(project, catalog_name)(msgid)
+        else:
+            value = data[offset+1]
+            return offset+2, value

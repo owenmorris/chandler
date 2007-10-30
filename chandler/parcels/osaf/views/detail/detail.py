@@ -42,6 +42,7 @@ from osaf.pim.calendar import TimeZoneInfo
 from osaf.pim import ContentItem
 #import osaf.mail.sharing as MailSharing
 from repository.item.Item import Item
+from osaf.pim.types import LocalizableString
 import wx
 import logging
 import PyICU
@@ -511,7 +512,7 @@ class DetailStampButtonBlock(DetailSynchronizedBehavior,
     """
     Common base class for the stamping buttons in the Markup Bar.
     """
-    unstampedHelpString = schema.One(schema.Text, initialValue = u'')
+    unstampedHelpString = schema.One(LocalizableString, initialValue = u'')
 
     def getWatchList(self):
         # Tell us if this item's stamps change.

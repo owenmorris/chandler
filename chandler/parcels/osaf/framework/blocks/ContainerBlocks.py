@@ -22,6 +22,7 @@ from Block import (
 from osaf.pim.structs import PositionType, SizeType
 import MenusAndToolbars
 from application import schema
+from osaf.pim.types import LocalizableString
 import wx
 #import util.autolog
 
@@ -338,6 +339,6 @@ class FrameWindow (ViewContainer):
     into the block framework.
     """
     position = schema.One(PositionType, initialValue = PositionType(-1, -1))
-    windowTitle = schema.One(schema.Text, defaultValue = '')
+    windowTitle = schema.One(LocalizableString, defaultValue = '')
 
 

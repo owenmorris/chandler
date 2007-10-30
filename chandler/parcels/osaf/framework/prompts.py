@@ -37,9 +37,9 @@ def prefPrompt(message, pref, flags, resultsTable=None,
             return pref.response
         else:
             return None
-    
+
     if caption is None:
-        caption = _(u"Chandler")
+        caption = u"Chandler"
 
     return ShowMessageDialog(message, caption, flags, resultsTable, textTable)
 

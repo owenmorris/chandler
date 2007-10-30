@@ -154,6 +154,7 @@ def installParcel(parcel, oldVersion=None):
         'image/tiff': 'LobImageAttributeEditor',
         'Location': 'LocationAttributeEditor',
         'Text': 'StringAttributeEditor',
+        'LocalizableString': 'StringAttributeEditor',
         'Text+static': 'StaticStringAttributeEditor',
         'Timedelta': 'TimeDeltaAttributeEditor',
         'TimeTransparencyEnum': 'ChoiceAttributeEditor',

@@ -17,6 +17,7 @@ __parcel__ = "amazon"
 import amazon, sgmllib, wx, string
 
 from osaf.pim import ContentItem, ListCollection
+from osaf.pim.types import LocalizableString
 from repository.util.URL import URL
 from application import schema
 from i18n import MessageFactory
@@ -353,7 +354,7 @@ class AmazonItem(ContentItem):
 
 
 class DisplayNamesItem(schema.Item):
-    namesDictionary = schema.Mapping(schema.Text, defaultValue={})
+    namesDictionary = schema.Mapping(LocalizableString, defaultValue={})
 
 
 def _printBag(aBag, level):

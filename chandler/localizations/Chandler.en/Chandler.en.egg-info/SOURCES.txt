@@ -9,3 +9,13 @@ Chandler.en.egg-info/zip-safe
 Chandler.en.egg-info/locale/en/Chandler-en.mo
 Chandler.en.egg-info/locale/en/Chandler-en.po
 Chandler.en.egg-info/locale/en/Chandler.pot
+Chandler.en.egg-info/locale/en/Chandler.en/README.txt
+Chandler.en.egg-info/locale/en/Chandler.en/setup.py
+Chandler.en.egg-info/locale/en/Chandler.en/Chandler.en.egg-info/PKG-INFO
+Chandler.en.egg-info/locale/en/Chandler.en/Chandler.en.egg-info/SOURCES.txt
+Chandler.en.egg-info/locale/en/Chandler.en/Chandler.en.egg-info/dependency_links.txt
+Chandler.en.egg-info/locale/en/Chandler.en/Chandler.en.egg-info/resources.ini
+Chandler.en.egg-info/locale/en/Chandler.en/Chandler.en.egg-info/top_level.txt
+Chandler.en.egg-info/locale/en/Chandler.en/Chandler.en.egg-info/zip-safe
+Chandler.en.egg-info/locale/en/Chandler.en/Chandler.en.egg-info/locale/en/Chandler-en.mo
+Chandler.en.egg-info/locale/en/Chandler.en/Chandler.en.egg-info/locale/en/Chandler-en.po

@@ -106,8 +106,8 @@ def main():
             try:
                 logging.error("Another instance of Chandler currently has the repository open.")
                 dialog = wx.MessageDialog(None,
-                                          _(u"Another instance of Chandler currently has the repository open."),
-                                          _(u"Chandler"), wx.OK | wx.ICON_INFORMATION)
+                                          _(u"Another Chandler is already running off the same data repository."),
+                                          u"Chandler", wx.OK | wx.ICON_INFORMATION)
                 dialog.ShowModal()
                 dialog.Destroy()
             finally:
@@ -156,11 +156,11 @@ def main():
                     except:
                         # Fall back to MessageDialog
                         frames = 8
-                        line1 = _(u"Chandler encountered an unexpected problem while trying to start.\n")
+                        line1 = _(u"Start up error.\n")
                         line2 = _(u"Here are the bottom %(frames)s frames of the stack:\n") % {'frames': frames - 1}
                         shortMessage = u"".join([line1, line2, u"\n"])
                         shortMessage += unicode("".join(backtrace[-frames:]), "UTF-8", "ignore")
-                        dialog = wx.MessageDialog(None, shortMessage, _(u"Chandler"), wx.OK | wx.ICON_INFORMATION)
+                        dialog = wx.MessageDialog(None, shortMessage, u"Chandler", wx.OK | wx.ICON_INFORMATION)
                     dialog.ShowModal()
                     dialog.Destroy()
             finally:

@@ -83,7 +83,30 @@ def makeMainMenus(parcel):
         etc..
         """
         menuItems = []
-        
+
+        hoursText = {
+            # L10N: The number of visible hours to display in the Calendar week view
+            5: _(u"&5 hours"),
+            # L10N: The number of visible hours to display in the Calendar week view
+            6: _(u"&6 hours"),
+            # L10N: The number of visible hours to display in the Calendar week view
+            7: _(u"&7 hours"),
+            # L10N: The number of visible hours to display in the Calendar week view
+            8: _(u"&8 hours"),
+            # L10N: The number of visible hours to display in the Calendar week view
+            9: _(u"&9 hours"),
+            # L10N: The number of visible hours to display in the Calendar week view
+            10: _(u"&10 hours"),
+            # L10N: The number of visible hours to display in the Calendar week view
+            11: _(u"11 &hours"),
+            # L10N: The number of visible hours to display in the Calendar week view
+            12: _(u"12 h&ours"),
+            # L10N: The number of visible hours to display in the Calendar week view
+            18: _(u"18 ho&urs"),
+            # L10N: The number of visible hours to display in the Calendar week view
+            24: _(u"&24 hours")
+        }
+
         # include '-1' in the list of hours
         for hour in chain([-1], xrange(5, 13), [18], [24]):
 
@@ -100,12 +123,8 @@ def makeMainMenus(parcel):
             if hour == -1:
                 title = _(u"&Default")
             else:
-                # XXX The keyboard shortcut is implemented for some values,
-                # XXX but is somewhat questionable if we should do even this,
-                # XXX because to do this in a really localizable way we'd
-                # XXX need to do this with a table with all the values.
-                title = _(u"%(amp)s%(hours)s hours") % {'amp': '&' if 2 < hour < 11  or hour == 24 else '', 'hours': hour}
-                
+                title = hoursText[hour]
+
             menuItem = MenuItem.template(eventName + 'Item',
                                          title = title,
                                          menuItemKind = "Check",
@@ -157,6 +176,10 @@ def makeMainMenus(parcel):
                         event = main.ProtectPasswords,
                         title = _(u'Protect Pass&words...'),
                         helpString = _(u'Encrypt account passwords with the help of master password')),
+                    MenuItem.template('LocalePickerItem',
+                        event = main.LocalePicker,
+                        title = _(u'Swi&tch Language...'),
+                        helpString = _(u'Select the language for Chandler')),
                     MenuItem.template('FileSeparator3',
                         menuItemKind = 'Separator'),
                     Menu.template('SyncMenu',

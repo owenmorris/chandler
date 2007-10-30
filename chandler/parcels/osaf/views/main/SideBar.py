@@ -1037,8 +1037,8 @@ class SSSidebarSharingButton (SSSidebarButton):
                         format = calendar.DateTimeUtil.shortDateFormat.format
                         syncDay = format(self.itsView, lastSynced)
                         syncTime = calendar.formatTime(self.itsView, lastSynced)
-                        text += _(u"; Last synced on %s at %s") % (syncDay,
-                            syncTime)
+                        text += _(u"; Last synced on %(day)s at %(time)s") % {"day": syncDay,
+                                  "time": syncTime}
 
                 gridWindow.SetToolTipString (text)
                 gridWindow.GetToolTip().Enable (True)

@@ -145,6 +145,11 @@ class MainView(View):
 
         AccountPreferences.ShowAccountPreferencesDialog(rv=self.itsView)
 
+    def onLocalePickerEvent (self, event):
+        from application.dialogs import LocalePickerDialog
+
+        LocalePickerDialog.showLocalePickerDialog()
+
     def onProtectPasswordsEvent (self, event):
         # Triggered from "File | Prefs | Protect Passwords..."
         from osaf.framework import MasterPassword
@@ -399,7 +404,7 @@ class MainView(View):
         block = self.findBlockByName ("TimedEvents")
         if block is None:
             wx.MessageBox (_(u"Printing is currently only supported when viewing in calendar view."),
-                           _(u"Chandler"),
+                           u"Chandler",
                            parent=wx.GetApp().mainFrame)
         else:
             printObject = Printing.Printing(wx.GetApp().mainFrame, block.widget)

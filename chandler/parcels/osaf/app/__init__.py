@@ -31,11 +31,20 @@ def installParcel(parcel, oldVersion=None):
     pim_ns = schema.ns('osaf.pim', parcel)
     sharing_ns = schema.ns('osaf.sharing', parcel)
 
+
+    message = _(u'User')
+
     me = pim.Contact.update(parcel, 'me',
         displayName=_(u'Me'),
         contactName=pim.ContactName.update(parcel, 'meName',
-           firstName=_(u'Chandler'),
-           lastName=_(u'User')
+           firstName=u'Chandler',
+           #XXX Since the notion of 'me' may be going away
+           #    there is no current need to refactor the
+           #    last name attribute to the LocalizableString type.
+           #    Thus for now will convert the c{Message} object
+           #    returned from the c{ChandlerMessageFactory}
+           #    to Unicode. This decision will be revisited later.
+           lastName=unicode(message),
         ),
         references=[pim_ns.currentContact]
     )
@@ -101,47 +110,32 @@ def installParcel(parcel, oldVersion=None):
         datetime.time(12, tzinfo=parcel.itsView.tzinfo.floating))
 
     WelcomeEvent = pim.EventStamp.update(parcel, 'WelcomeEvent',
-        displayName=_(u'Welcome to Chandler %(version)s') % {'version': version.version},
+        # L10N: The Trademark symbol "TM" is represented in Unicode as U+2122
+        displayName=_(u'Welcome to Chandler\u2122 Preview'),
         startTime=noonToday,
         duration=datetime.timedelta(minutes=60),
         anyTime=False,
         read=False,
         creator=osafDev,
         location=pim.Location.update(parcel, "OSAFLocation",
-            displayName=_("Open Source Applications Foundation"),
+            displayName="Open Source Applications Foundation",
         ),
     )
 
-    # The URLs used in the Welcome note: those should not go through the localization mechanism!
-    url1 = u"http://chandlerproject.org/getstarted"
-    url2 = u"http://hub.chandlerproject.org/signup"
-    url3 = u"http://chandlerproject.org/faq"
-    url4 = u"http://chandlerproject.org/knownissuesdesktop-0.7"
-    url5 = u"http://chandlerproject.org/mailinglists"
-    url6 = u"http://chandlerproject.org/"
-    url7 = u"http://chandlerproject.org/getinvolved" 
+    # L10N: The Trademark symbol "TM" is represented in Unicode as U+2122
+    body = _(u"""Welcome to Chandler\u2122 Preview. Here is a list of resources to help you get started:
 
-    body = _(u"""Welcome to Chandler %(version)s. Here is a list of resources to help you get started:
-
-1. Get a tour of Chandler at (%(url1)s).
-2. Sign up for a sharing account on Chandler Hub (%(url2)s).
-3. Consult our FAQ (%(url3)s).
-4. Read about known issues (%(url4)s).
-5. Ask questions and give us feedback by joining the Chandler-Users mailing list (%(url5)s).
-6. Learn more about the project on our wiki (%(url6)s).
-7. Get involved and contribute to the project (%(url7)s).
+1. Get a tour of Chandler (http://chandlerproject.org/getstarted).
+2. Sign up for a sharing account on Chandler Hub (http://hub.chandlerproject.org/signup).
+3. Consult our FAQ (http://chandlerproject.org/faq).
+4. Read about known issues (http://chandlerproject.org/knownissuesdesktop-0.7).
+5. Ask questions and give us feedback by joining the Chandler-Users mailing list (http://chandlerproject.org/mailinglists).
+6. Learn more about the project on our wiki (http://chandlerproject.org/).
+7. Get involved and contribute to the project (http://chandlerproject.org/getinvolved).
 
 Thank you for trying Chandler!
 
-The Chandler Team""") % {'version': version.version, 
-                         'url1' : url1, 
-                         'url2' : url2, 
-                         'url3' : url3, 
-                         'url4' : url4, 
-                         'url5' : url5, 
-                         'url6' : url6, 
-                         'url7' : url7 
-                     }
+The Chandler Team""")
 
     WelcomeEvent.body = body
     WelcomeEvent.changeEditState(pim.Modification.created)
@@ -219,7 +213,8 @@ The Chandler Team""") % {'version': version.version,
                        )
         event3 = pim.CalendarEvent(
                     itsView=parcel.itsView,
-                    displayName=_(u"Download Chandler"),
+                    # L10N: The Trademark symbol "TM" is represented in Unicode as U+2122
+                    displayName=_(u"Download Chandler\u2122 Preview"),
                     startTime=startevent3,
                     duration=datetime.timedelta(minutes=30),
                     anyTime=False,

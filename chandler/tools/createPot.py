@@ -1,7 +1,25 @@
 #! /usr/bin/env python
+#   Copyright (c) 2006-2007 Open Source Applications Foundation
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
 
 import os, sys
 from createBase import LocalizationBase
+import build_lib
+
+def ignore(output):
+    pass
 
 
 class TranslationTool(LocalizationBase):
@@ -18,7 +36,12 @@ class TranslationTool(LocalizationBase):
     def __init__(self):
         super(TranslationTool, self).__init__()
 
-        self.GETTEXT = os.path.join("tools", "pygettext.py")
+        self.GETTEXT = "xgettext"
+
+        try:
+            result = build_lib.runCommand("xgettext", timeout=5, logger=ignore)
+        except:
+            self.raiseError("The xgettext utility is required to run createPot.py")
 
         self.getOpts()
         self.setLibraryPath()
@@ -103,22 +126,33 @@ class TranslationTool(LocalizationBase):
             exp = "%s %s -g >> %s" % (self.WXRC, xrcFile,self.XRC_PYTHON)
             os.system(exp)
 
+    def getPythonFiles(self):
+        pFiles = []
+
+        for dir in self.CONFIG:
+            for root, dirs, files in os.walk(dir):
+                for file in files:
+                    if file.endswith(".py"):
+                        pFiles.append(os.path.join(root, file))
+
+        return pFiles
+
     def getText(self):
         dirs = " ".join(self.CONFIG)
 
-        exp = "%s %s -o %s %s" % (self.PYTHON, self.GETTEXT, self.OUTPUTFILE, dirs)
+        files = " ".join(self.getPythonFiles())
 
         if dirs != ".":
-            exp += " *.py"
+            files = "*.py %s" % files
+
+        exp = "%s --msgid-bugs-address=bkirsch@osafoundation.org --from-code=utf-8 --no-wrap --add-comments=L10N: -L Python -o %s %s" % (self.GETTEXT, os.path.join(self.CWD, self.OUTPUTFILE), files)
+
 
         return os.system(exp)
-
-
 
     def getOpts(self):
         self.CONFIGITEMS = {
         'Chandler': ('-c', '--chandler',  False, 'Extract localization strings from Chandler Python and XRC files. A gettext .pot template file "Chandler.pot" is written to the current working directory.'),
-        'ChandlerExamples': ('-e', '--examples', False, 'Extract localization strings from Chandler Example projects Python and XRC files. A gettext .pot template file "ChandlerExamples.pot" is written to the current working directory.'),
         'Project': ('-p', '--project', True, 'Extract localization strings Python and XRC files for the given project. A gettext .pot template file "PROJECTNAME.pot" is written to the current working directory.'),
         'Directory': ('-d', '--directory', True, 'The root directory to search under for XRC and Python files. Can only be used in conjunction with the -p Project command.'),
         'ValidateOnly': ('-v', '--validate_only',  False, 'optional argrument that when specified will only validate formating of localizable strings in Python and XRC files. No .pot will be generated.'),
@@ -129,26 +163,15 @@ class TranslationTool(LocalizationBase):
         super(TranslationTool, self).getOpts()
 
         if self.OPTIONS.Chandler:
-            if self.OPTIONS.ChandlerExamples or\
-            self.OPTIONS.Project or self.OPTIONS.Directory:
+            if self.OPTIONS.Project or self.OPTIONS.Directory:
                 self.raiseError("Invalid arguments passed")
 
             self.CONFIG = self.CHANDLER
             self.ROOTDIR = self.CHANDLERHOME
             self.OUTPUTFILE = "Chandler.pot"
 
-        elif self.OPTIONS.ChandlerExamples:
-            if self.OPTIONS.Chandler or\
-            self.OPTIONS.Project or self.OPTIONS.Directory:
-                self.raiseError("Invalid arguments passed")
-
-            self.CONFIG = self.CHANDLER_EXAMPLES
-            self.ROOTDIR = os.path.join(self.CHANDLERHOME, "projects")
-            self.OUTPUTFILE = "ChandlerExamples.pot"
-
         elif self.OPTIONS.Project:
-            if self.OPTIONS.Chandler or\
-            self.OPTIONS.ChandlerExamples:
+            if self.OPTIONS.Chandler:
                 self.raiseError("Invalid arguments passed")
 
             if self.OPTIONS.Directory:
@@ -160,8 +183,7 @@ class TranslationTool(LocalizationBase):
             self.OUTPUTFILE = "%s.pot" % self.OPTIONS.Project.replace(" ", "_")
 
         elif self.OPTIONS.Directory:
-            if self.OPTIONS.Chandler or\
-            self.OPTIONS.ChandlerExamples:
+            if self.OPTIONS.Chandler:
                 self.raiseError("Invalid arguments passed")
             if not self.OPTIONS.Project:
                 self.raiseError("Directory '-d' argument can only be used with the '-p' Project argument")

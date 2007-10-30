@@ -59,7 +59,7 @@ try:
     __all__ = ["I18nManager", "setEnvironmentLocale", "getPyICULocale",
                "setPythonLocale", "convertPyICULocale",
                "isValidPyICULocale", "setPyICULocale", "I18nException",
-               "setWxLocale", "getWxLocale", "findWxLocale", "wxIsAvailable"]
+               "setWxLocale", "getWxLocale", "findWxLocale", "hasWxLocale", "wxIsAvailable"]
 except:
     _WX_AVAILABLE = False
     __all__ = ["I18nManager", "setEnvironmentLocale", "getPyICULocale",
@@ -247,11 +247,11 @@ class I18nManager(EggTranslations):
          @return: c{str} The Operating System primary locale
 
         """
-
         assert(self._init, True)
 
         if wxIsAvailable():
             locale = I18nLocale(wx.LANGUAGE_DEFAULT, i18nMan=self).GetName()
+
         else:
             locale = Locale.getDefault().getName()
 
@@ -333,7 +333,6 @@ class I18nManager(EggTranslations):
 
         if discover:
             localeSet = self.discoverLocaleSet()
-
         else:
             assert(type(localeSet) == ListType or
                    type(localeSet) == UnicodeType or
@@ -384,10 +383,30 @@ class I18nManager(EggTranslations):
             primaryLocale = "en_US"
 
             if fallback:
+                # Find the first locale in the locale set that either:
+                #
+                #   1. Has a translation egg installed.
+                #
+                #   2. Has a translation egg installed for its language code only.
+                #      This preserves any country specific date / time formatting. For
+                #      example, if the locale is fr_CA and there is no fr_CA egg but
+                #      there is an fr egg then set the locale to fr_CA.
+                #
                 for lc in self._localeSet:
-                    if lc.startswith("en") or \
-                        self.hasTranslation(self._DEFAULT_PROJECT, self._DEFAULT_CATALOG, lc):
+                    if self.hasTranslation(self._DEFAULT_PROJECT, self._DEFAULT_CATALOG, lc) or \
+                        (hasCountryCode(lc) and \
+                         self.hasTranslation(self._DEFAULT_PROJECT, self._DEFAULT_CATALOG, stripCountryCode(lc))):
                         primaryLocale = lc
+                        if primaryLocale == "en":
+                            # This is a bit of a hack but
+                            # not sure of a cleaner way to
+                            # implement this logic.
+                            # If the primaryLocale is "en"
+                            # then it means that all of the
+                            # locales in the locale set that
+                            # preceeded "en" do not have a
+                            # translation.
+                            self._localeSet = ['en']
                         break
 
             else:
@@ -443,10 +462,10 @@ class I18nManager(EggTranslations):
         setPythonLocale(primaryLocale)
         setEnvironmentLocale(primaryLocale)
 
-    def getText(self, project, name, txt, *args):
+    def getText(self, project, name, msgid, *args):
         """
         Returns a c{unicode} string containing the localized
-        value for key txt in the given project. The name
+        value for key msgid in the given project. The name
         parameter points to a key in a resource ini file that
         contain a value entry pointing to a gettext .mo
         resource in the same egg.
@@ -454,15 +473,15 @@ class I18nManager(EggTranslations):
         An optional additional argument can be specified as the
         default value to return if no localized is found.
 
-        The txt parameter will be returned by
+        The msgid parameter will be returned by
         c{I18nManager.getText} if no localized value found
-        for the txt parameter.
+        for the msgid parameter.
 
         However, if the default value argument is passed,
                  that value will be returned instead of text.
 
         Example where there in no localized value for
-        txt parameter "Hello World":
+        msgid parameter "Hello World":
 
             >>> i18nInstance.getText("MyProject", "catalog",
             ...                      "Hello World")
@@ -479,7 +498,7 @@ class I18nManager(EggTranslations):
         c{I18nManager.setLocaleSet} method, the
         c{I18nManager.getText} method will search all
         locales in the locale set till a gettext mo
-        translation is found for the txt parameter.
+        translation is found for the msgid parameter.
 
         If fallback was set to False in the
         c{I18nManager.initialize} method
@@ -487,7 +506,7 @@ class I18nManager(EggTranslations):
         c{I18nManager.getText} method will only search
         the current locale, which is the first locale in the
         locale set for a gettext mo translation for
-        the txt parameter.
+        the msgid parameter.
 
         Note that the "all" default locale can not
         contain any key value pairs that point to gettext
@@ -540,7 +559,17 @@ class I18nManager(EggTranslations):
 
          @type name: ASCII c{str} or c{unicode}
 
-         @param txt: The default text string which is used
+         @param msgid: The default text string which is used
+                       as look up key to retrieve a localized
+                       value from a gettext .mo file.
+
+                     The default text string is usual
+                     the English version of the text. The
+                     .mo gettext files will contain
+                     localizations of the English version
+                     with the English version as the key.
+
+         @param msgid: The default text string which is used
                      as look up key to retrieve a localized
                      value from a gettext .mo file.
 
@@ -550,27 +579,17 @@ class I18nManager(EggTranslations):
                      localizations of the English version
                      with the English version as the key.
 
-         @param txt: The default text string which is used
-                     as look up key to retrieve a localized
-                     value from a gettext .mo file.
-
-                     The default text string is usual
-                     the English version of the text. The
-                     .mo gettext files will contain
-                     localizations of the English version
-                     with the English version as the key.
-
-         @type txt: ASCII c{str} or c{unicode}
+         @type msgid: ASCII c{str} or c{unicode}
 
         @param args: An optional argument which if passed
                      will be returned if no localzation
-                     found for txt. The type of the
+                     found for msgid. The type of the
                      return value in the args list 
                      has no limitations.
         @type args:  c{list}
 
         @return: c{unicode} localized text or
-                 either the original txt argument
+                 either the original msgid argument
                  or the default value in args if no
                  localization found.
         """
@@ -579,7 +598,7 @@ class I18nManager(EggTranslations):
             from application import Globals
             self.initialize(Globals.options.locale)
 
-        res = super(I18nManager, self).getText(project, name, txt, *args)
+        res = super(I18nManager, self).getText(project, name, msgid, *args)
 
         # If the additional argument passed to getText is
         # the same as res meaning no translation was found
@@ -617,25 +636,25 @@ class I18nManager(EggTranslations):
         return res
 
 
-    def wxTranslate(self, txt):
+    def wxTranslate(self, msgid):
         """
         Returns the current locale set translation for the
         WxWidgets "wxstd" domain.
 
-        @param txt: The unicode or ASCII default key to
+        @param msgid: The unicode or ASCII default key to
                     translation
-        @type txt: ASCII c{str} or c{unicode}
+        @type msgid: ASCII c{str} or c{unicode}
 
         @rtype: c{unicode}
-        @return: The translated unicode string for key txt
-                  or txt if no translation found
+        @return: The translated unicode string for key msgid
+                  or msgid if no translation found
         """
         assert(self._init, True)
 
         if wxIsAvailable():
-            res = wx.GetTranslation(txt)
+            res = wx.GetTranslation(msgid)
         else:
-            res = txt
+            res = msgid
 
         if self._testing:
             return self._wrapText(res)
@@ -1076,6 +1095,31 @@ if _WX_AVAILABLE:
         global _WX_LOCALE
         return _WX_LOCALE
 
+    def hasWxLocale(locale):
+        """
+          Returns True if WxPython has
+          a translation installed for
+          the locale. This is particularly
+          useful on Linux where not all
+          supported WxPython translations
+          are installed by default on
+          English Versions.
+
+          @param locale: a c{str} locale
+          @type locale: ASCII c{str}
+
+          @return: c{bool} True if the Wx has
+                   a translation installed for
+                   the locale otherwise False
+        """
+        langInfo = wx.Locale.FindLanguageInfo(locale)
+
+        if langInfo is None:
+           return False
+
+        return wx.Locale.IsAvailable(langInfo.Language)
+
+
     def setWxLocale(locale, i18nMan):
         """
           Sets the c{wx.Locale} to the value passed in
@@ -1275,8 +1319,8 @@ if _WX_AVAILABLE:
             assert(isinstance(i18nMan, I18nManager))
             self.i18nMan = i18nMan
 
-        def GetSingularString(self, txt, project=None):
-            if txt is None or len(txt.strip()) == 0:
+        def GetSingularString(self, msgid, project=None):
+            if msgid is None or len(msgid.strip()) == 0:
                 return u""
 
             msg = missing = object()
@@ -1285,10 +1329,10 @@ if _WX_AVAILABLE:
                 project = self.i18nMan._DEFAULT_PROJECT
 
             msg = self.i18nMan.getText(project, self.i18nMan._DEFAULT_CATALOG,
-                                       txt, missing)
+                                       msgid, missing)
 
             if msg is missing:
-                msg = wx.GetTranslation(txt)
+                msg = wx.GetTranslation(msgid)
 
                 if self.i18nMan._testing:
                     return self.i18nMan._wrapText(msg)
@@ -1299,5 +1343,5 @@ if _WX_AVAILABLE:
             return msg
 
     #    # this handler captures all plural translation requests
-    #    def GetPluralString(self, txt, txt2, n, project=None):
+    #    def GetPluralString(self, msgid, msgid2, n, project=None):
     #        pass

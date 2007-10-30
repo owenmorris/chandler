@@ -236,7 +236,8 @@ class CompactTask(startup.DurableTask):
                 setStatusMessage(_(u"Compacting repository failed, see chandler.log"))
                 self.compacted = False
             else:
-                setStatusMessage(_(u'Reclaimed %d items, %d values, %d refs, %d index entries, %d names, %d lobs, %d blocks, %d lucene documents') %(counts))
+                setStatusMessage(_(u'Reclaimed %(numItems)d items, %(numValues)d values, %(numRefs)d refs, %(numIndex)d index entries, %(numNames)d names, %(numLobs)d lobs, %(numBlocks)d blocks, %(numLucene)d lucene documents') % {"numItems": counts[0], "numValues": counts[1], "numRefs": counts[2], "numIndex": counts[3], "numNames": counts[4], "numLobs": counts[5], "numBlocks": counts[6], "numLucene": counts[7]})
+
                 self.compacted = True
 
         dialog = CompactDialog(compact, self.lastCompact, versions)

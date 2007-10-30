@@ -40,6 +40,7 @@ import Styles
 from datetime import datetime, timedelta
 from osaf.pim import Reminder, isDead
 from i18n import ChandlerMessageFactory as _
+from osaf.pim.types import LocalizableString
 
 
 class textAlignmentEnumType(schema.Enumeration):
@@ -50,12 +51,12 @@ class buttonKindEnumType(schema.Enumeration):
 
 class Button(RectangularChild):
     characterStyle = schema.One(Styles.CharacterStyle)
-    title = schema.One(schema.Text)
+    title = schema.One(LocalizableString)
     buttonKind = schema.One(buttonKindEnumType)
     icon = schema.One(schema.Text)
     rightClicked = schema.One(BlockEvent)
     event = schema.One(BlockEvent)
-    helpString = schema.One(schema.Text, initialValue = u'')
+    helpString = schema.One(LocalizableString, initialValue = u'')
 
     def instantiateWidget(self, drawstyle={}):
         id = self.getWidgetID()
@@ -289,8 +290,8 @@ class columnType(schema.Enumeration):
 
 
 class Column(schema.Item):
-    
-    heading = schema.One(schema.Text, defaultValue="")
+
+    heading = schema.One(LocalizableString, defaultValue="")
 
     valueType = schema.One(columnType, initialValue='attribute',
                            doc="The type of value being displayed in "
@@ -608,7 +609,7 @@ class StaticText(RectangularChild):
         textAlignmentEnumType, initialValue = 'Left',
     )
     characterStyle = schema.One(Styles.CharacterStyle)
-    title = schema.One(schema.Text)
+    title = schema.One(LocalizableString)
 
     schema.addClouds(
         copying = schema.Cloud(byRef=[characterStyle])
@@ -1311,7 +1312,7 @@ class PresentationStyle(schema.Item):
     """
 
     sampleText = schema.One(
-        schema.Text,
+        LocalizableString,
         doc = 'Localized in-place sample text (optional); if "", will use the attr\'s displayName.',
     )
     format = schema.One(
@@ -1319,7 +1320,7 @@ class PresentationStyle(schema.Item):
         doc = 'customization of presentation format',
     )
     choices = schema.Sequence(
-        schema.Text,
+        LocalizableString,
         doc = 'options for multiple-choice values',
     )
     editInPlace = schema.One(

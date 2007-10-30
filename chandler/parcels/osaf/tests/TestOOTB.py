@@ -113,7 +113,8 @@ class OOTBTestCase(testcase.SingleRepositoryTestCase):
         self.failUnlessEqual(len(list(item.appearsIn)), 2)
 
     def testDownloadChandler(self):
-        item = self.getItem(u"Download Chandler")
+        item = self.getItem(u"Download Chandler\u2122 Preview")
+
         self.checkStampness(item, pim.EventStamp, pim.TaskStamp)
         self.failUnlessEqual(item.triageStatus, pim.TriageEnum.done)
         self.failUnlessEqual(pim.EventStamp(item).startTime.time(), 

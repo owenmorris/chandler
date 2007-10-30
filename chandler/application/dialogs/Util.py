@@ -548,7 +548,7 @@ def ShowMessageDialog(message, caption, flags, resultsTable=None,
         flags |= wx.ICON_INFORMATION
 
     if caption is None:
-        caption = _("Chandler")
+        caption = "Chandler"
 
     if textTable is not None:
         dlg = CustomYesNoLabelDialog(message, caption, flags, textTable)

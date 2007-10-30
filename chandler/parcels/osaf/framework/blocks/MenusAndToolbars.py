@@ -56,7 +56,7 @@ class operationEnumType(schema.Enumeration):
 
 class BaseItem(Block.Block):
     title = schema.One(LocalizableString)
-    helpString = schema.One(schema.Text, defaultValue = u'')
+    helpString = schema.One(LocalizableString, defaultValue = u'')
     operation = schema.One(operationEnumType, defaultValue = 'None')
     location = schema.One(schema.Text, defaultValue = u'')
     itemLocation = schema.One(schema.Text, defaultValue = u'')
@@ -71,9 +71,9 @@ class menuItemKindEnumType(schema.Enumeration):
 
 class MenuItem (BaseItem):
     menuItemKind = schema.One(menuItemKindEnumType, defaultValue = 'Normal')
-    accel = schema.One(schema.Text)
+    accel = schema.One(LocalizableString)
     icon = schema.One(schema.Text)
-    toggleTitle = schema.One(schema.Text)
+    toggleTitle = schema.One(LocalizableString)
 
     def instantiateWidget (self):
         kind = {"Normal": wx.ITEM_NORMAL,

@@ -523,10 +523,7 @@ def runLocalizationCheck(options):
     if options.dryrun:
         failed = False
     else:
-        # The -v argument tells createPot to only validate the
-        # localizable string and not generate a .pot translation
-        # file.
-        cmd = ['python', os.path.join('tools', 'createPot.py'), '-cv']
+        cmd = ['python', os.path.join('tools', 'l10nValidator.py')]
 
         result = build_lib.runCommand(cmd, timeout=180)
         failed = result != 0

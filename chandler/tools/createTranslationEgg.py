@@ -1,10 +1,48 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+#   Copyright (c) 2006-2007 Open Source Applications Foundation
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
 
 from createBase import LocalizationBase
+from poUtility import *
 from distutils.dir_util import copy_tree, remove_tree, mkpath
 from distutils.file_util import copy_file
 import os, sys
+import build_lib
+
+
+try:
+    from PyICU import Locale
+    # We want the English textual representation
+    # of the locale to display to the user.
+    Locale.setDefault(Locale("en"))
+
+    PYICU_INSTALLED = True
+except:
+    PYICU_INSTALLED = False
+
+def ignore(output):
+    pass
+
+try:
+    build_lib.runCommand("msgfmt", timeout=5, logger=ignore)
+    MSGFMT_INSTALLED = True
+except:
+    MSGFMT_INSTALLED = False
+
+
 
 class TranslationEggTool(LocalizationBase):
     PROJECTNAME = None
@@ -17,9 +55,11 @@ class TranslationEggTool(LocalizationBase):
     CWD = None
     POFILE = None
     POFILEPATH = None
+    POFILEOBJECT = None
     IMGDIR = None
     HTMLDIR = None
     LOCALEDIR = None
+    USE_MSGFMT_BINARY = False
 
 
     def __init__(self):
@@ -41,6 +81,9 @@ class TranslationEggTool(LocalizationBase):
             self.PLUGINDIR = self.PLUGINNAME
 
         try:
+            # Validate that PO exists and is correctly formatted
+            self.validatePOFile()
+
             mkpath(self.PLUGINDIR)
 
             self.CWD = os.getcwd()
@@ -66,15 +109,44 @@ class TranslationEggTool(LocalizationBase):
             if self.OPTIONS.Debug:
                 self.debug()
 
-            print "\n\n================================================="
-            print "   Translation egg '%s'" % (self.PLUGINNAME)
-            print "   created and installed in develop mode"
-            if self.OUTPUTDIR:
-                print "   to directory '%s'" % self.OUTPUTDIR
-            print "=================================================\n\n"
+            print "\n\n           EGG CREATION COMPLETED"
+            print "==========================================================="
+            print " Translation egg '%s' has been" % (self.PLUGINDIR)
+            print " installed in develop mode.\n"
+
+            if self.OPTIONS.Chandler:
+                print " To test, start Chandler and select '%s'" % self.getLocaleName()
+                print " from the File -> Switch Locale... dialog."
+
+            acWarnings = checkAccelerators(self.POFILEOBJECT)
+            nWarnings  = checkNewLines(self.POFILEOBJECT)
+
+            if acWarnings or nWarnings:
+                print "\n  PARSER WARNINGS:"
+
+            for warning in acWarnings:
+                print "    %s:%i: msgstr missing keyboard accelerator '&'" % \
+                      (self.POFILE, warning.msgstrLineNumber)
+
+            for warning in nWarnings:
+                print "    %s:%i: msgid and msgstr entries do not both end with '\\n'" % \
+                      (self.POFILE, warning.msgstrLineNumber)
+
+            print "\n  TRANSLATION STATISTICS: "
+            print "     total strings: ", self.POFILEOBJECT.getMsgIDCount()
+            print "     fuzzy strings: ", self.POFILEOBJECT.getFuzzyCount()
+            print "        translated: ", self.POFILEOBJECT.getTranslatedCount()
+            print "      untranslated: ", self.POFILEOBJECT.getUntranslatedCount()
+            print "===========================================================\n\n"
 
         except Exception, e:
             self.raiseError(str(e))
+
+    def getLocaleName(self):
+        if PYICU_INSTALLED:
+            return Locale(self.LOCALE).getDisplayName()
+
+        return self.LOCALE
 
 
     def copyImages(self):
@@ -95,14 +167,59 @@ class TranslationEggTool(LocalizationBase):
         except Exception, e:
              self.raiseError("Unable to copy html from '%s': %s." % (self.HTMLDIR, e))
 
+    def validatePOFile(self):
+        try:
+            #Save the POFile Object in an instance variable so
+            # that the it can later be used to display statistics
+            # from the po file such as the number of translated
+            # strings as well as any warnings.
+            self.POFILEOBJECT = parse(self.POFILEPATH)
+        except ParserError, e:
+            # The po file contains one or more formating errors.
+            # Raising an exception here will result in the program
+            # terminating and an error message displayed to the user.
+            desc = "%s:%i: Parser error '%s'\n" % \
+                   (e.poFileName, e.lineNumber, str(e.exception))
+            raise Exception(desc)
+
+        # Make sure that all Python replaceable dict values
+        # that are in the msgid's got copied correctly to
+        # translated msgstr's.
+        errors = checkReplaceableValues(self.POFILEOBJECT)
+
+        if errors:
+            desc = ""
+
+            for poEntry, values in errors:
+                desc += "%s:%i: replaceable value%s %s missing from msgstr\n" % \
+                        (self.POFILE, poEntry.msgstrLineNumber, len(values) > 1 and 's' or '',
+                         ", ".join(values))
+
+            # Raising an exception here will result in the program
+            # terminating and an error message displayed to the user.
+            raise Exception(desc)
+
     def createMoFile(self):
         try:
             mkpath(self.LOCALEDIR)
             copy_file(self.POFILEPATH, self.LOCALEDIR)
             cwd = os.getcwd()
             os.chdir(self.LOCALEDIR)
-            msgfmt = os.path.join(self.CHANDLERHOME, "tools", "msgfmt.py")
-            exp = "%s %s %s" % (self.PYTHON,  msgfmt, self.POFILE)
+
+            if self.USE_MSGFMT_BINARY:
+                 # The msgfmt binary that ships as part of GNU gettext tools
+                 # is more robust then the Python version and includes
+                 # error checking capabilities.
+                 exp = "msgfmt -c --check-accelerators -o %s %s" % \
+                        (self.POFILE[:-2] + "mo", self.POFILE)
+
+            else:
+                # The msgfmt gettext binary is not installed by default on
+                # Windows and OS X. The Python version of msgfmt is included
+                # however with Chandler.
+                msgfmt = os.path.join(self.CHANDLERHOME, "tools", "msgfmt.py")
+                exp = "%s %s %s" % (self.PYTHON,  msgfmt, self.POFILE)
+
             os.system(exp)
             os.chdir(cwd)
 
@@ -212,8 +329,7 @@ setup(
 
     def getOpts(self):
         self.CONFIGITEMS = {
-        'Chandler': ('-c', '--chandler',  False, 'Creates a translation egg for the Chandler Project. The egg will be named "Chandler.LOCALENAME" for example "Chandler.fr". If no gettext .po file is specified via the -f command then the current working directory and the CHANDLERHOME are scanned for a gettext po file named "Chandler.po".'),
-        'ChandlerExamples': ('-e', '--examples',  False, 'Creates a translation egg for the Chandler Example Projects. The egg will be named "Chandler-ExamplesPlugin.LOCALENAME" for example "Chandler-ExamplesPlugin.fr". If no gettext .po file is specified via the -f command then the current working directory and the CHANDLERHOME are scanned for a gettext po file named "ChandlerExamples.po".'),
+        'Chandler': ('-c', '--chandler',  False, 'Creates a translation egg for the Chandler Project. The egg will be named "Chandler.LOCALENAME" for example "Chandler.fr". If no gettext .po file is specified via the -f command then the current working directory and the CHANDLERHOME are scanned for a gettext po file named "Chandler-LOCALNAME.po". For example "Chandler-fr.po"'),
         'Project': ('-p', '--project',  True, 'Creates a translation egg for a given Project. The egg will be in the format  "PROJECTNAME.LOCALENAME". Passing a project name of "Test-Plugin" and the French locale will create a translation egg for the "Test-Plugin" project named "Test-Plugin.fr". A relative or full filesystem path to a .po gettext localization file via the -f command is required. A locale specified via the -l command is also required.'),
 
         'PoFile': ('-f', '--file',  True, 'A relative or full filesystem path to the .po translation file for the egg project. The po file will be copied to the egg and a .mo binary file generated. The .mo file will be registered with the eggs "resources.ini".'),
@@ -223,9 +339,11 @@ setup(
         'HtmlDir': ('', '--htmldir', True, 'An optional command that when specified will copy all files and directories under the htmldir to the translation eggs .egg-info/locale/LOCALENAME/html directory. The html resource directory will be registed with the eggs "resources.ini" file.'),
         }
 
+        if MSGFMT_INSTALLED:
+            self.CONFIGITEMS['UseMsgFmtBinary'] = ('', '--msgfmt', False, 'An optional command that when specified will use the msgfmt binary that ships with GNU gettext instead of the default Python msgfmt.py program. The msgfmt binary is more robust and includes error checking capabilities.')
+
         super(TranslationEggTool, self).getOpts()
 
-        #XXX Bug 6657: mmmm fill in with text on how to use tool
         self.DESC = ""
 
         if not self.OPTIONS.Locale:
@@ -240,6 +358,9 @@ setup(
            if not self.OUTPUTDIR:
                self.raiseError("The output directory specified '%s' is invalid." \
                                % self.OPTIONS.Directory)
+
+        if MSGFMT_INSTALLED and self.OPTIONS.UseMsgFmtBinary:
+            self.USE_MSGFMT_BINARY = True
 
         if self.OPTIONS.ImageDir:
            self.IMGDIR = self.findPath(self.OPTIONS.ImageDir)
@@ -268,8 +389,7 @@ setup(
 
 
         if self.OPTIONS.Project:
-            if self.OPTIONS.ChandlerExamples or\
-               self.OPTIONS.Chandler:
+            if self.OPTIONS.Chandler:
                 self.raiseError("Invalid arguments passed.")
 
             if not self.POFILEPATH:
@@ -282,39 +402,23 @@ setup(
             self.PROJECTNAMES = [self.PROJECTNAME]
 
         elif self.OPTIONS.Chandler:
-            if self.OPTIONS.ChandlerExamples or\
-               self.OPTIONS.Project:
+            if self.OPTIONS.Project:
                 self.raiseError("Invalid arguments passed.")
 
             if not self.POFILEPATH:
-                self.POFILEPATH = self.findFile("Chandler.po")
+                self.POFILEPATH = self.findFile("Chandler-%s.po" % self.OPTIONS.Locale)
 
                 if not self.POFILEPATH:
-                    self.raiseError("Could not locate Chandler.po in current " \
-                                    "working directory or CHANDLERHOME")
+                    self.raiseError("Could not locate Chandler-%s.po in current " \
+                                    "working directory or CHANDLERHOME" % self.OPTIONS.Locale)
 
             self.PROJECTNAME = "Chandler"
             self.PROJECTNAMES = [self.PROJECTNAME]
 
 
-        elif self.OPTIONS.ChandlerExamples:
-            if self.OPTIONS.Chandler or\
-               self.OPTIONS.Project:
-                self.raiseError("Invalid arguments passed.")
-
-            if not self.POFILEPATH:
-                self.POFILEPATH = self.findFile("ChandlerExamples.po")
-
-                if not self.POFILEPATH:
-                    self.raiseError("Could not locate ChandlerExamples.po in current " \
-                                    "working directory or CHANDLERHOME")
-
-            self.PROJECTNAME = "Chandler-ExamplesPlugin"
-            self.PROJECTNAMES = self.CHANDLER_EXAMPLES
-
         else:
-             self.raiseError("Chandler (-c), Chandler Examples (-e), or " \
-                             "a Project (-p) must\nbe specified in order " \
+             self.raiseError("Chandler (-c) or " \
+                             "a Project (-p) must be specified\nin order " \
                              "to build a translation egg.")
 
 
@@ -341,7 +445,12 @@ setup(
         except:
              pass
 
-        super(TranslationEggTool, self).raiseError(txt)
+        buf = ["\n\n           EGG CREATION FAILED"]
+        buf.append("===========================================================\n")
+        buf.append(txt)
+        buf.append("\n===========================================================\n\n")
+        
+        super(TranslationEggTool, self).raiseError("\n".join(buf), banner=False)
 
 
 if __name__ == "__main__":

@@ -232,7 +232,12 @@ def escape(s):
     global escapes
     s = list(s)
     for i in range(len(s)):
-        s[i] = escapes[ord(s[i])]
+        if isinstance(s[i], unicode):
+            # If the character is Unicode
+            # then convert to utf-8 bytes.
+            s[i] = s[i].encode("utf8")
+        else:
+            s[i] = escapes[ord(s[i])]
     return EMPTYSTRING.join(s)
 
 

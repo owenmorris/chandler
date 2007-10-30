@@ -283,7 +283,7 @@ def makeMainView(parcel):
     FrameWindow.update(
         parcel, 'MainViewRoot',
         blockName = 'MainViewRoot',
-        windowTitle = _(u"Chandler"),
+        windowTitle = u"Chandler",
         size = defaultChandlerSize,
         eventBoundary=True,
         views = {'MainView' : MainViewInstance},

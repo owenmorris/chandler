@@ -210,67 +210,8 @@ class wxMainFrame (wxBlockFrameWindow):
         """
         Main window is about to be closed when the application is quitting.
         """
-        def displayInfoWhileProcessing (message, method, *args, **kwds):
-            application = wx.GetApp()
-            busyInfo = wx.BusyInfo (message, application.mainFrame)
-            application.Yield(True)
-            result = method(*args, **kwds)
-            del busyInfo
-            return result
-
-        def commit(view):
-            try:
-                view.commit()
-            except VersionConflictError, e:
-                logger.exception(e)
-
-        # Finish any edits in progress.
-        from osaf.framework.blocks.Block import Block
-        Block.finishEdits()
-
-        # For some strange reason when there's an idle handler on the
-        # application the mainFrame windows doesn't get destroyed, so
-        # we'll remove the handler
-
-        app = wx.GetApp()        
-
-        app.ignoreSynchronizeWidget = True
-
-        if wx.Platform == '__WXMAC__':
-            app.Bind(wx.EVT_ACTIVATE_APP, None)
-
-        if __debug__:
-            displayInfoWhileProcessing (_("Checking repository..."),
-                                        app.UIRepositoryView.check)
-
-        displayInfoWhileProcessing (_("Shutting down mail service..."),
-                                    Globals.mailService.shutdown)
-
-        displayInfoWhileProcessing (_("Stopping wakeup service..."),
-                                    Utility.stopWakeup)
-
-        from osaf import sharing
-        displayInfoWhileProcessing (_("Stopping sharing..."),
-                                    sharing.interrupt, graceful=False)
-
-        displayInfoWhileProcessing (_("Stopping twisted..."),
-                                    Utility.stopTwisted)
-
-        # Since Chandler doesn't have a save command and commits typically happen
-        # only when the user completes a command that changes the user's data, we
-        # need to add a final commit when the application quits to save data the
-        # state of the user's world, e.g. window location and size.
-
-        displayInfoWhileProcessing (_("Committing repository..."),
-                                    commit, app.UIRepositoryView)
-
-        displayInfoWhileProcessing (_("Stopping crypto..."),
-                                    Utility.stopCrypto, Globals.options.profileDir)
-
-        displayInfoWhileProcessing (_("Checkpointing repository..."),
-                                    app.UIRepositoryView.repository.checkpoint)
-
-        feedback.stopRuntimeLog(Globals.options.profileDir)
+        app = wx.GetApp()
+        app.shutdown()
 
         # Exit the main loop instead of deleting ourself so as to avoid events
         # firing when object are being deleted
@@ -693,7 +634,7 @@ class wxApplication (wx.App):
             else:
                 msg = _(u"Unable to reload file.  See chandler.log for details. Chandler will now restart.")
             dialog = wx.MessageDialog(None, msg,
-                _(u"Chandler"), wx.OK | wx.ICON_INFORMATION)
+                     u"Chandler", wx.OK | wx.ICON_INFORMATION)
             dialog.ShowModal()
             dialog.Destroy()
             self.restart(create=True)
@@ -1079,6 +1020,85 @@ class wxApplication (wx.App):
         from osaf.framework.twisted import waitForDeferred
         waitForDeferred(MasterPassword.clear())
 
+    def shutdown(self):
+        """
+           Shuts down Chandler Services and the Repository.
+
+           Performs the following actions in order:
+              1. Finishes any edits in progress
+              2. Checks the Repository
+              3. Shuts down the Mail Service
+              4. Stops the Wake up Service
+              5. Stops the Sharing layer
+              6. Stops Twisted
+              7. Commits the Repository
+              8. Stops the M2Cypto layer
+              9. Checkpoints the Repository
+              10. Stops the Feedback Runtime log
+
+        Note: This method does not terminate the wx.App()
+              Main Loop. That operation is left to the caller.
+        """
+        def displayInfoWhileProcessing (message, method, *args, **kwds):
+            busyInfo = wx.BusyInfo (message, self.mainFrame)
+            self.Yield(True)
+            result = method(*args, **kwds)
+            del busyInfo
+            return result
+
+        def commit(view):
+            try:
+                view.commit()
+            except VersionConflictError, e:
+                logger.exception(e)
+
+        # Finish any edits in progress.
+        from osaf.framework.blocks.Block import Block
+        Block.finishEdits()
+
+        # For some strange reason when there's an idle handler on the
+        # application the mainFrame windows doesn't get destroyed, so
+        # we'll remove the handler
+
+        self.ignoreSynchronizeWidget = True
+
+        if wx.Platform == '__WXMAC__':
+            self.Bind(wx.EVT_ACTIVATE_APP, None)
+
+        if __debug__:
+            displayInfoWhileProcessing (_("Checking repository..."),
+                                        self.UIRepositoryView.check)
+
+        displayInfoWhileProcessing (_("Shutting down mail service..."),
+                                    Globals.mailService.shutdown)
+
+        displayInfoWhileProcessing (_("Stopping wakeup service..."),
+                                    Utility.stopWakeup)
+
+        from osaf import sharing
+        displayInfoWhileProcessing (_("Stopping sharing..."),
+                                    sharing.interrupt, graceful=False)
+
+        displayInfoWhileProcessing (_("Stopping twisted..."),
+                                    Utility.stopTwisted)
+
+        # Since Chandler doesn't have a save command and commits typically happen
+        # only when the user completes a command that changes the user's data, we
+        # need to add a final commit when the application quits to save data the
+        # state of the user's world, e.g. window location and size.
+
+        displayInfoWhileProcessing (_("Committing repository..."),
+                                    commit, self.UIRepositoryView)
+
+        displayInfoWhileProcessing (_("Stopping crypto..."),
+                                    Utility.stopCrypto, Globals.options.profileDir)
+
+        displayInfoWhileProcessing (_("Checkpointing repository..."),
+                                    self.UIRepositoryView.repository.checkpoint)
+
+        feedback.stopRuntimeLog(Globals.options.profileDir)
+
+
     def restart(self, *args, **kwds):
         """
         Restart the application.
@@ -1156,15 +1176,8 @@ class wxApplication (wx.App):
                 arg = '--%s=%s' %(name, value)
             argv.append(arg)
 
-        if linux:
-            for arg in argv:
-                if arg in ('-l', '--locale'):
-                    break
-            else:
-                argv.append('--locale=%s' %(getLocaleSet()[0]))
-
-        Utility.stopTwisted()
-        self.UIRepositoryView.repository.close()
+        # Shutdown the application service layers
+        self.shutdown()
 
         try:
             executable = sys.executable
@@ -1182,7 +1195,9 @@ class wxApplication (wx.App):
         except:
             logger.exception("while restarting")
         finally:
-            sys.exit(0)
+            # Exit the main loop instead of deleting ourself so as to avoid events
+            # firing when object are being deleted
+            self.ExitMainLoop()
 
     def OnMainThreadCallbackEvent(self, event):
         """
