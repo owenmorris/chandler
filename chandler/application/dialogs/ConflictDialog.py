@@ -39,6 +39,8 @@ from osaf import sharing
 from i18n import ChandlerMessageFactory as _
 from osaf.framework.blocks import DragAndDrop
 
+REPLACEMENTS = (("&", "&amp;"), ("<", "&lt;"))
+
 class CopyableStyleTextCtrl(wx.lib.expando.ExpandoTextCtrl, DragAndDrop.TextClipboardHandler):
     def __init__(self, parent, text, isOdd):
         super(CopyableStyleTextCtrl, self).__init__(parent, -1)
@@ -78,7 +80,27 @@ class CopyableStyleTextCtrl(wx.lib.expando.ExpandoTextCtrl, DragAndDrop.TextClip
         """
         self._adjustCtrl()
 
+    @staticmethod
+    def EscapeText(text):
+        """
+        Convert "&" to "&amp;" and "<" to "&lt;"
+        """
+        for pattern in (REPLACEMENTS):
+            text = text.replace(pattern[0], pattern[1])
+        return text
 
+    def UnescapeText(self):
+        """
+        revert all "&"-escaped text to non-escaped text
+        """
+        for pattern in (REPLACEMENTS):
+            findText = pattern[1]
+            findLen = len(findText)
+            replText = pattern[0]
+            findOffset = self.GetValue().find(findText)
+            while findOffset >= 0:
+                self.Replace(findOffset, findOffset+findLen, replText)
+                findOffset = self.GetValue().find(findText)
 
 class ConflictButton(wx.Button):
     """
@@ -125,13 +147,7 @@ class ConflictVScrolledArea(ScrolledPanel):
         self.sizer.AddGrowableCol(0, proportion=1)
         super(ConflictVScrolledArea, self).__init__(frame)
 
-        # markers used to hilight text in each conflict string. These values
-        # should never appear in a conflict, since they would be stripped out
-        # earlier by the EIM code.
-        emStart = u"\002"
-        emEnd = u"\003"
- 
-        i = 0
+        conflictIndex = 0
         
         # add the conflicts
         for c in conflicts:
@@ -146,55 +162,71 @@ class ConflictVScrolledArea(ScrolledPanel):
 
             if c.pendingRemoval:
                 # local modification to an item that was removed on the server
-                fmt = _(u"%(index)3d. %(em)s%(person)s%(/em)s removed this item from the %(em)scollection%(/em)s")
+                # L10N: The <emphasis> and </emphasis> tags are used in the Conflict Resolution dialog
+                # to make the text in between the tags bold.
+                fmt = _(u"%(conflictNumber)3d. %(user)s removed this item from the <emphasis>collection</emphasis>")
             elif c.change.exclusions:
                 # stamp changed on an item where stamp was removed on the server
                 if "sharing.model.MailMessageRecord" in c.value:
-                    fmt = _(u"%(index)3d. %(em)s%(person)s%(/em)s removed %(em)saddresses%(/em)s from this item")
+                    # L10N: The <emphasis> and </emphasis> tags are used in the Conflict Resolution dialog
+                    # to make the text in between the tags bold.
+                    fmt = _(u"%(conflictNumber)3d. %(user)s removed <emphasis>email addresses</emphasis> from this item")
                 elif "sharing.model.EventRecord" in c.value:
-                    fmt = _(u"%(index)3d. %(em)s%(person)s%(/em)s removed this item from the %(em)sCalendar%(/em)s")
+                    # L10N: The <emphasis> and </emphasis> tags are used in the Conflict Resolution dialog
+                    # to make the text in between the tags bold.
+                    fmt = _(u"%(conflictNumber)3d. %(user)s removed this item from the <emphasis>Calendar</emphasis>")
                 elif "sharing.model.TaskRecord" in c.value:
-                    fmt = _(u"%(index)3d. %(em)s%(person)s%(/em)s removed this item from the %(em)sTask List%(/em)s")
+                    # L10N: The <emphasis> and </emphasis> tags are used in the Conflict Resolution dialog
+                    # to make the text in between the tags bold.
+                    fmt = _(u"%(conflictNumber)3d. %(user)s removed this item from the <emphasis>Task List</emphasis>")
                 else:
                     # unknown stamp type
-                    fmt = _(u"%(index)3d. %(em)s%(person)s%(/em)s removed %(em)s%(fieldName)s%(/em)s from this item")
+                    fmt = _(u"%(conflictNumber)3d. %(user)s removed %(fieldName)s from this item")
             elif c.field.title() == 'Rrule' and c.value == 'None':
                 # Recurrence changed on an item where recurrence was removed on the server
-                fmt = _(u"%(index)3d. %(em)s%(person)s%(/em)s changed %(em)sOccurs%(/em)s to %(em)sOnce%(/em)s")
+                # L10N: The <emphasis> and </emphasis> tags are used in the Conflict Resolution dialog
+                # to make the text in between the tags bold.
+                fmt = _(u"%(conflictNumber)3d. %(user)s changed <emphasis>Occurs</emphasis> to <emphasis>Once</emphasis>")
             else:
                 # general case: attribute changed both locally and on the server
-                fmt = _(u"%(index)3d. %(em)s%(person)s%(/em)s changed the %(em)s%(fieldName)s%(/em)s to %(em)s%(value)s%(/em)s")
+                fmt = _(u"%(conflictNumber)3d. %(user)s changed the %(fieldName)s to %(value)s")
+
+            # markers used to hilight text in each conflict string.
+            emStart = u"<emphasis>"
+            emEnd = u"</emphasis>"
+
+            fieldName = "" if c.field is None else c.field.title()
 
             # build the text string
             text = fmt % {
-                'index': i+1,
-                'person': editor,
-                'fieldName': "" if c.field is None else c.field.title(),
-                'value': c.value,
-                'em': emStart,
-                '/em': emEnd
+                'conflictNumber': conflictIndex+1,
+                'user': "%s%s%s" % (emStart, editor, emEnd),
+                'fieldName': "%s%s%s" % (emStart, fieldName, emEnd),
+                # escape the value in case the user actually puts <emphasis> in the text..
+                'value': "%s%s%s" % (emStart, CopyableStyleTextCtrl.EscapeText(c.value), emEnd)
             }
 
-            textCtrl = CopyableStyleTextCtrl(self, text, i%2)
+            textCtrl = CopyableStyleTextCtrl(self, text, conflictIndex%2)
 
             # make it read-only and add it to the sizer
             textCtrl.SetEditable(False)
             self.sizer.Add(textCtrl, 1, wx.EXPAND)
             # hilight the text
             textCtrl.Hilight(emStart, emEnd)
+            textCtrl.UnescapeText()
 
             # add the buttons to apply/discard. Both buttons are disabled when either is
             # clicked, so we keep a reference to them in the two lists self.acceptButtons
             # and self.discardButtons, which are used in the DisableButtons() method
-            acceptButton = ConflictAcceptButton(self, wx.ID_APPLY, "Apply", c, self.DisableButtons, i)
+            acceptButton = ConflictAcceptButton(self, wx.ID_APPLY, _(u"Apply"), c, self.DisableButtons, conflictIndex)
             self.acceptButtons.append(acceptButton)
             self.sizer.Add(acceptButton)
 
-            discardButton = ConflictDiscardButton(self, -1, "Discard", c, self.DisableButtons, i)
+            discardButton = ConflictDiscardButton(self, -1, _(u"Discard"), c, self.DisableButtons, conflictIndex)
             self.discardButtons.append(discardButton)
             self.sizer.Add(discardButton)
 
-            i = i+1
+            conflictIndex += 1
 
         self.SetSizer(self.sizer)
         wx.CallAfter(self.PostCreateFixup)
