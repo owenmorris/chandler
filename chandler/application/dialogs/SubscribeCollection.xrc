@@ -14,7 +14,7 @@
                     <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxStaticText" name="ID_TEXT">
-                        <label>URL:</label>
+                        <label>&amp;URL:</label>
                     </object>
                 </object>
                 <object class="sizeritem">
@@ -29,7 +29,7 @@
                     <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxCheckBox" name="CHECKBOX_KEEPOUT">
-                        <label>Keep out of Dashboard</label>
+                        <label>&amp;Keep out of Dashboard</label>
                         <checked>1</checked>
                     </object>
                 </object>
@@ -42,7 +42,7 @@
                             <flag>wxALIGN_CENTER|wxALL</flag>
                             <border>5</border>
                             <object class="wxButton" name="wxID_OK">
-                                <label>Subscribe</label>
+                                <label>&amp;Subscribe</label>
                                 <default>1</default>
                             </object>
                         </object>
@@ -50,7 +50,6 @@
                             <flag>wxALIGN_CENTER|wxALL</flag>
                             <border>5</border>
                             <object class="wxButton" name="wxID_CANCEL">
-                                <label>Cancel</label>
                             </object>
                         </object>
                     </object>

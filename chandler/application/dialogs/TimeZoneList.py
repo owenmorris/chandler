@@ -145,7 +145,7 @@ class TimeZoneChooser(wx.Dialog):
         
         self.grid = CustTableGrid(self, view)
         
-        self.viewAll = wx.CheckBox(self, -1, _(u"View all time zones"))
+        self.viewAll = wx.CheckBox(self, -1, _(u"&View all time zones"))
         self.Bind(wx.EVT_CHECKBOX, self.ToggleTable, self.viewAll)
         
         buttonSizer = self.CreateStdDialogButtonSizer(wx.OK|wx.CANCEL)

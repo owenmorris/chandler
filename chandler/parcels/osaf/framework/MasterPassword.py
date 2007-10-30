@@ -230,7 +230,7 @@ def beforeBackup(view, parent=None):
         dlg = Util.checkboxUserDialog(parent,
                                      _(u'Protect Passwords?'),
                                      _(u'Anyone who gets access to your data can view your account passwords. Do you want to protect your account passwords by encrypting them with the master password?'),
-                                     value = _(u'Never ask again.'))
+                                     value = _(u'&Never ask again.'))
         try:
             val = dlg.ShowModal()
             neverAskAgain = dlg.GetValue()

@@ -394,8 +394,8 @@ msgid "&Restore"
 msgstr ""
 
 #: XRC_STRINGS_FOR_CHANDLER.py:129
-msgid "URL of collection:"
-msgstr "URL:"
+msgid "&URL:"
+msgstr ""
 
 #: XRC_STRINGS_FOR_CHANDLER.py:130
 msgid "http://"

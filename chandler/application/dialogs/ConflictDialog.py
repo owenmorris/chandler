@@ -218,10 +218,15 @@ class ConflictVScrolledArea(ScrolledPanel):
             # add the buttons to apply/discard. Both buttons are disabled when either is
             # clicked, so we keep a reference to them in the two lists self.acceptButtons
             # and self.discardButtons, which are used in the DisableButtons() method
+            # XXX Automatically gets mnemonic treatment due to stock ID, but
+            # XXX this is wrong since we can have several apply buttons.
+            # XXX Also, on Linux (Gnome) the stock button is bigger
+            # XXX than the Discard button.
             acceptButton = ConflictAcceptButton(self, wx.ID_APPLY, _(u"Apply"), c, self.DisableButtons, conflictIndex)
             self.acceptButtons.append(acceptButton)
             self.sizer.Add(acceptButton)
 
+            # XXX Can't have mnemonic because we can have several Discard buttons
             discardButton = ConflictDiscardButton(self, -1, _(u"Discard"), c, self.DisableButtons, conflictIndex)
             self.discardButtons.append(discardButton)
             self.sizer.Add(discardButton)
@@ -302,7 +307,7 @@ class ConflictDialog(wx.Dialog):
         # "Decide later"/"Done" button, which is fflush right, so use a horizontal box sizer
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         buttonSizer.Add((20, 0), 1, flag=wx.EXPAND)
-        self.doneButton = wx.Button(self, wx.ID_OK, _(u"Decide later"))
+        self.doneButton = wx.Button(self, wx.ID_OK, _(u"Decide &later"))
         buttonSizer.Add(self.doneButton)
         vsizer.Add(buttonSizer, 0, flag=wx.EXPAND)
 
@@ -318,7 +323,7 @@ class ConflictDialog(wx.Dialog):
         self.SetSizer(hsizer)
 
     def changeToDone(self):
-        self.doneButton.SetLabel(_(u"Done"))
+        self.doneButton.SetLabel(_(u"&Done"))
         self.doneButton.SetToolTipString(_(u"""Any unresolved items will remain undecided. You can revisit this dialog to resolve them later."""))
 
 
