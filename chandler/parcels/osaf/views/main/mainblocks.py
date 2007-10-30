@@ -157,6 +157,12 @@ def makeMainView(parcel):
             bitmap = 'ApplicationBarForward.png',
             title = messages.FORWARD,
             helpString = _(u'Forward selected message')),
+        SendToolBarItem.template('ApplicationBarSendButton',
+            event = main.SendShareItem,
+            bitmap = 'ApplicationBarSend.png',
+            title = messages.SEND,
+            viewAttribute='modifiedFlags',
+            helpString = _(u'Send selected message')),
         ToolBarItem.template('ApplicationSeparator2',
             toolBarItemKind = 'Separator'),
         ToolBarItem.template('TriageButton',
@@ -173,25 +179,13 @@ def makeMainView(parcel):
         quickEntryWidth = 325
     else:
         quickEntryWidth = 150
-    sendToolBarItem = SendToolBarItem.template('ApplicationBarSendButton',
-                event = main.SendShareItem,
-                bitmap = 'ApplicationBarSend.png',
-                title = messages.SEND,
-                viewAttribute='modifiedFlags',
-                helpString = _(u'Send selected message'))
     quickEntryItem = ToolBarItem.template('ApplicationBarQuickEntry',
                 event = main.QuickEntry,
                 text = u"", # text value displayed in the control
                 toolBarItemKind = 'QuickEntry',
                 size = SizeType (quickEntryWidth,-1),
                 helpString = _(u'Quick entry field: enter search string, or command beginning with "/"'))
-    # put "Send" to the left of the quick-entry field
-    appBarBlocks.extend((
-        sendToolBarItem,
-        ToolBarItem.template('ApplicationSeparator4',
-            toolBarItemKind = 'Separator'),
-        quickEntryItem
-    ))
+    appBarBlocks.append(quickEntryItem)
 
     ApplicationBar = ToolBar.template(
         'ApplicationBar',
