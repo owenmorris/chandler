@@ -288,5 +288,5 @@ def emulate_sidebarClick(sidebar, cellName, double=False, overlay=False):
 def idle():
     theApp = wx.GetApp()
     theApp.Yield(True)
-    theApp.ProcessEvent(wx.IdleEvent())
+    theApp.ProcessIdle()
     theApp.Yield(True)
