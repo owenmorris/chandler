@@ -744,6 +744,11 @@ def makeMainMenus(parcel):
                         title = _(u'&About Chandler'),
                         helpString = _(u'About Chandler...'),
                         wxId = wx.ID_ABOUT),
+                     MenuItem.template('GettingStartedMenuItem',
+                        event = globalBlocks.GettingStarted,
+                        title = _(u'Chandler Get &Started Guide'),
+                        helpString =
+                             _(u'Open Chandler Get Started Guide in your web browser')),
                      MenuItem.template('HelpMenuItem',
                         event = globalBlocks.Help,
                         title = _(u'Chandler &FAQ'),

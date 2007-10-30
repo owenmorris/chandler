@@ -426,6 +426,11 @@ class MainView(View):
            'http://chandlerproject.org/faq'
         )
 
+    def onGettingStartedEvent(self, event):
+        self.openURLOrDialog(
+           'http://chandlerproject.org/guide'
+        )
+
     def onFileBugEvent(self, event):
         self.openURLOrDialog(
            'http://chandlerproject.org/reportabug'
