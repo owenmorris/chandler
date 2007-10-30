@@ -42,7 +42,7 @@ from osaf.pim.calendar import EventStamp
 from tasks import TaskStamp
 from osaf.pim import Modification, setTriageStatus, TriageEnum
 from osaf.pim.calendar.TimeZone import formatTime, getTimeZoneCode
-from osaf.pim.calendar.DateTimeUtil import  weekdayName
+from osaf.pim.calendar.DateTimeUtil import weekdayName
 from datetime import datetime
 from stamping import has_stamp, Stamp
 
@@ -57,13 +57,10 @@ TASK = _(u"Task")
 EVENT = _(u"Event")
 R_EVENT = _(u"Recurring Event")
 A_EVENT = _(u"All-day Event")
-AT_EVENT = _(u"Any-time Event")
 RA_EVENT = _(u"Recurring All-day Event")
-RAT_EVENT = _(u"Recurring Any-time Event")
 SCHEDULED_TASK = _(u"Scheduled Task")
 R_SCHEDULED_TASK = _(u"Recurring Scheduled Task")
 A_SCHEDULED_TASK = _(u"All-day Scheduled Task")
-AT_SCHEDULED_TASK = _(u"Any-time Scheduled Task")
 
 # Kind Combinations with sentence prefix
 # XXX This is not the ideal way to do this but
@@ -74,138 +71,97 @@ P_TASK = _(u"a Task")
 P_EVENT = _(u"an Event")
 P_R_EVENT = _(u"a Recurring Event")
 P_A_EVENT = _(u"an All-day Event")
-P_AT_EVENT = _(u"a Any-time Event")
 P_RA_EVENT = _(u"a Recurring All-day Event")
-P_RAT_EVENT = _(u"a Recurring Any-time Event")
 P_SCHEDULED_TASK = _(u"a Scheduled Task")
 P_R_SCHEDULED_TASK = _(u"a Recurring Scheduled Task")
 P_A_SCHEDULED_TASK = _(u"an All-day Scheduled Task")
-P_AT_SCHEDULED_TASK = _(u"an Any-time Scheduled Task")
 
-#Complex Recurrence
-C_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s on %(startDate)s")
-CD_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s from %(startDate)s - %(endDate)s")
-CS_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s on %(startDate)s from %(startTime)s - %(endTime)s %(timezone)s")
-CSX_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s on %(startDate)s at %(startTime)s %(timezone)s")
-CSD_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s on %(startDate)s - %(endDate)s from %(startTime)s - %(endTime)s %(timezone)s")
-CL_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s at %(location)s on %(startDate)s")
-CLD_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s at %(location)s from %(startDate)s - %(endDate)s")
-CLS_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s at %(location)s on %(startDate)s from %(startTime)s - %(endTime)s %(timezone)s")
-CLSX_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s at %(location)s on %(startDate)s at %(startTime)s %(timezone)s")
-CLSD_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s at %(location)s on %(startDate)s - %(endDate)s from %(startTime)s - %(endTime)s %(timezone)s")
+# L10N: Description of a recurring event with a specific end to its recurrence
+# %(recurrenceFrequency)s will be replaced with something like "every month".
+# %(particularDateTime)s will be replaced by the text that would be used to
+# describe a non-recurring event
+RECUR_FOREVER = _(u"%(particularDateTime)s (otherwise %(recurrenceFrequency)s starting %(recurrenceStartDate)s)")
+# L10N: Description of a recurring event with a specific end to its recurrence
+# %(recurrenceFrequency)s will be replaced with something like "every month".
+# %(particularDateTime)s will be replaced by the text that would be used to
+# describe a non-recurring event
+RECUR_UNTIL = _(u"%(particularDateTime)s (otherwise %(recurrenceFrequency)s from %(recurrenceStartDate)s to %(recurrenceEndDate)s)")
 
-#Anytime or All Day Event
-A_TITLE = _(u"%(title)s on %(startDate)s")
-AD_TITLE = _(u"%(title)s from %(startDate)s - %(endDate)s")
-AL_TITLE = _(u"%(title)s at %(location)s on %(startDate)s")
-ALD_TITLE = _(u"%(title)s at %(location)s from %(startDate)s - %(endDate)s")
+# L10N: Description of a recurring event with a specific end to its recurrence
+# %(recurrenceFrequency)s will be replaced with something like "every month".
+# %(normalTime)s will be replaced with a sentence fragment like
+# "at %(originalStartTime)s".  %(particularDateTime)s will be replaced by the
+# text that would be used to describe a non-recurring event
+RECUR_FOREVER_SHOW_TIME = _(u"%(particularDateTime)s (otherwise %(recurrenceFrequency)s %(normalTime)s starting %(recurrenceStartDate)s)")
+# L10N: Description of a recurring event with a specific end to its recurrence
+# %(recurrenceFrequency)s will be replaced with something like "every month".
+# %(normalTime)s will be replaced with a sentence fragment like
+# "at %(originalStartTime)s".  %(particularDateTime)s will be replaced by the
+# text that would be used to describe a non-recurring event
+RECUR_UNTIL_SHOW_TIME = _(u"%(particularDateTime)s (otherwise %(recurrenceFrequency)s %(normalTime)s from %(recurrenceStartDate)s to %(recurrenceEndDate)s)")
 
-#Event
-E_TITLE = _(u"%(title)s on %(startDate)s from %(startTime)s - %(endTime)s %(timezone)s")
-EX_TITLE = _(u"%(title)s on %(startDate)s at %(startTime)s %(timezone)s")
-ED_TITLE = _(u"%(title)s on %(startDate)s - %(endDate)s from %(startTime)s - %(endTime)s %(timezone)s")
-EL_TITLE = _(u"%(title)s at %(location)s on %(startDate)s from %(startTime)s - %(endTime)s %(timezone)s")
-ELX_TITLE = _(u"%(title)s at %(location)s on %(startDate)s at %(startTime)s %(timezone)s")
-ELD_TITLE = _(u"%(title)s at %(location)s on %(startDate)s - %(endDate)s from %(startTime)s - %(endTime)s %(timezone)s")
+# L10N: time-only description for an event that occurs at a specific time with no duration,
+# this is one of the possible replacements for the %(normalTime)s parameter
+AT_TIME_ONLY = _(u"at %(originalStartTime)s")
+# L10N: time-only description for an event that starts and ends at different times,
+# this is one of the possible replacements for the %(normalTime)s parameter
+TIME_ONLY_WITH_END = _(u"from %(originalStartTime)s-%(originalEndTime)s")
+# L10N: description of an event that lasts all day, this is one of the possible
+# replacements for the %(normalTime)s parameter
+ALL_DAY_TIME_ONLY = _(u"all-day")
 
-#All Day / Any Time Every Day
-D_TITLE = _(u"%(title)s every day")
-DU_TITLE = _(u"%(title)s every day until %(recurrenceEndDate)s")
-DL_TITLE = _(u"%(title)s at %(location)s every day")
-DUL_TITLE = _(u"%(title)s at %(location)s every day until %(recurrenceEndDate)s")
 
-#Every day at specific times
-DT_TITLE = _(u"%(title)s every day from %(startTime)s - %(endTime)s %(timezone)s")
-DTX_TITLE = _(u"%(title)s every day at %(startTime)s %(timezone)s")
-DTU_TITLE = _(u"%(title)s every day from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
-DTUX_TITLE = _(u"%(title)s every day at %(startTime)s %(timezone)s until %(recurrenceEndDate)s")
-DTL_TITLE = _(u"%(title)s at %(location)s every day from %(startTime)s - %(endTime)s %(timezone)s")
-DTLX_TITLE = _(u"%(title)s at %(location)s every day at %(startTime)s %(timezone)s")
-DTUL_TITLE = _(u"%(title)s at %(location)s every day from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
-DTULX_TITLE = _(u"%(title)s at %(location)s every day at %(startTime)s %(timezone)s until %(recurrenceEndDate)s")
+## Frequency strings for recurrence
+# L10N: Description of the frequency of a complex recurrence rule, used to build %(recurrenceFrequency)s
+COMPLEX_FREQ = _(u"Custom recurrence rule: No description")
+FREQ_MATCHING_DAY = {
+    # L10N: description of repetition for a daily recurring event, used to build %(recurrenceFrequency)s
+    'daily'    : _(u"every day"),
+    # L10N: description of repetition for a weekly recurring event, used to build %(recurrenceFrequency)s
+    'weekly'   : _(u"every week"),
+    # L10N: description of repetition for a biweekly recurring event, used to build %(recurrenceFrequency)s
+    'biweekly' : _(u"every other week"),
+    # L10N: description of repetition for a monthly recurring event, used to build %(recurrenceFrequency)s
+    'monthly'  : _(u"every month"),
+    # L10N: description of repetition for a yearly recurring event, one of the replacements for %(recurrenceFrequency)s
+    'yearly'   : _(u"every year")
+}
+FREQ_DIFFERENT_DAY = FREQ_MATCHING_DAY.copy()
+# L10N: description of repetition for a weekly recurring event with a changed weekday, used to build %(recurrenceFrequency)s
+FREQ_DIFFERENT_DAY['weekly']   = _(u"every %(recurrenceDayName)s")
+# L10N: description of repetition for a biweekly recurring event with a changed weekday, used to build %(recurrenceFrequency)s
+FREQ_DIFFERENT_DAY['biweekly'] = _(u"every other %(recurrenceDayName)s")
 
-#All Day / Any Time Weekly Event
-W_TITLE = _(u"%(title)s every %(dayName)s")
-WU_TITLE = _(u"%(title)s every %(dayName)s until %(recurrenceEndDate)s")
-WL_TITLE = _(u"%(title)s at %(location)s every %(dayName)s")
-WUL_TITLE = _(u"%(title)s at %(location)s every %(dayName)s until %(recurrenceEndDate)s")
+## Anytime or Allday events
+ONE_DAY_ALLDAY = _(u"%(dayName)s %(startDate)s")
+MULTI_DAY_ALLDAY = _(u"%(dayName)s %(startDate)s - %(endDayName)s %(endDate)s")
 
-#Weekly Event at specific times
-WT_TITLE = _(u"%(title)s every %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s")
-WTX_TITLE = _(u"%(title)s every %(dayName)s at %(startTime)s %(timezone)s")
-WTU_TITLE = _(u"%(title)s every %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
-WTUX_TITLE = _(u"%(title)s every %(dayName)s at %(startTime)s %(timezone)s until %(recurrenceEndDate)s")
+## Timed events
+# L10N: description of an event with equal start and end time
+AT_TIMED = _(u"%(dayName)s %(startDate)s at %(startTime)s %(timezone)s")
+# L10N: description of an event on a single day with different start and end times
+ONE_DAY_TIMED = _(u"%(dayName)s %(startDate)s %(startTime)s - %(endTime)s %(timezone)s")
+# L10N: description of an event with time that ends on a different day then it starts
+MULTI_DAY_TIMED = _(u"%(dayName)s %(startDate)s %(startTime)s - %(endDayName)s %(endDate)s %(endTime)s %(timezone)s")
 
-WTL_TITLE = _(u"%(title)s at %(location)s every %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s")
-WTLX_TITLE = _(u"%(title)s at %(location)s every %(dayName)s at %(startTime)s %(timezone)s")
-WTUL_TITLE = _(u"%(title)s at %(location)s every %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
-WTULX_TITLE = _(u"%(title)s at %(location)s every %(dayName)s at %(startTime)s %(timezone)s until %(recurrenceEndDate)s")
+## Main template for event description
+# L10N: Text describing an event, inserted into emailed events
+TIME_DESCRIPTION = _(u"""\
+Title: %(title)s
+Location: %(location)s
 
-#All Day / Any Time Bi-Weekly Event
-B_TITLE = _(u"%(title)s every other %(dayName)s")
-BU_TITLE = _(u"%(title)s every other %(dayName)s until %(recurrenceEndDate)s")
-BL_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s")
-BUL_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s until %(recurrenceEndDate)s")
+%(time_information)s
+""")
 
-#Bi-Weekly Event at specific times
-BT_TITLE = _(u"%(title)s every other %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s")
-BTX_TITLE = _(u"%(title)s every other %(dayName)s at %(startTime)s %(timezone)s")
-BTU_TITLE = _(u"%(title)s every other %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
-BTUX_TITLE = _(u"%(title)s every other %(dayName)s at %(startTime)s %(timezone)s until %(recurrenceEndDate)s")
-BTL_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s")
-BTLX_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s at %(startTime)s %(timezone)s")
-BTUL_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
-BTULX_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s at %(startTime)s %(timezone)s until %(recurrenceEndDate)s")
-
-#All Day / Any Time Monthly Event
-M_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s")
-MU_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s until %(recurrenceEndDate)s")
-ML_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s")
-MUL_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s until %(recurrenceEndDate)s")
-
-#Monthly Event at specific times
-MT_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s - %(endTime)s %(timezone)s")
-MTX_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s at %(startTime)s %(timezone)s")
-MTU_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
-MTUX_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s at %(startTime)s %(timezone)s until %(recurrenceEndDate)s")
-MTL_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s - %(endTime)s %(timezone)s")
-MTLX_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s at %(startTime)s %(timezone)s")
-MTUL_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
-MTULX_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s at %(startTime)s %(timezone)s until %(recurrenceEndDate)s")
-
-#All Day / Any Time Yearly Event
-Y_TITLE = _(u"%(title)s every year on %(startDate)s")
-YU_TITLE = _(u"%(title)s every year on %(startDate)s until %(recurrenceEndDate)s")
-YL_TITLE = _(u"%(title)s at %(location)s every year on %(startDate)s")
-YUL_TITLE = _(u"%(title)s at %(location)s every year on %(startDate)s until %(recurrenceEndDate)s")
-
-#Yearly Event at specific times
-YT_TITLE = _(u"%(title)s every year on %(startDate)s from %(startTime)s - %(endTime)s %(timezone)s")
-YTX_TITLE = _(u"%(title)s every year on %(startDate)s at %(startTime)s %(timezone)s")
-YTD_TITLE = _(u"%(title)s every year on %(startDate)s - %(endDate)s from %(startTime)s - %(endTime)s %(timezone)s")
-YTU_TITLE = _(u"%(title)s every year on %(startDate)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
-YTUX_TITLE = _(u"%(title)s every year on %(startDate)s at %(startTime)s %(timezone)s until %(recurrenceEndDate)s")
-YTUD_TITLE = _(u"%(title)s every year on %(startDate)s - %(endDate)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
-YTL_TITLE = _(u"%(title)s at %(location)s every year on %(startDate)s from %(startTime)s - %(endTime)s %(timezone)s")
-YTLX_TITLE = _(u"%(title)s at %(location)s every year on %(startDate)s at %(startTime)s %(timezone)s")
-YTLD_TITLE = _(u"%(title)s at %(location)s every year on %(startDate)s - %(endDate)s from %(startTime)s - %(endTime)s %(timezone)s")
-YTUL_TITLE = _(u"%(title)s at %(location)s every year on %(startDate)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
-YTULX_TITLE = _(u"%(title)s at %(location)s every year on %(startDate)s at %(startTime)s %(timezone)s until %(recurrenceEndDate)s")
-YTULD_TITLE = _(u"%(title)s at %(location)s every year on %(startDate)s - %(endDate)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
-
-# Used by PyICU.ChoiceFormat to determine the abbreviation for the day of month ie. 1st or 10th
-DAY_OF_MONTH = _(u"1#st|2#nd|3#rd|4#th|5#th|6#th|7#th|8#th|9#th|10#th|11#th|12#th|13#th|14#th|15#th|16#th|17#th|18#th|19#th|20#th|21#st|22#nd|23#rd|24#th|25#th|26#th|27#th|28#th|29#th|30#th|31#st")
-
+## Full email templates
 NEW_BODY_SAME_FROM = _(u"""\
 %(sender)s sent you %(kindCombination)s from Chandler:
-
 
 %(description)s%(itemBody)s
 """)
 
 UPDATE_BODY_SAME_FROM = _(u"""\
 %(sender)s sent you an update on %(kindCombination)s from Chandler:
-
 
 %(description)s%(itemBody)s
 """)
@@ -215,9 +171,8 @@ NEW_BODY_DIFFERENT_FROM = _(u"""\
 
 From: %(originators)s
 To: %(toAddresses)s%(ccAddressLine)s
-
-
-%(description)s%(itemBody)s
+%(description)s
+%(itemBody)s
 """)
 
 UPDATE_BODY_DIFFERENT_FROM = _(u"""\
@@ -225,11 +180,9 @@ UPDATE_BODY_DIFFERENT_FROM = _(u"""\
 
 From: %(originators)s
 To: %(toAddresses)s%(ccAddressLine)s
-
-
-%(description)s%(itemBody)s
+%(description)s
+%(itemBody)s
 """)
-
 
 def getMessageBody(mailStamp):
     if not has_stamp(mailStamp.itsItem, EventStamp) and \
@@ -282,15 +235,13 @@ def getMessageBody(mailStamp):
         # This is done to minimize the number of
         # unique sentences that have to be defined
         # to support localization.
-        args['description'] = u'%s\n\n' % args['description']
+        args['description'] = u'%s\n' % args['description']
 
     return ret %  args
 
 
 def getForwardBody(mailStamp):
     return _(u"""\
-
-
 Begin forwarded %(kindCombination)s:
 
 > From: %(originators)s
@@ -306,8 +257,6 @@ Begin forwarded %(kindCombination)s:
 
 def getReplyBody(mailStamp):
     return _(u"""\
-
-
 %(sender)s wrote on %(date)s at %(time)s:
 
 > %(description)s
@@ -432,226 +381,115 @@ def getBodyValues(mailStamp, addGT=False, usePrefix=False):
 
 
 def buildItemDescription(mailStamp):
-    #XXX I would like to clean up
-    # this logic since there are more
-    # efficient ways to get the
-    # item description strings.
-    # Most likely will use a dict
-    # instead of Globals for localizable strings
-    # then build the key dynamically based on
-    # recurrence frequency / interval and whether
-    # the Event has a location and a recurrence
-    # end date. I would also like to find a
-    # means to condense the number of localizable
-    # strings translation keys required while
-    # preserving the item descriptions ability
-    # to localize.
 
     item = mailStamp.itsItem
     view = item.itsView
 
-    isEvent = has_stamp(item, EventStamp)
+    if not has_stamp(item, EventStamp):
+        return item.displayName
 
-    if isEvent:
-        event = EventStamp(item)
-        master = event.getMaster()
-        recur = getattr(event, 'rruleset', None)
-        noTime = event.allDay or event.anyTime
+    event = EventStamp(item)
+    master = event.getMaster()
+    recur = getattr(master, 'rruleset', None)
+    noTime = event.allDay or event.anyTime
 
-        location = getattr(event, 'location', u'')
+    location = getattr(event, 'location', u'')
 
-        if location:
-            location = location.displayName.strip()
+    if location:
+        location = location.displayName.strip()
 
-        startDate, startTime = formatDateAndTime(view, event.startTime)
-        endDate, endTime = formatDateAndTime(view, event.endTime)
+    startDate, startTime = formatDateAndTime(view, event.startTime)
+    endDate, endTime = formatDateAndTime(view, event.endTime)
 
-        if getattr(event.startTime, "tzinfo", None) == view.tzinfo.floating:
-            timezone = u""
+    if getattr(event.startTime, "tzinfo", None) == view.tzinfo.floating:
+        timezone = u""
 
+    else:
+        timezone = getTimeZoneCode(view, event.startTime)
+
+    if startDate == endDate:
+        # The Event starts and ends on the same day
+        endDate = None
+
+        if startTime == endTime:
+            # The Event has no duration
+            endTime = None
+
+    # If the event endDate and endTime
+    # match the event startDate and startTime
+    # then the event is singular in nature
+    # ie. Event on 12/31/207 at 12pm
+    single = endDate == endTime == None
+
+    args = {'title': item.displayName,
+            'startTime': startTime,
+            'startDate': startDate,
+            'dayName': weekdayName(event.startTime),
+            'endTime': endTime,
+            'endDate': endDate,
+            'endDayName': weekdayName(event.endTime),
+            'location': location,
+            'timezone': timezone,
+           }
+
+    if noTime:
+        simpleTemplate = MULTI_DAY_ALLDAY if endDate else ONE_DAY_ALLDAY
+    else:
+        if endDate:
+            simpleTemplate = MULTI_DAY_TIMED
         else:
-            timezone = getTimeZoneCode(view, event.startTime)
+            simpleTemplate = AT_TIMED if single else ONE_DAY_TIMED
 
-        if startDate == endDate:
-            # The Event starts and ends on the same day
-            endDate = None
+    particularDateTime = simpleTemplate % args
 
-            if startTime == endTime:
-                # The Event has no duration
-                endTime = None
+    if not recur:
+        args['time_information'] = particularDateTime
+        return TIME_DESCRIPTION % args
 
-        # If the event endDate and endTime
-        # match the event startDate and startTime
-        # then the event is singular in nature
-        # ie. Event on 12/31/207 at 12pm
-        single = endDate == endTime == None
+    args['particularDateTime'] = particularDateTime
+    rule = recur.rrules.first()
+    freq = rule.freq
+    interval = rule.interval
+    until = rule.calculatedUntil()
 
-        args = {'title': item.displayName,
-                'startTime': startTime,
-                'startDate': startDate,
-                'endTime': endTime,
-                'endDate': endDate,
-                'location': location,
-                'timezone': timezone,
-               }
+    args['recurrenceDayName'] = weekdayName(master.startTime)
 
-        if recur:
-            if recur.isComplex():
-                if noTime:
-                    if endDate:
-                        return (location and CLD_TITLE or CD_TITLE) % args
-                    else:
-                        return (location and CL_TITLE or C_TITLE) % args
-                if endDate:
-                    return (location and CLSD_TITLE or CSD_TITLE) % args
-                else:
-                   if single:
-                       #The startTime and endTime are the same
-                       return (location and CLSX_TITLE or CSX_TITLE) % args
-                   else:
-                       return (location and CLS_TITLE or CS_TITLE) % args
+    if recur.isComplex():
+        args['recurrenceFrequency'] = COMPLEX_FREQ % args
+    else:
+        if freq == 'weekly' and interval == 2:
+            freq = 'biweekly'
+        
+        freqSource = (FREQ_MATCHING_DAY if event.recurrenceID.date() == 
+                                           event.startTime.date() else
+                      FREQ_DIFFERENT_DAY)
+        
+        args['recurrenceFrequency'] = freqSource[freq] % args
+    
+    masterDate, masterTime = formatDateAndTime(view, master.startTime)
+    ignore, masterEndTime  = formatDateAndTime(view, master.endTime)
+    args['recurrenceStartDate'] = masterDate
+    args['recurrenceEndDate'] = (formatDateAndTime(view, until)[0]
+                                 if until else u'')
+    
+    
+    if master.anyTime or master.allDay:
+        # the occurrence isn't all day, the master is
+        args['normalTime'] = ALL_DAY_TIME_ONLY
+    else:
+        normalTemplate = AT_TIME_ONLY if single else TIME_ONLY_WITH_END
+        args['normalTime'] = normalTemplate % {
+            'originalStartTime' : masterTime,
+            'originalEndTime'   : masterEndTime
+        }
 
-            rule = recur.rrules.first()
-            freq = rule.freq
-            interval = rule.interval
-            until = rule.calculatedUntil()
+    if noTime:
+        recurTemplate = RECUR_UNTIL if until else RECUR_FOREVER
+    else:        
+        recurTemplate = RECUR_UNTIL_SHOW_TIME if until else RECUR_FOREVER_SHOW_TIME
 
-            args['recurrenceEndDate'] = until and formatDateAndTime(view, until)[0] or u''
-
-            ret = None
-
-            if freq == "daily":
-                if noTime:
-                    if until:
-                        ret = location and DUL_TITLE or DU_TITLE
-                    else:
-                        ret = location and DL_TITLE or D_TITLE
-                else:
-                    if until:
-                        if single:
-                            #The startTime and endTime are the same
-                            ret = location and DTULX_TITLE or DTUX_TITLE
-                        else:
-                            ret = location and DTUL_TITLE or DTU_TITLE
-                    else:
-                        if single:
-                            #The startTime and endTime are the same
-                            ret = location and DTLX_TITLE or DTX_TITLE
-                        else:
-                            ret = location and DTL_TITLE or DT_TITLE
-
-            elif freq == "weekly":
-                args['dayName'] = weekdayName(event.startTime)
-
-                if noTime:
-                    if until:
-                        if interval == 2:
-                            ret = location and BUL_TITLE or BU_TITLE
-                        else:
-                            ret = location and WUL_TITLE or WU_TITLE
-                    else:
-                        if interval == 2:
-                            ret = location and BL_TITLE or B_TITLE
-                        else:
-                            ret = location and WL_TITLE or W_TITLE
-                else:
-                    if until:
-                        if single:
-                            #The startTime and endTime are the same
-                            if interval == 2:
-                                ret = location and BTULX_TITLE or BTUX_TITLE
-                            else:
-                                ret = location and WTULX_TITLE or WTUX_TITLE
-
-                        else:
-                            if interval == 2:
-                                ret = location and BTUL_TITLE or BTU_TITLE
-                            else:
-                                ret = location and WTUL_TITLE or WTU_TITLE
-                    else:
-                        if single:
-                            #The startTime and endTime are the same
-                            if interval == 2:
-                                ret = location and BTLX_TITLE or BTX_TITLE
-                            else:
-                                ret = location and WTLX_TITLE or WTX_TITLE
-
-                        else:
-                            if interval == 2:
-                                ret = location and BTL_TITLE or BT_TITLE
-                            else:
-                                ret = location and WTL_TITLE or WT_TITLE
-
-            elif freq == "monthly":
-                num = int(PyICU.SimpleDateFormat(_(u"dd")).format(event.startTime))
-                args['abbreviation'] = PyICU.ChoiceFormat(DAY_OF_MONTH).format(num)
-                args['dayOfMonth'] = num
-
-                if noTime:
-                    if until:
-                        ret = location and MUL_TITLE or MU_TITLE
-                    else:
-                        ret = location and ML_TITLE or M_TITLE
-                else:
-                    if until:
-                        if single:
-                            #The startTime and endTime are the same
-                            ret = location and MTULX_TITLE or MTUX_TITLE
-                        else:
-                            ret = location and MTUL_TITLE or MTU_TITLE
-                    else:
-                        if single:
-                            #The startTime and endTime are the same
-                            ret = location and MTLX_TITLE or MTX_TITLE
-                        else:
-                            ret = location and MTL_TITLE or MT_TITLE
-
-            elif freq == "yearly":
-                if noTime:
-                    if until:
-                        ret = location and YUL_TITLE or YU_TITLE
-                    else:
-                        ret = location and YL_TITLE or Y_TITLE
-                else:
-                    if until:
-                        if endDate:
-                            ret = location and YTULD_TITLE or YTUD_TITLE
-                        else:
-                            if single:
-                                #The startTime and endTime are the same
-                                ret = location and YTULX_TITLE or YTUX_TITLE
-                            else:
-                                ret = location and YTUL_TITLE or YTU_TITLE
-                    else:
-                        if endDate:
-                            ret = location and YTLD_TITLE or YTD_TITLE
-                        else:
-                            if single:
-                                #The startTime and endTime are the same
-                                ret = location and YTLX_TITLE or YTX_TITLE
-                            else:
-                                ret = location and YTL_TITLE or YT_TITLE
-
-            return ret % args
-
-        if noTime:
-            if endDate:
-                return (location and ALD_TITLE or AD_TITLE) % args
-            else:
-                return (location and AL_TITLE or A_TITLE) % args
-
-        else:
-            if endDate:
-                return (location and ELD_TITLE or ED_TITLE) % args
-            else:
-                if single:
-                    #The startTime and endTime are the same
-                    return (location and ELX_TITLE or EX_TITLE) % args
-                else:
-                    return (location and EL_TITLE or E_TITLE) % args
-
-
-    return item.displayName
+    args['time_information'] = recurTemplate % args
+    return TIME_DESCRIPTION % args
 
 
 def buildKindCombination(mailStamp, usePrefix=False):
@@ -662,8 +500,7 @@ def buildKindCombination(mailStamp, usePrefix=False):
 
     if isEvent:
         event = EventStamp(item)
-        isAnytime = event.anyTime
-        isAllDay = event.allDay
+        isAllDay = event.allDay or event.anyTime
         isRecurring = getattr(event, 'rruleset', False)
 
         if isAllDay:
@@ -674,21 +511,17 @@ def buildKindCombination(mailStamp, usePrefix=False):
         if isRecurring:
             if usePrefix:
                 return isAllDay and (isTask and P_R_SCHEDULED_TASK or P_RA_EVENT) or \
-                       isAnytime and (isTask and P_R_SCHEDULED_TASK or P_RAT_EVENT) or \
                        (isTask and P_R_SCHEDULED_TASK or P_R_EVENT)
             else:
                 return isAllDay and (isTask and R_SCHEDULED_TASK or RA_EVENT) or \
-                       isAnytime and (isTask and R_SCHEDULED_TASK or RAT_EVENT) or \
                        (isTask and R_SCHEDULED_TASK or R_EVENT)
 
         if usePrefix:
             return isAllDay and (isTask and P_A_SCHEDULED_TASK or P_A_EVENT) or \
-                   isAnytime and (isTask and P_AT_SCHEDULED_TASK or P_AT_EVENT) or \
                    (isTask and P_SCHEDULED_TASK or P_EVENT)
 
         else:
             return isAllDay and (isTask and A_SCHEDULED_TASK or A_EVENT) or \
-                   isAnytime and (isTask and AT_SCHEDULED_TASK or AT_EVENT) or \
                    (isTask and SCHEDULED_TASK or EVENT)
 
     if isTask:
