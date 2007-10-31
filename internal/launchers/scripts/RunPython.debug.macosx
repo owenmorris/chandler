@@ -15,8 +15,8 @@ then
     PYTHON_VER=2.5
 fi
 
-unset PYTHONHOME
-export PYTHONBIN="$CHANDLERBIN"/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python
+export PYTHONHOME="$CHANDLERBIN"/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
+export PYTHONBIN="$PYTHONHOME"/Resources/Python.app/Contents/MacOS/Python
 
 if [ -f "$PYTHONBIN" ]
 then
