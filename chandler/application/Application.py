@@ -1020,7 +1020,7 @@ class wxApplication (wx.App):
         from osaf.framework.twisted import waitForDeferred
         waitForDeferred(MasterPassword.clear())
 
-    def shutdown(self):
+    def shutdown(self, repositoryCheck=True, repositoryCheckPoint=True):
         """
            Shuts down Chandler Services and the Repository.
 
@@ -1065,7 +1065,7 @@ class wxApplication (wx.App):
         if wx.Platform == '__WXMAC__':
             self.Bind(wx.EVT_ACTIVATE_APP, None)
 
-        if __debug__:
+        if __debug__ and repositoryCheck:
             displayInfoWhileProcessing (_("Checking repository..."),
                                         self.UIRepositoryView.check)
 
@@ -1093,8 +1093,9 @@ class wxApplication (wx.App):
         displayInfoWhileProcessing (_("Stopping crypto..."),
                                     Utility.stopCrypto, Globals.options.profileDir)
 
-        displayInfoWhileProcessing (_("Checkpointing repository..."),
-                                    self.UIRepositoryView.repository.checkpoint)
+        if repositoryCheckPoint:
+            displayInfoWhileProcessing (_("Checkpointing repository..."),
+                                        self.UIRepositoryView.repository.checkpoint)
 
         feedback.stopRuntimeLog(Globals.options.profileDir)
 
@@ -1177,7 +1178,9 @@ class wxApplication (wx.App):
             argv.append(arg)
 
         # Shutdown the application service layers
-        self.shutdown()
+        # and do not perform any repository
+        # checking or checkpointing.
+        self.shutdown(repositoryCheck=False, repositoryCheckPoint=False)
 
         try:
             executable = sys.executable
