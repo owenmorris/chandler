@@ -315,7 +315,7 @@ class Block(schema.Item):
         for example to force an ALL change for recurring events.
         """
         proxy = self.proxyFactory(getattr(self, 'contents', None))
-        if proxy is not None:
+        if proxy is False:
             proxy.changeCallback = wx.GetApp().commitSoon
         return proxy
 
