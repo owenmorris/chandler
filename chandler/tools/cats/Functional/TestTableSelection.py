@@ -63,11 +63,13 @@ class TestTableSelection(ChandlerTestCase):
         # except for mac which wants the meta key held down
         if sys.platform == 'darwin':
             for row in rowsToSelect[1:]:
+                self.scripting.User.idle()
                 self.scripting.User.emulate_click(dashboard, 100,
                                    rowHeight*row + rowMiddle,
                                    meta=True)
         else:
             for row in rowsToSelect[1:]:
+                self.scripting.User.idle()
                 self.scripting.User.emulate_click(dashboard, 100,
                                    rowHeight*row + rowMiddle,
                                    control=True)
