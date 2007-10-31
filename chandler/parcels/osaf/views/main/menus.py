@@ -397,7 +397,10 @@ def makeMainMenus(parcel):
                         childBlocks = [
                             MenuItem.template('NewItemItem',
                                 event = main.NewItem,
-                                title = _(u'Ne&w'),
+                                # L10N: One of the possible titles for the  Item -> New -> New Item menu.
+                                # This title changes based on the area selected in the Toolbar.
+                                # The keyboard mnemonic should be the same for each alternative title.    
+                                title = _(u'Ne&w Item'),
                                 accel = _(u'Ctrl+N'),
                                 helpString = _(u'Create a new Item'),
                                 wxId = wx.ID_NEW),
@@ -405,22 +408,22 @@ def makeMainMenus(parcel):
                                 menuItemKind = 'Separator'),
                             MenuItem.template('NewNoteItem',
                                 event = main.NewNote,
-                                title = _(u'&Note'),
+                                title = _(u'New &Note'),
                                 accel = _(u'Ctrl+Shift+N'),                                
                                 helpString = _(u'Create a new Note')),
                             MenuItem.template('NewMessageItem',
                                 event = main.NewMailMessage,
-                                title = _(u'&Message'),
+                                title = _(u'New &Message'),
                                 accel = _(u'Ctrl+Shift+M'),
                                 helpString = _(u'Create a new Message')),
                             MenuItem.template('NewTaskItem',
                                 event = main.NewTask,
-                                title = _(u'&Task'),
+                                title = _(u'New &Task'),
                                 accel = _(u'Ctrl+Shift+T'),
                                 helpString = _(u'Create a new Task')),
                             MenuItem.template('NewEventItem',
                                 event = main.NewCalendar,
-                                title = _(u'&Event'),
+                                title = _(u'New &Event'),
                                 accel = _(u'Ctrl+Shift+E'),
                                 helpString = _(u'Create a new Event')),
                             ]), # Menu NewItemMenu

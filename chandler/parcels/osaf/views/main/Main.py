@@ -169,6 +169,33 @@ class MainView(View):
 
         return False
 
+    def onNewItemEventUpdateUI(self, event):
+        # Change the title of the "New Item" menu depending on the area selected 
+        # in the Toolbar.
+        # Unfortunately, because of the mnemonics, we can't use the same strings than
+        # the ones defined for the rest of the menu (see ItemMenu creation in menus.py)
+        if event.arguments['sender'].itsName == 'NewItemItem':
+            if Block.findBlockByName("ApplicationBarAllButton").widget.IsToggled():
+                # L10N: One of the possible titles for the  Item -> New -> New Item menu.
+                # This title changes based on the area selected in the Toolbar.
+                # The keyboard mnemonic should be the same for each alternative title.    
+                event.arguments['Text'] = _(u'Ne&w Note')
+            elif Block.findBlockByName("ApplicationBarMailButton").widget.IsToggled():
+                # L10N: One of the possible titles for the  Item -> New -> New Item menu.
+                # This title changes based on the area selected in the Toolbar.
+                # The keyboard mnemonic should be the same for each alternative title.    
+                event.arguments['Text'] = _(u'Ne&w Message')
+            elif Block.findBlockByName("ApplicationBarTaskButton").widget.IsToggled():
+                # L10N: One of the possible titles for the  Item -> New -> New Item menu.
+                # This title changes based on the area selected in the Toolbar.
+                # The keyboard mnemonic should be the same for each alternative title.    
+                event.arguments['Text'] = _(u'Ne&w Task')
+            elif Block.findBlockByName("ApplicationBarEventButton").widget.IsToggled():
+                # L10N: One of the possible titles for the  Item -> New -> New Item menu.
+                # This title changes based on the area selected in the Toolbar.
+                # The keyboard mnemonic should be the same for each alternative title.    
+                event.arguments['Text'] = _(u'Ne&w Event')
+
     def onNewItemEvent(self, event):
         # See the declaration of the class NewItemEvent in Block.py for a
         # description of the attributes and values.
