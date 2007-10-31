@@ -833,14 +833,17 @@ class AppCollection(ContentCollection):
         """
 
         isDeleting = item.isDeleting()
-
+        
+        # never add occurrences to the trash or exclusions lists, bug 10777
+        isOccurrence = getattr(item, 'inheritTo', None) is not None
+        
         # adding to exclusions before determining if the item should be added to
         # the trash was a problem at one point (bug 4551), but since the mine/
         # not-mine mechanism changed, this doesn't seem to be a problem anymore,
         # and removing from a mine collection was actually misbehaving if the
         # test was done first, so now logic for moving to the trash has moved
         # back to after addition to exclusions and removal from inclusions.
-        if not isDeleting:
+        if not isDeleting and not isOccurrence:
             self.exclusions.add(item)
 
         if item in self.inclusions:
@@ -849,7 +852,7 @@ class AppCollection(ContentCollection):
         trash = self.trash
         pim_ns = schema.ns('osaf.pim', self.itsView)
 
-        if not (isDeleting or trash is None):
+        if not (isDeleting or trash is None or isOccurrence):
             if isinstance(trash, ContentCollection):
                 for collection in itertools.chain(trash.trashFor,
                                                   [pim_ns.allCollection]):
