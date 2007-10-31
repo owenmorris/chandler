@@ -22,24 +22,24 @@
 class QuickEntryState(object):
     """
     State for one or more QuickEntryCommands to process.
-    
+
     When all commands have processed a ProcessingState, its finalize method
     should be called.
-    
+
     """
     def __init__(self, view, text):
-	self.view = view
-	self.text = text
-	self.item = None
+        self.view = view
+        self.text = text
+        self.item = None
 
     def finalize(self):
-	pass
+        pass
 
 class QuickEntryCommand(object):
     """
     Behavior and meta-data for commands processed as chandler.quick_entry
     entry_points.
-        
+
     @ivar command_names: A list of synonyms for a command
     @type command_names: A list of strings
 
@@ -55,28 +55,28 @@ class QuickEntryCommand(object):
     command_names = []
     single_command = True
     state_class = QuickEntryState
-    
+
     @classmethod
     def process(cls, state):
-	"""Process a QuickEntryState."""
-	pass
+        """Process a QuickEntryState."""
+        pass
 
 def run_commands(view, text, commands):
     """
     Create a QuickEntryState, run each command on it, finalize the state,
     return state.
-    
+
     Only commands matching the first command's state_class attributes will be
     applied.
 
     """
     state = None
     for command in commands:
-	if state is None:
-	    shared_state_class = command.state_class
-	    state = shared_state_class(view, text)
-	if command.state_class == shared_state_class:
-	    command.process(state)
+        if state is None:
+            shared_state_class = command.state_class
+            state = shared_state_class(view, text)
+        if command.state_class == shared_state_class:
+            command.process(state)
     if state is not None:
-	state.finalize()
-	return state
+        state.finalize()
+        return state

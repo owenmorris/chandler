@@ -22,8 +22,8 @@ from application import Globals, Printing, schema, Utility
 from application.AboutBox import AboutBox
 from application.Application import wxBlockFrameWindow
 from application.dialogs import ( AccountPreferences, PublishCollection,
-    SubscribeCollection, RestoreShares, autosyncprefs, TurnOnTimezones,
-    ActivityViewer, Progress, Invite, Proxies
+                                  SubscribeCollection, RestoreShares, autosyncprefs, TurnOnTimezones,
+                                  ActivityViewer, Progress, Invite, Proxies
 )
 
 from repository.item.Item import MissingClass
@@ -87,10 +87,10 @@ class MainView(View):
             error = getattr(item, "error", None)
             if error is not None:
                 errorMessage = _(u"""Message Title: %(title)s
-    Error: %(translatedErrorStrings)s""") % {
-                'title': item.displayName,
-                'translatedErrorStrings': error
-                }
+                                 Error: %(translatedErrorStrings)s""") % {
+                                     'title': item.displayName,
+                                     'translatedErrorStrings': error
+                                 }
             else:
                 errorMessage = _(u"An unknown error has occurred")
 
@@ -122,7 +122,7 @@ class MainView(View):
         if mailMessage is not None:
             self.setStatusMessage (constants.UPLOAD_SENT % \
                                    {'accountName': account.displayName,
-                                   'subject': mailMessage.subject})
+                                    'subject': mailMessage.subject})
 
     def onAboutEvent(self, event):
         # The "Help | About Chandler..." menu item
@@ -301,7 +301,7 @@ class MainView(View):
         sidebar = Block.findBlockByName ("Sidebar")
 
         if text is None:
-	    text = "/" + SearchCommand.command_names[0] + " "
+            text = "/" + SearchCommand.command_names[0] + " "
 
         widget = quickEntryBlock.widget.GetControl()
         widget.SetFocus()
@@ -314,13 +314,13 @@ class MainView(View):
         else:
             start = start + 1
         widget.SetSelection (start, end)
-    
+
     def onSwitchToQuickEntryEvent (self, event):
         quickEntryBlock = self.findBlockByName("ApplicationBarQuickEntry")
         widget = quickEntryBlock.widget.GetControl()
         widget.SetFocus()
         quickEntryBlock.synchronizeWidget()
-	
+
         start = 0
         end = len(quickEntryBlock.text)
         widget.SetSelection(start, end)
@@ -329,78 +329,78 @@ class MainView(View):
         sidebar = self.findBlockByName("Sidebar")
         quickEntryBlock = self.findBlockByName("ApplicationBarQuickEntry")
         quickEntryWidget = quickEntryBlock.widget.GetControl()
-	
-	text = quickEntryWidget.GetValue().strip()
 
-	# handle cancel
+        text = quickEntryWidget.GetValue().strip()
+
+        # handle cancel
         if len(text) == 0 or event.arguments.get("cancelClicked", False):
-	    if sidebar.showSearch:
-		# Remember the search string
-		if len(text) > 0:
-		    quickEntryBlock.lastText = text
-		sidebar.setShowSearch(False)
-		    
-	    quickEntryWidget.SetValue("")
-            self.setStatusMessage(u'')
-	    return
-	
-	# Process quick entry commands
-	qe_commands = []
-	end = 0
-	# L10N: string to be appended to text when it has unrecognized commands
-	error_string = _(u"  ?")
-	for match in quick_entry_commands_re.finditer(text):
-	    command = get_quick_entry(match.group('cmd').lower())
-	    
-	    if command is None:
-		quickEntryWidget.SetValue(text + error_string)
-		self.setStatusMessage (_(u"Command entered is not valid"))
-		if sidebar.showSearch:
-		    sidebar.setShowSearch(False)
-		quickEntryWidget.SetFocus()
-		return
-	    
-	    end = match.end()
-	    qe_commands.append(command)
-	    if len(qe_commands) == 1 and command.single_command:
-		break
-	
-	text = text[end:].strip().rstrip(error_string)
-	
-	if len(qe_commands) == 0:
-	    # use a default stamp command based on the selected filter
-	    command = stamp_to_command.get(sidebar.filterClass)
-	    if command is None:
-		command = stamp_to_command.get(None)
-	    qe_commands.append(command)
+            if sidebar.showSearch:
+                # Remember the search string
+                if len(text) > 0:
+                    quickEntryBlock.lastText = text
+                sidebar.setShowSearch(False)
 
-	state = quickentry.run_commands(self.itsView, text, qe_commands)
-	item = state.item
-	if item is not None:
-	    # Add the item to the selected collection if possible, otherwise
-	    # the Dashboard collection
-	    collection = self.getSidebarSelectedCollection()
-	    msg = _(u"'%(title)s' created in %(collection)s")
-	    if (collection is None or sharing.isReadOnly(collection) or 
-		not UserCollection(collection).canAdd):
-		collection = schema.ns('osaf.pim', self.itsView).allCollection
-    
-	    statusMessageDict = {'title' : item.displayName, 
-				 'collection' : collection.displayName}
-	    collection.add(item)
-	    self.selectItems([item])
-	    self.setStatusMessage(msg % statusMessageDict)
-	    
-	# Stop showing search results if a non-search command was run
-	if not getattr(state, 'search', False):
-	    if sidebar.showSearch:
-		sidebar.setShowSearch(False)
-		
-	    # Clear out the widget when non-search commands run
-	    quickEntryWidget.SetValue("")
-	    
-	# bring focus back to quick entry so the next quick item can be created
-	quickEntryWidget.SetFocus()
+            quickEntryWidget.SetValue("")
+            self.setStatusMessage(u'')
+            return
+
+        # Process quick entry commands
+        qe_commands = []
+        end = 0
+        # L10N: string to be appended to text when it has unrecognized commands
+        error_string = _(u"  ?")
+        for match in quick_entry_commands_re.finditer(text):
+            command = get_quick_entry(match.group('cmd').lower())
+
+            if command is None:
+                quickEntryWidget.SetValue(text + error_string)
+                self.setStatusMessage (_(u"Command entered is not valid"))
+                if sidebar.showSearch:
+                    sidebar.setShowSearch(False)
+                quickEntryWidget.SetFocus()
+                return
+
+            end = match.end()
+            qe_commands.append(command)
+            if len(qe_commands) == 1 and command.single_command:
+                break
+
+        text = text[end:].strip().rstrip(error_string)
+
+        if len(qe_commands) == 0:
+            # use a default stamp command based on the selected filter
+            command = stamp_to_command.get(sidebar.filterClass)
+            if command is None:
+                command = stamp_to_command.get(None)
+            qe_commands.append(command)
+
+        state = quickentry.run_commands(self.itsView, text, qe_commands)
+        item = state.item
+        if item is not None:
+            # Add the item to the selected collection if possible, otherwise
+            # the Dashboard collection
+            collection = self.getSidebarSelectedCollection()
+            msg = _(u"'%(title)s' created in %(collection)s")
+            if (collection is None or sharing.isReadOnly(collection) or 
+                not UserCollection(collection).canAdd):
+                collection = schema.ns('osaf.pim', self.itsView).allCollection
+
+            statusMessageDict = {'title' : item.displayName, 
+                                 'collection' : collection.displayName}
+            collection.add(item)
+            self.selectItems([item])
+            self.setStatusMessage(msg % statusMessageDict)
+
+        # Stop showing search results if a non-search command was run
+        if not getattr(state, 'search', False):
+            if sidebar.showSearch:
+                sidebar.setShowSearch(False)
+
+            # Clear out the widget when non-search commands run
+            quickEntryWidget.SetValue("")
+
+        # bring focus back to quick entry so the next quick item can be created
+        quickEntryWidget.SetFocus()
 
 
     def printEvent(self, isPreview):
@@ -431,17 +431,17 @@ class MainView(View):
         #
         # <http://lists.osafoundation.org/pipermail/design/2006-August/005311.html>
         self.openURLOrDialog(
-           'http://chandlerproject.org/faq'
+            'http://chandlerproject.org/faq'
         )
 
     def onGettingStartedEvent(self, event):
         self.openURLOrDialog(
-           'http://chandlerproject.org/guide'
+            'http://chandlerproject.org/guide'
         )
 
     def onFileBugEvent(self, event):
         self.openURLOrDialog(
-           'http://chandlerproject.org/reportabug'
+            'http://chandlerproject.org/reportabug'
         )
 
     def onQuitEvent (self, event):
@@ -825,12 +825,12 @@ class MainView(View):
 
         options = [dict(name='cid:reminders-filter@osaf.us', checked = True,
                         label = _(u"Export reminders")),
-                   dict(name='cid:event-status-filter@osaf.us', checked = True,
-                        label = _(u"Export event status"))]
+                        dict(name='cid:event-status-filter@osaf.us', checked = True,
+                             label = _(u"Export event status"))]
 
         res = ImportExport.showFileChooserWithOptions(
             _(u"Choose a filename to export to"),
-             os.path.join(getDesktopDir(), "%s.ics" % name),
+            os.path.join(getDesktopDir(), "%s.ics" % name),
             _(u"iCalendar files|*.ics|All files (*.*)|*.*"),
             wx.SAVE | wx.OVERWRITE_PROMPT, options)
 
@@ -848,8 +848,8 @@ class MainView(View):
                     pass
 
                 sharing.exportFile(self.itsView, fullpath, collection,
-                    filters=set(k for k, v in optionResults.iteritems()
-                        if not v))
+                                   filters=set(k for k, v in optionResults.iteritems()
+                                               if not v))
 
                 self.setStatusMessage(_(u"Export completed"))
             except:
@@ -915,7 +915,7 @@ class MainView(View):
 
             try:
                 dumpreload.dump(self.itsView, path, activity=activity,
-                    obfuscate=obfuscate)
+                                obfuscate=obfuscate)
                 activity.completed()
             except Exception, e:
                 logger.exception("Failed to export file")
@@ -958,7 +958,7 @@ class MainView(View):
         except AttributeError:
             sharingParcel = schema.ns('osaf.sharing', self.itsView).parcel
             log = pim.ListCollection.update(sharingParcel, 'activityLog',
-                displayName="Sharing Activity")
+                                            displayName="Sharing Activity")
         # if already present, just select it
         if log in sidebar:
             self.postEventByName('RequestSelectSidebarItem', {'item': log})
@@ -992,7 +992,7 @@ class MainView(View):
     def onResetShareEventUpdateUI(self, event):
         collection = self.getSidebarSelectedCollection()
         event.arguments['Enable'] = (collection is not None and
-            sharing.isShared(collection))
+                                     sharing.isShared(collection))
 
     def onRecordSetDebuggingEvent(self, event):
         if sharing.logger.level == 10:
@@ -1017,7 +1017,7 @@ class MainView(View):
         MasterPassword.beforeBackup(self.itsView)
 
         wildcard = "%s|*.ini|%s (*.*)|*.*" % (_(u"Settings files"),
-            _(u"All files"))
+                                              _(u"All files"))
 
         dlg = wx.FileDialog(wx.GetApp().mainFrame,
                             _(u"Save Settings"), "", "chandler.ini", wildcard,
@@ -1035,10 +1035,10 @@ class MainView(View):
         # triggered from "Test | Restore Settings" Menu
 
         wildcard = "%s|*.ini|%s (*.*)|*.*" % (_(u"Settings files"),
-            _(u"All files"))
+                                              _(u"All files"))
 
         dlg = wx.FileDialog(wx.GetApp().mainFrame,
-            _(u"Restore Settings"), "", "chandler.ini", wildcard, wx.OPEN)
+                            _(u"Restore Settings"), "", "chandler.ini", wildcard, wx.OPEN)
 
         path = None
         if dlg.ShowModal() == wx.ID_OK:
@@ -1058,7 +1058,7 @@ class MainView(View):
                 errorText = unicode(e.__str__(), "utf-8", "ignore")
 
                 errorMessage = _(u"An error occurred while restoring settings:\n\n%(error)s") % {
-                                  'error': errorText}
+                    'error': errorText}
 
                 self.alertUser(errorMessage)
                 logger.exception(e)
@@ -1162,15 +1162,15 @@ class MainView(View):
         """
         collection = self.getSidebarSelectedCollection()
         event.arguments['Enable'] = collection is not None and \
-                                    not Globals.options.offline and \
-                                    (not UserCollection(collection).outOfTheBoxCollection) and \
-                                    (not sharing.isShared(collection))
+             not Globals.options.offline and \
+             (not UserCollection(collection).outOfTheBoxCollection) and \
+             (not sharing.isShared(collection))
 
     def onManageSidebarCollectionEventUpdateUI (self, event):
         collection = self.getSidebarSelectedCollection ()
         event.arguments['Enable'] = collection is not None and \
-                                    not Globals.options.offline and \
-                                    (sharing.isShared(collection))
+             not Globals.options.offline and \
+             (sharing.isShared(collection))
 
     def _unsubscribeCollection(self):
         # Unsubscribe works for published collections, or collections that
@@ -1187,8 +1187,8 @@ class MainView(View):
         # A version of unsubscribe enabled for published collections (Bug#9178)
         collection = self.getSidebarSelectedCollection()
         event.arguments['Enable'] = collection is not None and \
-                                    sharing.isShared(collection) and \
-                                    sharing.isSharedByMe(sharing.getShare(collection))
+             sharing.isShared(collection) and \
+             sharing.isSharedByMe(sharing.getShare(collection))
 
     def onUnsubscribeCollectionEvent(self, event):
         self._unsubscribeCollection()
@@ -1197,8 +1197,8 @@ class MainView(View):
         # Unsubscribe is not enabled for published' collections (Bug#9178)
         collection = self.getSidebarSelectedCollection ()
         event.arguments['Enable'] = collection is not None and \
-                                    sharing.isShared(collection) and \
-                                    not sharing.isSharedByMe(sharing.getShare(collection))
+             sharing.isShared(collection) and \
+             not sharing.isSharedByMe(sharing.getShare(collection))
 
     def onUnpublishCollectionEvent(self, event):
         try:
@@ -1207,9 +1207,9 @@ class MainView(View):
                 share = sharing.getShare(collection)
                 if sharing.isSharedByMe(share):
                     dialog = wx.MessageDialog(None,
-                        _(u"Are you sure you want to remove the collection from the server?"),
-                        _(u"Unpublish Confirmation"),
-                        wx.YES_NO | wx.ICON_INFORMATION)
+                                              _(u"Are you sure you want to remove the collection from the server?"),
+                                              _(u"Unpublish Confirmation"),
+                                              wx.YES_NO | wx.ICON_INFORMATION)
                     response = dialog.ShowModal()
                     dialog.Destroy()
                     if response == wx.ID_YES:
@@ -1233,8 +1233,8 @@ class MainView(View):
             share = sharing.getShare(collection)
             sharedByMe = sharing.isSharedByMe(share)
         event.arguments['Enable'] = collection is not None and \
-                                    not Globals.options.offline and \
-                                    sharing.isShared(collection) and sharedByMe
+             not Globals.options.offline and \
+             sharing.isShared(collection) and sharedByMe
 
     def _freeBusyShared(self):
         allCollection = schema.ns('osaf.pim', self).allCollection
@@ -1311,14 +1311,14 @@ class MainView(View):
                 event.arguments['Text'] = sender.title
             elif sender.blockName == 'SidebarSyncCollectionItem':
                 event.arguments['Text'] = _(u'%(menuTitle)s %(collectionName)s') % \
-                                          {'menuTitle' : sender.title,
-                                           'collectionName': collName}
+                     {'menuTitle' : sender.title,
+                      'collectionName': collName}
             else:
                 event.arguments ['Text'] = _(u'%(collectionName)s') % \
-                                           {'collectionName': collName}
+                     {'collectionName': collName}
         event.arguments['Enable'] = collection is not None and \
-                                    not Globals.options.offline and \
-                                    sharing.isShared(collection)
+             not Globals.options.offline and \
+             sharing.isShared(collection)
 
     def onCollectionInviteEvent(self, event):
         collection = self.getSidebarSelectedCollection()
@@ -1359,11 +1359,11 @@ class MainView(View):
                 event.arguments['Text'] = sender.title
             elif sender.blockName == 'SidebarTakeOnlineOfflineItem':
                 event.arguments['Text'] = _(u'%(menuTitle)s %(collectionName)s') % \
-                                          {'menuTitle' : sender.title,
-                                           'collectionName': collName}
+                     {'menuTitle' : sender.title,
+                      'collectionName': collName}
             else:
                 event.arguments ['Text'] = _(u'%(collectionName)s') % \
-                                           {'collectionName': collName}
+                     {'collectionName': collName}
 
             if sharing.isShared(collection):
                 event.arguments['Enable'] = True
@@ -1540,8 +1540,8 @@ class MainView(View):
             event.arguments['Check'] = (calendarPrefs.hourHeightMode == "auto")
         else:
             event.arguments['Check'] = \
-                (calendarPrefs.hourHeightMode == "visibleHours" and
-                 calendarPrefs.visibleHours == event.visibleHours)
+                 (calendarPrefs.hourHeightMode == "visibleHours" and
+                  calendarPrefs.visibleHours == event.visibleHours)
 
     def onNewBlockWindowEvent(self, event):
         rootBlock = event.treeOfBlocks
@@ -1575,18 +1575,18 @@ class SearchCommand(quickentry.QuickEntryCommand):
 
     @classmethod
     def process(cls, state):
-	"""Configure the UI to display a search."""
-	quickEntryBlock = Block.findBlockByName("ApplicationBarQuickEntry")
-	sidebar = Block.findBlockByName("Sidebar")
-	
-	command = cls.backslash_escape(state.text, '+-&|!(){}[]^~*?:\\')
-	quickEntryBlock.lastSearch = command
+        """Configure the UI to display a search."""
+        quickEntryBlock = Block.findBlockByName("ApplicationBarQuickEntry")
+        sidebar = Block.findBlockByName("Sidebar")
+
+        command = cls.backslash_escape(state.text, '+-&|!(){}[]^~*?:\\')
+        quickEntryBlock.lastSearch = command
         sidebar.setShowSearch(True)
-	state.search = True
+        state.search = True
 
     @classmethod
     def backslash_escape(cls, string, escape_chars):
-	return ''.join((r'\\'+c if c in escape_chars else c) for c in string)
+        return ''.join((r'\\'+c if c in escape_chars else c) for c in string)
 
 
 class LuceneCommand(SearchCommand):
@@ -1595,8 +1595,8 @@ class LuceneCommand(SearchCommand):
     command_names = _(u"lucene").split(',')
     @classmethod
     def backslash_escape(cls, string, escape_chars):
-	"""Don't escape special lucene characters when searching."""
-	return string
+        """Don't escape special lucene characters when searching."""
+        return string
 
 # Regular expression for finding quick entry commands 
 quick_entry_commands_re = re.compile(r'/(?P<cmd>([A-z]+))')
@@ -1610,5 +1610,5 @@ for ep in pkg_resources.iter_entry_points('chandler.quick_entry'):
 
 def get_quick_entry(partial_name):
     for name, cls in quick_entry_objects.iteritems():
-	if name.startswith(partial_name):
-	    return cls
+        if name.startswith(partial_name):
+            return cls
