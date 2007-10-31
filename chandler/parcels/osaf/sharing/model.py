@@ -519,6 +519,20 @@ class SharePrefsRecord(eim.Record):
 
     currentAccount = eim.field(schema.UUID) # empty string means no account
 
+class ShareProxyRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/proxy/0"
+
+    uuid = eim.key(ItemRecord.uuid)
+    host = eim.field(text256)
+    port = eim.field(eim.IntType)
+    protocol = eim.field(text256)
+    useAuth = eim.field(eim.IntType)
+    username = eim.field(text256)
+    password = eim.field(schema.UUID)
+    active = eim.field(eim.IntType)
+
+
+
 # preferences ----------------------------------------------------------------
 
 class PrefCalendarHourHeightRecord(eim.Record):

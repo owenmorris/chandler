@@ -1863,3 +1863,14 @@ def fixTriageStatusCallback(share=None, uuids=None):
         item.setTriageStatus('auto', popToNow=True)
         
 register(NEWITEMSUNESTABLISHED, fixTriageStatusCallback)
+
+
+
+
+def test_suite():
+    import doctest
+    return doctest.DocFileSuite(
+        'Sharing.txt',
+        optionflags=doctest.ELLIPSIS|doctest.REPORT_ONLY_FIRST_FAILURE,
+    )
+

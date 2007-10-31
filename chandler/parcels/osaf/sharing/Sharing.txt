@@ -1,0 +1,20 @@
+    >>> from osaf import sharing, pim
+    >>> from repository.persistence.RepositoryView import NullRepositoryView
+    >>> rv = NullRepositoryView()
+
+Define proxies::
+
+    >>> http_proxy = sharing.Proxy(itsView=rv, host="example.com", port=123)
+    >>> https_proxy = sharing.Proxy(itsView=rv, host="example.com", port=234,
+    ... protocol=u'HTTPS')
+    >>> sharing.getProxy(rv).host
+    'example.com'
+    >>> sharing.getProxy(rv, protocol=u'HTTPS').port
+    234
+    >>> sharing.getProxy(rv, protocol='FOO')
+    <Proxy ...>
+    >>> len(sharing.getProxies(rv))
+    3
+
+
+

@@ -185,6 +185,16 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
         uuids.add(peerAddress.itsUUID)
         uuids.add(peerState.itsUUID)
 
+        # Sharing proxy
+        proxy = sharing.getProxy(view0)
+        proxy.host = "host"
+        proxy.port = 123
+        proxy.username = "username"
+        proxy.passwd = "password"
+        proxy.active = True
+        proxy.useAuth = True
+        uuids.add(proxy.itsUUID)
+
 
         #Mail Accounts
 
@@ -425,6 +435,16 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assert_(peerState1 in sharedPeerNote1.conflictingStates)
             self.assert_(isinstance(peerAddress1, pim.EmailAddress))
 
+
+            proxy1 = view1.findUUID(proxy.itsUUID)
+            self.assertEquals(proxy1.host, "host")
+            self.assertEquals(proxy1.port, 123)
+            self.assertEquals(proxy1.username, "username")
+
+            pw = waitForDeferred(proxy1.password.decryptPassword('secret'))
+            self.assertEquals(pw, "password")
+            self.assertEquals(proxy1.active, True)
+            self.assertEquals(proxy1.useAuth, True)
 
             # Verify Calendar prefs
             pref = schema.ns('osaf.pim', view1).TimezonePrefs

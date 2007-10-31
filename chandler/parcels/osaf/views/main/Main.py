@@ -23,7 +23,7 @@ from application.AboutBox import AboutBox
 from application.Application import wxBlockFrameWindow
 from application.dialogs import ( AccountPreferences, PublishCollection,
     SubscribeCollection, RestoreShares, autosyncprefs, TurnOnTimezones,
-    ActivityViewer, Progress, Invite
+    ActivityViewer, Progress, Invite, Proxies
 )
 
 from repository.item.Item import MissingClass
@@ -149,6 +149,9 @@ class MainView(View):
         from application.dialogs import LocalePickerDialog
 
         LocalePickerDialog.showLocalePickerDialog()
+
+    def onConfigureProxiesEvent (self, event):
+        Proxies.Show(rv=self.itsView)
 
     def onProtectPasswordsEvent (self, event):
         # Triggered from "File | Prefs | Protect Passwords..."

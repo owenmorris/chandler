@@ -35,6 +35,7 @@ import twisted.internet.error as error
 from twisted.internet import reactor
 
 import application.Utility as Utility
+from application import schema
 from osaf.framework.certstore import ssl
 from osaf.activity import ActivityAborted
 from osaf import messages
@@ -50,20 +51,8 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
                  useSSL=False, repositoryView=None):
         
         self.resourcesByPath = {}   # Caches resources indexed by path
-
-        self.factory = ChandlerHTTPClientFactory()
-        self.factory.protocol = zanshin.webdav.WebDAVProtocol
-        self.factory.startTLS = useSSL
-        self.factory.host = host
-        self.factory.port = port
-        self.factory.username = username
-        self.factory.password = password
-        self.factory.retries = zanshin.webdav.DEFAULT_RETRIES
-        self.factory.repositoryView = repositoryView
-
-        #self.factory.extraHeaders = { 'Connection' : "close" }
-
-        self.factory.extraHeaders = { 'User-Agent' : Utility.getUserAgent() }
+        self.factory = createHTTPFactory(host, port, username, password, useSSL,
+                                         repositoryView)
 
     def addRequest(self, request):
         # Make all requests going through this ServerHandle have a
@@ -123,6 +112,13 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
                 raise error.SSLError(err)
         
 
+def connectFactory(factory, host, port, timeout):
+    if getattr(factory, 'startTLS', False):
+        return ssl.connectSSL(host, port, factory, factory.repositoryView,
+                              timeout=timeout)
+    else:
+        return reactor.connectTCP(host, port, factory, timeout=timeout)
+
 class ChandlerHTTPClientFactory(zanshin.http.HTTPClientFactory):
     logLevel = logging.WARNING
     # Set to logging.INFO (on this class, or specific instances)
@@ -131,17 +127,53 @@ class ChandlerHTTPClientFactory(zanshin.http.HTTPClientFactory):
     # Set logLevel to logging.DEBUG if you want passwords "in the clear"
     # in the log.
 
-    def _makeConnection(self, timeout):
-        if self.startTLS:
-            result = ssl.connectSSL(self.host, self.port, self,
-                                    self.repositoryView, timeout=timeout)
-        else:
-            result = reactor.connectTCP(self.host, self.port,
-                                        self, timeout=timeout)
-            
-        self._active = result
+    connect = connectFactory
+
+class ChandlerHTTPProxyClientFactory(zanshin.http.HTTPProxyClientFactory):
+    logLevel = logging.WARNING
+    # Set to logging.INFO (on this class, or specific instances)
+    # if you want to log http traffic.
+    #
+    # Set logLevel to logging.DEBUG if you want passwords "in the clear"
+    # in the log.
+
+    connect = connectFactory
+                                        
+
+def createHTTPFactory(host, port, username, password, useSSL, repositoryView):
+
+    # See if the user has configured an HTTP proxy
+    if repositoryView is not None and not useSSL:
+        getProxy = schema.ns("osaf.sharing.accounts", repositoryView).getProxy
         
-        return result
+        proxy = getProxy(repositoryView, 'HTTP')
+    else:
+        proxy = None
+        
+    if proxy is not None and proxy.active:
+        proxyPassword = getattr(proxy, 'password', None)
+        factory = ChandlerHTTPProxyClientFactory(
+                      host=proxy.host,
+                      port=proxy.port,
+                      username=proxy.username,
+                      password=waitForDeferred(proxyPassword.decryptPassword())
+                  )
+    else:
+        factory = ChandlerHTTPClientFactory()
+
+    factory.protocol = zanshin.webdav.WebDAVProtocol
+    factory.startTLS = useSSL
+    factory.host = host
+    factory.port = port
+    factory.username = username
+    factory.password = password
+    factory.retries = zanshin.webdav.DEFAULT_RETRIES
+    factory.repositoryView = repositoryView
+    factory.extraHeaders = { 'User-Agent' : Utility.getUserAgent() }
+    #factory.extraHeaders = { 'Connection' : "close" }
+
+    return factory
+
 
 
 

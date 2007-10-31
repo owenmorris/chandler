@@ -178,6 +178,8 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('LocalePicker').install(parcel)
 
+    BlockEvent.template('ConfigureProxies').install(parcel)
+
     BlockEvent.template('ProtectPasswords',
                         commitAfterDispatch = True).install(parcel)
 

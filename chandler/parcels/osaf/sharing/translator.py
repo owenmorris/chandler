@@ -1655,7 +1655,7 @@ class DumpTranslator(SharingTranslator):
     approvedClasses = (
         pim.Note, Password, pim.SmartCollection, shares.Share,
         conduits.BaseConduit, shares.State, accounts.SharingAccount,
-        mail.AccountBase, mail.IMAPFolder
+        mail.AccountBase, mail.IMAPFolder, accounts.Proxy
     )
 
     def exportItem(self, item):
@@ -2385,6 +2385,46 @@ class DumpTranslator(SharingTranslator):
         if self.obfuscation: return
 
         yield model.ShareHubAccountRecord(account)
+
+
+
+    @model.ShareProxyRecord.importer
+    def import_sharing_proxy(self, record):
+
+        @self.withItemForUUID(record.uuid,
+            accounts.Proxy,
+            host=record.host,
+            port=record.port,
+            protocol=record.protocol,
+            username=record.username
+        )
+        def do(proxy):
+            if record.useAuth not in (eim.NoChange, None):
+                proxy.useAuth = True if record.useAuth else False
+            if record.active not in (eim.NoChange, None):
+                proxy.active = True if record.active else False
+            if record.password not in (eim.NoChange, None):
+                @self.withItemForUUID(record.password, Password)
+                def do_password(password):
+                    if hasattr(proxy, 'password'):
+                        proxy.password.delete()
+                    proxy.password = password
+
+
+    @eim.exporter(accounts.Proxy)
+    def export_sharing_proxy(self, proxy):
+
+        if self.obfuscation: return
+
+        yield model.ShareProxyRecord(proxy,
+            proxy.host,
+            proxy.port,
+            proxy.protocol,
+            1 if proxy.useAuth else 0,
+            proxy.username,
+            getattr(proxy, "password", None),
+            1 if proxy.active else 0
+        )
 
 
 

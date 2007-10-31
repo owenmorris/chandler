@@ -15,6 +15,9 @@
 __all__ = [
     'SharingAccount',
     'WebDAVAccount',
+    'Proxy',
+    'getProxy',
+    'getProxies',
 ]
 
 from application import schema
@@ -22,7 +25,9 @@ from osaf import pim
 import conduits, utility
 import logging
 import urlparse
-from osaf.framework.password import passwordAttribute
+from osaf.framework.password import passwordAttribute, Password
+from osaf.framework.twisted import waitForDeferred
+
 
 logger = logging.getLogger(__name__)
 
@@ -145,3 +150,54 @@ class WebDAVAccount(SharingAccount):
     accountType = schema.One(
         initialValue = 'SHARING_DAV',
     )
+
+
+
+
+
+
+class Proxy(schema.Item):
+    host = schema.One(schema.Text, defaultValue = u'')
+    port = schema.One(schema.Integer, defaultValue = 8080)
+    protocol = schema.One(schema.Text, defaultValue = u'HTTP')
+    useAuth = schema.One(schema.Boolean, defaultValue = False)
+    username = schema.One(schema.Text, defaultValue = u'')
+    password = passwordAttribute
+    active = schema.One(schema.Boolean, defaultValue = False)
+
+    def getPasswd(self):
+        pw = getattr(self, "password", None)
+        if pw is None:
+            return ""
+        else:
+            return waitForDeferred(pw.decryptPassword())
+
+    def setPasswd(self, text):
+        pw = getattr(self, "password", None)
+        if pw is None:
+            if text is None:
+                return
+            pw = Password(itsParent=self)
+            self.password = pw
+        waitForDeferred(pw.encryptPassword(text))
+
+    def delPasswd(self):
+        if hasattr(self, "password"):
+            pw = self.password
+            if pw is not None:
+                pw.Delete(recursive=True)
+            del self.password
+
+    # use 'proxy.passwd' for convenience.  I would have named this property
+    # 'password', but Password.holders seems to require 'password' to be a
+    # persistent attribute.
+    passwd = property(getPasswd, setPasswd, delPasswd)
+
+def getProxy(rv, protocol=u'HTTP'):
+    for proxy in Proxy.iterItems(rv):
+        if proxy.protocol == protocol:
+            return proxy
+    return Proxy(itsView=rv, protocol=protocol, active=False)
+
+def getProxies(rv):
+    return list(Proxy.iterItems(rv))
