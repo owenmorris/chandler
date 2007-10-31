@@ -124,7 +124,9 @@ class CompactDialog(wx.Dialog):
                 if self.compacting is None:
                     countDown -= 1
                     if countDown > 0:
-                        self.status.SetLabel(self.auto %(countDown))
+                        # Can't update UI objects from non-main thread.  Use wx.CallAfter to
+                        # invoke the SetLabel in the context of the gui thread instead of here.
+                        wx.CallAfter(self.status.SetLabel, self.auto %(countDown))
                     else:
                         evt = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED,
                                               wx.ID_OK)
