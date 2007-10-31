@@ -22,8 +22,8 @@ else
     exit 1
 fi
 
+unset PYTHONHOME
 export PYTHONPATH="$CHANDLERHOME:$CHANDLERHOME/parcels":"$CHANDLERHOME/localizations/Chandler.en"
-export PYTHONHOME="$CHANDLERBIN"/debug
 export LD_LIBRARY_PATH="$CHANDLERBIN"/debug/lib:"$CHANDLERBIN"/debug/db/lib:"$CHANDLERBIN"/debug/icu/lib:"$CHANDLERBIN"/debug/j2re-image/lib/i386:"$CHANDLERBIN"/debug/j2re-image/lib/i386/client
 export LC_PATH="$CHANDLERBIN"/debug/share/locale
 

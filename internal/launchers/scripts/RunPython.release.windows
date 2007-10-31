@@ -2,6 +2,8 @@
 set RC=
 setlocal
 if "%CHANDLERHOME%"=="" call :dirname "%~dp0."
+if not "%CHANDLERHOME%"="." set CHANDLERHOME=%CHANDLERHOME%.
+
 if "%CHANDLERBIN%"=="" set CHANDLERBIN=%CHANDLERHOME%
 
 echo CHANDLERHOME is "%CHANDLERHOME%"
@@ -10,8 +12,9 @@ echo Using %CHANDLERBIN%\release\bin\python.exe %*
 
 set PATH=%CHANDLERBIN%\release\bin;%CHANDLERBIN%\release\j2re-image\bin;%CHANDLERBIN%\release\j2re-image\bin\client;%PATH%
 set LC_PATH=%CHANDLERBIN%\release\share\locale
-set PYTHONPATH=%CHANDLERHOME%;%CHANDLERHOME%\parcels;%CHANDLERHOME%\localizations\Chandler.en
-set PYTHONHOME=%CHANDLERBIN%\release
+set PYTHONPATH=%CHANDLERHOME%.;%CHANDLERHOME%\parcels;%CHANDLERHOME%\localizations\Chandler.en
+set PYTHONHOME=
+
 if not "%PARCELPATH%"=="" set PYTHONPATH=%PYTHONPATH%;%PARCELPATH%
 
 "%CHANDLERBIN%\release\bin\python.exe" %*
