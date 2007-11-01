@@ -22,7 +22,7 @@ _version = { 'release':    '0.7.3',
 
 _template = '%(release)s'
 
-if len(_version['build']) > 0:
+if _version['build']:
     _template += '%(build)s'
 
     # dig into the file system to figure out what the revision number is
@@ -52,7 +52,7 @@ if len(_version['build']) > 0:
                         _version['revision'] = value[:-1].strip('">/')
 
             # svn 1.4
-            if _version['revision'] == None:
+            if _version['revision'] is None:
                 revisions = []
                 for line in file(svnfile):
                     try:
@@ -77,4 +77,3 @@ build      = '%s' % _version['build']
 checkpoint = '%s' % _version['checkpoint']
 revision   = '%s' % _version['revision']
 version    = _template % _version
-
