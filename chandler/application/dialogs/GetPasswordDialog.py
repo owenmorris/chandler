@@ -28,9 +28,9 @@ class GetPasswordDialog(wx.Dialog):
 
         pre = wx.PreDialog()
         if create:
-            title = _(u"Create Master Password")
+            title = _(u"Create repository password")
         else:
-            title = _(u"Enter Master Password")
+            title = _(u"Enter repository password")
 
         pre.Create(None, -1, title, wx.DefaultPosition, wx.DefaultSize,
                    wx.DEFAULT_DIALOG_STYLE)
@@ -43,7 +43,7 @@ class GetPasswordDialog(wx.Dialog):
             grid = wx.GridSizer(1, 2)
 
         # Enter Password (text control):
-        label = wx.StaticText(self, -1, _(u"Master password:"))
+        label = wx.StaticText(self, -1, _(u"Enter password:"))
         grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
         self.passwordText = wx.TextCtrl(self, -1, u"",
