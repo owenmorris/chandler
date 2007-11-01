@@ -1,6 +1,6 @@
 
-VERSION=563
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
+VERSION=0.18.2
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 SRC=$(BUILD_ROOT)/m2crypto/M2Crypto-$(VERSION)
 BUILD=build_$(SNAP)
 TARBALL=m2crypto-$(SNAP)-$(RELVER).tar.gz
@@ -14,10 +14,10 @@ ifeq ($(OS),Cygwin)
 build: expand apply
 	cd $(SRC); \
 	$(PYTHON) setup.py \
-	      --openssl=`cygpath -aw $(BUILD_ROOT)/$(SNAP)` \
           build_ext --swig=`cygpath -aw $(SWIG)` \
                     --library-dirs=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/lib` \
                     --include-dirs=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/include` \
+                    --openssl=`cygpath -aw $(BUILD_ROOT)/$(SNAP)` \
           build --build-base=$(BUILD) $(DIST_OPT) \
           install_lib --force
 
@@ -27,20 +27,21 @@ WITH_OPENSSL=--openssl=$(BUILD_ROOT)/$(SNAP)
 build: expand apply
 	cd $(SRC); \
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
-	      $(WITH_OPENSSL) \
           build_ext --swig=$(SWIG) \
                     --library-dirs=$(BUILD_ROOT)/$(SNAP)/lib \
                     --include-dirs=$(BUILD_ROOT)/$(SNAP)/include \
+                    $(WITH_OPENSSL) \
           build --build-base=$(BUILD) $(DIST_OPT) \
           install_lib --force
 
 endif
 
 tests:
-	cd $(SRC)/; $(PYTHON) setup.py test -q --openssl=$(BUILD_ROOT)/$(SNAP)
+	cd $(SRC)/; \
+	$(PYTHON) setup.py build_ext --openssl=$(BUILD_ROOT)/$(SNAP) test -q
 
 M2Crypto-$(VERSION).tar.gz:
-	svn export -r $(VERSION) http://svn.osafoundation.org/m2crypto/trunk M2Crypto-$(VERSION)
+	svn export http://svn.osafoundation.org/m2crypto/tags/$(VERSION) M2Crypto-$(VERSION)
 	tar czf M2Crypto-$(VERSION).tar.gz M2Crypto-$(VERSION)
 
 sources: M2Crypto-$(VERSION).tar.gz
