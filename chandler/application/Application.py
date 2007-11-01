@@ -1386,7 +1386,7 @@ class StartupSplash(wx.Frame):
         # Progress Text dictionary
         #                    name            weight      text
         
-        self.statusTable = { #L10N: Starting the Chandler SSL Certificate Management Service
+        self.statusTable = { #L10N: Starting the SSL and password encryption services
                             'crypto'      : ( 10, _(u"Starting cryptographic services...")),
                             # L10N: Opening the Chandler Repository
                             'repository'  : ( 10, _(u"Opening the database...")),
