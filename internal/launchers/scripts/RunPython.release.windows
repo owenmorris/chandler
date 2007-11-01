@@ -10,8 +10,9 @@ echo Using %CHANDLERBIN%\release\bin\python.exe %*
 
 set PATH=%CHANDLERBIN%\release\bin;%CHANDLERBIN%\release\j2re-image\bin;%CHANDLERBIN%\release\j2re-image\bin\client;%PATH%
 set LC_PATH=%CHANDLERBIN%\release\share\locale
-set PYTHONPATH=%CHANDLERHOME%;%CHANDLERHOME%\parcels;%CHANDLERHOME%\localizations\Chandler.en
+set PYTHONPATH=%CHANDLERHOME%\.;%CHANDLERHOME%\parcels
 if not "%PARCELPATH%"=="" set PYTHONPATH=%PYTHONPATH%;%PARCELPATH%
+set PYTHONHOME=
 
 "%CHANDLERBIN%\release\bin\python.exe" %*
 goto end

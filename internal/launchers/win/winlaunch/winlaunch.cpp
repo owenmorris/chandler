@@ -123,13 +123,17 @@ int APIENTRY WinMain (HINSTANCE hInstance,
     _putenv(_T("PYTHONCASEOK="));
 
     /*
+     * enforce that PYTHONHOME is not set
+     */
+    _putenv(_T("PYTHONHOME="));
+
+    /*
      * PYTHONPATH must be set because otherwise Chandler won't find
      * the application.
      */
     _putenv(_T("PYTHONPATH=") + \
             chandlerHome + _T(";") + \
-            chandlerHome + _T("\\parcels;") + \
-            chandlerHome + _T("\\localizations\\Chandler.en"));
+            chandlerHome + _T("\\parcels"));
 
     /*
      * PATH must be set because some DLLs don't get found

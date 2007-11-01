@@ -15,8 +15,7 @@ then
     PYTHON_VER=2.5
 fi
 
-export PYTHONHOME="$CHANDLERBIN"/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
-export PYTHONBIN="$PYTHONHOME"/Resources/Python.app/Contents/MacOS/Python
+export PYTHONBIN="$CHANDLERBIN"/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python
 
 if [ -f "$PYTHONBIN" ]
 then
@@ -28,10 +27,11 @@ else
     exit 1
 fi
 
-export PYTHONPATH="$CHANDLERHOME:$CHANDLERHOME/parcels":"$CHANDLERHOME/localizations/Chandler.en"
+export PYTHONPATH="$CHANDLERHOME:$CHANDLERHOME/parcels"
 export DYLD_LIBRARY_PATH="$CHANDLERBIN"/debug/lib:"$CHANDLERBIN"/debug/db/lib:"$CHANDLERBIN"/debug/icu/lib
 export DYLD_FRAMEWORK_PATH="$CHANDLERBIN"/debug/Library/Frameworks
 export LC_PATH="$CHANDLERBIN"/debug/share/locale
+unset PYTHONHOME
 
 if [ "$PARCELPATH" != "" ]
 then
