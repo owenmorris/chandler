@@ -182,12 +182,74 @@ def getPlatformName():
 
     return platformName
 
+def getOSName():
+    """
+    Return the common name for the OS.
+    
+    OS X:    'vers-platform', e.g. 10.3-Panther, 10.4-Tiger, 10.5-Leopard
+    Linux:   'distribution-codename-version', e.g. Ubuntu-feisty-7.04
+             (i.e. the contents of /etc/lsb-release) or
+    Windows: returns a string created from the platform name
+             and version information returned from
+             sys.getwindowsversion()
+
+    returns 'Unknown' if unable to determine any useful values
+    """
+    import platform
+
+    platformName = getPlatformName()
+    result       = 'Unknown'
+
+    if platformName.startswith('Mac OS X'):
+        release   = platform.release()
+        version   = release.split('.')
+        platforms = {'7': '10.3-Panther', '8': '10.4-Tiger', '9': '10.5-Leopard'}
+
+        if len(version) == 3:
+            result = platforms.get(version[0], version[0])
+
+    elif platformName == 'Linux':
+        if os.path.exists('/etc/lsb-release'):
+            codename     = ''
+            version      = ''
+            distribution = ''
+
+            lines = open('/etc/lsb-release', 'r').readlines()
+            for line in lines:
+                name,value = line.split('=')
+                value      = value[:-1]
+
+                if name.startswith('DISTRIB_CODENAME'):
+                    codename = value
+                elif name.startswith('DISTRIB_ID'):
+                    distribution = value
+                elif name.startswith('DISTRIB_RELEASE'):
+                    version = value
+
+            result = '%s-%s-%s' % (distribution, version, codename)
+    else:
+        try:
+            major,minor,build,plat,text = sys.getwindowsversion()  # (5, 1, 2600, 2, 'Service Pack 2')
+            platforms = {0: 'Win32', 1: 'Win98', 2: 'WinNT', 3: 'WinCE'}
+            result    = '%d.%d-%s' % (major, minor, platforms.get(plat, 'Unknown'))
+        except AttributeError:
+            result = 'Unknown'
+
+    return result
+
 def getUserAgent():
     """
     Construct a rfc spec'd UserAgent string from the platform and version information
+    
+    Examples:
+        OS X Intel: Chandler/0.7.2.dev-r15512 (Macintosh; U; 10.4-Tiger; i386; en_US)
+        OS X Intel: Chandler/0.7.2.dev-r15512 (Macintosh; U; 10.5-Leopard; i386; en_US)
+        WinXP:      Chandler/0.7.2.dev-r15512 (Windows; U; 5.1-WinNT; i386; en_US)
+        Linux:      Chandler/0.7.2.dev-r15513 (Linux; U; Ubuntu-7.04-feisty; i386; en_US)
     """
     platformID = getPlatformID()
-    locale     = i18n.getLocale()
+    locale     = i18n.getLocale().replace(';()', '')
+    osname     = getOSName().replace(';()', '')
 
     if platformID == 'win' or platformID == 'win-cygwin':
         platform = 'Windows'
@@ -202,7 +264,7 @@ def getUserAgent():
         platform = 'Linux'
         cpu      = 'i386'
 
-    return 'Chandler/%s (%s; U; %s; %s)' % (version.version, platform, cpu, locale)
+    return 'Chandler/%s (%s; U; %s; %s; %s)' % (version.version, platform, osname, cpu, locale)
 
 # short opt, long opt, type flag, default value, env var, help text
 COMMAND_LINE_OPTIONS = {
