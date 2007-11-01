@@ -70,12 +70,26 @@ class TranslationTool(LocalizationBase):
 
             os.chdir(self.CWD)
 
-            if self.OPTIONS.ValidateOnly and \
+            # checks that there are no %s, %i , %d type
+            # values in the msgid strings. These values
+            # are not localizable since the ordering can
+            # not be changed.
+            error = self.checkPOFile(self.OUTPUTFILE)
+
+            if (self.OPTIONS.ValidateOnly or error is not None) and \
                not self.OUTPUTFILE_EXISTS and \
                os.access(self.OUTPUTFILE, os.F_OK):
                 # If the optional ValidateOnly command is passed
                 # then remove the generated .pot file.
                 os.remove(self.OUTPUTFILE)
+
+            if error is not None:
+                self.raiseError(error)
+
+            if os.access(self.OUTPUTFILE, os.F_OK):
+                # Add the Chandler license banner
+                # and glossary overview
+                self.addHeader()
 
             if self.OPTIONS.Debug:
                 self.debug()
@@ -149,6 +163,67 @@ class TranslationTool(LocalizationBase):
 
 
         return os.system(exp)
+
+    def addHeader(self):
+        newHeader = """#   Copyright (c) 2003-2007 Open Source Applications Foundation
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+
+################
+#
+# Chandler Project is an open source, standards-based personal information
+# manager (PIM) built around small group collaboration and a core set of
+# information management workflows modeled on Inbox usage patterns and
+# David Allen's GTD methodology.
+#
+# 'Item' Chandler has four kinds of items: Note, Message, Task and Event.
+#        Chandler items can be of multiple kinds, e.g. Scheduled Tasks and Invitations.
+#
+# 'Collection' Chandler's primary mechanism for grouping items. Collections can contain
+#              items of any kind.
+#
+# 'Application Area' Chandler has four application areas: Mail, Tasks,
+#                    Calendar and an all-inclusive All area. Chandler's application areas
+#                    are a way to filter down your collections by item kind.
+#
+# 'Triage Status' An attribute on every item that is Chandler's
+#                 principle mechanism for helping you manage what you're working on.
+#                 The three triage statuses are NOW, LATER and DONE.
+#
+# 'Tickler Alarm' A custom alarm you can set on any item to automatically
+#                 triage that item to NOW at a time you specify.
+#
+# For the complete Glossary of Chandler terminology please visit:
+#   http://chandlerproject.org/Projects/ChandlerGlossary
+#
+################
+
+"""
+        try:
+            handle = open(self.OUTPUTFILE, "r")
+            buf = handle.readlines()
+            handle.close()
+
+            # Replace the first 5 lines of the po file
+            # which contain the stock header with
+            # the custom Chandler header.
+            text =  newHeader + "".join(buf[5:])
+            handle = open(self.OUTPUTFILE, "w")
+            handle.write(text)
+            handle.close()
+        except Exception, e:
+            self.raiseError(str(e))
 
     def getOpts(self):
         self.CONFIGITEMS = {

@@ -354,7 +354,7 @@ class TestChandlerServerHandle(ChandlerServerHandle):
                 # There is a bug in the M2Crypto code which needs
                 # to be fixed.
                 #log.exception('This should not happen')
-                return (0, (CANT_CONNECT, _(u"Error in SSL Layer")))
+                return (0, (CANT_CONNECT, _(u"SSL error.")))
 
         except M2Crypto.SSL.Checker.WrongHost, err:
             result = (2, None)

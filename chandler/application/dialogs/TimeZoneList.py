@@ -116,10 +116,17 @@ TIMEZONE_SHORT_LIST = [_(u'Pacific/Honolulu'),
 _ = factory
 
 # data about each named column
-colData = { 'name'    : { 'display' : 0, 'sort' : 1, 'header' : _(u'Name'),
+colData = {
+            # L10N: A header for a column that displays Timezone names
+            'name'    : { 'display' : 0, 'sort' : 1, 'header' : _(u'Name'),
                           'wxType' : wx.grid.GRID_VALUE_STRING },
+            # L10N: A header for a column that displays the Timezone
+            #       offset from GMT
             'offset'  : { 'display' : 1, 'sort' : 0, 'header' : _(u'Offset'),
                           'wxType' : wx.grid.GRID_VALUE_STRING },
+            # L10N: A header for a column that displays a checkbox
+            #       indicating whether or not the user wants Chandler to
+            #       make this Timezone available for creating Events.
             'checked' : { 'display' : 2, 'sort' : 2, 'header' : _(u'Shown'),
                           'wxType' : wx.grid.GRID_VALUE_BOOL }}
 
@@ -137,7 +144,7 @@ class TimeZoneChooser(wx.Dialog):
         self.view = view
         self.changed = {}
 
-        title = _(u"Use time zones")
+        title = _(u"Use Time zones")
         wx.Dialog.__init__(self, id=-1, name=u'TimeZoneChooser',
                            parent=None,
                            style=wx.DIALOG_MODAL | wx.DEFAULT_DIALOG_STYLE,

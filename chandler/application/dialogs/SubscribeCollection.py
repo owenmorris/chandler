@@ -151,7 +151,7 @@ class SubscribeDialog(wx.Dialog):
 
         # Put this collection into "My items" if not checked:
         if not self.checkboxKeepOut.GetValue() or self.mine:
-            logger.info(_(u'Moving collection into My Items'))
+            logger.info(_(u'Moving collection into Dashboard...'))
             schema.ns('osaf.pim', self.view).mine.addSource(collection)
 
         schema.ns("osaf.app", self.view).sidebarCollection.add(collection)
@@ -200,11 +200,11 @@ class SubscribeDialog(wx.Dialog):
         if isinstance(err, sharing.NotAllowed):
             self._showAccountInfo()
         elif isinstance(err, sharing.NotFound):
-            self._showStatus(_(u"Collection was not found"))
+            self._showStatus(_(u"Collection was not found."))
         elif isinstance(err, sharing.AlreadySubscribed):
-            self._showStatus(_(u"You are already subscribed to this collection"))
+            self._showStatus(_(u"You are already subscribed to this collection."))
         elif isinstance(err, sharing.OfflineError):
-            self._showStatus(_(u"Application is in offline mode"))
+            self._showStatus(_(u"Chandler is offline."))
         elif isinstance(err, sharing.WebPageParseError):
             self._showStatus(_(u"Invalid URL"))
         elif isinstance(err,
@@ -214,16 +214,16 @@ class SubscribeDialog(wx.Dialog):
             # Note: do not localize the 'startswith' strings -- these need to
             # match twisted error messages:
             if err.message.startswith("DNS lookup failed"):
-                msg = _(u"Unable to look up server address via DNS")
+                msg = _(u"Unable to look up server address via DNS.")
             elif err.message.startswith("Connection was refused by other side"):
-                msg = _(u"Connection refused by server")
+                msg = _(u"Connection refused by server.")
             else:
                 msg = err.message
 
             self._showStatus(_(u"Sharing Error:\n%(error)s") % {'error': msg})
 
         elif isinstance(err, ActivityAborted):
-            self._showStatus(_(u"Subscribe cancelled"))
+            self._showStatus(_(u"Subscribe cancelled."))
         elif isinstance(err, sharing.URLParseError):
             self._showStatus(_(u"There is a problem with the URL:\n%(error)s")
                 % {'error' : err.message})
@@ -251,7 +251,7 @@ class SubscribeDialog(wx.Dialog):
         self.url = url
 
         if " " in url:
-            self._showStatus(_(u"Spaces are not allowed in URLs"))
+            self._showStatus(_(u"Spaces are not allowed in URLs."))
             return
 
         if not url:

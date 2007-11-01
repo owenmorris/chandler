@@ -31,53 +31,74 @@ CHANDLER_EVENTS_FOLDER = _(u"Chandler Events")
 INVALID_EMAIL_ADDRESS = _(u"Email Address %(emailAddress)s is not valid")
 
 # Generic mail protocol message strings
-MAIL_GENERIC_ERROR = _(u"The following error was raised:\n\n\t%(errText)s")
-MAIL_PROTOCOL_ERROR = _(u"The server '%(hostName)s' raised the following error:\n\n\t%(errText)s")
+MAIL_GENERIC_ERROR = _(u"Mail error:\n\n\t%(errText)s")
+MAIL_PROTOCOL_ERROR = _(u"Error from mail server '%(hostName)s':\n\n\t%(errText)s")
 MAIL_PROTOCOL_SUCCESS = _(u"Connection to server '%(hostName)s' was successful.")
-MAIL_PROTOCOL_REQUIRES_TLS = _(u"The Server only allows secure login. Please enable TLS or SSL.")
-MAIL_PROTOCOL_OFFLINE = _(u"%(accountName)s: offline mode no operation was performed")
-MAIL_PROTOCOL_CONNECTION = _(u"%(accountName)s: connecting to server %(serverDNSName)s")
-MAIL_PROTOCOL_CONNECTION_ERROR = _(u"Unable to connect to server please try again later")
-MAIL_PROTOCOL_TIMEOUT_ERROR = _(u"Communication with the Server timed out. Please try again later.")
+MAIL_PROTOCOL_REQUIRES_TLS = _(u"The server requires secure login. Please enable TLS or SSL.")
+MAIL_PROTOCOL_OFFLINE = _(u"%(accountName)s is offline. No operation was performed.")
+MAIL_PROTOCOL_CONNECTION = _(u"%(accountName)s: Connecting to server %(serverDNSName)s...")
+MAIL_PROTOCOL_CONNECTION_ERROR = _(u"Unable to connect to server. Please try again later.")
+MAIL_PROTOCOL_TIMEOUT_ERROR = _(u"Connection to server timed out. Please try again later.")
 
 # Translatable message strings for downloads (POP, IMAP)
-DOWNLOAD_NO_MESSAGES = _(u"%(accountName)s: no new messages found")
-DOWNLOAD_CHECK_MESSAGES = _(u"%(accountName)s: checking for new mail messages ...")
+DOWNLOAD_NO_MESSAGES = _(u"%(accountName)s: No new messages found.")
+DOWNLOAD_CHECK_MESSAGES = _(u"%(accountName)s: Checking for new mail messages...")
 
-INBOX_LIST_ERROR = _(u"Unable to determine the 'Inbox' status on the IMAP Server")
+INBOX_LIST_ERROR = _(u"Unable to determine status of Inbox on server.")
 
 # Translatable message strings for uploads(SMTP)
-UPLOAD_BAD_REPLY_ADDRESS = _(u"The Reply-To Address %(emailAddress)s is not valid")
-UPLOAD_FROM_REQUIRED = _(u"A From Address is required to send a Mail Message")
-UPLOAD_TO_REQUIRED = _(u"A To Address is required to send an SMTP Mail Message")
+UPLOAD_BAD_REPLY_ADDRESS = _(u"The Reply-to address %(emailAddress)s is not valid")
+UPLOAD_FROM_REQUIRED = _(u"A From: address is required to send this message.")
+UPLOAD_TO_REQUIRED = _(u"At least one valid To: email address is required to send this message.")
 
-UPLOAD_OFFLINE = _(u'%(accountName)s: Chandler Mail is offline, "%(subject)s" queued for sending')
-UPLOAD_START = _(u'%(accountName)s: sending "%(subject)s"')
-UPLOAD_SENT = _(u'%(accountName)s: "%(subject)s" sent')
+UPLOAD_OFFLINE = _(u"%(accountName)s: Chandler mail is offline, \"%(subject)s\" has been queued and will be sent as soon as Mail is put back online.")
+
+UPLOAD_START = _(u"%(accountName)s: Sending \"%(subject)s\"...")
+UPLOAD_SENT = _(u"%(accountName)s: \"%(subject)s\" sent.")
 
 
 # Translatable message strings for account testing
-TEST_OFFLINE = _(u"Chandler Mail is currently offline.\nTo perform this action, Mail must be in online mode.")
+TEST_OFFLINE = _(u"Cannot perform request. Chandler mail is offline.")
 
 #POP3 error messags
-POP_UIDL_ERROR = _(u"The POP3 Server does not support the 'UIDL' command.\nThis command is required by Chandler.")
+POP_UIDL_ERROR = _(u"Invalid server. The POP3 server does not support the 'UIDL' command.\nThis command is required by Chandler.")
 
 
 # ChoiceFormat messages
 #==========================
+# L10N: This string is passed to a PyICU ChoiceFormat for formatting.
+#       Contains the singular form 'message' if only
+#       one message is downloaded, otherwise it uses 'messages'
+#
+# 1# represents the singular case
+# 1< represents all cases greater than one
+#
+# For more information see the ICU documentation
+# for the ChoiceFormat class.
+#
 DOWNLOAD_CHANDLER_MESSAGES = ChoiceFormat(_(u"1#%(accountName)s: %(numberTotal)s message downloaded to Chandler (New: %(numberNew)s, Updates: %(numberUpdates)s, Duplicates: %(numberDuplicates)s, Errors: %(numberErrors)s)|1<%(accountName)s: %(numberTotal)s messages downloaded to Chandler (New: %(numberNew)s, Updates: %(numberUpdates)s, Duplicates: %(numberDuplicates)s, Errors: %(numberErrors)s)"))
 
-DOWNLOAD_START_MESSAGES = ChoiceFormat(_(u"1#%(accountName)s: downloading %(numberOfMessages)s message ...|1<%(accountName)s: downloading %(numberOfMessages)s messages ..."))
+# L10N: This string is passed to a PyICU ChoiceFormat for formatting.
+#       Contains the singular form 'message' if only
+#       one message is downloaded, otherwise it uses 'messages'
+#
+# 1# represents the singular case
+# 1< represents all cases greater than one
+#
+# For more information see the ICU documentation
+# for the ChoiceFormat class.
+#
+DOWNLOAD_START_MESSAGES = ChoiceFormat(_(u"1#%(accountName)s: Downloading %(numberOfMessages)s message...|1<%(accountName)s: Downloading %(numberOfMessages)s messages..."))
 
-POP_SEARCH_STATUS = _(u"%(accountName)s: searching %(start)s - %(end)s of %(total)s messages for Chandler Mail")
+POP_SEARCH_STATUS = _(u"%(accountName)s: Searching %(start)s - %(end)s of %(total)s messages...")
 
-IMAP_SEARCH_STATUS = _(u"%(accountName)s: searching %(start)s - %(end)s of %(total)s messages for Chandler Mail in your '%(folderDisplayName)s'")
+IMAP_SEARCH_STATUS = _(u"%(accountName)s: Searching %(start)s - %(end)s of %(total)s messages in your '%(folderDisplayName)s'...")
 
 IMAP_INBOX_MISSING = _(u"%(accountName)s is not configured correctly.\nThe account settings contain no Inbox folder.")
 
-IMAP_COMMIT_MESSAGES = _(u"%(accountName)s: commiting %(start)s - %(end)s of %(total)s messages from '%(folderDisplayName)s'")
+IMAP_COMMIT_MESSAGES = _(u"%(accountName)s: Commiting %(start)s - %(end)s of %(total)s messages from '%(folderDisplayName)s'...")
 
-POP_COMMIT_MESSAGES = _(u"%(accountName)s: commiting %(start)s - %(end)s of %(total)s messages")
+POP_COMMIT_MESSAGES = _(u"%(accountName)s: Commiting %(start)s - %(end)s of %(total)s messages...")
 
 # Number of seconds to wait to timeout connection when downloading mail
 TIMEOUT = 30

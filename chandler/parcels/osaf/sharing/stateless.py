@@ -49,7 +49,7 @@ def importFile(rv, path, collection=None, activity=None,
         trans = translatorClass(rv)
     
         if activity:
-            activity.update(msg=_(u"Parsing file"), totalWork=None)
+            activity.update(msg=_(u"Parsing file..."), totalWork=None)
         inbound, extra = serializerClass.deserialize(rv, text)
     
         total = len(inbound)
@@ -60,7 +60,7 @@ def importFile(rv, path, collection=None, activity=None,
         for alias, rs in inbound.items():
             trans.importRecords(filter(rs))
             if activity:
-                activity.update(work=1, msg=_(u"Importing items"))
+                activity.update(work=1, msg=_(u"Importing items..."))
 
         showTZDialog = getattr(trans, 'timezonePromptRequested', False)
 
@@ -83,7 +83,7 @@ def importFile(rv, path, collection=None, activity=None,
                     item_to_change.read = True
     
         if activity:
-            activity.update(totalWork=None, msg=_(u"Importing complete"))
+            activity.update(totalWork=None, msg=_(u"Importing complete."))
     
     if showTZDialog:
         import wx
@@ -124,7 +124,7 @@ def exportFile(rv, path, collection, activity=None,
         alias = trans.getAliasForItem(item)
         outbound[alias] = filter(eim.RecordSet(trans.exportItem(item)))
         if activity:
-            activity.update(work=1, msg=_(u"Exporting items"))
+            activity.update(work=1, msg=_(u"Exporting items..."))
 
     text = serializerClass.serialize(rv, outbound, name=collection.displayName,
                                      monolithic=True)
@@ -134,4 +134,4 @@ def exportFile(rv, path, collection, activity=None,
     output.close()
 
     if activity:
-        activity.update(totalWork=None, msg=_(u"Exporting complete"))
+        activity.update(totalWork=None, msg=_(u"Exporting complete."))

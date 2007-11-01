@@ -663,14 +663,15 @@ class wxPreviewArea(CalendarNotificationHandler, wx.Panel):
             genericTime = pim.shortTimeFormat.format(view, datetime(2005,1,1,12,00))
             self.genericTime = genericTime
             self.timeSeparator = ':'
-            #XXX [18n] Localizing the time separator is an issue
-            # it forces the localizer to understand these programming semantics
             for c in genericTime: # @@@ This might need work
-                if c in (_(u':.')): # Which time separator actually got used?
+                # [i18n]: The list of time separators may need to
+                #         be expanded as more localizations of
+                #         Chandler are performed.
+                if c in (u':.'): # Which time separator actually got used?
                     self.timeSeparator = c
                     break
             self.preSep = genericTime[:genericTime.find(self.timeSeparator)]
-            
+
         dc.SetFont(self.timeFont)
         self.colonPosition = dc.GetTextExtent(self.preSep)[0] + self.hMargin
         self.labelPosition = dc.GetTextExtent(self.genericTime)[0] \

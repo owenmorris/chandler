@@ -899,7 +899,7 @@ class CloudXMLFormat(ImportExportFormat):
 
         versionString = element.get('version')
         if versionString and versionString != CLOUD_XML_VERSION:
-            raise errors.VersionMismatch(_(u"Incompatible share"))
+            raise errors.VersionMismatch(_(u"Incompatible share."))
 
         # Find or create the item being imported
         item, stamps, done = self._importItem(dom, contentView, element,

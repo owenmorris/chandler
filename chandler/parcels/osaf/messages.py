@@ -18,6 +18,11 @@ from i18n import ChandlerMessageFactory as _
 #XXX: Relook at how to leverage wxstd translations
 
 UNTITLED = _(u"Untitled")
+# L10N: The word 'me' is used to represent the
+#       current Chandler user. Instead of
+#       displaying the users email address in
+#       the UI for fields such as the From:,
+#       'me' will be used instead.
 ME = _(u"me")
 
 """Common GUI Stuff. This might come directly from WxWidgets"""
@@ -38,27 +43,27 @@ UPDATED = _(u"Updated")
 REPLY = _(u"Reply")
 REPLY_ALL = _(u"Reply All")
 FORWARD = _(u"Forward")
-STAMP_MAIL = _(u"Address this item")
+STAMP_MAIL = _(u"Address item")
 STAMP_TASK = _(u"Add to Task list")
 STAMP_CALENDAR = _(u"Add to Calendar")
-UNSTAMP_MAIL = _(u"Remove Addressing fields")
+UNSTAMP_MAIL = _(u"Remove Addresses")
 UNSTAMP_TASK = _(u"Remove from Task list")
 UNSTAMP_CALENDAR = _(u"Remove from Calendar")
-STAMP_TRIAGE = _(u"Change the triage state of this item")
-PRIVATE = _(u"Never share this item")
-NOT_PRIVATE = _(u"Allow sharing this item")
-READONLY = _(u"View only")
+STAMP_TRIAGE = _(u"Change Triage status")
+PRIVATE = _(u"Never share")
+NOT_PRIVATE = _(u"Allow sharing")
+READONLY = _(u"View-only")
 
-STAMP_MAIL_HELP = _(u"Address this item")
+STAMP_MAIL_HELP = _(u"Address item")
 STAMP_TASK_HELP = _(u"Add to Task list")
 STAMP_CALENDAR_HELP = _(u"Add to Calendar")
-UNSTAMP_MAIL_HELP = _(u"Remove Addressing fields")
+UNSTAMP_MAIL_HELP = _(u"Remove Addresses")
 UNSTAMP_TASK_HELP = _(u"Remove from Task list")
 UNSTAMP_CALENDAR_HELP = _(u"Remove from Calendar")
-STAMP_TRIAGE_HELP = _(u"Change the triage state of this item")
+STAMP_TRIAGE_HELP = _(u"Change Triage status")
 
 """Server Account Settings"""
-USERNAME = _(u"Username")
+USERNAME = _(u"User name")
 PASSWORD = _(u"Password")
 HOST = _(u"Host")
 PORT = _(u"Port")
@@ -70,5 +75,5 @@ ACCOUNT_PREFERENCES = _(u"Account Preferences")
 ACCOUNT = _(u"%(accountName)s Account")
 
 # SSL
-SSL_HOST_MISMATCH = _(u'Peer certificate does not match host, got %(actualHost)s')
+SSL_HOST_MISMATCH = _(u'Peer certificate does not match host. Chandler expected %(expectedHost)s and got %(actualHost)s instead.')
 

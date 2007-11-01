@@ -113,7 +113,7 @@ ALL_DAY_TIME_ONLY = _(u"all-day")
 
 ## Frequency strings for recurrence
 # L10N: Description of the frequency of a complex recurrence rule, used to build %(recurrenceFrequency)s
-COMPLEX_FREQ = _(u"Custom recurrence rule: No description")
+COMPLEX_FREQ = _(u"Custom recurrence rule: No description.")
 FREQ_MATCHING_DAY = {
     # L10N: description of repetition for a daily recurring event, used to build %(recurrenceFrequency)s
     'daily'    : _(u"every day"),
@@ -161,7 +161,7 @@ NEW_BODY_SAME_FROM = _(u"""\
 """)
 
 UPDATE_BODY_SAME_FROM = _(u"""\
-%(sender)s sent you an update on %(kindCombination)s from Chandler:
+%(sender)s sent you an Update on %(kindCombination)s from Chandler:
 
 %(description)s%(itemBody)s
 """)
@@ -176,7 +176,7 @@ To: %(toAddresses)s%(ccAddressLine)s
 """)
 
 UPDATE_BODY_DIFFERENT_FROM = _(u"""\
-%(sender)s sent you an update on %(kindCombination)s from Chandler:
+%(sender)s sent you an Update on %(kindCombination)s from Chandler:
 
 From: %(originators)s
 To: %(toAddresses)s%(ccAddressLine)s
@@ -1167,6 +1167,7 @@ class IMAPAccount(IncomingAccount):
         # folders collection
         inbox = IMAPFolder(
             itsView = self.itsView,
+            # L10N: The UI display name for an IMAP Inbox
             displayName = _(u"Inbox"),
             folderName  = u"INBOX",
             folderType  = "CHANDLER_HEADERS",
@@ -2086,14 +2087,14 @@ Issues:
         """ 
         Get a possibly-shortened version of this address;
         used in the byline and "Who" column.
-        """        
+        """
         # Use the fullname if we have it
         label = unicode(self.fullName)
         if len(label) == 0:
             # no fullname - show the email account part, if it looks like
             # an email address
             label = self.emailAddress
-            atIndex = label.find(_(u"@"))
+            atIndex = label.find(u"@")
             if atIndex != -1:
                 label = label[:atIndex]
         return label

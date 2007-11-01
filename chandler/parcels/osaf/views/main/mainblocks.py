@@ -184,7 +184,7 @@ def makeMainView(parcel):
                 text = u"", # text value displayed in the control
                 toolBarItemKind = 'QuickEntry',
                 size = SizeType (quickEntryWidth,-1),
-                helpString = _(u'Quick entry field: enter search string, or command beginning with "/"'))
+                helpString = _(u"Quick Entry: Create new items or enter '/Find' to search."))
     appBarBlocks.append(quickEntryItem)
 
     ApplicationBar = ToolBar.template(
@@ -202,7 +202,8 @@ def makeMainView(parcel):
         orientationEnum='Vertical',
         eventBoundary = True,
         bufferedDraw = True,
-        displayName = _(u'Chandler\'s MainView'),
+        # This does not require localization
+        displayName = u'Chandler\'s MainView',
         eventsForNamedLookup=[
             main.RequestSelectSidebarItem,
             main.SendMail,

@@ -111,10 +111,10 @@ def inspect(rv, url, username=None, password=None):
             return method(rv, url, username=username, password=password)
 
         except zanshin.webdav.ConnectionError, e:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': e})
+            raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': e})
 
         except M2Crypto.BIO.BIOError, e:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': e})
+            raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': e})
 
         except zanshin.http.HTTPError, e:
 
@@ -221,7 +221,7 @@ def splitUrl(url):
         try:
             port = int(p)
         except ValueError:
-            raise errors.URLParseError(_("Invalid port number: %s") % p)
+            raise errors.URLParseError(_("Invalid port number: %(portNum)s") % {'portNum': p})
 
 
     ticket = None
@@ -761,7 +761,7 @@ def getHEADInfo(rv, url, username=None, password=None):
     }
 
     if resp.status == http.FORBIDDEN:
-        msg = _("The server rejected our request; please check the URL (HTTP status %(status)d)") % { 'status' : resp.status }
+        msg = _(u"The server rejected our request. Please check the URL (HTTP status %(status)d)") % { 'status' : resp.status }
         raise errors.SharingError(msg,
             details=_("Received [%(body)s]") % {'body' : resp.body })
     elif resp.status != http.OK:
@@ -806,7 +806,7 @@ def getOPTIONS(rv, url, username=None, password=None):
     resultDict = { }
 
     if resp.status == http.FORBIDDEN:
-        msg = _("The server rejected our request; please check the URL (HTTP status %(status)d)") % { 'status' : resp.status }
+        msg = _(u"The server rejected our request. Please check the URL (HTTP status %(status)d)") % { 'status' : resp.status }
         raise errors.SharingError(msg,
             details=_("Received [%(body)s]") % {'body' : resp.body })
     elif resp.status != http.OK:

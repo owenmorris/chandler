@@ -214,18 +214,38 @@ class WhoAttributeEditor(attributeEditors.StringAttributeEditor):
             whoSource = getattr(item, 'displayWhoSource', '')
             if len(whoSource) > 0:
                 if whoSource == 'creator': # ContentItem
+                    # L10N: short for "creator".
+                    #       displayed in the summary table
+                    #       view next to the who column.
                     prefix = _(u'cr ')
+                    # L10N: short for "editor".
+                    #       displayed in the summary table
+                    #       view next to the who column.
                 elif whoSource == 'editor': # CommunicationStatus
                     prefix = _(u'ed ')
+                    # L10N: short for "updater".
+                    #       displayed in the summary table
+                    #       view next to the who column.
                 elif whoSource == 'updater': # CommunicationStatus
                     prefix = _(u'up ')
+                    # L10N  displayed in the summary table
+                    #       view next to the who column.
                 elif whoSource == 'to': # CommunicationStatus
                     prefix = _(u'to ')
                 elif whoSource == 'from': # CommunicationStatus
+                    # L10N: short for "from".
+                    #       displayed in the summary table
+                    #       view next to the who column.
                     prefix = _(u'fr ')
                 elif whoSource == 'owner': # Flickr
+                    # L10N: short for "owner".
+                    #       displayed in the summary table
+                    #       view next to the who column.
                     prefix = _(u'ow ')
                 elif whoSource == 'author': # Feeds
+                    # L10N: short for "author".
+                    #       displayed in the summary table
+                    #       view next to the who column.
                     prefix = _(u'au ')
             
         return (prefix, theText, isSample)
@@ -528,9 +548,9 @@ class TaskColumnAttributeEditor(attributeEditors.IconAttributeEditor):
     def getToolTip(self, item, attributeName):
         state = self.GetAttributeValue(item, attributeName)
         if state == "SumTask.Stamped":
-            return _(u"Remove from task list")
+            return _(u"Remove from Task list")
         else:
-            return _(u"Add to task list")
+            return _(u"Add to Task list")
         return None
 
     def advanceState(self, item, attributeName):

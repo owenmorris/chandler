@@ -213,7 +213,7 @@ class LinkableConduit(BaseConduit):
                 if getattr(conduit, 'ticket', False):
                     resource.ticketId = conduit.ticket
 
-                msg = _(u"Getting list of remote items...")
+                msg = _(u"Getting list of items from server...")
                 if activity:
                     activity.update(msg=msg)
 
@@ -223,16 +223,16 @@ class LinkableConduit(BaseConduit):
                                                  depth="infinity")
 
                 except zanshin.webdav.ConnectionError, err:
-                    raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+                    raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
                 except M2Crypto.BIO.BIOError, err:
-                    raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+                    raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
                 except zanshin.webdav.WebDAVError, e:
                     if e.status == twisted.web.http.NOT_FOUND:
-                        raise errors.NotFound(_(u"%(location)s not found") % {'location': location})
+                        raise errors.NotFound(_(u"%(location)s not found.") % {'location': location})
                     if e.status == twisted.web.http.UNAUTHORIZED:
-                        raise errors.NotAllowed(_(u"Not authorized to get %(location)s") % {'location': location})
+                        raise errors.NotAllowed(_(u"Not authorized to get %(location)s.") % {'location': location})
 
-                    raise errors.SharingError(_(u"The following sharing error occurred: %(error)s") % {'error': e})
+                    raise errors.SharingError(_(u"Sharing Error: %(error)s") % {'error': e})
 
                 count = 0
                 for child in children:
@@ -650,7 +650,7 @@ class ManifestEngineMixin(BaseConduit):
         if style == formats.STYLE_DIRECTORY:
 
             if resourceList is None:
-                msg = _(u"Getting list of remote items...")
+                msg = _(u"Getting list of items from server...")
                 if activity:
                     activity.update(msg=msg)
                 self.resourceList = self._getResourceList(location)
@@ -857,11 +857,11 @@ class ManifestEngineMixin(BaseConduit):
         self.connect()
 
         if not self.exists():
-            raise errors.NotFound(_(u"%(location)s does not exist") %
+            raise errors.NotFound(_(u"%(location)s does not exist.") %
                 {'location': location})
 
         if resourceList is None:
-            msg = _(u"Getting list of remote items...")
+            msg = _(u"Getting list of items from server...")
             if activity:
                 activity.update(msg=msg, totalWork=None)
             self.resourceList = self._getResourceList(location)
@@ -985,7 +985,7 @@ class ManifestEngineMixin(BaseConduit):
                             stats['removed'].append(item.itsUUID)
                             if activity:
                                 activity.update(msg=_(
-                                    u"Removing from collection: '%(name)s'")
+                                    u"Removing '%(name)s' from collection...")
                                     % { 'name' : item.displayName }
                                 )
 
@@ -1368,12 +1368,12 @@ class SimpleHTTPConduit(LinkableConduit, ManifestEngineMixin, HTTPMixin):
                 activity.update(msg='%s' % location)
 
         except zanshin.webdav.ConnectionError, err:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
         except M2Crypto.BIO.BIOError, err:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
 
         if resp.status == twisted.web.http.NOT_FOUND:
-            raise errors.NotFound(_(u"%(location)s does not exist") % {'location': location})
+            raise errors.NotFound(_(u"%(location)s does not exist.") % {'location': location})
 
         if resp.status == twisted.web.http.UNAUTHORIZED:
             message = _(u"Not authorized to GET %(path)s") % {'path': location}
@@ -1381,7 +1381,7 @@ class SimpleHTTPConduit(LinkableConduit, ManifestEngineMixin, HTTPMixin):
 
         logger.info("...received; processing...")
         if activity:
-            activity.update(msg=_(u"Processing: '%s'") % location)
+            activity.update(msg=_(u"Processing: '%(location)s'") % {'location': location})
 
         try:
             text = resp.body

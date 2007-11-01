@@ -117,10 +117,9 @@ def _getDefaultHTML():
     "abt":  _(u"About Chandler"),
     "ch":   (u"Chandler\u2122 Preview"),
     "osa":  (u"Open Source Applications Foundation"),
-    # pbossut: it's possible to doctor the HTML to have the line wrap around but it's hard 
-    # to have it cut exactly where specified by PPD, so I settled for a 2 lines license snippet.
-    "lic1": _(u"Chandler is licensed under the"),
-    "lic2": _(u"Apache Licence, Version 2.0."),
+    #L10N: The Chandler licensing information is displayed in an HTML page.
+    #      The <br> tag represents a line break and should be preserved.
+    "lic": _(u"Chandler is licensed under the<br>Apache Licence, Version 2.0."),
     "loc":  _(u"Visit %(chandlerWebURL)s for more information.") % \
            {"chandlerWebURL": "<a href=\"http://chandlerproject.org\">Chandler Project</a>"},
     #This is a bummer the % in the width attribute was causing the
@@ -144,8 +143,7 @@ def _getDefaultHTML():
 <tr><td><center><font face="verdana, arial, helvetica, sans-serif" size="+1" color="black"><strong>%(ch)s</strong></font></center></td></tr>
 <tr><td><center><font face="helvetica, arial, sans-serif" size="-1" color="black">%(ver)s</font></center></td></tr>
 <tr><td><img src="%(pix)s" width="1" height="10"></td></tr>
-<tr><td><center><font face="helvetica, arial, sans-serif" size="-1" color="black"> %(lic1)s </font></center></td></tr>
-<tr><td><center><font face="helvetica, arial, sans-serif" size="-1" color="black"> %(lic2)s </font></center></td></tr>
+<tr><td><center><font face="helvetica, arial, sans-serif" size="-1" color="black"> %(lic)s </font></center></td></tr>
 <tr><td><center><font face="helvetica, arial, sans-serif" size="-1" color="black"> %(loc)s </font></center></td></tr>
 <tr><td><img src="%(pix)s" width="1" height="10"></td></tr>
 <tr><td><center><font face="helvetica, arial, sans-serif" size="-1" color="black">

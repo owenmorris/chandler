@@ -119,7 +119,7 @@ class Activity(object):
 
         if Listener.broadcast(self, *args, **kwds) or self.abortRequested:
             self.aborted()
-            raise ActivityAborted(_(u"Cancelled by user"))
+            raise ActivityAborted(_(u"Cancelled by user."))
 
     def requestAbort(self):
         self.abortRequested = True

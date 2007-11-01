@@ -34,7 +34,7 @@
           <growablecols></growablecols>
           <object class="sizeritem">
             <object class="wxCheckBox" name="Checkbox">
-              <label>Checkbox</label>
+              <label></label>
             </object>
             <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTRE_VERTICAL</flag>
             <border>5</border>

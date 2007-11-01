@@ -438,9 +438,9 @@ class wxApplication (wx.App):
         
         if splash:
             if options.reload is not None:
-                splash.fixedMessage(_("Reloading Collections and Settings"))
+                splash.fixedMessage(_("Reloading collections and settings..."))
             elif (options.create or newRepo):
-                splash.fixedMessage(_("Constructing database"))
+                splash.fixedMessage(_("Constructing database..."))
         
         # Load Parcels
         if splash:
@@ -605,7 +605,7 @@ class wxApplication (wx.App):
         from osaf.framework.blocks.Block import Block
         from application.dialogs import Progress
 
-        activity = Activity(_(u"Reloading from %(path)s") % {'path': unicode(Globals.options.reload, sys.getfilesystemencoding())})
+        activity = Activity(_(u"Reloading from %(path)s...") % {'path': unicode(Globals.options.reload, sys.getfilesystemencoding())})
         # We need to assign self.mainFrame here, or else the MasterPassword
         # dialog will potentially get upset. Probably this could be refactored
         # -- grant.
@@ -626,13 +626,13 @@ class wxApplication (wx.App):
             logger.exception("Failed to reload file")
             activity.failed(exception=e)
             if isinstance(e, TypeError):
-                msg = _(u"Incompatible export file. Unable to reload. Chandler will now restart.")
+                msg = _(u"Incompatible export file. Unable to reload. Restarting Chandler...")
             elif isinstance(e, EOFError):
-                msg = _(u"Incomplete export file. Unable to reload. Chandler will now restart.")
+                msg = _(u"Incomplete export file. Unable to reload. Restarting Chandler...")
             elif isinstance(e, ActivityAborted):
-                msg = _(u"Reload cancelled. Chandler will now restart.")
+                msg = _(u"Reload cancelled. Restarting Chandler...")
             else:
-                msg = _(u"Unable to reload file.  See chandler.log for details. Chandler will now restart.")
+                msg = _(u"Unable to reload file.  Go to the Tools>>Logging>>Log Window... menu for details. Chandler will now restart.")
             dialog = wx.MessageDialog(None, msg,
                      u"Chandler", wx.OK | wx.ICON_INFORMATION)
             dialog.ShowModal()
@@ -643,7 +643,10 @@ class wxApplication (wx.App):
             statusBar = Block.findBlockByName('StatusBar')
             if statusBar is not None:
                 statusBar.setStatusMessage(msg)
-        self.PostAsyncEvent(showStatus, _(u'Items reloaded'))
+        #L10N: The collections and settings that were exported to a dump file
+        #      from a previous version of Chandler have now been reloaded
+        #      in the latest version.
+        self.PostAsyncEvent(showStatus, _(u'Collections and settings reloaded'))
 
     def localeChanged(self):
         """
@@ -1303,20 +1306,21 @@ class wxApplication (wx.App):
         origName = osNames.get(origName, origName)
         currentName = osNames.get(currentName, currentName)
 
-        message = _(u"""Your data was created on %(origName)s and is incompatible with Chandler on %(currentName)s. To transfer your data over to %(currentName)s:
+        message = _(u"""Your data was created on %(origOperatingSystem)s and is incompatible with Chandler on %(currentOperatingSystem)s. To transfer your data over to %(currentOperatingSystem)s:
 
-1. On your %(origName)s computer, start up Chandler and go to the File>>Export Collections and Settings... menu to export your data
+1. On your %(origOperatingSystem)s computer, start up Chandler and go to the File>>Export Collections and Settings... menu to export your data.
 
-2. Move the .chex export file to your %(currentName)s computer.
+2. Move the .chex export file to your %(currentOperatingSystem)s computer.
 
-3. On your %(currentName)s computer, start up Chandler and click 'Yes' when you encounter this dialog again.
+3. On your %(currentOperatingSystem)s computer, start up Chandler and click 'Yes' when you encounter this dialog again.
 
-4. Go to the File>>Reload Collections and Settings... menu to reload your data by pointing Chandler to the .chex export file from your %(origName)s computer.
+4. Go to the File>>Reload Collections and Settings... menu to reload your data by pointing Chandler to the .chex export file from your %(origOperatingSystem)s computer.
 
-Do you want to start Chandler with a fresh data repository?""") %{'origName': origName, 'currentName': currentName}
+Do you want to start Chandler with a fresh data repository?""") %{'origOperatingSystem': origName,
+                                                                  'currentOperatingSystem': currentName}
 
         dialog = wx.MessageDialog(None, message,
-                                  _(u"Cannot open repository"),
+                                  _(u"Cannot open repository."),
                                   wx.YES_NO | wx.ICON_INFORMATION)
         response = dialog.ShowModal()
         dialog.Destroy()
@@ -1369,7 +1373,7 @@ class StartupSplash(wx.Frame):
         self.progressWrap = 210 # If progress message is longer than this, it gets wrapped
         
         super(StartupSplash, self).__init__(parent=parent,
-                                            title=_(u'Chandler starting...'),
+                                            title=_(u'Starting Chandler...'),
                                             style=wx.SIMPLE_BORDER)
         sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(sizer)
@@ -1381,14 +1385,24 @@ class StartupSplash(wx.Frame):
         
         # Progress Text dictionary
         #                    name            weight      text
-        self.statusTable = {'crypto'      : ( 10, _(u"Starting cryptographic services")),
-                            'repository'  : ( 10, _(u"Opening the database")),
-                            'parcels'     : ( 15, _(u"Loading parcels")),
-                            'twisted'     : ( 10, _(u"Starting network")),
-                            'mainview'    : ( 10, _(u"Building the main view")),
-                            'layout'      : ( 15, _(u"Laying out the main view")),
-                            'commit'      : ( 10, _(u"Committing the database")),
-                            'services'    : ( 10, _(u"Starting services")),
+        
+        self.statusTable = { #L10N: Starting the Chandler SSL Certificate Management Service
+                            'crypto'      : ( 10, _(u"Starting cryptographic services...")),
+                            # L10N: Opening the Chandler Repository
+                            'repository'  : ( 10, _(u"Opening the database...")),
+                            # L10N: Loading the Chandler code modules (parcels)
+                            'parcels'     : ( 15, _(u"Loading parcels...")),
+                            'twisted'     : ( 10, _(u"Starting network...")),
+                            # L10N: The main view is the core piece of UI that represents
+                            #       the majority of the widgets displayed on the screen.
+                            'mainview'    : ( 10, _(u"Building the main view...")),
+                            # L10N: The main view is the core piece of UI that represents
+                            #       the majority of the widgets displayed on the screen.
+                            'layout'      : ( 15, _(u"Laying out the main view...")),
+                            'commit'      : ( 10, _(u"Committing the database...")),
+                            # L10N: There are a number of background services that Chandler
+                            #       runs for Sharing, Mail, etc
+                            'services'    : ( 10, _(u"Starting services...")),
                             }
 
         # Font to be used for the progress text
@@ -1488,8 +1502,8 @@ def checkPlatform():
         platform = Utility.getPlatformName()
     if Utility.getPlatformName() != platform:
         # Prompt the user that we're going to exit
-        wx.MessageBox(_(u'This application has been compiled for another platform. Please download the correct package from OSAF website.'),
-                      _(u'Chandler will exit'))
+        wx.MessageBox(_(u'This version of Chandler runs on a different operating system. Please download the correct installer from the OSAF website.'),
+                      _(u'Quiting Chandler...'))
         # Stop the program. Somewhat unclean but since nothing can be done safely
         # or even should be done (could crash anytime), the best is to just exit when
         # we still can...

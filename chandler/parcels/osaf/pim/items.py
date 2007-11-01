@@ -118,24 +118,24 @@ class ContentItem(Triageable):
     
     BYLINE_FORMATS = {
         Modification.created: (
-            _(u"created by %(user)s on %(date)s %(tz)s"),
-            _(u"created on %(date)s %(tz)s"),
+            _(u"Created by %(user)s on %(date)s %(tz)s"),
+            _(u"Created on %(date)s %(tz)s"),
         ),
         Modification.edited: (
-            _(u"edited by %(user)s on %(date)s %(tz)s"),
-            _(u"edited on %(date)s %(tz)s"),
+            _(u"Edited by %(user)s on %(date)s %(tz)s"),
+            _(u"Edited on %(date)s %(tz)s"),
         ),
         Modification.updated: (
-            _(u"updated by %(user)s on %(date)s %(tz)s"),
-            _(u"updated on %(date)s %(tz)s"),
+            _(u"Updated by %(user)s on %(date)s %(tz)s"),
+            _(u"Updated on %(date)s %(tz)s"),
         ),
         Modification.sent: (
-            _(u"sent by %(user)s on %(date)s %(tz)s"),
-            _(u"sent on %(date)s %(tz)s"),
+            _(u"Sent by %(user)s on %(date)s %(tz)s"),
+            _(u"Sent on %(date)s %(tz)s"),
         ),
         Modification.queued: (
-            _(u"queued by %(user)s on %(date)s %(tz)s"),
-            _(u"queued on %(date)s %(tz)s"),
+            _(u"Queued by %(user)s on %(date)s %(tz)s"),
+            _(u"Queued on %(date)s %(tz)s"),
         ),
     }
 

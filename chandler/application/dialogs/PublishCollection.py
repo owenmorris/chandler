@@ -467,7 +467,7 @@ class PublishCollectionDialog(wx.Dialog):
         logger.error("Failed to publish collection.")
         try:
             if isinstance(err, sharing.OfflineError):
-                self._showStatus(_(u"Application is in offline mode"))
+                self._showStatus(_(u"Chandler is offline."))
 
             elif isinstance(err,
                 (sharing.CouldNotConnect, zanshin.error.ConnectionError)):
@@ -476,9 +476,9 @@ class PublishCollectionDialog(wx.Dialog):
                 # Note: do not localize the 'startswith' strings -- these need
                 # to match twisted error messages:
                 if err.message.startswith("DNS lookup failed"):
-                    msg = _(u"Unable to look up server address via DNS")
+                    msg = _(u"Unable to look up server address via DNS.")
                 elif err.message.startswith("Connection was refused"):
-                    msg = _(u"Connection refused by server")
+                    msg = _(u"Connection refused by server.")
                 else:
                     msg = err.message
 
@@ -506,28 +506,29 @@ class PublishCollectionDialog(wx.Dialog):
 
                     else:
                         # This was one someone else published
-                        msg = _(u"Collection was already published from a different account")
+                        msg = _(u"Collection was already published from a different account.")
                 else:
-                    msg = _(u"Collection already exists on server")
+                    msg = _(u"Collection already exists on server.")
 
                 self._showStatus(msg)
 
             elif isinstance(err, ActivityAborted):
-                self._showStatus(_("Publish cancelled"))
+                self._showStatus(_("Publish cancelled."))
 
             else:
                 if Globals.options.catch != 'tests':
                     text = "%s\n\n%s" % (summary, extended)
                     SharingDetails.ShowText(None, text,
-                        title=_(u"Publish Error"))
+                        title=_(u"Error while publishing."))
 
-                self._showStatus(_(u"\nSharing error:\n%(error)s\n") %
-                    {'error': err})
+                txt = _(u"Sharing Error:\n%(error)s") % {'error': err}
+
+                self._showStatus(u"\n%s\n" % txt)
 
 
         except Exception, e:
             logger.exception("Error displaying exception")
-            self._showStatus(_(u"\nSharing error:\n(Can't display error message;\nSee chandler.log for more details)\n"))
+            self._showStatus(_(u"\nSharing Error:\nCan't display error message;\nGo to the Tools>>Logging>>Log Window... menu for details.\n"))
         # self._showStatus("Exception:\n%s" % traceback.format_exc(10))
 
         # Re-enable the main panel and switch back to the "Share" button
@@ -554,7 +555,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.view.refresh(lambda code, item, attr, val: val)
 
 
-        self._showStatus(_(u" Done\n"))
+        self._showStatus(u" " + _(u"Done") + u"\n")
         self._hideUpdate()
 
         if self.publishType == 'freebusy':

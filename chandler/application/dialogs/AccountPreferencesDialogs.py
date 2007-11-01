@@ -61,8 +61,8 @@ class MailTestDialog(ProgressDialog):
         return constants.MAIL_PROTOCOL_CONNECTION_ERROR
 
     def getTitleText(self):
-        return _(u"Testing %(accountType)s account '%(accountName)s'") % \
-                          {'accountType': self.account.accountProtocol,
+        return _(u"Testing %(accountProtocol)s account '%(accountName)s'") % \
+                          {'accountProtocol': self.account.accountProtocol,
                            'accountName': self.account.displayName}
 
     def getStartText(self):
@@ -81,7 +81,7 @@ class MailTestDialog(ProgressDialog):
 
 
 NO_ACCESS    = _(u"Access denied by server.")
-READ_ONLY    = _(u"You have view-only access with this account.")
+READ_ONLY    = _(u"You have view-only access to this account.")
 READ_WRITE   = _(u"You have view and edit privileges with this account.")
 UNKNOWN      = _(u"Test failed with an unknown response.")
 
@@ -224,7 +224,7 @@ class ChandlerIMAPFoldersDialog(ProgressDialog):
         return _(u"Configure Chandler folders")
 
     def getStartText(self):
-        return _(u"Configuring folders in your account.")
+        return _(u"Configuring folders in your account...")
 
     def getSuccessText(self, statusValue):
         created = statusValue[3]
@@ -236,7 +236,7 @@ class ChandlerIMAPFoldersDialog(ProgressDialog):
             self.SUCCESS_TEXT_SIZE = (525, -1)
 
             return _(u"""\
-The following folders have been created on your account:
+The following folders have been created in your account:
 
 Chandler Mail - Add messages to this folder to add them to your Mail Dashboard.
 
@@ -305,11 +305,10 @@ class RemoveChandlerIMAPFoldersDialog(ProgressDialog):
         return _(u"Remove Chandler folders")
 
     def getStartText(self):
-        return _(u"Removing Chandler folders from this account.")
+        return _(u"Removing Chandler folders from this account...")
 
     def getSuccessText(self, statusValue):
-        return _(u"Chandler folders have been successfully removed.") % \
-                 {"hostname": self.account.host}
+        return _(u"Chandler folders removed.")
 
     def getErrorText(self, statusValue):
         return constants.MAIL_PROTOCOL_ERROR % \
@@ -373,16 +372,16 @@ class AutoDiscoveryDialog(ProgressDialog):
         return constants.MAIL_PROTOCOL_CONNECTION_ERROR
 
     def getTitleText(self):
-        return _(u"Discovering  '%(hostname)s'") % \
+        return _(u"Discovering '%(hostname)s'...") % \
                           {'hostname': self.hostname}
 
     def getStartText(self):
-        return _(u"Discovering mail settings for server '%(hostName)s'") % \
+        return _(u"Discovering mail settings for server '%(hostName)s'...") % \
                  {'hostName': self.hostname}
 
     def getSuccessText(self, statusValue):
-        return _(u"\tThe following settings were found:\n\n\tType: %(type)s\n\tPort: %(port)s\n\tSecurity: %(security)s\n") % \
-                    {"type": self.discoveredAccount.accountProtocol,
+        return _(u"\tThe following settings were found:\n\n\tType: %(protocol)s\n\tPort: %(port)s\n\tSecurity: %(security)s\n") % \
+                    {"protocol": self.discoveredAccount.accountProtocol,
                      "port": self.discoveredAccount.port,
                      "security": self.discoveredAccount.connectionSecurity}
 
@@ -481,4 +480,4 @@ class ConfigureDialog(MsgDialog):
 
     def getButtons(self):
         self.buttons.append(wx.Button(self, wx.ID_CANCEL))
-        self.buttons.append(wx.Button(self, -1, _(u"Configure folders")))
+        self.buttons.append(wx.Button(self, -1, _(u"Configure Folders")))

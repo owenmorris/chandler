@@ -64,10 +64,18 @@ def makeMainMenus(parcel):
     from itertools import chain
 
     if wx.Platform == '__WXMAC__':
+        # L10N: Keyboard shortcut to remove an
+        # Item from a collection on OS X
         platform_remove = _(u'Back')
+        # L10N: Keyboard shortcut to delete (move Item
+        #       to Trash) on OS X.
         platform_delete = _(u'Ctrl+Back')
     else:
+        # L10N: Keyboard shortcut to remove an
+        # Item from a collection on Windows and Linux
         platform_remove = _(u'Del')
+        # L10N: Keyboard shortcut to delete (move Item
+        #       to Trash) on Windows and Linux.
         platform_delete = _(u'Ctrl+Del')
 
     
@@ -150,7 +158,7 @@ def makeMainMenus(parcel):
                 childBlocks = [
                     MenuItem.template('ImportICalendarItem',
                         event = main.ImportICalendar,
-                        title = _(u'&Import .ics Calendar...'),
+                        title = _(u'&Import Tasks and Events from an iCalendar file'),
                         helpString = _(u'Import iCalendar file')),
                     MenuItem.template('ExportICalendarItem',
                         event = main.ExportICalendar,
@@ -161,11 +169,11 @@ def makeMainMenus(parcel):
                     MenuItem.template('DumpToFileItem',
                         event = main.DumpToFile,
                         title = _(u'E&xport Collections and Settings...'),
-                        helpString = _(u'Export data to upgrade')),
+                        helpString = _(u'Export your data to move to a new version of Chandler')),
                     MenuItem.template('ReloadFromFileItem',
                         event = main.ReloadFromFile,
                         title = _(u'&Reload Collections and Settings...'),
-                        helpString = _(u'Reload data to upgrade')),
+                        helpString = _(u'Reload your data to move to a new version of Chandler')),
                     MenuItem.template('FileSeparator2',
                         menuItemKind = 'Separator'),
                     MenuItem.template('PrefsAccountsItem',
@@ -179,7 +187,7 @@ def makeMainMenus(parcel):
                     MenuItem.template('ProtectPasswordsItem',
                         event = main.ProtectPasswords,
                         title = _(u'Protect Pass&words...'),
-                        helpString = _(u'Encrypt account passwords with the help of master password')),
+                        helpString = _(u'Protect your account passwords with a master password')),
                     MenuItem.template('LocalePickerItem',
                         event = main.LocalePicker,
                         title = _(u'Swi&tch Language...'),
@@ -211,7 +219,7 @@ def makeMainMenus(parcel):
                                 helpString = _(u'Set auto-sync intervals')),
                             ]), # Menu SyncMenu
                     Menu.template('OfflineMenu',
-                        title = _(u'Suspend Syncin&g'),
+                        title = _(u'Suspend syncin&g'),
                         childBlocks = [
                             MenuItem.template('TakeOnlineOfflineItem',
                                 event = main.TakeOnlineOffline,
@@ -249,10 +257,13 @@ def makeMainMenus(parcel):
                     MenuItem.template('PageSetupItem',
                         event = globalBlocks.PageSetup,
                         title = _(u'Page Set&up...'),
+                        # L10N: Keyboard shortcut to launch Printing
+                        #       Page Setup.
                         accel = _(u'Shift+Ctrl+P')),
                     MenuItem.template('PrintItem',
                         event = globalBlocks.Print,
                         title = _(u'&Print...'),
+                        # L10N: Keyboard shortcut for Printing.
                         accel = _(u'Ctrl+P'),
                         helpString = _(u'Print the selected collection'),
                         wxId = wx.ID_PRINT),
@@ -261,6 +272,7 @@ def makeMainMenus(parcel):
                     MenuItem.template('CommitView',
                         event = globalBlocks.CommitView,
                         title = _(u'&Save Changes'),
+                        # L10N: Keyboard shortcut to save changes.
                         accel = _(u'Ctrl+S'),
                         wxId = wx.ID_SAVE),
                     ])
@@ -269,6 +281,7 @@ def makeMainMenus(parcel):
         fileMenu.attrs['childBlocks'].append(MenuItem.template('QuitItem',
                                                         event=globalBlocks.Quit,
                                                         title = _(u'&Quit'),
+                                                        # L10N: Keyboard shortcut to quit Chandler.
                                                         accel = _(u'Ctrl+Q'),
                                                         helpString = _(u'Quit Chandler'),
                                                         wxId = wx.ID_EXIT))
@@ -283,12 +296,14 @@ def makeMainMenus(parcel):
                     MenuItem.template('UndoItem',
                         event = globalBlocks.Undo,
                         title = messages.UNDO,
+                        # L10N: Keyboard shortcut to undo the last operation.
                         accel = _(u'Ctrl+Z'),
                         helpString = _(u"Can't Undo"),
                         wxId = wx.ID_UNDO),
                     MenuItem.template('RedoItem',
                         event = globalBlocks.Redo,
                         title = messages.REDO,
+                        # L10N: Keyboard shortcut to redo the last operation.
                         accel = _(u'Ctrl+Y'),
                         helpString = _(u"Can't Redo"),
                         wxId = wx.ID_REDO),
@@ -297,21 +312,25 @@ def makeMainMenus(parcel):
                     MenuItem.template('CutItem',
                         event = globalBlocks.Cut,
                         title = messages.CUT,
+                        # L10N: Keyboard shortcut for cut.
                         accel = _(u'Ctrl+X'),
                         wxId = wx.ID_CUT),
                     MenuItem.template('CopyItem',
                         event = globalBlocks.Copy,
                         title = messages.COPY,
+                        # L10N: Keyboard shortcut for copy.
                         accel = _(u'Ctrl+C'),
                         wxId = wx.ID_COPY),
                     MenuItem.template('PasteItem',
                         event = globalBlocks.Paste,
                         title = messages.PASTE,
+                        # L10N: Keyboard shortcut for paste.
                         accel = _(u'Ctrl+V'),
                         wxId = wx.ID_PASTE),
                     MenuItem.template('SelectAllItem',
                         event = globalBlocks.SelectAll,
                         title = messages.SELECT_ALL,
+                        # L10N: Keyboard shortcut for select all.
                         accel = _(u'Ctrl+A'),
                         helpString = _(u'Select All'),
                         wxId = wx.ID_SELECTALL),
@@ -320,14 +339,17 @@ def makeMainMenus(parcel):
                     MenuItem.template('SearchItem',
                         event = main.Search,
                         title = _(u'&Find'),
+                        # L10N: Keyboard shortcut for find / search.
                         accel = _(u'Ctrl+F'),
                         helpString = _(u'Search'),
                         wxId = wx.ID_FIND),
                     MenuItem.template('SwitchToQuickEntryItem',
                         event = main.SwitchToQuickEntry,
-                        title = _(u'Go to Quic&k Entry field'),
+                        title = _(u'Go to Quic&k Entry Field'),
+                        # L10N: Keyboard shortcut to put focus on
+                        #      the Quick Entry Field.
                         accel = _(u'Ctrl+K'),
-                        helpString = _(u'Go to the Quick Entry field'))
+                        helpString = _(u'Go to the Quick Entry Field'))
                     ]), # Menu EditMenu
             Menu.template('ViewMenu',
                 title = _(u'&View'),
@@ -374,11 +396,15 @@ def makeMainMenus(parcel):
                     MenuItem.template('GoToDate',
                         event = calBlocks.GoToDate,
                         title = _(u'&Go to Date...'),
+                        # L10N: Keyboard shortcut to go to a specific date
+                        #      on the Calendar.
                         accel = _(u'Ctrl+G'),
-                        helpString = _(u'Go to a specific date')),
+                        helpString = _(u'Go to a specific date on the Calendar')),
                     MenuItem.template('GoToToday',
                         event = calBlocks.GoToToday,
                         title = _(u'Go to T&oday'),
+                        # L10N: Keyboard shortcut to go to today's date
+                        #      on the Calendar.
                         accel = _(u'Ctrl+T'),
                         helpString = _(u'Navigate to today\'s date')),
                     MenuItem.template('ViewSeparator2',
@@ -393,37 +419,47 @@ def makeMainMenus(parcel):
                 childBlocks = [
                     Menu.template('NewItemMenu',
                         title = _(u'&New'),
-                        helpString = _(u'Create a new Content Item'),
+                        helpString = _(u'Create a new item'),
                         childBlocks = [
                             MenuItem.template('NewItemItem',
                                 event = main.NewItem,
                                 # L10N: One of the possible titles for the  Item -> New -> New Item menu.
                                 # This title changes based on the area selected in the Toolbar.
-                                # The keyboard mnemonic should be the same for each alternative title.    
+                                # The keyboard mnemonic should be the same for each alternative title.
                                 title = _(u'Ne&w Item'),
+                                # L10N: Keyboard shortcut to create a new Item.
+                                #       The shortcut will either create a Note,
+                                #       Task, Event, or Message depending on
+                                #       what filter button is selected in the
+                                #       Toolbar. The filter buttons are All,
+                                #       Mail, Task, Calendar.
                                 accel = _(u'Ctrl+N'),
-                                helpString = _(u'Create a new Item'),
+                                helpString = _(u'Create a new item'),
                                 wxId = wx.ID_NEW),
                             MenuItem.template('NewItemSeparator1',
                                 menuItemKind = 'Separator'),
                             MenuItem.template('NewNoteItem',
                                 event = main.NewNote,
                                 title = _(u'New &Note'),
-                                accel = _(u'Ctrl+Shift+N'),                                
+                                # L10N: Keyboard shortcut to create a new Note.
+                                accel = _(u'Ctrl+Shift+N'),
                                 helpString = _(u'Create a new Note')),
                             MenuItem.template('NewMessageItem',
                                 event = main.NewMailMessage,
                                 title = _(u'New &Message'),
+                                # L10N: Keyboard shortcut to create a new Message.
                                 accel = _(u'Ctrl+Shift+M'),
                                 helpString = _(u'Create a new Message')),
                             MenuItem.template('NewTaskItem',
                                 event = main.NewTask,
                                 title = _(u'New &Task'),
+                                # L10N: Keyboard shortcut to create a new Task.
                                 accel = _(u'Ctrl+Shift+T'),
                                 helpString = _(u'Create a new Task')),
                             MenuItem.template('NewEventItem',
                                 event = main.NewCalendar,
                                 title = _(u'New &Event'),
+                                # L10N: Keyboard shortcut to create a new Event.
                                 accel = _(u'Ctrl+Shift+E'),
                                 helpString = _(u'Create a new Event')),
                             ]), # Menu NewItemMenu
@@ -496,7 +532,7 @@ def makeMainMenus(parcel):
                         event = main.NewCollection,
                         eventsForNamedLookup = [main.NewCollection],
                         title = _(u'&New'),
-                        helpString = _(u'Create a new Collection')),
+                        helpString = _(u'Create a new collection')),
                     MenuItem.template('CollectionSeparator1',
                         menuItemKind = 'Separator'),
                     MenuItem.template('CollectionRenameItem',
@@ -529,7 +565,7 @@ def makeMainMenus(parcel):
                         event = main.ToggleMine,
                         title = _(u'&Keep out of Dashboard'),
                         menuItemKind = 'Check',
-                        helpString = _(u'Include or exclude the selected collection from Dashboard')),
+                        helpString = _(u'Include or exclude the selected collection from the Dashboard')),
                     ]), # Menu CollectionMenu
             Menu.template('ShareMenu',
                 title = _(u'&Share'),
@@ -567,7 +603,7 @@ def makeMainMenus(parcel):
                     MenuItem.template("BrowsePluginsMenuItem",
                                 event = main.BrowsePlugins,
                                 title = _(u"&Download"),
-                                helpString = _(u'Browse for new pluginsItem')),
+                                helpString = _(u'Browse for new plugins')),
                     MenuItem.template('InstallPluginsMenuItem',
                                 event = main.InstallPlugins,
                                 title = _(u"I&nstall..."),
@@ -583,17 +619,17 @@ def makeMainMenus(parcel):
                 childBlocks = [
                     MenuItem.template('ActivateWebserverItem',
                         event = main.ActivateWebserver,
-                        title = _(u'Start &webserver'),
+                        title = _(u'Start &Webserver'),
                         helpString = _(u'Activates the built-in webserver at localhost:1888')),
                     Menu.template('LoggingMenu',
                         title=_(u'&Logging'),
                         childBlocks = [
                             MenuItem.template('ShowLogWindowItem',
                                 event = main.ShowLogWindow,
-                                title = _(u'Log &window...'),
+                                title = _(u'Log &Window...'),
                                 helpString = _(u'Displays the contents of chandler.log')),
                             Menu.template('LoggingLevelMenu',
-                                title = _(u'Logging l&evel'),
+                                title = _(u'Logging L&evel'),
                                 helpString = _(u'Change logging level'),
                                 childBlocks = [
                                     MenuItem.template('LoggingLevelCriticalMenuItem',
@@ -628,17 +664,17 @@ def makeMainMenus(parcel):
                         childBlocks = [
                             MenuItem.template('SaveSettingsItem',
                                 event = main.SaveSettings,
-                                title = _(u'Sa&ve settings...'),
-                                helpString = _(u'Saves your accounts and shares')),
+                                title = _(u'Sa&ve Settings...'),
+                                helpString = _(u'Save settings for your accounts and shared collections')),
                             MenuItem.template('RestoreSettingsItem',
                                 event = main.RestoreSettings,
-                                title = _(u'Res&tore settings...'),
-                                helpString = _(u'Restores your accounts and shares')),
+                                title = _(u'Res&tore Settings...'),
+                                helpString = _(u'Restore your accounts and shared collections')),
                             MenuItem.template('ToolsRestoreSeparator1',
                                 menuItemKind = 'Separator'),
                             MenuItem.template('ObfuscatedDumpToFileItem',
                                 event = main.ObfuscatedDumpToFile,
-                                title = _(u'&Export scrubbed Collections and Settings...'),
+                                title = _(u'&Export Scrubbed Collections and Settings...'),
                                 helpString = _(u'Generate export file with obscured data')),
                             MenuItem.template('ToolsRestoreSeparator2',
                                 menuItemKind = 'Separator'),
@@ -654,19 +690,20 @@ def makeMainMenus(parcel):
                             MenuItem.template('CheckRepositoryItem',
                                 event = main.CheckRepository,
                                 title = _(u'&Check'),
-                                helpString = _(u'run check() on the main view')),
+                                helpString = _(u'Run check() on the main view')),
                             MenuItem.template('CheckAndRepairRepositoryItem',
                                 event = main.CheckAndRepairRepository,
                                 title = _(u'C&heck and Repair'),
-                                helpString = _(u'run check(True) on the main view')),
+                                helpString = _(u'Run check(True) on the main view')),
                             MenuItem.template('CompactRepositoryItem',
                                 event = main.CompactRepository,
                                 title = _(u'C&ompact'),
-                                helpString = _(u'compact the repository')),
+                                helpString = _(u'Purge the repository of obsolete data')),
                             MenuItem.template('IndexRepositoryItem',
                                 event = main.IndexRepository,
                                 title = _(u'&Index'),
-                                helpString = _(u'tickle the indexer')),
+                                # L10N: Lucene indexes the Repository
+                                helpString = _(u'Tickle the indexer')),
                             MenuItem.template('ToolsRepositorySeparator1',
                                 menuItemKind = 'Separator'),
                             MenuItem.template('BackupRepository',
@@ -694,37 +731,37 @@ def makeMainMenus(parcel):
                                 helpString = _(u'Opens the Activity Viewer')),
                             MenuItem.template("AddSharingLogItem",
                                 event = main.AddSharingLogToSidebar,
-                                title = _(u"&Add sharing activity log to Sidebar"),
-                                helpString = _(u'Add sharing activity log to the Sidebar')),
+                                title = _(u"&Add Sharing Activity Log to Sidebar"),
+                                helpString = _(u'Add Sharing Activity Log to the Sidebar')),
                             MenuItem.template("ResetShareItem",
                                 event = main.ResetShare,
-                                title = _(u"Reset state of shared collection"),
+                                title = _(u"Reset State of Shared Collection"),
                                 helpString = _(u"Discards metadata about shared items")),
                             MenuItem.template("RecordSetDebuggingItem",
                                 event = main.RecordSetDebugging,
-                                title = _(u"Set s&haring logging level to debug"),
-                                helpString = _(u'Enable RecordSet debugging')),
+                                title = _(u"Set S&haring Logging Level to Debug"),
+                                helpString = _(u'Enable RecordSet Debugging')),
                             MenuItem.template("UnsubscribePublishedCollectionItem",
                                 event = main.UnsubscribePublishedCollection,
-                                title = _(u"&Unsubscribe from Published shares"),
-                                helpString = _(u"Stop publishing a shared collection, leaving it on the server")),
+                                title = _(u"&Unsubscribe from Published Shares"),
+                                helpString = _(u"Stop syncing to a collection you published without removing it from the server")),
                             ]), # Menu ShareMenu
                     MenuItem.template('ToolsSeparator1',
                                       menuItemKind = 'Separator'),
                     Menu.template('ViewAsCalendarMenu',
-                        title = _(u'S&elect view'),
+                        title = _(u'S&elect View'),
                         helpString = _(u'Select type of main view'),
                         childBlocks = [
                             MenuItem.template('ViewAsDashboardItem',
                                 event = main.ViewAsDashboard,
                                 title = _(u'Triage Ta&ble View'),
                                 menuItemKind = 'Check',
-                                helpString = _(u'Go to Triage Table view')),
+                                helpString = _(u'Go to the Triage Table view')),
                             MenuItem.template('ViewAsCalendarIteminWeekView',
                                 event = main.ViewAsWeekCalendar,
                                 title = _(u'&Week View'),
                                 menuItemKind = 'Check',
-                                helpString = _(u'Go to Calendar Week View')),
+                                helpString = _(u'Go to the Calendar Week View')),
                             MenuItem.template('ViewAsCalendarIteminDayView',
                                 event = main.ViewAsDayCalendar,
                                 title = _(u'&Day View'),
@@ -750,18 +787,18 @@ def makeMainMenus(parcel):
                                               menuItemKind = 'Check',
                                               helpString = _(u'Show or hide the Mini-calendar')),
                             MenuItem.template('ViewDetailItem',
-                                              title = _(u'&Detail view'),
+                                              title = _(u'&Detail View'),
                                               menuItemKind = 'Check',
-                                              helpString = _(u'Show or hide the Detail view')),
+                                              helpString = _(u'Show or hide the Detail View')),
                             MenuItem.template('ViewStatusBarItem',
                                               event = main.ShowHideStatusBar,
                                               title = _(u'Status &Bar'),
                                               menuItemKind = 'Check',
-                                              helpString = _(u'Show or hide the Status bar')),
+                                              helpString = _(u'Show or hide the Status Bar')),
                             ]),
                     MenuItem.template('SaveResultsMenuItem',
                         event = main.SaveResults,
-                        title = _(u'&Save last search results'),
+                        title = _(u'&Save Search Results'),
                         helpString = _(u'Save a copy of the last search results in the sidebar')),
                     MenuItem.template('ToolsSeparator2',
                                       menuItemKind = 'Separator'),
@@ -778,16 +815,18 @@ def makeMainMenus(parcel):
                         event = globalBlocks.GettingStarted,
                         title = _(u'Chandler Get &Started Guide'),
                         helpString =
-                             _(u'Open Chandler Get Started Guide in your web browser')),
+                             _(u'Open the Chandler Get Started Guide in your web browser')),
                      MenuItem.template('HelpMenuItem',
                         event = globalBlocks.Help,
                         title = _(u'Chandler &FAQ'),
                         helpString =
-                             _(u'Open Chandler FAQ in your web browser'),
+                             _(u'Open the Chandler FAQ in your web browser'),
+                        # L10N: Keyboard shortcut to open the Chandler FAQ in
+                        #       a web browser.
                         accel = _(u'Ctrl+?')),
                      MenuItem.template('FileBugMenuItem',
                         event = globalBlocks.FileBug,
-                        title = _(u'File a &Bug'),
+                        title = _(u'Report a &Bug'),
                         helpString =
                              _(u'Open instructions on how to file a bug in your web browser')),
                     ]) # Menu HelpMenu
@@ -799,7 +838,7 @@ def makeMainMenus(parcel):
                     MenuItem.template('SidebarNewCollectionItem',
                         event = main.NewCollection,
                         title = _(u'&New Collection'),
-                        helpString = _(u'Create a new Collection')),
+                        helpString = _(u'Create a new collection')),
                     MenuItem.template('SidebarSeparator1',
                         menuItemKind = 'Separator'),
                     MenuItem.template('SidebarRenameItem',
@@ -814,7 +853,7 @@ def makeMainMenus(parcel):
                     MenuItem.template('SidebarDeleteItem',
                         event = main.DeleteCollection,
                         title = _(u'&Delete'),
-                        helpString = _(u'Move the current selection to the Trash')),
+                        helpString = _(u'Move the selected collection to the Trash')),
                     MenuItem.template('SidebarEmptyTrashItem',
                         event = main.EmptyTrash,
                         title = _(u'&Empty Trash'),
@@ -848,7 +887,7 @@ def makeMainMenus(parcel):
                     MenuItem.template('SidebarSyncIMAPItem',
                                 event = main.GetNewMail,
                                 title = _(u'Sync M&ail'),
-                                helpString = _(u'Sync Mail')),
+                                helpString = _(u'Sync all mail accounts')),
                     MenuItem.template('SidebarSyncWebDAVItem',
                                 event = main.SyncWebDAV,
                                 title = _(u'Sync S&hares'),
@@ -886,28 +925,32 @@ def makeMainMenus(parcel):
                 childBlocks = [
                     Menu.template('ItemContextNewItemMenu',
                         title = _(u'&New'),
-                        helpString = _(u'Create a new Item'),
+                        helpString = _(u'Create a new item'),
                         childBlocks = [
                             MenuItem.template('ItemContextNewNoteItem',
                                 event = main.NewNote,
                                 title = _(u'&Note'),
+                                # L10N: Keyboard shortcut to create a new Note.
                                 accel = _(u'Ctrl+Shift+N'),
-                                helpString = _(u'Create a new Note')),
+                                helpString = _(u'Create a new note')),
                             MenuItem.template('ItemContextNewMessageItem',
                                 event = main.NewMailMessage,
                                 title = _(u'&Message'),
+                                # L10N: Keyboard shortcut to create a new Message.
                                 accel = _(u'Ctrl+Shift+M'),
-                                helpString = _(u'Create a new Message')),
+                                helpString = _(u'Create a new message')),
                             MenuItem.template('ItemContextNewTaskItem',
                                 event = main.NewTask,
                                 title = _(u'&Task'),
+                                # L10N: Keyboard shortcut to create a new Task.
                                 accel = _(u'Ctrl+Shift+T'),
-                                helpString = _(u'Create a new Task')),
+                                helpString = _(u'Create a new task')),
                             MenuItem.template('ItemContextNewEventItem',
                                 event = main.NewCalendar,
                                 title = _(u'&Event'),
+                                # L10N: Keyboard shortcut to create a new Event.
                                 accel = _(u'Ctrl+Shift+E'),
-                                helpString = _(u'Create a new Event')),
+                                helpString = _(u'Create a new event')),
                             ]),
                     MenuItem.template('ItemContextCutItem',
                         event = main.CutInActiveView,

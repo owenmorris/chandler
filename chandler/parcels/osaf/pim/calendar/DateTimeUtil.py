@@ -127,6 +127,13 @@ shortDateTimeFormat = forceTwoDigitDates(forceNoSeconds(DatetimeFormatter(
     PyICU.DateFormat.createDateTimeInstance(PyICU.DateFormat.kShort))))
 shortTimeFormat = DatetimeFormatter(
     PyICU.DateFormat.createTimeInstance(PyICU.DateFormat.kShort))
+
+# L10N: The format for displaying hours and minutes.
+#       This value should be changed to match the
+#       time logic for the locale.
+#
+#      For example: If times are displayed with a "." (12.30)
+#                   instead of "H:mm" the string should be "H.mm"
 durationFormat = PyICU.SimpleDateFormat(_(u"H:mm"))
 
 symbols = PyICU.DateFormatSymbols()
@@ -147,12 +154,57 @@ def weekdayName(when):
 # for use below.
 ampmPosition = PyICU.FieldPosition(PyICU.DateFormat.AM_PM_FIELD)
 sampleTime = unicode(shortTimeFormat.dateFormat.format(
-    datetime(2003,10,30,11,45), ampmPosition)).replace("11", _(u'hh')) \
-    .replace("45", _(u'mm'))
+                     datetime(2003,10,30,11,45), ampmPosition))
+
+#XXX This value was uppercased as to not conflict with the
+#    'mm' (month) entry below and match the "MM" (minutes)
+#    casing.
+# L10N: Used as part of a string that displays a
+#       sample time format to the user.
+#       The format in English evaluates to "HH:MM"
+#       The value for HH (hours) can be changed
+#       to be more locale specific.
+sampleTime = sampleTime.replace("11", _(u'HH'))
+
+#XXX This value was uppercased as to not conflict with the
+#    'mm' (month) entry below
+# L10N: Used as part of a string that displays a
+#       sample time format to the user.
+#       The format in English evaluates to "HH:MM"
+#       The value for MM (minutes) can be changed
+#       to be more locale specific.
+sampleTime = sampleTime.replace("45", _(u'MM'))
+
 sampleDate = unicode(shortDateFormat.dateFormat.format(
-    datetime(2003,10,30))).replace(u"2003", _(u"yyyy")) \
-    .replace(u"03", _(u"yy")).replace(u"10", _(u"mm")) \
-    .replace(u"30", _(u"dd"))
+             datetime(2003,10,30)))
+
+# L10N: Used as part of a string that displays a
+#       sample date format to the user.
+#       The format in English evaluates to "mm/dd/yyyy"
+#       The value for yyyy (year) can be changed
+#       to be more locale specific.
+sampleDate = sampleDate.replace(u"2003", _(u"yyyy"))
+
+# L10N: Used as part of a string that displays a
+#       sample date format to the user.
+#       The format in English evaluates to "mm/dd/yy"
+#       The value for yy (year) can be changed
+#       to be more locale specific.
+sampleDate = sampleDate.replace(u"03", _(u"yy"))
+
+# L10N: Used as part of a string that displays a
+#       sample date format to the user.
+#       The format in English evaluates to "mm/dd/yyyy"
+#       The value for mm (month) can be changed
+#       to be more locale specific.
+sampleDate = sampleDate.replace(u"10", _(u"mm"))
+
+# L10N: Used as part of a string that displays a
+#       sample date format to the user.
+#       The format in English evaluates to "mm/dd/yyyy"
+#       The value for dd (day) can be changed
+#       to be more locale specific.
+sampleDate = sampleDate.replace(u"30", _(u"dd"))
 
 # Ick: getAmPmStrings returns am/pm strings even if the locale doesn't use
 # them when formatting dates; so, check an actual format and make the

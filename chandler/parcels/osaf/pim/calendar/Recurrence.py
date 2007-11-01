@@ -55,26 +55,124 @@ pluralFrequencyMap =   dict(yearly  = _(u"years"),
                             minutely = _(u"minutes"),
                             secondly = _(u"seconds"))
 
-adverbFrequencyMap = dict(yearly  = _(u"yearly"),
-                            monthly = _(u"monthly"),
-                            weekly  = _(u"weekly"),
-                            daily   = _(u"daily"),
-                            hourly  = _(u"hourly"),
-                            minutely = _(u"minutely"),
-                            secondly = _(u"secondly"))
+adverbFrequencyMap = dict(yearly  = _(u"Yearly"),
+                            monthly = _(u"Monthly"),
+                            weekly  = _(u"Weekly"),
+                            daily   = _(u"Daily"),
+                            hourly  = _(u"Hourly"),
+                            minutely = _(u"Minutely"),
+                            secondly = _(u"Secondly"))
 
 # Formatting strings dictionary: the code builds an index dynamically to pick the right one
-descriptionFormat = {'fs' : _(u"%(frequencyadverb)s"),
-                    'fp' : _(u"every %(interval)s %(frequencyplural)s"),
-                    'fxs' : _(u"%(frequencyadverb)s (too frequent)"),
-                    'fxp' : _(u"every %(interval)s %(frequencyplural)s (too frequent)"),
+descriptionFormat = {
+                    # This entry does not require localization.
+                    'fs' : u"%(frequencyadverb)s",
+
+                    # L10N: %(frequencyplural)s can have
+                    #       the following values:
+                    #     1. years
+                    #     2. months
+                    #     3. weeks
+                    #     4. days
+                    #     5. hours
+                    #     6. minutes
+                    #     7. seconds
+                    # %(interval)s will evaluate to an empty string or
+                    # a number. As in 'every 2 weeks'.
+                    'fp' : _(u"Every %(interval)s %(frequencyplural)s"),
+                    # L10N: %(frequencyadverb)s can have
+                    #       the following values:
+                    #     1. Yearly
+                    #     2. Monthly
+                    #     3. Weekly
+                    #     4. Daily
+                    #     5. Hourly
+                    #     6. Minutely
+                    #     7. Secondly
+                    'fxs' : _(u"Too frequent: %(frequencyadverb)s"),
+                    # L10N: %(frequencyplural)s can have
+                    #       the following values:
+                    #     1. years
+                    #     2. months
+                    #     3. weeks
+                    #     4. days
+                    #     5. hours
+                    #     6. minutes
+                    #     7. seconds
+                    # %(interval)s will evaluate to an empty string or
+                    # a number. As in 'every 2 weeks'.
+                    'fxp' : _(u"Too frequent: Every %(interval)s %(frequencyplural)s"),
+                    # L10N: %(frequencysingular)s can have
+                    #       the following values:
+                    #     1. year
+                    #     2. month
+                    #     3. week
+                    #     4. day
+                    #     5. hour
+                    #     6. minute
+                    #     7. second
+                    # %(days) evaluates to the short version of day names (Mon, Tue, Wed, etc)
                     'fds' : _(u"%(days)s every %(frequencysingular)s"),
+                    # L10N: %(frequencyplural)s can have
+                    #       the following values:
+                    #     1. years
+                    #     2. months
+                    #     3. weeks
+                    #     4. days
+                    #     5. hours
+                    #     6. minutes
+                    #     7. seconds
+                    # %(interval)s will evaluate to an empty string or
+                    # a number. As in 'every 2 weeks'.
+                    # %(days) evaluates to the short version of day names (Mon, Tue, Wed, etc)
                     'fdp' : _(u"%(days)s every %(interval)s %(frequencyplural)s"),
+                    # L10N: The %(frequencyadverb)s can have
+                    #       the following values:
+                    #     1. Yearly
+                    #     2. Monthly
+                    #     3. Weekly
+                    #     4. Daily
+                    #     5. Hourly
+                    #     6. Minutely
+                    #     7. Secondly
                     'fus' : _(u"%(frequencyadverb)s until %(date)s"),
-                    'fup' : _(u"every %(interval)s %(frequencyplural)s until %(date)s"),
+                    # L10N: %(frequencyplural)s can have
+                    #       the following values:
+                    #     1. years
+                    #     2. months
+                    #     3. weeks
+                    #     4. days
+                    #     5. hours
+                    #     6. minutes
+                    #     7. seconds
+                    # %(interval)s will evaluate to an empty string or
+                    # a number. As in 'every 2 weeks'.
+                    'fup' : _(u"Every %(interval)s %(frequencyplural)s until %(date)s"),
+                    # L10N: %(frequencysingular)s can have
+                    #       the following values:
+                    #     1. year
+                    #     2. month
+                    #     3. week
+                    #     4. day
+                    #     5. hour
+                    #     6. minute
+                    #     7. second
+                    # %(days) evaluates to the short version of day names (Mon, Tue, Wed, etc)
                     'fdus' : _(u"%(days)s every %(frequencysingular)s until %(date)s"),
+                    # L10N: %(frequencyplural)s can have
+                    #       the following values:
+                    #     1. years
+                    #     2. months
+                    #     3. weeks
+                    #     4. days
+                    #     5. hours
+                    #     6. minutes
+                    #     7. seconds
+                    # %(interval)s will evaluate to an empty string or
+                    # a number. As in 'every 2 weeks'.
+                    # %(days) evaluates to the short version of day names (Mon, Tue, Wed, etc)
                     'fdup' : _(u"%(days)s every %(interval)s %(frequencyplural)s until %(date)s")}
-            
+
 
 class WeekdayEnum(schema.Enumeration):
     """The names of weekdays.  Values shouldn't be displayed directly."""
@@ -636,9 +734,9 @@ class RecurrenceRuleSet(items.ContentItem):
         
         if self.isComplex():
             if not too_frequent:
-                return _(u"No description")
+                return _(u"No description.")
             else:
-                return _(u"No description (too frequent)")
+                return _(u"Too frequent.")
         else:
             # Get the rule values we can interpret (so far...)
             rule = self.rrules.first()

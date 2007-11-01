@@ -17,6 +17,7 @@
 import os, sys
 from optparse import OptionParser
 from build_lib import getCommand
+from poUtility import parse, checkPrintValues
 
 class LocalizationBase(object):
     CHANDLERBIN = None
@@ -70,6 +71,32 @@ class LocalizationBase(object):
         else:
             self.PYTHON = os.path.join(self.BINROOT, "RunPython")
 
+    def checkPOFile(self, poFileName):
+        try:
+
+            poFile = parse(poFileName)
+
+            msgidResults = checkPrintValues(poFile)
+
+            if len(msgidResults):
+                resultsStr = "Only dictionary replaceable values are allowed in localizable strings:\n"
+
+            else:
+                resultsStr = ""
+
+            for poEntry, values in msgidResults:
+                resultsStr += "   Invalid value%s '%s' found at: %s\n" % \
+                              (len(values) > 1 and 's' or '', ", ".join(values),
+                               ", ".join(poEntry.sourceFiles))
+
+            if len(resultsStr):
+                return resultsStr
+
+            return None
+
+        except Exception, e:
+            return str(e)
+
 
     def debug(self):
         print "\n\nProgram run with the following configuration:"
@@ -79,6 +106,7 @@ class LocalizationBase(object):
         print "BINROOT: ", self.BINROOT
         print "PYTHON: ", self.PYTHON
         print "OPTIONS: ", self.OPTIONS
+
 
 
     def raiseError(self, txt, banner=True):

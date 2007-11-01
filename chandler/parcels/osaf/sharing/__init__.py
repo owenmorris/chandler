@@ -520,7 +520,7 @@ def publish(collection, account, classesToInclude=None,
 
 
     if Globals.options.offline:
-        raise OfflineError(_(u"Offline mode"))
+        raise OfflineError(_(u"Could not perform request. Sharing is offline."))
 
     try:
         totalWork = len(collection)
@@ -574,7 +574,7 @@ def publish(collection, account, classesToInclude=None,
     exists = handle.blockUntil(resource.exists)
     if not exists:
         logger.debug("...doesn't exist")
-        raise NotFound(_(u"%(location)s does not exist") %
+        raise NotFound(_(u"%(location)s does not exist.") %
             {'location': location})
 
     isCalendar = handle.blockUntil(resource.isCalendar)
@@ -673,7 +673,7 @@ def publish(collection, account, classesToInclude=None,
                         # someone has already published hiddenEvents for this
                         # account.  It's hard to say what should happen in this
                         # case, for now just fail
-                        raise SharingError(_(u"Free/Busy information has already been published for this account"))
+                        raise SharingError(_(u"Free/Busy information has already been published to this account."))
                     # publish hiddenEvents
                     share = _newOutboundShare(view,
                                               sharing_ns.hiddenEvents,
@@ -711,7 +711,7 @@ def publish(collection, account, classesToInclude=None,
                     shares.append(share)
 
                     if share.exists():
-                        raise SharingError(_(u"Share already exists"))
+                        raise SharingError(_(u"Collection already exists on server."))
 
                     inFreeBusy = collection in pim_ns.mine.sources
                     if inFreeBusy:
@@ -761,7 +761,7 @@ def publish(collection, account, classesToInclude=None,
                 shares.append(share)
 
                 if share.exists():
-                    raise SharingError(_(u"Share already exists"))
+                    raise SharingError(_(u"Collection already exists on server."))
 
                 share.create()
                 share.put(activity=activity)
@@ -783,7 +783,7 @@ def publish(collection, account, classesToInclude=None,
                     icsShare.mode = "put"
 
                     if icsShare.exists():
-                        raise SharingError(_(u"Share already exists"))
+                        raise SharingError(_(u"Collection already exists on server."))
 
                     icsShare.create()
                     icsShare.put(activity=activity)
@@ -896,10 +896,10 @@ def subscribe(view, url, activity=None, username=None, password=None,
     filters=None, forceFreeBusy=False):
 
     if Globals.options.offline:
-        raise OfflineError(_(u"Offline mode"))
+        raise OfflineError(_(u"Could not perform request. Sharing is offline."))
 
     if not url:
-        raise URLParseError(_("No URL provided"))
+        raise URLParseError(_("No URL provided."))
 
     logger.info("Subscribing to URL: %s", url)
 
@@ -907,16 +907,16 @@ def subscribe(view, url, activity=None, username=None, password=None,
         (scheme, useSSL, host, port, path, query, fragment, ticket, parentPath,
             shareName) = splitUrl(url)
     except Exception, e:
-        raise URLParseError(_("Could not parse URL: %s") % url, details=str(e))
+        raise URLParseError(_("Could not parse URL: %(url)s") % {'url': url}, details=str(e))
 
     if not scheme:
-        raise URLParseError(_("Protocol not specified"))
+        raise URLParseError(_("Protocol not specified."))
 
     if scheme not in ("http", "https", "webcal"):
-        raise URLParseError(_("Protocol not supported: %s") % scheme)
+        raise URLParseError(_("Protocol not supported: %(protocolName)s") % {"protocolName": scheme})
 
     if not host:
-        raise URLParseError(_("No hostname specified"))
+        raise URLParseError(_("No hostname specified."))
 
     if ticket:
         account = username = password = None
@@ -952,7 +952,7 @@ def subscribe(view, url, activity=None, username=None, password=None,
 
     for share in Share.iterItems(view):
         if url == share.getLocation("subscribed"):
-            raise AlreadySubscribed(_("Already subscribed"))
+            raise AlreadySubscribed(_("You are already subscribed to this collection."))
 
     # TODO: upgrade to read-write if provided new ticket
 
@@ -1022,7 +1022,7 @@ def subscribe(view, url, activity=None, username=None, password=None,
             selfUrl = links['self']
             if selfUrl is not None:
                 if selfUrl.endswith('forbidden'):
-                    raise NotAllowed(_("You don't have permission"))
+                    raise NotAllowed(_(u"You don't have permission to access this collection."))
 
                 davUrl = links['alternate'].get('text/html', None)
                 if davUrl:
@@ -1453,7 +1453,7 @@ def interrogate(conduit, location, ticket=None):
             logger.debug("...doesn't exist")
             raise NotFound(message="%s does not exist" % location)
     except zanshin.webdav.PermissionsError:
-        raise NotAllowed(_("You don't have permission"))
+        raise NotAllowed(_(u"You don't have permission to access this collection."))
 
     isReadOnly = True
     shareMode = 'get'
@@ -1763,14 +1763,14 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
             if not SharingReady:
                 msg += _(u" - Sharing\n")
             if not IncomingMailReady:
-                msg += _(u" - IMAP/POP (inbound email)\n")
+                msg += _(u" - Inbound Mail\n")
             if not EmailReady:
-                msg += _(u" - At least one email address must be configured\n")
+                msg += _(u" - At least one email address must be configured.\n")
             if not OutgoingMailReady:
-                msg += _(u" - SMTP (outbound email)\n")
-            msg += _(u"\nWould you like to enter account information now?")
-    
-            response = wx.MessageBox(msg, _(u"Account set up"), style = wx.YES_NO,
+                msg += _(u" - Outbound Mail\n")
+            msg += _(u"\nWould you like to set up your accounts now?")
+
+            response = wx.MessageBox(msg, _(u"Account Set-up"), style = wx.YES_NO,
                 parent=parent) == wx.YES
             if response == False:
                 return False

@@ -201,7 +201,7 @@ def mailAccountError(view, message, account):
 
 
 def mailAddressError():
-    message = _(u"You have addressed this message to invalid email addresses.")
+    message = _(u"Invalid email addresses.")
     win = MailAddressErrorDialog(message)
     win.CenterOnScreen()
     val = win.ShowModal()
@@ -262,11 +262,11 @@ class MailAccountErrorDialog(MailErrorBaseDialog):
 
 class MailAddressErrorDialog(MailErrorBaseDialog):
     def addButtons(self, sizer):
-        btn = wx.Button(self, wx.ID_CANCEL, _(u"Fix email addresses"))
+        btn = wx.Button(self, wx.ID_CANCEL, _(u"Fix Email Addresses"))
         btn.SetDefault()
         sizer.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_OK, _(u"Send anyway"))
+        btn = wx.Button(self, wx.ID_OK, _(u"Send Anyway"))
         sizer.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
 
@@ -447,6 +447,8 @@ class LogWindow(wx.Dialog):
             combined = u"".join(f.readlines()[-500:])
 
             label = wx.StaticText(self, -1,
+                            # L10N: The operating system file path
+                            #       for the log file
                             _(u"Log Path: %(path)s") % {"path": log})
 
             sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
@@ -896,7 +898,7 @@ class ResultsButtonPanel(wx.Panel):
             self.cButton.Bind(wx.EVT_BUTTON, self.parent.OnClose)
             self.sizer.Add(self.cButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
-            self.aButton = wx.Button(self, -1, _(u"&Apply settings"))
+            self.aButton = wx.Button(self, -1, _(u"&Apply Settings"))
             self.aButton.SetDefault()
             self.aButton.Bind(wx.EVT_BUTTON, self.parent.OnApplySettings)
             self.sizer.Add(self.aButton, 1, wx.ALIGN_RIGHT|wx.ALL, 5)

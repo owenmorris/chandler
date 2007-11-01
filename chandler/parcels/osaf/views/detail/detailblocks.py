@@ -519,7 +519,7 @@ def makeMailArea(parcel, oldVersion):
                     baseClass=MailAEBlock,
                     viewAttribute=MailStamp.toAddress.name,
                     presentationStyle={'editInPlace': True,
-                                        'sampleText': _(u'Add addressees'),
+                                        'sampleText': _(u'Add addresses'),
                                         'maxLineCount': 3},
                     border=RectType(5, 5, 5, 5))],
             position=0.11).install(parcel)

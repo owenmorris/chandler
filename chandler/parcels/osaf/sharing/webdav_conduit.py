@@ -66,11 +66,11 @@ class DAVConduitMixin(conduits.HTTPMixin):
 
             result = self._getServerHandle().blockUntil(resource.exists)
         except zanshin.error.ConnectionError, err:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err.args[0]})
+            raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err.args[0]})
         except M2Crypto.BIO.BIOError, err:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
         except zanshin.webdav.PermissionsError, err:
-            message = _(u"Not authorized to PUT %(info)s") % {'info': self.getLocation()}
+            message = _(u"Not authorized to PUT %(info)s.") % {'info': self.getLocation()}
             logger.exception(err)
             raise errors.NotAllowed(message)
 
@@ -107,16 +107,16 @@ class DAVConduitMixin(conduits.HTTPMixin):
                     childName)
 
             except zanshin.webdav.ConnectionError, err:
-                raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+                raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
             except M2Crypto.BIO.BIOError, err:
-                raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+                raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
             except zanshin.http.HTTPError, err:
                 logger.error('Received status %d attempting to create %s',
                              err.status, self.getLocation())
 
                 if err.status == twisted.web.http.NOT_ALLOWED:
                     # already exists
-                    message = _(u"Collection at %(url)s already exists") % {'url': url}
+                    message = _(u"Collection at %(url)s already exists.") % {'url': url}
                     raise errors.AlreadyExists(message)
 
                 if err.status == twisted.web.http.UNAUTHORIZED:
@@ -129,13 +129,13 @@ class DAVConduitMixin(conduits.HTTPMixin):
                     # nonexistent collection
                     (host, port, sharePath, username, password, useSSL) = \
                         self._getSettings(withPassword=False)
-                    message = _(u"The directory '%(directoryName)s' could not be found on %(server)s.\nPlease verify the Path setting in your %(accountType)s account") % {'directoryName': sharePath, 'server': host,
+                    message = _(u"The directory '%(directoryName)s' could not be found on %(server)s.\nPlease verify the Path field in your %(accountType)s account.") % {'directoryName': sharePath, 'server': host,
                                                         'accountType': 'WebDAV'}
                     raise errors.NotFound(message)
 
                 if err.status == twisted.web.http.FORBIDDEN:
                     # the server doesn't allow the creation of a collection here
-                    message = _(u"Server doesn't allow the creation of collections at %(url)s") % {'url': url}
+                    message = _(u"Server doesn't allow publishing collections to %(url)s") % {'url': url}
                     raise errors.IllegalOperation(message)
 
                 if err.status == twisted.web.http.PRECONDITION_FAILED:
@@ -187,9 +187,9 @@ class DAVConduitMixin(conduits.HTTPMixin):
                                 shareCollection.getAllChildren)
 
             except zanshin.webdav.ConnectionError, err:
-                raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+                raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
             except M2Crypto.BIO.BIOError, err:
-                raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+                raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
             except zanshin.webdav.WebDAVError, e:
 
                 if e.status == twisted.web.http.NOT_FOUND:
@@ -198,7 +198,7 @@ class DAVConduitMixin(conduits.HTTPMixin):
                 if e.status == twisted.web.http.UNAUTHORIZED:
                     raise errors.NotAllowed(_(u"Not authorized to get %(path)s") % {'path': shareCollection.path})
 
-                raise errors.SharingError(_(u"The following sharing error occurred: %(error)s") % {'error': e})
+                raise errors.SharingError(_(u"Sharing Error: %(error)s") % {'error': e})
 
 
             for child in children:
@@ -218,9 +218,9 @@ class DAVConduitMixin(conduits.HTTPMixin):
             try:
                 self._getServerHandle().blockUntil(resource.propfind, depth=0)
             except zanshin.webdav.ConnectionError, err:
-                raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+                raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
             except M2Crypto.BIO.BIOError, err:
-                raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+                raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
             except zanshin.webdav.PermissionsError, err:
                 message = _(u"Not authorized to GET %(path)s") % {'path': location}
                 raise errors.NotAllowed(message)
@@ -313,7 +313,7 @@ class WebDAVConduit(conduits.LinkableConduit, DAVConduitMixin,
             text = self.share.format.exportProcess(item)
         except:
             logger.exception("Failed to export item")
-            msg = _(u"Transformation failed for %(item)s") % {'item': item}
+            msg = _(u"Transformation failed for %(item)s.") % {'item': item}
             raise errors.TransformationFailed(msg)
 
         if text is None:
@@ -359,13 +359,13 @@ class WebDAVConduit(conduits.LinkableConduit, DAVConduitMixin,
             newResource = resource
 
         except zanshin.webdav.ConnectionError, err:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
         except M2Crypto.BIO.BIOError, err:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
         # 201 = new, 204 = overwrite
 
         except zanshin.webdav.PermissionsError:
-            message = _(u"Not authorized to PUT %(info)s") % {'info': itemName}
+            message = _(u"Not authorized to PUT %(info)s.") % {'info': itemName}
             raise errors.NotAllowed(message)
 
         except zanshin.webdav.WebDAVError, err:
@@ -376,11 +376,11 @@ class WebDAVConduit(conduits.LinkableConduit, DAVConduitMixin,
                 # [@@@] grant: Should probably come up with a better message
                 # for PRECONDITION_FAILED (an ETag conflict).
                 # seen if trying to PUT to a nonexistent collection (@@@MOR verify)
-                message = _(u"Publishing %(itemName)s failed; server rejected our request with status %(status)d") % {'itemName': itemName, 'status': err.status}
+                message = _(u"Publishing %(itemName)s failed. Server rejected our request with status %(status)d") % {'itemName': itemName, 'status': err.status}
                 raise errors.NotAllowed(message)
 
         if newResource is None:
-            message = _(u"Not authorized to PUT %(itemName)s %(body)s") % {'itemName': itemName, 'body' : text}
+            message = _(u"Not authorized to PUT %(itemName)s %(body)s.") % {'itemName': itemName, 'body' : text}
             raise errors.NotAllowed(message)
 
         etag = newResource.etag
@@ -396,9 +396,9 @@ class WebDAVConduit(conduits.LinkableConduit, DAVConduitMixin,
             try:
                 deleteResp = self._getServerHandle().blockUntil(resource.delete)
             except zanshin.webdav.ConnectionError, err:
-                raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+                raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
             except M2Crypto.BIO.BIOError, err:
-                raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+                raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
 
     def _getItem(self, contentView, itemPath, into=None, activity=None,
                  stats=None):
@@ -409,12 +409,13 @@ class WebDAVConduit(conduits.LinkableConduit, DAVConduitMixin,
             resp = self._getServerHandle().blockUntil(resource.get)
 
         except twisted.internet.error.ConnectionDone, err:
-            errors.annotate(err, _("Server reported incorrect Content-Length for %s") % itemPath, details=str(err))
+            errors.annotate(err, _("Server reported incorrect Content-Length for %(itemPath)s.") % \
+                            {"itemPath": itemPath}, details=str(err))
             raise
         except zanshin.webdav.ConnectionError, err:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
         except M2Crypto.BIO.BIOError, err:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
 
         if resp.status == twisted.web.http.NOT_FOUND:
             message = _(u"Path %(path)s not found") % {'path': resource.path}
@@ -477,12 +478,13 @@ class WebDAVRecordSetConduit(ResourceRecordSetConduit, DAVConduitMixin):
             self.networkTime += (end - start)
 
         except twisted.internet.error.ConnectionDone, err:
-            errors.annotate(err, _("Server reported incorrect Content-Length for %s") % path, details=str(err))
+            errors.annotate(err, _("Server reported incorrect Content-Length for %(itemPath)s.") % \
+                            {"itemPath": path}, details=str(err))
             raise
         except zanshin.webdav.ConnectionError, err:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
         except M2Crypto.BIO.BIOError, err:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
 
         if resp.status == twisted.web.http.NOT_FOUND:
             message = _(u"Path %(path)s not found") % {'path': resource.path}

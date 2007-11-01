@@ -53,7 +53,7 @@ class StartupOptionsDialog(wx.Dialog):
         # method.
         pre = wx.PreDialog()
         style = wx.CAPTION
-        pre.Create(None, -1, _(u"Start-up options for Chandler"),
+        pre.Create(None, -1, _(u"Start-up Options for Chandler"),
                    wx.DefaultPosition, wx.DefaultSize, style)
 
         # This next step is the most important, it turns this Python
@@ -100,13 +100,13 @@ class StartupOptionsDialog(wx.Dialog):
             self.resetIndex.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
 
             self.create = wx.RadioButton(self, -1, 
-                _(u"Discard all my data and start from scratch"))
+                _(u"Discard all my data and start with a fresh repository"))
             sizer.Add(self.create, flag=wx.ALL, border=5)
             self.create.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
 
             sizer.AddSpacer((0,8))
             self.snapshot = wx.RadioButton(self, -1, 
-                _(u"Make a snapshot of all data to submit with a bug report, then exit"))
+                _(u"Make a snapshot of all my data to submit with a bug report, then quit"))
             sizer.Add(self.snapshot, flag=wx.ALL, border=5)
             self.snapshot.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
 
@@ -201,7 +201,7 @@ class StartupOptionsDialog(wx.Dialog):
                 MasterPassword.beforeBackup(view, self)
             except:
                 wx.MessageBox(_(u'Failed to encrypt passwords.'),
-                              _(u'Password protection failed'),
+                              _(u'Password protection failed.'),
                               parent=self)
 
             repoDir = repository.backup(os.path.join(os.path.dirname(tarPath),

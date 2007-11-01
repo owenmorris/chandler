@@ -94,7 +94,7 @@ def get(view, parent=None, testPassword=None):
         
         try:
             if dlg.ShowModal() != wx.ID_OK:
-                raise password.NoMasterPassword(_(u'No master password'))
+                raise password.NoMasterPassword(_(u'No master password.'))
             
             pword, timeout = dlg.getPasswordAndTimeout()
         finally:
@@ -115,7 +115,7 @@ def get(view, parent=None, testPassword=None):
             raise RuntimeError('At least one password was expected to be initialized')
         if again:
             wx.MessageBox (_(u'Master password was incorrect, please try again.'),
-                           _(u'Incorrect password'),
+                           _(u'Incorrect password.'),
                            parent=parent)
             continue
         
@@ -165,7 +165,7 @@ def change(view, parent=None):
     
                 if not _change(oldMaster, newMaster, view, prefs):
                     wx.MessageBox(_(u'Old password was incorrect, please try again.'),
-                                  _(u'Incorrect password'),
+                                  _(u'Incorrect password.'),
                                   parent=parent)
                     continue
                 
@@ -228,9 +228,9 @@ def beforeBackup(view, parent=None):
             return
         
         dlg = Util.checkboxUserDialog(parent,
-                                     _(u'Protect Passwords?'),
-                                     _(u'Anyone who gets access to your data can view your account passwords. Do you want to protect your account passwords by encrypting them with the master password?'),
-                                     value = _(u'&Never ask again.'))
+                                     _(u'Protect Passwords'),
+                                     _(u'Anyone who gains access to your data can view your account passwords. Do you want to protect your account passwords by encrypting them with a master password?'),
+                                     value = _(u'&Never ask again'))
         try:
             val = dlg.ShowModal()
             neverAskAgain = dlg.GetValue()
@@ -493,7 +493,7 @@ class ChangeMasterPasswordDialog(wx.Dialog):
 
         sizer.Add(grid, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
-        message = _(u'Do not forget the master password or the protected information will be lost.')
+        message = _(u'Do not forget your master password or your account passwords will be deleted the next time you are asked to enter your master password.')
         label = wx.StaticText(self, -1, message)
         label.Wrap(400)
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
@@ -558,7 +558,7 @@ class ChangeMasterPasswordDialog(wx.Dialog):
         evt.Skip()
 
     def OnReset(self, evt):
-        if wx.MessageBox (_(u'Account passwords will be deleted.\nAre you sure you want to reset Master Password?'),
+        if wx.MessageBox (_(u'Account passwords will be deleted.\nAre you sure you want to reset your Master Password?'),
                           _(u'Confirm Reset?'),
                           style = wx.YES_NO,
                           parent=self) == wx.YES:

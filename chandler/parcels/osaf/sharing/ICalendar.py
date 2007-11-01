@@ -854,7 +854,7 @@ def itemsFromVObject(view, text, coerceTzinfo=None, filters=None,
 
         numItems = len(vobjects)
         if activity and monolithic:
-            activity.update(msg=_(u"Calendar contains %d items") % numItems,
+            activity.update(msg=_(u"Calendar contains %(numOf)d items.") % {"numOf": numItems},
                 totalWork=numItems)
         
         for i, vobj in itertools.chain(vobjects, enumerate(modificationQueue)):
@@ -1034,7 +1034,7 @@ class ICalendarFormat(formats.ImportExportFormat):
 
         if monolithic:
             if calname is None:
-                calname = _(u"Imported Calendar")
+                calname = _(u"Imported Calendar.")
 
             if item is None:
                 item = SmartCollection(itsView=view)
@@ -1150,7 +1150,7 @@ class FreeBusyFileFormat(ICalendarFormat):
 
         if getattr(item, 'displayName', "") == "":
             if calname is None:
-                calname = _(u"Imported Free-busy")
+                calname = _(u"Imported Free/Busy Calendar.")
             item.displayName = unicode(calname)
 
         return item

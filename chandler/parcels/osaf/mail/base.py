@@ -524,7 +524,7 @@ class AbstractDownloadClient(object):
             except Exception, e:
                 # This code should never be reached.
                 log.exception('Error raised in SSL Layer which requires investigation.')
-                callMethodInUIThread(self.callback, (0, _(u"There was an error in the SSL Layer.")))
+                callMethodInUIThread(self.callback, (0, _(u"SSL error.")))
 
             return self._actionCompleted()
 

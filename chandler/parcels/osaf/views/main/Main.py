@@ -86,13 +86,12 @@ class MainView(View):
             # sender is the main view
             error = getattr(item, "error", None)
             if error is not None:
-                errorMessage = _(u"""Message Title: %(title)s
-                                 Error: %(translatedErrorStrings)s""") % {
+                errorMessage = _(u"Message Title: %(title)s\nError: %(translatedErrorStrings)s") % {
                                      'title': item.displayName,
                                      'translatedErrorStrings': error
                                  }
             else:
-                errorMessage = _(u"An unknown error has occurred")
+                errorMessage = _(u"An unknown error has occurred.")
 
             from application.dialogs import Util
             # add 'errorQuestion' to the bottom of the dialog, above the
@@ -101,8 +100,8 @@ class MainView(View):
             result = Util.promptUserAction(
                 u'',
                 errorMessage,
-                okayTitle = _(u"Send again"),
-                cancelTitle = _(u"Edit message"))
+                okayTitle = _(u"Send Again"),
+                cancelTitle = _(u"Edit Message"))
             if result == wx.ID_OK:
                 # User clicked 'send again' button
                 eventName =  "SendMail"
@@ -163,7 +162,7 @@ class MainView(View):
         trashCollection = schema.ns("osaf.pim", self).trashCollection
 
         if self.getSidebarSelectedCollection() is trashCollection:
-            msg = _(u"New items cannot be created in the Trash collection.")
+            msg = _(u"New items cannot be created in the Trash.")
             promptOk(msg)
             return True
 
@@ -178,22 +177,22 @@ class MainView(View):
             if Block.findBlockByName("ApplicationBarAllButton").widget.IsToggled():
                 # L10N: One of the possible titles for the  Item -> New -> New Item menu.
                 # This title changes based on the area selected in the Toolbar.
-                # The keyboard mnemonic should be the same for each alternative title.    
+                # The keyboard mnemonic should be the same for each alternative title.
                 event.arguments['Text'] = _(u'Ne&w Note')
             elif Block.findBlockByName("ApplicationBarMailButton").widget.IsToggled():
                 # L10N: One of the possible titles for the  Item -> New -> New Item menu.
                 # This title changes based on the area selected in the Toolbar.
-                # The keyboard mnemonic should be the same for each alternative title.    
+                # The keyboard mnemonic should be the same for each alternative title.
                 event.arguments['Text'] = _(u'Ne&w Message')
             elif Block.findBlockByName("ApplicationBarTaskButton").widget.IsToggled():
                 # L10N: One of the possible titles for the  Item -> New -> New Item menu.
                 # This title changes based on the area selected in the Toolbar.
-                # The keyboard mnemonic should be the same for each alternative title.    
+                # The keyboard mnemonic should be the same for each alternative title.
                 event.arguments['Text'] = _(u'Ne&w Task')
             elif Block.findBlockByName("ApplicationBarEventButton").widget.IsToggled():
                 # L10N: One of the possible titles for the  Item -> New -> New Item menu.
                 # This title changes based on the area selected in the Toolbar.
-                # The keyboard mnemonic should be the same for each alternative title.    
+                # The keyboard mnemonic should be the same for each alternative title.
                 event.arguments['Text'] = _(u'Ne&w Event')
 
     def onNewItemEvent(self, event):
@@ -381,7 +380,7 @@ class MainView(View):
 
             if command is None:
                 quickEntryWidget.SetValue(text + error_string)
-                self.setStatusMessage (_(u"Command entered is not valid"))
+                self.setStatusMessage (_(u"Command entered is not valid."))
                 if sidebar.showSearch:
                     sidebar.setShowSearch(False)
                 quickEntryWidget.SetFocus()
@@ -433,7 +432,7 @@ class MainView(View):
     def printEvent(self, isPreview):
         block = self.findBlockByName ("TimedEvents")
         if block is None:
-            wx.MessageBox (_(u"Printing is currently only supported when viewing in calendar view."),
+            wx.MessageBox (_(u"Printing is currently only supported for the calendar view."),
                            u"Chandler",
                            parent=wx.GetApp().mainFrame)
         else:
@@ -449,7 +448,7 @@ class MainView(View):
         try:
             webbrowser.open(url)
         except OSError:
-            wx.MessageBox (_(u"Chandler couldn't access a browser to open %(url)s.") % {'url' : url},
+            wx.MessageBox (_(u"Chandler could not access a browser to open %(url)s.") % {'url' : url},
                            _(u"Browser not found"),
                            parent=wx.GetApp().mainFrame)
 
@@ -497,7 +496,7 @@ class MainView(View):
         from osaf.framework import MasterPassword
         MasterPassword.beforeBackup(self.itsView)
 
-        dlg = wx.DirDialog(wx.GetApp().mainFrame, _(u'Backup Repository'),
+        dlg = wx.DirDialog(wx.GetApp().mainFrame, _(u'Back up Repository'),
                            unicode(Utility.getDesktopDir(), sys.getfilesystemencoding()),
                            wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
         if dlg.ShowModal() == wx.ID_OK:
@@ -513,7 +512,7 @@ class MainView(View):
             self.setStatusMessage(progressMessage)
             dbHome = repository.backup(path)
             dbHome_u = dbHome.decode(sys.getfilesystemencoding())
-            successMessage = _(u'Repository was backed up into %(directory)s') % {'directory': (dbHome_u)}
+            successMessage = _(u'Repository was backed up to %(directory)s') % {'directory': (dbHome_u)}
             repository.logger.info('Repository was backed up into %s' % (dbHome))
             self.setStatusMessage(successMessage)
 
@@ -542,7 +541,7 @@ class MainView(View):
 
         if path is not None:
             dlg = wx.MessageDialog(app.mainFrame,
-                                   _(u"Your current repository will be destructively replaced by the repository backup you're about to restart Chandler with: %(repoPath)s") % {'repoPath': path},
+                                   _(u"You will overwrite your current repository with %(repoPath)s.") % {'repoPath': path},
                                    _(u"Confirm Restore"),
                                    (wx.YES_NO | wx.NO_DEFAULT |
                                     wx.ICON_EXCLAMATION))
@@ -580,19 +579,19 @@ class MainView(View):
                     repository.logger.info('Preparing repository...')
                     self.setStatusMessage(progressMessage)
                     dbHome = repository.backup(path)
-                    successMessage = _(u'Repository is ready')
+                    successMessage = _(u'Repository is ready.')
                     repository.logger.info('Repository is ready')
                     self.setStatusMessage(successMessage)
-                    message = _(u"Your current repository was copied to %s and Chandler is setup to use it after restarting. Your current repository will not be affected.\n\nRestart now ?")
+                    message = _(u"Your current repository was copied to %(filePath)s and Chandler is set up to use it after restart. Your current repository will not be affected.\n\nRestart now?")
                     restore = dbHome
                 else:
-                    message = _(u"A new repository will be created in %s and Chandler is setup to use it after restart. Your current repository will not be affected.\n\nRestart now ?")
+                    message = _(u"A new repository will be created at %(filePath)s and Chandler is set up to use it after restart. Your current repository will not be affected.\n\nRestart now?")
                     restore = None
             else:
                 restore = None
-                message = _(u"Chandler is setup to use the repository at %s after restarting. Your current repository will not be affected.\n\nRestart now ?")
+                message = _(u"Chandler is setup to use the repository at %(filePath)s after restart. Your current repository will not be affected.\n\nRestart now?")
 
-            dlg = wx.MessageDialog(app.mainFrame, message %(repodir),
+            dlg = wx.MessageDialog(app.mainFrame, message % {"filePath": repodir},
                                    _(u"Confirm Restart"),
                                    (wx.YES_NO | wx.YES_DEFAULT |
                                     wx.ICON_EXCLAMATION))
@@ -618,7 +617,7 @@ class MainView(View):
         """
         Do a repository commit with notice posted in the Status bar.
         """
-        self.setStatusMessage(_(u"committing changes to the repository..."))
+        self.setStatusMessage(_(u"Saving changes..."))
 
         Block.finishEdits()
         activity = Activity("Saving...")
@@ -629,7 +628,7 @@ class MainView(View):
             activity.completed()
         except Exception, e:
             logger.exception("Commit failed")
-            self.setStatusMessage(_(u"Commit failed, see log for details"))
+            self.setStatusMessage(_(u"Changes failed to save. Go to the Tools>>Logging>>Log Window... menu for details."))
             activity.failed(exception=e)
             raise
         else:
@@ -697,7 +696,7 @@ class MainView(View):
 
         elif code == 2:
             # 2 = No to addresses
-            wx.MessageBox (_(u"Message can not be sent. A to address is required."),
+            wx.MessageBox (_(u"Message can not be sent. At least one valid To: email address is required."),
                            _(u"Mail Error"),
                            parent=wx.GetApp().mainFrame)
             return
@@ -756,11 +755,12 @@ class MainView(View):
         before = time()
         if view.check():
             after = time()
-            successMessage = _(u'Check completed successfully in %(numSeconds)s') % {'numSeconds': timedelta(seconds=after-before)}
+            successMessage = _(u'Repository check completed successfully in %(numSeconds)s.') % \
+                              {'numSeconds': timedelta(seconds=after-before)}
             repository.logger.info('Check completed successfully in %s' % (timedelta(seconds=after-before)))
             self.setStatusMessage(successMessage)
         else:
-            errorMessage = _(u'Check completed with errors')
+            errorMessage = _(u'Repository check completed with errors.')
             repository.logger.info('Check completed with errors')
             self.setStatusMessage(errorMessage)
 
@@ -774,11 +774,12 @@ class MainView(View):
         before = time()
         if view.check(True):
             after = time()
-            successMessage = _(u'Check completed successfully in %(numSeconds)s') % {'numSeconds': timedelta(seconds=after-before)}
+            successMessage = _(u'Repository check completed successfully in %(numSeconds)s.') % \
+                              {'numSeconds': timedelta(seconds=after-before)}
             repository.logger.info('Check completed successfully in %s' % (timedelta(seconds=after-before)))
             self.setStatusMessage(successMessage)
         else:
-            errorMessage = _(u'Check completed with errors')
+            errorMessage = _(u'Repository check completed with errors.')
             repository.logger.info('Check completed with errors')
             self.setStatusMessage(errorMessage)
 
@@ -794,14 +795,14 @@ class MainView(View):
 
     def onImportICalendarEvent(self, event):
         # triggered from "File | Import/Export" menu
-        self.setStatusMessage(_(u"Import from .ics"))
-        dialog = ImportExport.ImportDialog(_(u"Choose a file to import"),
+        self.setStatusMessage(_(u"Import .ics Calendar file."))
+        dialog = ImportExport.ImportDialog(_(u"Import .ics Calendar"),
                                            self.itsView)
         ret = dialog.ShowModal()
         if ret == wx.ID_OK:
-            self.setStatusMessage(_(u"Import completed"))
+            self.setStatusMessage(_(u"Import completed."))
         else:
-            self.setStatusMessage(_(u"Import cancelled"))
+            self.setStatusMessage(_(u"Import cancelled."))
 
         dialog.Destroy()
 
@@ -821,18 +822,18 @@ class MainView(View):
                 pim.has_stamp(item, pim.TaskStamp)):
                 break
         else:
-            wx.MessageBox (_(u"This collection contains no events"),
-                           _(u"Export cancelled"),
+            wx.MessageBox (_(u"This collection contains no events."),
+                           _(u"Export cancelled."),
                            parent=wx.GetApp().mainFrame)
             return
 
-        self.setStatusMessage(_(u"Export to .ics"))
+        self.setStatusMessage(_(u"Export to .ics Calendar file."))
         if not TurnOnTimezones.ShowTurnOnTimezonesDialog(
             self.itsView,
             state=TurnOnTimezones.EXPORT,
             modal=True):
             # cancelled in turn on timezone dialog
-            self.setStatusMessage(_(u"Export cancelled"))
+            self.setStatusMessage(_(u"Export cancelled."))
             return
 
 
@@ -856,7 +857,7 @@ class MainView(View):
                              label = _(u"Export event status"))]
 
         res = ImportExport.showFileChooserWithOptions(
-            _(u"Choose a filename to export to"),
+            _(u"Export .ics Calendar"),
             os.path.join(getDesktopDir(), "%s.ics" % name),
             _(u"iCalendar files|*.ics|All files (*.*)|*.*"),
             wx.SAVE | wx.OVERWRITE_PROMPT, options)
@@ -864,11 +865,11 @@ class MainView(View):
         (ok, fullpath, optionResults) = res
 
         if not ok:
-            self.setStatusMessage(_(u"Export cancelled"))
+            self.setStatusMessage(_(u"Export cancelled."))
         else:
             try:
                 (dir, filename) = os.path.split(fullpath)
-                self.setStatusMessage (_(u"Exporting to %(filename)s") % {'filename': filename})
+                self.setStatusMessage (_(u"Exporting to %(filename)s...") % {'filename': filename})
                 try:
                     os.remove(fullpath)
                 except OSError:
@@ -878,11 +879,11 @@ class MainView(View):
                                    filters=set(k for k, v in optionResults.iteritems()
                                                if not v))
 
-                self.setStatusMessage(_(u"Export completed"))
+                self.setStatusMessage(_(u"Export completed."))
             except:
                 trace = "".join(traceback.format_exception (*sys.exc_info()))
                 logger.info("Failed exportFile:\n%s" % trace)
-                self.setStatusMessage(_(u"Export failed"))
+                self.setStatusMessage(_(u"Export failed."))
 
 
     def TraceMainViewCloud(self, traceItem):
@@ -925,10 +926,10 @@ class MainView(View):
         MasterPassword.beforeBackup(self.itsView)
 
         filename = "%s.chex" % strftime("%Y%m%d%H%M%S")
-        wildcard = "%s|*.chex|%s (*.*)|*.*" % (_(u"Chandler Export files"), _(u"All files"))
+        wildcard = "%s|*.chex|%s (*.*)|*.*" % (_(u"Chandler export files"), _(u"All files"))
 
         dlg = wx.FileDialog(wx.GetApp().mainFrame,
-                            _(u"Export Items"), "", filename, wildcard,
+                            _(u"Export Collections and Settings"), "", filename, wildcard,
                             wx.SAVE|wx.OVERWRITE_PROMPT)
 
         path = None
@@ -948,7 +949,7 @@ class MainView(View):
                 logger.exception("Failed to export file")
                 activity.failed(exception=e)
                 raise
-            self.setStatusMessage(_(u'Items exported'))
+            self.setStatusMessage(_(u'Items exported.'))
 
     def onDumpToFileEvent(self, event):
         self._dumpFile()
@@ -957,18 +958,18 @@ class MainView(View):
         self._dumpFile(obfuscate=True)
 
     def onReloadFromFileEvent(self, event):
-        if wx.MessageBox(_(u"Reloading will remove all current data and replace it with new data in the export file. Are you sure you want to proceed?"),
+        if wx.MessageBox(_(u"Reloading will remove all data and replace it with data from the export file. Are you sure you want to reload?"),
                          _(u"Reload"),
                          style=wx.YES_NO,
                          parent=wx.GetApp().mainFrame) != wx.YES:
             return
 
-        wildcard = "%s|*.chex|%s|*.dump|%s (*.*)|*.*" % (_(u"Export files"),
-                                                         _(u"Dump files"),
+        wildcard = "%s|*.chex|%s|*.dump|%s (*.*)|*.*" % (_(u"Chandler export files"),
+                                                         _(u"Chandler dump files"),
                                                          _(u"All files"))
 
         dlg = wx.FileDialog(wx.GetApp().mainFrame,
-                            _(u"Reload Items"), "", "", wildcard,
+                            _(u"Reload Collections and Settings"), "", "", wildcard,
                             wx.OPEN)
 
         path = None
@@ -1031,9 +1032,9 @@ class MainView(View):
 
     def onRecordSetDebuggingEventUpdateUI(self, event):
         if sharing.logger.level == 10:
-            menuTitle = _(u'Set s&haring logging level to normal')
+            menuTitle = _(u'Set S&haring Logging Level to Normal')
         else:
-            menuTitle = _(u'Set s&haring logging level to debug')
+            menuTitle = _(u'Set S&haring Logging Level to Debug')
         event.arguments ['Text'] = menuTitle
         event.arguments ['Enable'] = True
 
@@ -1043,11 +1044,11 @@ class MainView(View):
         from osaf.framework import MasterPassword
         MasterPassword.beforeBackup(self.itsView)
 
-        wildcard = "%s|*.ini|%s (*.*)|*.*" % (_(u"Settings files"),
+        wildcard = "%s|*.ini|%s (*.*)|*.*" % (_(u"Chandler settings files"),
                                               _(u"All files"))
 
         dlg = wx.FileDialog(wx.GetApp().mainFrame,
-                            _(u"Save Settings"), "", "chandler.ini", wildcard,
+                            _(u"Settings saved."), "", "chandler.ini", wildcard,
                             wx.SAVE|wx.OVERWRITE_PROMPT)
 
         path = None
@@ -1061,7 +1062,7 @@ class MainView(View):
     def onRestoreSettingsEvent(self, event):
         # triggered from "Test | Restore Settings" Menu
 
-        wildcard = "%s|*.ini|%s (*.*)|*.*" % (_(u"Settings files"),
+        wildcard = "%s|*.ini|%s (*.*)|*.*" % (_(u"Chandler settings files"),
                                               _(u"All files"))
 
         dlg = wx.FileDialog(wx.GetApp().mainFrame,
@@ -1075,7 +1076,7 @@ class MainView(View):
             try:
                 self.itsView.refresh()
                 settings.restore(self.itsView, path)
-                self.setStatusMessage(_(u'Settings restored'))
+                self.setStatusMessage(_(u'Settings restored.'))
             except Exception, e:
                 try:
                     self.itsView.cancel()
@@ -1234,7 +1235,7 @@ class MainView(View):
                 share = sharing.getShare(collection)
                 if sharing.isSharedByMe(share):
                     dialog = wx.MessageDialog(None,
-                                              _(u"Are you sure you want to remove the collection from the server?"),
+                                              _(u"Are you sure you want to remove this collection from the server?"),
                                               _(u"Unpublish Confirmation"),
                                               wx.YES_NO | wx.ICON_INFORMATION)
                     response = dialog.ShowModal()
@@ -1243,14 +1244,14 @@ class MainView(View):
                         msg = _("Unpublishing...")
                         self.setStatusMessage(msg)
                         sharing.unpublish(collection)
-                        msg = _("Unpublish succeeded")
+                        msg = _("Collection unpublished.")
                         self.setStatusMessage(msg)
 
         except (sharing.CouldNotConnect, twisted.internet.error.TimeoutError):
-            msg = _(u"Unpublish failed, could not connect to server")
+            msg = _(u"Unpublish failed, could not connect to server.")
             self.setStatusMessage(msg)
         except:
-            msg = _(u"Unpublish failed, unknown error")
+            msg = _(u"Unpublish failed, unknown error.")
             self.setStatusMessage(msg)
             raise # figure out what the exception is
 
@@ -1302,17 +1303,17 @@ class MainView(View):
         try:
             sharing.unpublishFreeBusy(schema.ns('osaf.pim', self).allCollection)
         except sharing.NotFound:
-            msg = _(u"Freebusy ticket not found, couldn't revoke freebusy access")
+            msg = _(u"Free/Busy URL not found, could not revoke Free/Busy access.")
             self.setStatusMessage(msg)
         except (sharing.CouldNotConnect, twisted.internet.error.TimeoutError):
-            msg = _(u"Unpublish failed, could not connect to server")
+            msg = _(u"Unpublish failed, could not connect to server.")
             self.setStatusMessage(msg)
         except:
-            msg = _(u"Unpublish failed, unknown error")
+            msg = _(u"Unpublish failed, unknown error.")
             self.setStatusMessage(msg)
             raise # figure out what the exception is
         else:
-            msg = _("Unpublish succeeded")
+            msg = _("Collection unpublished.")
             self.setStatusMessage(msg)
 
     def onSyncCollectionEvent (self, event):
@@ -1385,11 +1386,11 @@ class MainView(View):
             if UserCollection(collection).outOfTheBoxCollection:
                 event.arguments['Text'] = sender.title
             elif sender.blockName == 'SidebarTakeOnlineOfflineItem':
-                event.arguments['Text'] = _(u'%(menuTitle)s %(collectionName)s') % \
+                event.arguments['Text'] = u'%(menuTitle)s %(collectionName)s' % \
                      {'menuTitle' : sender.title,
                       'collectionName': collName}
             else:
-                event.arguments ['Text'] = _(u'%(collectionName)s') % \
+                event.arguments ['Text'] = u'%(collectionName)s' % \
                      {'collectionName': collName}
 
             if sharing.isShared(collection):
@@ -1514,7 +1515,7 @@ class MainView(View):
                 # Either way, we don't care if the user actually created an
                 # account or not, we know there's nothing to sync
                 return
-            self.setStatusMessage (_(u"No shared collections found"))
+            self.setStatusMessage (_(u"No shared collections found."))
 
     def onGetNewMailEventUpdateUI (self, event):
         event.arguments['Enable'] = Globals.mailService.isOnline()

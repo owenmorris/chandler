@@ -1803,14 +1803,16 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         For now just give a generic warning.
         Eventually it would be nice to give a specific reason.
         """
-        wx.MessageBox(_(u'This item is read-only. You cannot change the title of read-only items.'), _(u'Warning'), parent=self)
+        wx.MessageBox(_(u'This event is view-only. You cannot change the title of view-only items.'),
+                      _(u'Warning'), parent=self)
 
     def WarnReadOnlyTime(self, items):
         """
         For now just give a generic warning.
         Eventually it would be nice to give a specific reason.
         """
-        wx.MessageBox(_(u'This item is read-only. You cannot change the time of read-only items.'), _(u'Warning'), parent=self)
+        wx.MessageBox(_(u'This event is view-only. You cannot change the time of view-only events.'),
+                      _(u'Warning'), parent=self)
 
     def getColumnForDay(self, dayStart, dayEnd=None):
         """
@@ -2606,10 +2608,14 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         months = dateFormatSymbols.getMonths()
         year = lastDate.year
         if (startDate.month == lastDate.month):
+            # L10N: The header text of a Calendar week view.
+            #       Displays the month and year ie. October 2007
             monthText = _(u'%(currentMonth)s %(currentYear)d') % \
                         dict( currentMonth= months[startDate.month - 1],
                               currentYear = year )
         else:
+            # L10N: The header text of a Calendar week view that has
+            #       displayable days in two months. ie. October - November 2007
             monthText = _(u'%(currentMonth1)s - %(currentMonth2)s %(currentYear)d') % \
                         dict(currentMonth1= months[startDate.month - 1],
                          currentMonth2= months[lastDate.month - 1],

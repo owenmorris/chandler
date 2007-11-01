@@ -65,7 +65,7 @@ class RecurrenceDialog(wx.Dialog):
               name=u'RecurrenceDialog', parent=None, pos=wx.Point(533, 294),
               size=wx.Size(443, 121),
               style=wx.DIALOG_MODAL | wx.DEFAULT_DIALOG_STYLE,
-              title=_(u'Recurring event change'))
+              title=_(u'Recurring Event Change'))
         self.SetMinSize(wx.Size(400, 100))
         self.SetClientSize(wx.Size(435, 87))
         self.Bind(wx.EVT_CLOSE, self.onCancel)
@@ -92,9 +92,9 @@ class RecurrenceDialog(wx.Dialog):
         self.questionText = wx.StaticText(id=-1,
               label=u'', name=u'questionText', parent=self)
 
-        labels = {self.allButton    : _(u'All events'),
-                  self.futureButton : _(u'Future events'),
-                  self.thisButton   : _(u'Just this event')}
+        labels = {self.allButton    : _(u'All Events'),
+                  self.futureButton : _(u'Future Events'),
+                  self.thisButton   : _(u'This Event')}
 
         for item, label in labels.iteritems():
             item.SetLabel(label)
@@ -109,7 +109,7 @@ class RecurrenceDialog(wx.Dialog):
         # use the first action to determine the UI
         self.questionText.SetLabel(question)
         self.questionText.Wrap(sum(self.buttonSizer.GetColWidths()))
-        self.SetTitle(_(u'Recurring event change'))
+        self.SetTitle(_(u'Recurring Event Change'))
 
         for buttonName in disabledButtons:
             button = getattr(self, buttonName + 'Button')
@@ -219,8 +219,7 @@ def getProxy(context, obj, createNew=True, cancelCallback=None):
         proxy.cancelCallbacks.append(cancelCallback)
     return proxy
 
-REMOVE_ALL_MSG = _(u'"%(displayName)s" is a recurring event. Removing its recurrence will cause all events except the master to be deleted. Do you want to change:')
-
+REMOVE_ALL_MSG = _(u"\"%(displayName)s\" is a recurring event. Changing the occurrence rule to 'Once' will delete all occurrences except for the first one. Do you want to change:")
 
 class ChandlerProxy(RecurrenceProxy):
     _editingProxy = None
@@ -304,12 +303,12 @@ class ChandlerProxy(RecurrenceProxy):
 
             if changeType == 'addStamp':
                 if change[2] == TaskStamp:
-                    questionFmt = _(u'"%(displayName)s" is a recurring event. Do you want to add to your task list:')
+                    questionFmt = _(u'"%(displayName)s" is a recurring event. Do you want to add to the Task list:')
             elif changeType == 'removeStamp':
                 if change[2] == TaskStamp:
-                    questionFmt = _(u'"%(displayName)s" is a recurring event. Do you want to remove from your task list:')
+                    questionFmt = _(u'"%(displayName)s" is a recurring event. Do you want to remove from the Task list:')
                 elif change[2] == EventStamp:
-                    questionFmt = _(u'"%(displayName)s" is a recurring event. Removing it from your calendar will remove all occurrences in the series. Do you want to remove:')
+                    questionFmt = _(u'"%(displayName)s" is a recurring event. Removing it from the Calendar will remove all occurrences. Do you want to remove:')
                     disabled.update(('future', 'this'))
             elif changeType == 'add':
                 trash = schema.ns("osaf.pim", self.proxiedItem.itsView).trashCollection
@@ -317,7 +316,7 @@ class ChandlerProxy(RecurrenceProxy):
                 if change[2] is trash:
                       questionFmt=_(u'"%(displayName)s" is a recurring event. Do you want to delete:')
                 else:
-                    questionFmt = _(u'"%(displayName)s" is a recurring event. What do you want to add to the collection:')
+                    questionFmt = _(u'"%(displayName)s" is a recurring event. Do you want to add:')
                     disabled.update(('future', 'this'))
             elif changeType == 'remove':
                 questionFmt=_(u'"%(displayName)s" is a recurring event. Do you want to remove:')
@@ -328,7 +327,7 @@ class ChandlerProxy(RecurrenceProxy):
                     if change[3] is None:
                         questionFmt = REMOVE_ALL_MSG
                     else:
-                        questionFmt = _(u'"%(displayName)s" is a recurring event. Changing its recurrence may cause some events to be deleted. Do you want to change:')
+                        questionFmt = _(u"\"%(displayName)s\" is a recurring event. Changing the occurrence rule may cause some events to be deleted. Do you want to change:")
             elif changeType == 'delete':
                 if change[2] == EventStamp.rruleset.name:
                     questionFmt = REMOVE_ALL_MSG

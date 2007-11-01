@@ -40,6 +40,8 @@ def installBlocks(parcel, oldVersion=None):
     hotkeyArea = detail.makeArea(parcel, 'HotkeyArea',
                             position=0.6,
                             childBlocks=[
+                                # L10N: The keyboard shortcut for executing a
+                                #       Chandler script.
                                 detail.makeLabel(parcel, _(u'Hotkey'), borderTop=4),
                                 detail.makeSpacer(parcel, width=6),
                                 detail.makeEditor(parcel, 'EditFKey',
@@ -83,6 +85,8 @@ def installBlocks(parcel, oldVersion=None):
     testCheckboxArea = detail.makeArea(parcel, 'TestCheckboxArea',
                             position=0.7,
                             childBlocks=[
+                                # L10N: Lobel for a checkbox that when
+                                #       selected tests the Chandler script.
                                 detail.makeLabel(parcel, _(u'test'), borderTop=4),
                                 detail.makeSpacer(parcel, width=6),
                                 detail.makeEditor(parcel, 'EditTest',
@@ -178,11 +182,11 @@ class OpenFileButton(Detail.DetailSynchronizedBehavior, ControlBlocks.Button):
         """
         if not self._item.body:
             # no script body, open and overwrite existing model data
-            title = _(u"Open a script file")
+            title = _(u"Open Script File")
             flags = wx.OPEN
         else:
             # model data exists, we need a place to write it
-            title =_(u"Save this script file as")
+            title =_(u"Save Script File As")
             flags = wx.SAVE | wx.OVERWRITE_PROMPT
 
         if self._item.filePath:

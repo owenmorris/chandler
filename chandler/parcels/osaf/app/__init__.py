@@ -35,6 +35,8 @@ def installParcel(parcel, oldVersion=None):
     message = _(u'User')
 
     me = pim.Contact.update(parcel, 'me',
+        # L10N: The word 'Me' is used to represent the
+        #       current Chandler user.
         displayName=_(u'Me'),
         contactName=pim.ContactName.update(parcel, 'meName',
            firstName=u'Chandler',
@@ -256,7 +258,7 @@ The Chandler Team""")
               )
         note.changeEditState(pim.Modification.created)
         note.setTriageStatus(pim.TriageEnum.later)
-        note.body = _(u"The items and collections Chandler creates at startup are examples.  Feel free to delete them.")
+        note.body = _(u"The items and collections Chandler creates at startup are examples. Feel free to delete them.")
 
 
 
@@ -324,7 +326,7 @@ The Chandler Team""")
     """
     # Script to create a new user script item
     newScript = scripting.Script.update(parcel, 'New Script',
-                                        displayName=_(u"F1 - Create a New Script"),
+                                        displayName=_(u"F1 - Create a new script"),
                                         fkey= u"F1",
                                         creator = osafDev
                                         )
@@ -362,7 +364,7 @@ The Chandler Team""")
 
     # The cleanup script, run after all the test scripts
     scripting.Script.update(parcel, 'CleanupAfterTests',
-                            displayName=_(u"Cleanup after tests"),
+                            displayName=_(u"Clean up after tests"),
                             creator = osafDev,
                             body=scripting.script_file(u"CleanupAfterTests.py", Scripts.__file__)
                             )

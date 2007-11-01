@@ -116,7 +116,7 @@ class TranslationEggTool(LocalizationBase):
 
             if self.OPTIONS.Chandler:
                 print " To test, start Chandler and select '%s'" % self.getLocaleName()
-                print " from the File -> Switch Locale... dialog."
+                print " from the File -> Switch Language... dialog."
 
             acWarnings = checkAccelerators(self.POFILEOBJECT)
             nWarnings  = checkNewLines(self.POFILEOBJECT)
@@ -187,14 +187,25 @@ class TranslationEggTool(LocalizationBase):
         # translated msgstr's.
         errors = checkReplaceableValues(self.POFILEOBJECT)
 
-        if errors:
-            desc = ""
+        desc = ""
 
+        if errors:
             for poEntry, values in errors:
                 desc += "%s:%i: replaceable value%s %s missing from msgstr\n" % \
                         (self.POFILE, poEntry.msgstrLineNumber, len(values) > 1 and 's' or '',
                          ", ".join(values))
 
+        # Make sure that there are no %s %i type values in the msgstr's.
+        errors = checkPrintValues(self.POFILEOBJECT, 'msgstr')
+
+        if errors:
+            for poEntry, values in errors:
+                desc += "%s:%i: invalid value%s %s found, only replaceable values are " \
+                        "allowed in msgstr\n" % \
+                         (self.POFILE, poEntry.msgstrLineNumber, len(values) > 1 and 's' or '',
+                          ", ".join(values))
+
+        if len(desc):
             # Raising an exception here will result in the program
             # terminating and an error message displayed to the user.
             raise Exception(desc)

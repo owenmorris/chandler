@@ -156,11 +156,8 @@ def main():
                     except:
                         # Fall back to MessageDialog
                         frames = 8
-                        line1 = _(u"Start up error.\n")
-                        line2 = _(u"Here are the bottom %(frames)s frames of the stack:\n") % {'frames': frames - 1}
-                        shortMessage = u"".join([line1, line2, u"\n"])
-                        shortMessage += unicode("".join(backtrace[-frames:]), "UTF-8", "ignore")
-                        dialog = wx.MessageDialog(None, shortMessage, u"Chandler", wx.OK | wx.ICON_INFORMATION)
+                        line = _(u"Start up error.\nHere are the bottom %(numOf)s frames of the stack: %(stacktrace)s\n\n") % {'numOf': frames - 1, "stacktrace": unicode("".join(backtrace[-frames:]), "UTF-8", "ignore")}
+                        dialog = wx.MessageDialog(None, line, u"Chandler", wx.OK | wx.ICON_INFORMATION)
                     dialog.ShowModal()
                     dialog.Destroy()
             finally:

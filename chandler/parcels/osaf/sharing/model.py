@@ -194,7 +194,7 @@ class MailMessageRecord(eim.Record):
     # date sent is populated by MailStamp.dateSentString
     dateSent = eim.field(text256, _(u"Date sent"), filters=[dateSentFilter])
 
-    inReplyTo = eim.field(text256, _(u"In-Reply-To"), filters=[inReplyToFilter])
+    inReplyTo = eim.field(text256, _(u"In-Reply-to"), filters=[inReplyToFilter])
 
     #The list of message-id's a mail message references
     # can be quite long and can easily exceed 1024 characters
@@ -204,7 +204,7 @@ class MailMessageRecord(eim.Record):
     mimeContent = eim.field(eim.ClobType, _(u"MIME content"), filters=[mimeContentFilter])
     rfc2822Message = eim.field(eim.ClobType, _(u"RFC2822 message"), filters=[rfc2822MessageFilter])
     previousSender = eim.field(text256, _(u"Previous sender"), filters=[previousSenderFilter])
-    replyToAddress = eim.field(text256, _(u"Reply-To address"), filters=[replyToAddressFilter])
+    replyToAddress = eim.field(text256, _(u"Reply-to address"), filters=[replyToAddressFilter])
 
     # Contains bit wise flags indicating state.
     # A state integer was chosen over individual

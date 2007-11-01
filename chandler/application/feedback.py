@@ -273,6 +273,9 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
             feedbackId = re.compile('^.*(\d{4}\-\d{2}\-\d{2}T\d{2}\-\d{2}\-\d{2}\.\d{6}).*$').match(serverResponse).group(1)
             
             # Show the ID so that users can report it in bugs etc.
+            # L10N: The numerical ID of a feedback report generated
+            #       by Chandler when an error occurs. The ID is
+            #       is used to report and track the bug.
             self.frame.text.AppendText(_(u'\nFeedback report ID: %(feedbackId)s') % {'feedbackId': feedbackId})
                         
             # Log each report to a new file
@@ -282,7 +285,10 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
             f.close()
 
             # Show the path to the saved file
-            self.frame.text.AppendText(_(u'\nFeedback report saved locally at: %(feedbackFile)s') \
+            # L10N: The feedback report contains debugging information
+            #       used by the Chandler team to resolve a bug or issue
+            #       discovered by the user.
+            self.frame.text.AppendText(_(u"\nYour feedback report has been saved locally at: %(feedbackFile)s") \
                                        % {'feedbackFile': feedbackFile})
 
         except:
@@ -316,9 +322,9 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
                 raise Exception('response.status=' + response.status)
             c.close()
         except:
-            self.frame.sendButton.SetLabel(_(u'Failed to send'))
+            self.frame.sendButton.SetLabel(_(u'Failed to send.'))
         else:
-            self.frame.sendButton.SetLabel(_(u'Sent'))
+            self.frame.sendButton.SetLabel(_(u'Sent.'))
             self.logReport(body, response.read())
                 
 FeedbackWindow = FeedbackWindow()

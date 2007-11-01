@@ -41,7 +41,7 @@
                     <object class="wxChoice" name="CHOICE_ACCOUNT">
                         <size>300,-1</size>
                         <content>
-                            <item>ChoiceItem</item>
+                            <item></item>
                         </content>
                     </object>
                 </object>

@@ -33,7 +33,7 @@ class InMemoryConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
         super(InMemoryConduit, self).create()
 
         if self.exists():
-            raise errors.AlreadyExists(_(u"Share already exists"))
+            raise errors.AlreadyExists(_(u"Collection already exists on server."))
 
         style = self.share.fileStyle()
         if style == formats.STYLE_DIRECTORY:
@@ -44,7 +44,7 @@ class InMemoryConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
         super(InMemoryConduit, self).destroy()
 
         if not self.exists():
-            raise errors.NotFound(_(u"Share does not exist"))
+            raise errors.NotFound(_(u"Share does not exist."))
 
         del shareDict[self.shareName]
 
@@ -67,7 +67,7 @@ class InMemoryConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
             text = self.share.format.exportProcess(item)
         except Exception, e:
             logging.exception(e)
-            raise errors.TransformationFailed(_(u"Transformation error: see chandler.log for more information"))
+            raise errors.TransformationFailed(_(u"Transformation error. Go to the Tools>>Logging>>Log Window... menu for details."))
 
         if text is None:
             return None

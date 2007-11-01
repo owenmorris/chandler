@@ -4,7 +4,7 @@
     <object class="wxBoxSizer">
       <object class="sizeritem">
         <object class="wxStaticText" name="Text">
-          <label>Some text</label>
+          <label></label>
           <size>350,-1</size>
         </object>
         <flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT</flag>

@@ -180,7 +180,7 @@ class ImportDialog(FileChooserWithOptions):
         self.gauge = wx.Gauge(self, size=(360, 15))
         self.feedbackBox.Add(self.gauge, 0, wx.ALL | wx.ALIGN_CENTER, 10)
         
-        self.progressText = wx.StaticText(self, -1, _(u"Starting import"))
+        self.progressText = wx.StaticText(self, -1, _(u"Starting import..."))
         self.feedbackBox.Add(self.progressText, wx.ALIGN_LEFT)
         
         self.box.Insert(3, self.feedbackBox, 0, wx.ALL | wx.ALIGN_CENTER, 10)
@@ -218,7 +218,7 @@ class ImportDialog(FileChooserWithOptions):
             activity = self.importFile()
             if activity:
                 event.Skip(True)
-                activity.update(msg=_(u"Saving changes"))
+                activity.update(msg=_(u"Saving changes..."))
             # The commit() call below ensures that at least one such call gets
             # actually deferred and run when this code block completes. When
             # there are no changes to commit, as in a second call to commit()

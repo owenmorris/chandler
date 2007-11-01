@@ -480,6 +480,11 @@ class StringAttributeEditor (BaseAttributeEditor):
             pass
         else:
             if cardinality == 'list':
+                # L10N: This value represents the string tokens
+                #       that are used to determine the division
+                #       of email addresses or names and is used
+                #       as part of auto complete.
+                #       For example test@test.com; test1@test.com, test2@test.com
                 for c in _(u',;'):
                     prevSep = value.rfind(c, 0, insertionPoint) + 1
                     if prevSep > start: 
@@ -635,7 +640,7 @@ class StringAttributeEditor (BaseAttributeEditor):
                 else:
                     valueString = unicode(theValue)
             elif cardinality in ("list", "set"):
-                valueString = _(u", ").join([unicode(part) for part in theValue])
+                valueString = u", ".join([unicode(part) for part in theValue])
 
         return valueString
 
@@ -655,7 +660,7 @@ class StringAttributeEditor (BaseAttributeEditor):
             if cardinality == "single":
                 value = valueString
             elif cardinality == "list" or cardinality == "set":
-                value = map(unicode.strip, valueString.split(_(u",")))
+                value = map(unicode.strip, valueString.split(u","))
             setattr(item, attributeName, value)
         else:
             # The user cleared out the old value, which isn't allowed. 

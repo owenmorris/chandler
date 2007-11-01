@@ -199,7 +199,7 @@ def outbound(peers, item, filter=None, debug=False):
 
         # Abort if pending conflicts
         if shared.conflictingStates:
-            raise errors.ConflictsPending(_(u"Conflicts pending"))
+            raise errors.ConflictsPending(_(u"Conflicts pending."))
 
         for peer in peers:
             state = shared.getPeerState(peer)

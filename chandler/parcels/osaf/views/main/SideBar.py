@@ -419,16 +419,13 @@ class wxSidebar(wxTable):
         pim_ns = schema.ns('osaf.pim', view)
         mine = pim_ns.mine
 
-        mineMessage = _(u'Would you like to delete just the collection or the '
-                        u'collection and the items within it as well?\n\n'
-                        u'Note: Items you have added to other collections will '
-                        u'not be deleted.')
+        mineMessage = _(u"Would you like to delete just the collection or the "
+                         "collection and the items it contains as well?\n\n"
+                         "Note: Items you have added to other collections will not be deleted.")
         mineTextTable = {wx.ID_YES : _(u"Collection and Items"),
-                         wx.ID_NO  : _(u"Collection only")}
-        notMineMessage = _(u"Deleting %(collectionName)s will move its "
-                           u'contents to the Trash\n\n'
-                           u'Note: Items you have added to other collections '
-                           u'will not be deleted.')
+                         wx.ID_NO  : _(u"Collection Only")}
+        notMineMessage = _(u"Deleting %(collectionName)s will move its contents to the Trash.\n\n"
+                            "Note: Items you have added to other collections will not be deleted.")
         
         # If we're editing the name now, stop.
         self.DisableCellEditControl()
@@ -467,14 +464,14 @@ class wxSidebar(wxTable):
                         promptYesNoCancel(mineMessage % dataDict,
                                           viewsmain.clearCollectionPref,
                                           textTable=mineTextTable,
-                                          caption=_(u"Delete collection"))
+                                          caption=_(u"Delete Collection"))
     
                     if shouldClearCollection is None: # user pressed cancel
                         return
     
                 else:
                     if wx.MessageBox (notMineMessage % dataDict,
-                                      _(u"Delete collection"),
+                                      _(u"Delete Collection"),
                                       style = wx.OK | wx.CANCEL,
                                       parent = wx.GetApp().mainFrame) != wx.OK:
                         return
@@ -859,8 +856,14 @@ class SSSidebarIconButton (SSSidebarButton):
             gridWindow = self.buttonOwner.widget.GetGridWindow()
             if self.buttonState['overButton']:
                 if UserCollection(item).checked:
+                    # L10N: Do not show this collection's Events overlayed
+                    #       with other collections in the Calendar
+                    #       view.
                     text = _(u"Remove overlay")
                 else:
+                    # L10N: Show this collection's Events overlayed
+                    #       with other collections in the Calendar
+                    #       view.
                     text = _(u"Overlay collection")
                 gridWindow.SetToolTipString (text)
                 gridWindow.GetToolTip().Enable (True)
@@ -1023,14 +1026,14 @@ class SSSidebarSharingButton (SSSidebarButton):
                     inMine = item in mine.sources or UserCollection(item).outOfTheBoxCollection
                     if (sharing.isSharedByMe(share)):
                         if inMine:
-                            text = _(u"Published share")
+                            text = _(u"Published collection")
                         else:
-                            text = _(u"Published share that is being kept out of the Dashboard")
+                            text = _(u"Published collection that was kept out of the Dashboard")
                     else:
                         if inMine:
                             text = _(u"Subscription")
                         else:
-                            text = _(u"Subscription that is being kept out of the Dashboard")
+                            text = _(u"Subscription that was kept out of the Dashboard")
 
                     lastSynced = getattr(share, 'lastSuccess', None)
                     if lastSynced is not None:
@@ -1208,7 +1211,7 @@ class SidebarBlock(Table):
                 if inMine:
                     mine.addSource(item)
 
-                item.displayName = _(u"Copy of ") + item.displayName
+                item.displayName = _(u"Copy of %(displayName)s") % {"displayName":  item.displayName}
                 self.contents.add(item)
                 self.postEventByName("SelectItemsBroadcast", {'items': [item]})
 
@@ -1639,7 +1642,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                 message = exception.getMessage()
             else:
                 message = unicode(error)
-            wx.MessageBox (_(u"An error occured during search.\n\nThe search engine reported the following error:\n\n%(message)s" ) % {"message": message},
+            wx.MessageBox (_(u"An error occured during search.\n\n%(message)s" ) % {"message": message},
                            _(u"Search Error"),
                            parent = app.mainFrame)
             mainView.setStatusMessage (_(u"An error occured during search"))

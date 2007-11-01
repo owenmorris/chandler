@@ -62,9 +62,18 @@ class ValidatorTool(LocalizationBase):
 
             os.chdir(self.CWD)
 
+            # checks that there are no %s, %i , %d type
+            # values in the msgid strings. These values
+            # are not localizable since the ordering can
+            # not be changed.
+            error = self.checkPOFile(self.OUTPUTFILE)
+
             if os.access(self.OUTPUTFILE, os.F_OK):
                 # Remove the temporary pot file
                 os.remove(self.OUTPUTFILE)
+
+            if error is not None:
+                self.raiseError(error)
 
             if self.OPTIONS.Debug:
                 self.debug()

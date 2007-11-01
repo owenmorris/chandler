@@ -46,7 +46,7 @@ class FileSystemConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
             text = self.share.format.exportProcess(item)
         except:
             logger.exception("Failed to export item")
-            raise errors.TransformationFailed(_(u"Transformation error: see chandler.log for more information"))
+            raise errors.TransformationFailed(_(u"Transformation error. Go to the Tools>>Logging>>Log Window... menu for details."))
 
         if text is None:
             return None
@@ -127,10 +127,10 @@ class FileSystemConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
         super(FileSystemConduit, self).create()
 
         if self.exists():
-            raise errors.AlreadyExists(_(u"Share path already exists"))
+            raise errors.AlreadyExists(_(u"Sharing path already exists."))
 
         if self.sharePath is None or not os.path.isdir(self.sharePath):
-            raise errors.Misconfigured(_(u"Share path is not set, or path doesn't exist"))
+            raise errors.Misconfigured(_(u"Sharing path is not set, or path doesn't exist."))
 
         style = self.share.fileStyle()
         if style == formats.STYLE_DIRECTORY:
@@ -144,7 +144,7 @@ class FileSystemConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
         path = self.getLocation()
 
         if not self.exists():
-            raise errors.NotFound(_(u"%(path)s does not exist") % {'path': path})
+            raise errors.NotFound(_(u"%(path)s does not exist.") % {'path': path})
 
         style = self.share.fileStyle()
         if style == formats.STYLE_DIRECTORY:
@@ -161,7 +161,7 @@ class FileSystemConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
         path = self.getLocation()
 
         if not self.exists():
-            raise errors.NotFound(_(u"%(path)s does not exist") % {'path': path})
+            raise errors.NotFound(_(u"%(path)s does not exist.") % {'path': path})
 
 
 
@@ -209,11 +209,11 @@ class FileSystemMonolithicRecordSetConduit(
     def destroy(self):
         path = self._getPath()
         if not self.exists():
-            raise errors.NotFound(_(u"%(path)s does not exist") %
+            raise errors.NotFound(_(u"%(path)s does not exist.") %
                 {'path': path})
 
         os.remove(path)
 
     def create(self):
         if self.exists():
-            raise errors.AlreadyExists(_(u"File already exists"))
+            raise errors.AlreadyExists(_(u"File already exists."))

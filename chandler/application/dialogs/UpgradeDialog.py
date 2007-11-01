@@ -62,8 +62,8 @@ class UpgradeDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.AddSpacer((0, 3)) 
 
-        staticText    = _(u"Your repository was created by an incompatible version of Chandler.")
-        normalCaption = _(u'Would you like to remove all data from your repository?')
+        staticText    = _(u"Your data repository was created by an incompatible version of Chandler.")
+        normalCaption = _(u"Would you like to remove all data and start with a fresh repository?")
 
         self.msgText = wx.StaticText(self, -1, staticText)
         sizer.Add(self.msgText, flag=wx.ALL, border=5)
@@ -72,7 +72,7 @@ class UpgradeDialog(wx.Dialog):
         sizer.Add(self.normalStartup, flag=wx.ALL, border=5)
         self.normalStartup.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
 
-        self.exitReload = wx.RadioButton(self, -1, _(u"Quit and follow the directions linked below to migrate your data."))
+        self.exitReload = wx.RadioButton(self, -1, _(u"Click on the link below to learn how to migrate your data and quit Chandler."))
         self.exitReload.SetValue(True)
         sizer.Add(self.exitReload, flag=wx.ALL, border=5)
         self.exitReload.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
@@ -178,5 +178,4 @@ class MigrationDialog(wx.Dialog):
 
     def onDeleteDataButton(self, event):
         self.EndModal(wx.OK)
-
 

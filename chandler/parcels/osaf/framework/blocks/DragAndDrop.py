@@ -479,7 +479,7 @@ class ItemClipboardHandler(_ClipboardHandler):
             self._clearItems(cutting=True)
         except NotImplementedError:
             wx.MessageBox (_("Cannot cut from this collection."),
-                           _(u"Can't cut"),
+                           _(u"Cannot cut."),
                            parent=wx.GetApp().mainFrame)
 
         return result

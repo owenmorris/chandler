@@ -562,9 +562,9 @@ class DetailStampButtonBlock(DetailSynchronizedBehavior,
                 startTime, endTime, countFlag, typeFlag = \
                          pim.calendar.Calendar.parseText(self.itsView, item.body)
 
-                statusMsg = { 0:_(u"No date/time found"),
-                              1:_(u"Event set to the date/time found"),
-                              2:_(u"Multiple date/times found")}
+                statusMsg = { 0:_(u"No date/time found."),
+                              1:_(u"Event set to the date/time found."),
+                              2:_(u"Multiple date/times found.")}
 
                 # Set the appropriate status message in the status bar
                 wx.GetApp().CallItemMethodAsync("MainView", 'setStatusMessage',
@@ -1497,6 +1497,11 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
                 # what the user typed.
                 localeUsesAMPM = len(pim.ampmNames) > 0
                 meridian = ""
+                # L10N: Used to parse a date string.
+                #       %(meridian)s will evaluate to "AM",
+                #       PM, or "" if the locale uses 24 hour
+                #       time.
+                #
                 format = _(u"%(hour)d:%(minute)02d%(meridian)s")
                 if localeUsesAMPM:
                     # This locale uses an am/pm indicator. If one's present,
@@ -1688,9 +1693,9 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
                 # (custom) first
                 self.SetControlValue(control, oldChoice)
                 
-                msg = _(u"The custom recurrence rule on this event will be lost "
-                        "if you change it, and you won't be able to restore it."
-                        "\n\nAre you sure you want to do this?")
+                msg = _(u"The custom recurrence rule will be lost if you change it. "
+                         "You will not be able to restore it.\n\n"
+                         "Are you sure you want change it?")
                 caption = _(u"Discard custom recurrence?")
 
                 if wx.MessageBox(msg, caption, style = wx.YES_NO,

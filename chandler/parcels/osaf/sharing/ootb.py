@@ -19,4 +19,4 @@ __all__ = ["prepareAccounts"]
 
 def prepareAccounts(rv):
     if len(list(accounts.SharingAccount.iterItems(rv))) == 0:
-        cosmo.HubAccount(itsView=rv, displayName=_(u"Chandler Hub sharing"))
+        cosmo.HubAccount(itsView=rv, displayName=_(u"Chandler Hub Sharing"))

@@ -67,7 +67,7 @@ def prepareVobj(view, uuid, recordSet, vobjs):
         vtodo.isNative = True
         vobjs[uuid] = vtodo
     else:
-        raise ICalendarExportError(_(u"Item isn't a task or an event."))
+        raise ICalendarExportError(_(u"Item is neither a Task nor an Event."))
 
 def getVobj(record, vobjs):
     uuid = record.uuid

@@ -206,7 +206,7 @@ def Show(view=None):
     #but can handle unicode
     xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
     resources = wx.xrc.XmlResource(xrcFile)
-    win = RestoreSharesDialog(_(u"Restore shared collections"),
+    win = RestoreSharesDialog(_(u"Restore Published Shares"),
      resources=resources, view=view)
     win.CenterOnScreen()
     win.ShowModal()

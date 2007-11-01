@@ -140,7 +140,7 @@ class Controller (Block.Block):
             theApp.SetCallFilterEvent (False)
 
             dialog = wx.FileDialog (None,
-                                    message = _(u"Save script as ..."),
+                                    message = _(u"Untitled"),
                                     defaultDir = run_recorded.recorded_scripts_dir, 
                                     defaultFile = u"",
                                     wildcard = u"*.py",
@@ -165,9 +165,9 @@ class Controller (Block.Block):
 
     def onToggleRecordingEventUpdateUI (self, event):
         if self.FilterEvent in wx.GetApp().filterEventCallables:
-            event.arguments['Text'] = _(u'Stop &recording...')
+            event.arguments['Text'] = _(u'Stop &Recording...')
         else:
-            event.arguments['Text'] = _(u'&Record script')
+            event.arguments['Text'] = _(u'&Record Script')
 
     def onScriptVerificationEvent (self, event):
         #Change boolean in scripts folder to determine script completion notification message
@@ -376,12 +376,12 @@ def installParcel(parcel, old_version=None):
         childBlocks = [
             MenuItem.template(
                 'RecordingMenuItem',
-                title = _(u'&Record script'), # see onToggleRecordingEventUpdateUI
+                title = _(u'&Record Script'), # see onToggleRecordingEventUpdateUI
                 helpString = _(u'Record commands in Chandler'),
                 event = ToggleRecording),
             MenuItem.template(
                 'ScriptVerificationMenuItem',
-                title = _(u'&Verify script'),
+                title = _(u'&Verify Script'),
                 helpString = _(u"When scripts run, verification ensure that the UI's data matches the state when the script was recorded"),
                 menuItemKind = 'Check',
                 event = ScriptVerification),

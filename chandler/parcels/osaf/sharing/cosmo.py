@@ -125,14 +125,14 @@ class CosmoAccount(accounts.SharingAccount):
         try:
             resp = handle.blockUntil(handle.addRequest, request)
         except zanshin.webdav.ConnectionError, err:
-            exc = errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            exc = errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
             if callback:
                 return callMethodInUIThread(callback, (exc, None))
             else:
                 raise exc
 
         except M2Crypto.BIO.BIOError, err:
-            exc = errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            exc = errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
             if callback:
                 return callMethodInUIThread(callback, (exc, None))
             else:
@@ -200,7 +200,7 @@ class CosmoAccount(accounts.SharingAccount):
                 share.conduit.filters.add('cid:needs-reply-filter@osaf.us')
                 share.conduit.filters.add('cid:bcc-filter@osaf.us')
 
-                activity = Activity(_("Restore %s") % name)
+                activity = Activity(_("Restore %(shareName)s") % {'shareName': name})
                 activity.started()
                 share.get(activity=activity)
                 share.sharer = schema.ns("osaf.pim", rv).currentContact.item
@@ -354,7 +354,7 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
             # being updated right now and is locked (423).  In each case, our
             # reaction is the same -- abort the sync.
             # TODO: We should try to sync again soon
-            raise errors.TokenMismatch(_(u"Collection updated by someone else"))
+            raise errors.TokenMismatch(_(u"Collection updated by someone else."))
 
         elif resp.status in (403, 409):
             # Trying to publish a collection but the uuid of that collection
@@ -444,13 +444,13 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
             return response
 
         except zanshin.webdav.ConnectionError, err:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
 
         except M2Crypto.BIO.BIOError, err:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
 
         except twisted.internet.error.ConnectionLost, err:
-            raise errors.CouldNotConnect(_(u"Lost connection to server.  Received the following error: %(error)s") % {'error' : err})
+            raise errors.CouldNotConnect(_(u"Lost connection to server: %(error)s") % {'error' : err})
 
     def getLocation(self, privilege=None, morsecode=False):
         """

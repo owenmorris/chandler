@@ -744,6 +744,7 @@ def kindToMessageObject(mailStamp):
         # Attach the ICalendar object
         icsPayload = MIMEBase64Encode(ics, 'text', 'calendar', method='PUBLISH')
 
+        # L10N: The filename of Events and Tasks emailed from Chandler
         fname = Header.Header(_(u"ChandlerItem.ics")).encode()
         icsPayload.add_header("Content-Disposition", "attachment", filename=fname)
         messageObject.attach(icsPayload)

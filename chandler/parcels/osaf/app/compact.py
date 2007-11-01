@@ -47,8 +47,8 @@ class CompactDialog(wx.Dialog):
         grid.Add(message, 0, wx.ALIGN_LEFT|wx.ALL, 3)
 
         # status message
-        self.auto = _("Compacting will start automatically in %d seconds.")
-        self.status = wx.StaticText(self, -1, self.auto %(self.COUNTDOWN))
+        self.auto = _("Purging will start automatically in %(numOf)d seconds.")
+        self.status = wx.StaticText(self, -1, self.auto % {"numOf": self.COUNTDOWN})
         self.status.Wrap(360)
 
         grid.Add(self.status, 0, wx.ALIGN_LEFT|wx.ALL, 3)
@@ -61,9 +61,9 @@ class CompactDialog(wx.Dialog):
 
         # now and later/cancel buttons
         grid = wx.GridSizer(1, 2, 2, 2)
-        self.now = wx.Button(self, wx.ID_OK, _(u"Compact Now"))
+        self.now = wx.Button(self, wx.ID_OK, _(u"Purge Now"))
         grid.Add(self.now, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
-        self.later = wx.Button(self, wx.ID_CANCEL, _(u"Compact Later"))
+        self.later = wx.Button(self, wx.ID_CANCEL, _(u"Purge Later"))
         grid.Add(self.later, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         sizer.Add(grid, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
@@ -89,11 +89,11 @@ class CompactDialog(wx.Dialog):
 
         if compact:
             self.later.SetLabel(_(u'Cancel'))
-            progressMessage = _(u'Compacting repository (stage %d)')
+            progressMessage = _(u'Purging... (stage %(stageNum)d)')
             stages = set()
             def progress(stage, percent):
                 stages.add(stage)
-                self.status.SetLabel(progressMessage %(len(stages)))
+                self.status.SetLabel(progressMessage % {"stageNum": len(stages)})
                 self.gauge.SetValue(percent)
                 wx.GetApp().Yield(True)   # to enable updating and pressing 'Cancel'
                 return self.compacting
@@ -220,7 +220,7 @@ class CompactTask(startup.DurableTask):
 
         if versions < CompactTask.MIN_VERSIONS:  # nothing much to do
             view.logger.info("Only %d versions to compact, skipping", versions)
-            setStatusMessage(_(u"No versions to compact, skipping"))
+            setStatusMessage(_(u"No data to purge..."))
             if manual:
                 self.lastRun = self.lastCompact
             else:
@@ -235,10 +235,10 @@ class CompactTask(startup.DurableTask):
                 counts = view.repository.compact(toVersion, progressFn=progress)
             except:
                 view.logger.exception("while compacting repository")
-                setStatusMessage(_(u"Compacting repository failed, see chandler.log"))
+                setStatusMessage(_(u"Purging failed. Go to the Tools>>Logging>>Log Window... menu for details."))
                 self.compacted = False
             else:
-                setStatusMessage(_(u'Reclaimed %(numItems)d items, %(numValues)d values, %(numRefs)d refs, %(numIndex)d index entries, %(numNames)d names, %(numLobs)d lobs, %(numBlocks)d blocks, %(numLucene)d lucene documents') % {"numItems": counts[0], "numValues": counts[1], "numRefs": counts[2], "numIndex": counts[3], "numNames": counts[4], "numLobs": counts[5], "numBlocks": counts[6], "numLucene": counts[7]})
+                setStatusMessage(_(u'Reclaimed %(numItems)d items, %(numValues)d values, %(numRefs)d refs, %(numIndex)d index entries, %(numNames)d names, %(numLobs)d lobs, %(numBlocks)d blocks, %(numLucene)d lucene documents.') % {"numItems": counts[0], "numValues": counts[1], "numRefs": counts[2], "numIndex": counts[3], "numNames": counts[4], "numLobs": counts[5], "numBlocks": counts[6], "numLucene": counts[7]})
 
                 self.compacted = True
 

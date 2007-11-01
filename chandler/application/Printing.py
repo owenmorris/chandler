@@ -30,7 +30,7 @@ class Printing(object):
         self.printData.SetPrintMode(wx.PRINT_MODE_PRINTER)
         # default orientation is landscape
         self.printData.SetOrientation(wx.LANDSCAPE)
-        
+
     def OnPageSetup(self):
         data = wx.PageSetupDialogData(self.printData)
         data.CalculatePaperSizeFromId()
@@ -46,12 +46,12 @@ class Printing(object):
         self.preview = wx.PrintPreview(previewPrintout, printingPrintout, data)
         if wx.Platform == '__WXGTK__':
             self.preview.SetZoom(150)
-        
+
         if not self.preview.Ok():
             return
-        
-        frame = wx.PreviewFrame(self.preview, self.frame, _(u"Print preview"))
-        
+
+        frame = wx.PreviewFrame(self.preview, self.frame, _(u"Print Preview"))
+
         frame.Initialize()
         frame.SetPosition(self.frame.GetPosition())
         frame.SetSize(self.frame.GetSize())
@@ -62,20 +62,20 @@ class Printing(object):
         data.SetToPage(1)
         printer = wx.Printer(data)
         printout = CanvasPrintout(self.canvas)
-        
+
         printSuccess = printer.Print(self.frame, printout, True)
         if not printSuccess:
             printError = printer.GetLastError()
             if ((printError != wx.PRINTER_CANCELLED) and (printError != 0)):
-                wx.MessageBox(_(u"There was a problem printing.\nPerhaps your current printer is not set correctly?"),
-                              _(u"Printing"),
+                wx.MessageBox(_(u"There was a problem printing.\nCheck your printer and try again."),
+                              _(u"Printing..."),
                               wx.OK,
                               parent=wx.GetApp().mainFrame)
         else:
             self.printData = wx.PrintData( printer.GetPrintDialogData().GetPrintData() )
         printout.Destroy()
-        
-        
+
+
 class CanvasPrintout(wx.Printout):
     def __init__(self, canvas):
         wx.Printout.__init__(self)
@@ -93,7 +93,7 @@ class CanvasPrintout(wx.Printout):
             width, height = self.canvas.GetVirtualSize()
         else:
             width, height = self.canvas.columnCanvas.GetVirtualSize()
-            
+
         maxX = width
         maxY = height
 

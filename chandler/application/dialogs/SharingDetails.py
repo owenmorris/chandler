@@ -62,7 +62,7 @@ class SharingDetailsFrame(wx.Frame):
 def Show(parent, share):
     view = share.itsView
     collection = share.contents
-    title = _(u"Sharing Details: %s") % collection.displayName
+    title = _(u"Sharing details: %(collectionName)s") % {'collectionName': collection.displayName}
     lines = []
     add = lines.append
     add(_(u"Collection name: ") + collection.displayName)
@@ -70,9 +70,9 @@ def Show(parent, share):
     add(_(u"Last attempted sync: ") + formatDateTime(view, share.lastAttempt))
     add(_(u"Last successful sync: ") + formatDateTime(view, share.lastSuccess))
     if hasattr(share, "error"):
-        add(_(u"Last error: ") + share.error)
+        add(_(u"Last Error: ") + share.error)
     if hasattr(share, "errorDetails"):
-        add(_(u"Last error details: "))
+        add(_(u"Last Error details: "))
         add(share.errorDetails)
 
     win = SharingDetailsFrame(parent, -1, title, u'\n\n'.join(lines))

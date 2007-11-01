@@ -301,13 +301,14 @@ class ConflictDialog(wx.Dialog):
         vsizer.Add((0, 20), 0, flag=wx.EXPAND)
 
         # footer text
-        footerText = wx.StaticText(self, -1, _(u"All pending changed must be resolved before you can send Updates. Edits you make on attributes with\npending changes will not be synced to the server"))
+        footerText = wx.StaticText(self, -1, _(u"All pending changes must be resolved before you can send Updates. Edits you make on attributes with pending changes will not be synced to the server."))
+        footerText.Wrap(650)
         vsizer.Add(footerText)
 
         # "Decide later"/"Done" button, which is fflush right, so use a horizontal box sizer
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         buttonSizer.Add((20, 0), 1, flag=wx.EXPAND)
-        self.doneButton = wx.Button(self, wx.ID_OK, _(u"Decide &later"))
+        self.doneButton = wx.Button(self, wx.ID_OK, _(u"Decide &Later"))
         buttonSizer.Add(self.doneButton)
         vsizer.Add(buttonSizer, 0, flag=wx.EXPAND)
 
@@ -324,8 +325,7 @@ class ConflictDialog(wx.Dialog):
 
     def changeToDone(self):
         self.doneButton.SetLabel(_(u"&Done"))
-        self.doneButton.SetToolTipString(_(u"""Any unresolved items will remain undecided. You can revisit this dialog to resolve them later."""))
-
+        self.doneButton.SetToolTipString(_(u"Unresolved conflicts will not be lost. You can revisit this dialog to resolve them later."))
 
 # do the test below by opening a PyShell in Chandler and executing:
 # execfile("application/dialogs/ConflictDialog.py", { "__name__" :"__main__" })

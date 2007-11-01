@@ -62,10 +62,24 @@ HOST_REQUIRED  = _(u"Auto-configure requires a server name.")
 
 # --- Yes No Dialog Messages ----- #
 CREATE_FOLDERS_TITLE = _(u"Configure Chandler folders")
-CREATE_FOLDERS = _(u"Chandler will now attempt to create the following IMAP folders in your account\non '%(host)s':\n\n\tChandler Mail\n\tChander Tasks\n\tChandler Events\n\nIf you have already set up Chandler folders in your account, no new folders\nwill be created.")
+CREATE_FOLDERS = _(u"""Chandler will attempt to create the following IMAP folders in your account on '%(host)s':
+
+    Chandler Events
+    Chandler Mail
+    Chander Tasks
+
+If you have already set up Chandler folders in your account, no new folders will be created.
+
+Folders may take a while to show up in your email application.""")
 
 REMOVE_FOLDERS_TITLE = _(u"Remove Chandler folders")
-REMOVE_FOLDERS = _(u"Chandler will now attempt to remove the\nfollowing IMAP folders on '%(host)s':\n\n\tChandler Mail\n\tChander Tasks\n\tChandler Events\n\n Would you like to proceed?")
+REMOVE_FOLDERS = _(u"""Chandler will now attempt to remove the following IMAP folders on '%(host)s':
+
+    Chandler Mail
+    Chander Tasks
+    Chandler Events
+
+Would you like to proceed?""")
 
 
 # Will print out saved account changes
@@ -408,7 +422,7 @@ class AccountPreferencesDialog(wx.Dialog):
                 "saveHandler" : OutgoingSaveHandler,
                 "deleteHandler" : OutgoingDeleteHandler,
                 "displayName" : u"OUTGOING_DESCRIPTION",
-                "description" : _(u"Outgoing mail"),
+                "description" : _(u"Outgoing Mail"),
                 "protocol" : "SMTP",
                 "class" : Mail.SMTPAccount,
                 "callbacks" : (("OUTGOING_DISCOVERY", "OnOutgoingDiscovery"),),
@@ -438,7 +452,7 @@ class AccountPreferencesDialog(wx.Dialog):
                 "displayName" : "HUBSHARING_DESCRIPTION",
                 "protocol" : "Morsecode",
                 "class" : sharing.HubAccount,
-                "description" : _(u"Chandler Hub sharing"),
+                "description" : _(u"Chandler Hub Sharing"),
                 "messages" : ("SHARING_MESSAGE", "SHARING_MESSAGE2"),
             },
 
@@ -484,7 +498,7 @@ class AccountPreferencesDialog(wx.Dialog):
                 "order": 3,
                 "deleteHandler" : SharingDeleteHandler,
                 "displayName" : "MORSECODE_DESCRIPTION",
-                "description" : _(u"Chandler Server sharing"),
+                "description" : _(u"Chandler Server Sharing"),
                 "protocol" : "Morsecode",
                 "class" : sharing.CosmoAccount,
             },
@@ -2350,4 +2364,4 @@ def alertOffline(parent):
     showOKDialog(_(u"Mail Service Offline"), constants.TEST_OFFLINE, parent)
 
 def alertError(msg, parent):
-    showOKDialog(_(u"Account Preferences error"), msg, parent)
+    showOKDialog(_(u"Account Preferences Error"), msg, parent)

@@ -231,7 +231,7 @@ def installParcel(parcel, oldVersion=None):
 
     if cur1.item is None:
         cur1.item = SMTPAccount(itsView=view,
-            displayName = _(u'Outgoing mail'),
+            displayName = _(u'Outgoing Mail'),
             password = password.Password(itsView=view),
             )
 

@@ -191,6 +191,57 @@ def checkAccelerators(poFile):
     return results
 
 
+def checkPrintValues(poFile, field="msgid"):
+    """
+        The field argument can either be 'msgid' or
+        'msgstr'. The method will search the requested
+        field for Python print replace values such
+        as %s and %3i etc.
+    """
+    assert(isinstance(poFile, POFile))
+    assert(field=='msgid' or field == 'msgstr')
+
+    results = []
+
+    # Match Python print tokens such as %s %3i %3.3d etc.
+    # in field specified in the method arguments
+    exp = r"(%(c|s|\d*i|\d*\.*\d*(d|f)))"
+    regex = re.compile(exp)
+
+    for msgid, poEntry in poFile.poEntries.items():
+        if field == 'msgid':
+            text = msgid
+        else:
+            text = poEntry.msgstr
+
+        if isEmpty(text):
+            continue
+
+        tokens = regex.findall(text)
+
+        if len(tokens) == 0:
+            continue
+
+        values = []
+
+        for token in tokens:
+            values.append(token[0])
+
+        results.append((poEntry, values))
+
+    def _cmp(e1, e2):
+        # Sort entries based on which appeared first in the po
+        # file
+        if e1[0].msgidLineNumber > e2[0].msgidLineNumber:
+            return 1
+        return -1
+
+    # Sort by line number
+    results.sort(_cmp)
+
+    return results
+
+
 def checkReplaceableValues(poFile):
     assert(isinstance(poFile, POFile))
     results = []
