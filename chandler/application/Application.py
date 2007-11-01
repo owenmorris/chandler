@@ -1503,7 +1503,7 @@ def checkPlatform():
     if Utility.getPlatformName() != platform:
         # Prompt the user that we're going to exit
         wx.MessageBox(_(u'This version of Chandler runs on a different operating system. Please download the correct installer from the OSAF website.'),
-                      _(u'Quiting Chandler...'))
+                      _(u'Quitting Chandler...'))
         # Stop the program. Somewhat unclean but since nothing can be done safely
         # or even should be done (could crash anytime), the best is to just exit when
         # we still can...
