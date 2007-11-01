@@ -835,7 +835,7 @@ class AppCollection(ContentCollection):
         isDeleting = item.isDeleting()
         
         # never add occurrences to the trash or exclusions lists, bug 10777
-        isOccurrence = getattr(item, 'inheritTo', None) is not None
+        isOccurrence = item.itsRefs.get('inheritFrom') is not None
         
         # adding to exclusions before determining if the item should be added to
         # the trash was a problem at one point (bug 4551), but since the mine/
