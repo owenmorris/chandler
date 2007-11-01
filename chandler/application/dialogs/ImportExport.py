@@ -84,8 +84,8 @@ class FileChooserWithOptions(wx.Dialog):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        buttonText = _('&Browse')
-        labelText = _('&File location: ')
+        buttonText = _(u'&Browse')
+        labelText = _(u'&File location: ')
         initialPath = os.path.join(os.path.realpath(os.path.curdir), defaultFile)
         self.filechooser = FileBrowseButton(self, -1, size=(400, -1),
                                    labelText=labelText, buttonText=buttonText,

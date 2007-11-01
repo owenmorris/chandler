@@ -150,8 +150,8 @@ class ProxiesFrame(wx.Frame):
             self.proxy.port = int(self.portField.GetValue())
         except ValueError:
             dialog = wx.MessageDialog(None,
-                _("Port number must be an integer"),
-                _("Invalid Entry"),
+                _(u"Port number must be an integer"),
+                _(u"Invalid Entry"),
                 wx.OK | wx.ICON_INFORMATION)
             dialog.ShowModal()
             dialog.Destroy()

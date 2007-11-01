@@ -1241,10 +1241,10 @@ class MainView(View):
                     response = dialog.ShowModal()
                     dialog.Destroy()
                     if response == wx.ID_YES:
-                        msg = _("Unpublishing...")
+                        msg = _(u"Unpublishing...")
                         self.setStatusMessage(msg)
                         sharing.unpublish(collection)
-                        msg = _("Collection unpublished.")
+                        msg = _(u"Collection unpublished.")
                         self.setStatusMessage(msg)
 
         except (sharing.CouldNotConnect, twisted.internet.error.TimeoutError):
@@ -1313,7 +1313,7 @@ class MainView(View):
             self.setStatusMessage(msg)
             raise # figure out what the exception is
         else:
-            msg = _("Collection unpublished.")
+            msg = _(u"Collection unpublished.")
             self.setStatusMessage(msg)
 
     def onSyncCollectionEvent (self, event):

@@ -712,7 +712,7 @@ class ReadOnlyIconBlock(DetailSynchronizedBehavior, ControlBlocks.StampButton):
             #enabled = True
         #else:
             #if existingSharedCollection is not None:
-                #self.widget.SetLabel(_("u(Already sharing this collection)"))
+                #self.widget.SetLabel(_(u"(Already sharing this collection)"))
                 #enabled = False
         #event.arguments['Enable'] = enabled
 
@@ -726,8 +726,8 @@ def getAppearsInNames(item):
     names = [c.displayName for c in getattr(item, 'appearsIn', ())
              if hasattr(c, 'displayName') and c in sidebar]
     names.sort()
-
-    return _(", ").join(names)
+    # L10N: Character separator used when listing collections an item appears in
+    return _(u", ").join(names)
 
 class AppearsInAEBlock(DetailSynchronizedAttributeEditorBlock):
     def shouldShow(self, item):

@@ -158,7 +158,7 @@ class ConflictVScrolledArea(ScrolledPanel):
                 else:
                     editor = c.peer
             else:
-                editor = _("An unknown party")
+                editor = _(u"An unknown party")
 
             if c.pendingRemoval:
                 # local modification to an item that was removed on the server

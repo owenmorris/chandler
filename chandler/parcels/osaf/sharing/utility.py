@@ -221,7 +221,7 @@ def splitUrl(url):
         try:
             port = int(p)
         except ValueError:
-            raise errors.URLParseError(_("Invalid port number: %(portNum)s") % {'portNum': p})
+            raise errors.URLParseError(_(u"Invalid port number: %(portNum)s") % {'portNum': p})
 
 
     ticket = None
@@ -763,7 +763,7 @@ def getHEADInfo(rv, url, username=None, password=None):
     if resp.status == http.FORBIDDEN:
         msg = _(u"The server rejected our request. Please check the URL (HTTP status %(status)d)") % { 'status' : resp.status }
         raise errors.SharingError(msg,
-            details=_("Received [%(body)s]") % {'body' : resp.body })
+            details=_(u"Received [%(body)s]") % {'body' : resp.body })
     elif resp.status != http.OK:
         raise zanshin.http.HTTPError(status=resp.status,
                                      message=resp.message)
@@ -808,7 +808,7 @@ def getOPTIONS(rv, url, username=None, password=None):
     if resp.status == http.FORBIDDEN:
         msg = _(u"The server rejected our request. Please check the URL (HTTP status %(status)d)") % { 'status' : resp.status }
         raise errors.SharingError(msg,
-            details=_("Received [%(body)s]") % {'body' : resp.body })
+            details=_(u"Received [%(body)s]") % {'body' : resp.body })
     elif resp.status != http.OK:
         raise zanshin.http.HTTPError(status=resp.status,
                                      message=resp.message)

@@ -47,7 +47,7 @@ class CompactDialog(wx.Dialog):
         grid.Add(message, 0, wx.ALIGN_LEFT|wx.ALL, 3)
 
         # status message
-        self.auto = _("Purging will start automatically in %(numOf)d seconds.")
+        self.auto = _(u"Purging will start automatically in %(numOf)d seconds.")
         self.status = wx.StaticText(self, -1, self.auto % {"numOf": self.COUNTDOWN})
         self.status.Wrap(360)
 

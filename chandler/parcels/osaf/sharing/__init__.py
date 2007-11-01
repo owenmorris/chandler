@@ -1647,8 +1647,8 @@ def format_item_triage(field, value):
     try:
         code, timestamp, auto = value.split(" ")
     except AttributeError:
-        return _('Unknown')
-    return triage_code_map.get(code, _('Unknown'))
+        return _(u'Unknown')
+    return triage_code_map.get(code, _(u'Unknown'))
 
 
 event_status_map = {
@@ -1658,7 +1658,7 @@ event_status_map = {
 }
 @format_field.when_object(EventRecord.status)
 def format_event_status(field, value):
-    return event_status_map.get(value.lower(), _('Unknown'))
+    return event_status_map.get(value.lower(), _(u'Unknown'))
 
 
 

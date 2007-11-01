@@ -35,7 +35,7 @@ __all__ = [
 
 
 def ShowCalendarListWindow(rv):
-    win = CalendarListFrame(None, -1, _("Google Calendars"),
+    win = CalendarListFrame(None, -1, _(u"Google Calendars"),
         size=(300,100), style=wx.DEFAULT_FRAME_STYLE, rv=rv)
     win.Show()
 
@@ -135,8 +135,8 @@ def ensureGoogleAccountSetUp(rv):
         if len(list(GDataAccount.iterItems(rv))) > 0:
             return True
 
-        msg = _("No Google account set up yet.  Would you like to set an account up now?")
-        response = wx.MessageBox(msg, _("Google Account"),
+        msg = _(u"No Google account set up yet.  Would you like to set an account up now?")
+        response = wx.MessageBox(msg, _(u"Google Account"),
             style=wx.YES_NO) == wx.YES
         if response == False:
             return False
@@ -152,8 +152,8 @@ class GdataMenuHandler(Block):
     def on_gdata_ShowCalendarListEvent(self, event):
         rv = self.itsView
 
-        msg = _("Syncing Google calendars is still experimental. Sync only with test calendars.\n\nNote: recurring events are not supported.\n\nProceed?")
-        response = wx.MessageBox(msg, _("Caution!"),
+        msg = _(u"Syncing Google calendars is still experimental. Sync only with test calendars.\n\nNote: recurring events are not supported.\n\nProceed?")
+        response = wx.MessageBox(msg, _(u"Caution!"),
             style=wx.YES_NO|wx.ICON_EXCLAMATION) == wx.YES
         if response:
             if ensureGoogleAccountSetUp(rv):

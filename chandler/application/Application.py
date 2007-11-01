@@ -438,9 +438,9 @@ class wxApplication (wx.App):
         
         if splash:
             if options.reload is not None:
-                splash.fixedMessage(_("Reloading collections and settings..."))
+                splash.fixedMessage(_(u"Reloading collections and settings..."))
             elif (options.create or newRepo):
-                splash.fixedMessage(_("Constructing database..."))
+                splash.fixedMessage(_(u"Constructing database..."))
         
         # Load Parcels
         if splash:
@@ -1069,20 +1069,20 @@ class wxApplication (wx.App):
             self.Bind(wx.EVT_ACTIVATE_APP, None)
 
         if __debug__ and repositoryCheck:
-            displayInfoWhileProcessing (_("Checking repository..."),
+            displayInfoWhileProcessing (_(u"Checking repository..."),
                                         self.UIRepositoryView.check)
 
-        displayInfoWhileProcessing (_("Shutting down mail service..."),
+        displayInfoWhileProcessing (_(u"Shutting down mail service..."),
                                     Globals.mailService.shutdown)
 
-        displayInfoWhileProcessing (_("Stopping wakeup service..."),
+        displayInfoWhileProcessing (_(u"Stopping wakeup service..."),
                                     Utility.stopWakeup)
 
         from osaf import sharing
-        displayInfoWhileProcessing (_("Stopping sharing..."),
+        displayInfoWhileProcessing (_(u"Stopping sharing..."),
                                     sharing.interrupt, graceful=False)
 
-        displayInfoWhileProcessing (_("Stopping twisted..."),
+        displayInfoWhileProcessing (_(u"Stopping twisted..."),
                                     Utility.stopTwisted)
 
         # Since Chandler doesn't have a save command and commits typically happen
@@ -1090,14 +1090,14 @@ class wxApplication (wx.App):
         # need to add a final commit when the application quits to save data the
         # state of the user's world, e.g. window location and size.
 
-        displayInfoWhileProcessing (_("Committing repository..."),
+        displayInfoWhileProcessing (_(u"Committing repository..."),
                                     commit, self.UIRepositoryView)
 
-        displayInfoWhileProcessing (_("Stopping crypto..."),
+        displayInfoWhileProcessing (_(u"Stopping crypto..."),
                                     Utility.stopCrypto, Globals.options.profileDir)
 
         if repositoryCheckPoint:
-            displayInfoWhileProcessing (_("Checkpointing repository..."),
+            displayInfoWhileProcessing (_(u"Checkpointing repository..."),
                                         self.UIRepositoryView.repository.checkpoint)
 
         feedback.stopRuntimeLog(Globals.options.profileDir)

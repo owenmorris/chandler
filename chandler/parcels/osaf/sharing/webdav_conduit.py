@@ -409,7 +409,7 @@ class WebDAVConduit(conduits.LinkableConduit, DAVConduitMixin,
             resp = self._getServerHandle().blockUntil(resource.get)
 
         except twisted.internet.error.ConnectionDone, err:
-            errors.annotate(err, _("Server reported incorrect Content-Length for %(itemPath)s.") % \
+            errors.annotate(err, _(u"Server reported incorrect Content-Length for %(itemPath)s.") % \
                             {"itemPath": itemPath}, details=str(err))
             raise
         except zanshin.webdav.ConnectionError, err:
@@ -478,7 +478,7 @@ class WebDAVRecordSetConduit(ResourceRecordSetConduit, DAVConduitMixin):
             self.networkTime += (end - start)
 
         except twisted.internet.error.ConnectionDone, err:
-            errors.annotate(err, _("Server reported incorrect Content-Length for %(itemPath)s.") % \
+            errors.annotate(err, _(u"Server reported incorrect Content-Length for %(itemPath)s.") % \
                             {"itemPath": path}, details=str(err))
             raise
         except zanshin.webdav.ConnectionError, err:

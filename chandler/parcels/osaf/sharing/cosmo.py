@@ -91,7 +91,7 @@ class CosmoAccount(accounts.SharingAccount):
         if overwrite:
             if activity:
                 activity.update(totalWork=None,
-                    msg=_("Removing old collection from server..."))
+                    msg=_(u"Removing old collection from server..."))
             share.destroy()
 
         share.put(activity=activity)
@@ -154,7 +154,7 @@ class CosmoAccount(accounts.SharingAccount):
         for colElement in rootElement:
             uuid = colElement.get("uuid")
             href = colElement.get("href")
-            name = _("Untitled")
+            name = _(u"Untitled")
             tickets = []
             for subElement in colElement:
                 if subElement.tag == "{%s}name" % mcURI:
@@ -200,7 +200,7 @@ class CosmoAccount(accounts.SharingAccount):
                 share.conduit.filters.add('cid:needs-reply-filter@osaf.us')
                 share.conduit.filters.add('cid:bcc-filter@osaf.us')
 
-                activity = Activity(_("Restore %(shareName)s") % {'shareName': name})
+                activity = Activity(_(u"Restore %(shareName)s") % {'shareName': name})
                 activity.started()
                 share.get(activity=activity)
                 share.sharer = schema.ns("osaf.pim", rv).currentContact.item
@@ -307,7 +307,7 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         resp = self._send('GET', path)
         if resp.status == 401:
             raise errors.NotAllowed(
-                _("Please verify your username and password"),
+                _(u"Please verify your username and password"),
                 details="Received [%s]" % resp.body)
 
         elif resp.status != 200:
@@ -372,7 +372,7 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
 
         elif resp.status == 401:
             raise errors.NotAllowed(
-                _("Please verify your username and password"),
+                _(u"Please verify your username and password"),
                 details="Received [%s]" % resp.body)
 
         elif resp.status not in (201, 204):

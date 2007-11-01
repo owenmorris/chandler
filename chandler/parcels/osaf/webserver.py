@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 def installParcel(parcel, oldVersion=None):
     pim.Principal.update(parcel, 'public',
-        displayName=_("Public")
+        displayName=_(u"Public")
     )
 
 

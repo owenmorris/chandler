@@ -185,7 +185,7 @@ def reload(rv, filename, serializer=PickleSerializer, activity=None,
         newMaster = 'secret'
 
     if activity:
-        activity.update(totalWork=None, msg=_("Counting records..."))
+        activity.update(totalWork=None, msg=_(u"Counting records..."))
         input = open(filename, "rb")
         load = serializer.loader(input)
         i = 0
@@ -289,7 +289,7 @@ def convertToTextFile(fromPath, toPath, serializer=PickleSerializer,
     activity=None):
 
     if activity:
-        activity.update(totalWork=None, msg=_("Counting records..."))
+        activity.update(totalWork=None, msg=_(u"Counting records..."))
         input = open(fromPath, "rb")
         load = serializer.loader(input)
         i = 0

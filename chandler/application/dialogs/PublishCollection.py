@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 MAX_UPDATE_MESSAGE_LENGTH = 55
 
-MSG_ALREADY_EXISTS = _("""Collection already exists on the server.  You may:
+MSG_ALREADY_EXISTS = _(u"""Collection already exists on the server.  You may:
 
 - Sync your collection with the one on the server, or...
 - Replace the collection on the server with your local copy
@@ -513,7 +513,7 @@ class PublishCollectionDialog(wx.Dialog):
                 self._showStatus(msg)
 
             elif isinstance(err, ActivityAborted):
-                self._showStatus(_("Publish cancelled."))
+                self._showStatus(_(u"Publish cancelled."))
 
             else:
                 if Globals.options.catch != 'tests':

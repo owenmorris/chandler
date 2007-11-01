@@ -24,8 +24,8 @@ from application import styles
 
 # These colors are duplicated from application/styles.conf so gettext knows they
 # need to be localized.
-(_('Blue'), _('Green'), _('Red'), _('Orange'), _('Gold'), _('Plum'), 
- _('Turquoise'), _('Fuchsia'), _('Indigo'))
+(_(u'Blue'), _(u'Green'), _(u'Red'), _(u'Orange'), _(u'Gold'), _(u'Plum'), 
+ _(u'Turquoise'), _(u'Fuchsia'), _(u'Indigo'))
 
 # Collection colors in the form ('Name', localizedName, 360-degree based hue)
 order = [s.strip() for s in styles.cfg.get('colororder', 'order').split(',')]
