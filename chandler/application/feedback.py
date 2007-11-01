@@ -275,7 +275,7 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
             # Show the ID so that users can report it in bugs etc.
             # L10N: The numerical ID of a feedback report generated
             #       by Chandler when an error occurs. The ID is
-            #       is used to report and track the bug.
+            #       used to report and track the bug.
             self.frame.text.AppendText(_(u'\nFeedback report ID: %(feedbackId)s') % {'feedbackId': feedbackId})
                         
             # Log each report to a new file
