@@ -85,7 +85,7 @@ def installBlocks(parcel, oldVersion=None):
     testCheckboxArea = detail.makeArea(parcel, 'TestCheckboxArea',
                             position=0.7,
                             childBlocks=[
-                                # L10N: Lobel for a checkbox that when
+                                # L10N: Label for a checkbox that when
                                 #       selected tests the Chandler script.
                                 detail.makeLabel(parcel, _(u'test'), borderTop=4),
                                 detail.makeSpacer(parcel, width=6),

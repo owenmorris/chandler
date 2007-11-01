@@ -899,7 +899,7 @@ def subscribe(view, url, activity=None, username=None, password=None,
         raise OfflineError(_(u"Could not perform request. Sharing is offline."))
 
     if not url:
-        raise URLParseError(_("No URL provided."))
+        raise URLParseError(_(u"No URL provided."))
 
     logger.info("Subscribing to URL: %s", url)
 
@@ -907,16 +907,16 @@ def subscribe(view, url, activity=None, username=None, password=None,
         (scheme, useSSL, host, port, path, query, fragment, ticket, parentPath,
             shareName) = splitUrl(url)
     except Exception, e:
-        raise URLParseError(_("Could not parse URL: %(url)s") % {'url': url}, details=str(e))
+        raise URLParseError(_(u"Could not parse URL: %(url)s") % {'url': url}, details=str(e))
 
     if not scheme:
-        raise URLParseError(_("Protocol not specified."))
+        raise URLParseError(_(u"Protocol not specified."))
 
     if scheme not in ("http", "https", "webcal"):
-        raise URLParseError(_("Protocol not supported: %(protocolName)s") % {"protocolName": scheme})
+        raise URLParseError(_(u"Protocol not supported: %(protocolName)s") % {"protocolName": scheme})
 
     if not host:
-        raise URLParseError(_("No hostname specified."))
+        raise URLParseError(_(u"No hostname specified."))
 
     if ticket:
         account = username = password = None
@@ -952,7 +952,7 @@ def subscribe(view, url, activity=None, username=None, password=None,
 
     for share in Share.iterItems(view):
         if url == share.getLocation("subscribed"):
-            raise AlreadySubscribed(_("You are already subscribed to this collection."))
+            raise AlreadySubscribed(_(u"You are already subscribed to this collection."))
 
     # TODO: upgrade to read-write if provided new ticket
 

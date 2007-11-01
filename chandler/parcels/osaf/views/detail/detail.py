@@ -1499,7 +1499,7 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
                 meridian = ""
                 # L10N: Used to parse a date string.
                 #       %(meridian)s will evaluate to "AM",
-                #       PM, or "" if the locale uses 24 hour
+                #       "PM", or "" if the locale uses 24 hour
                 #       time.
                 #
                 format = _(u"%(hour)d:%(minute)02d%(meridian)s")
