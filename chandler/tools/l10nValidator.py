@@ -42,7 +42,6 @@ class ValidatorTool(LocalizationBase):
 
         try:
             self.OUTPUTFILE_EXISTS = os.access(self.OUTPUTFILE, os.F_OK)
-
             self.CWD = os.getcwd()
 
             os.chdir(self.ROOTDIR)
@@ -58,8 +57,8 @@ class ValidatorTool(LocalizationBase):
                 # No .pot file is generated at this point since
                 # an error was raised parsing the Python and XRC for
                 # localizable stings.
-                sys.exit(-1)
-
+                self.raiseError("", False)
+                
             os.chdir(self.CWD)
 
             # checks that there are no %s, %i , %d type
@@ -79,7 +78,25 @@ class ValidatorTool(LocalizationBase):
                 self.debug()
 
         except Exception, e:
-            self.raiseError(str(e))
+            if self.RAISED:
+                # this case is reached when
+                # the self.raiseError method
+                # has already been called and
+                # the sys.exit(-1) command
+                # executed. On Linux sys.exit(-1)
+                # raises an Exception and if that
+                # exception is not thrown the
+                # unit test framework rt.py script
+                # that calls this module does not
+                # receive the right exit code and
+                # thus continues processing the unit
+                # tests.
+                raise e
+            else:
+                # This case is reached when
+                # an application level exception
+                # is raised.
+                self.raiseError(str(e))
 
     def debug(self):
         super(ValidatorTool, self).debug()

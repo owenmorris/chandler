@@ -381,7 +381,7 @@ def parse(poFileName):
                     #create a new entry
                     poEntry = POEntry()
 
-                if FIRST_MSGID and line != 'msgid ""\n':
+                if FIRST_MSGID and line.strip() != 'msgid ""':
                     raise Exception("Invalid format. The first msgid in a po file must be empty.")
 
                 poEntry.msgidLineNumber = lineNumber
@@ -397,11 +397,13 @@ def parse(poFileName):
                 # Skip blank lines
                 continue
 
+            line = line.strip()
+
             # Is the line properly formatted?
             eval(line)
 
             #Strip off opening and closing double quotes
-            line = line.strip()[1:-1]
+            line = line[1:-1]
 
             if PARSER_STATE == IN_MSGID:
                 poEntry.msgid += line

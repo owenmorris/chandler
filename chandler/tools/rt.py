@@ -523,14 +523,10 @@ def runLocalizationCheck(options):
     if options.dryrun:
         failed = False
     else:
-        # There is an error in the po parsing code which
-        # requires further investigation.
-        # Commenting the code till a fix is checked in.
-        failed = False
-        #cmd = ['python', os.path.join('tools', 'l10nValidator.py')]
+        cmd = ['python', os.path.join('tools', 'l10nValidator.py')]
 
-        #result = build_lib.runCommand(cmd, timeout=180)
-        #failed = result != 0
+        result = build_lib.runCommand(cmd, timeout=180)
+        failed = result != 0
 
         if failed:
             log('Localization Check FAILED (%d)' % result)

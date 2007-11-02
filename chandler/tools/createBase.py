@@ -73,19 +73,19 @@ class LocalizationBase(object):
 
     def checkPOFile(self, poFileName):
         try:
-
             poFile = parse(poFileName)
 
             msgidResults = checkPrintValues(poFile)
 
             if len(msgidResults):
-                resultsStr = "Only dictionary replaceable values are allowed in localizable strings:\n"
+                resultsStr = "    WARNING: Only dictionary replaceable values\n" \
+                             "             are allowed in localizable strings.\n\n"
 
             else:
                 resultsStr = ""
 
             for poEntry, values in msgidResults:
-                resultsStr += "   Invalid value%s '%s' found at: %s\n" % \
+                resultsStr += "    invalid value%s '%s' found at %s\n" % \
                               (len(values) > 1 and 's' or '', ", ".join(values),
                                ", ".join(poEntry.sourceFiles))
 
@@ -113,16 +113,19 @@ class LocalizationBase(object):
         if self.RAISED:
             return
 
+        self.RAISED = True
+
         if banner:
             print "\n\nThe following error was raised: "
             print "----------------------------------------\n%s\n\n" % txt
         else:
             print txt
 
-        self.RAISED = True
-
-        #XXX For some reason this raises an Exception when called
+        #XXX For some reason this raises an Exception when
+        #    called on Linux
         sys.exit(-1)
+        
+    
 
     def getPlatform(self):
         if sys.platform == 'darwin':
