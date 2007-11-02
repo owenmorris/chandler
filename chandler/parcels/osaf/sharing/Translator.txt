@@ -686,9 +686,11 @@ Exporting:
     [PasswordPrefsRecord('dd555441-9ddc-416c-b55a-77b073c7bd15', 1, 10, 0), PasswordRecord('dd555441-9ddc-416c-b55a-77b073c7bd15', '...', '...', '...')]
 
 
-#XXX MailAccountRecord, IMAPAccountFoldersRecord, SMTPAccountRecord,
-#XXX SMTPAccountQueueRecord, IMAPAccountRecord, POPAccountRecord,
-#XXX IMAPFolderRecord, MailPrefsRecord
+The following are covered in TestDumpReload.py:
+
+MailAccountRecord, IMAPAccountFoldersRecord, SMTPAccountRecord,
+SMTPAccountQueueRecord, IMAPAccountRecord, POPAccountRecord,
+IMAPFolderRecord, MailPrefsRecord
 
 
 
@@ -796,3 +798,5 @@ for event status, and empty string to NoChange for triage are working::
     >>> rec.duration
     'PT0S'
 
+
+BackupOnQuitPrefsRecord type tests are in TestDumpReload.py
