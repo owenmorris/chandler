@@ -1017,8 +1017,6 @@ class wxApplication (wx.App):
         """
         Main application termination. Called after the window is torn down.
         """
-        self.UIRepositoryView.repository.close()
-
         from osaf.framework import MasterPassword
         from osaf.framework.twisted import waitForDeferred
         waitForDeferred(MasterPassword.clear())
@@ -1038,6 +1036,7 @@ class wxApplication (wx.App):
               8. Stops the M2Cypto layer
               9. Checkpoints the Repository
               10. Stops the Feedback Runtime log
+              11. Closes the Repository
 
         Note: This method does not terminate the wx.App()
               Main Loop. That operation is left to the caller.
@@ -1101,6 +1100,9 @@ class wxApplication (wx.App):
                                         self.UIRepositoryView.repository.checkpoint)
 
         feedback.stopRuntimeLog(Globals.options.profileDir)
+
+        # Close the repository
+        self.UIRepositoryView.repository.close()
 
 
     def restart(self, *args, **kwds):
