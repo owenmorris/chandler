@@ -19,18 +19,19 @@ from i18n import ChandlerMessageFactory as _
 
 
 def Show(rv):
-    win = ProxiesFrame(None, -1, _(u"Configure Proxy"),
+    win = ProxiesDialog(wx.GetApp().mainFrame, -1, _(u"Configure Proxy"),
         style=wx.DEFAULT_DIALOG_STYLE, rv=rv)
-    win.Show()
+    win.CenterOnParent()
+    win.ShowModal()
 
 
 
-class ProxiesFrame(wx.Frame):
+class ProxiesDialog(wx.Dialog):
 
     def __init__(self, *args, **kwds):
         self.rv = kwds['rv']
         del kwds['rv']
-        super(ProxiesFrame, self).__init__(*args, **kwds)
+        super(ProxiesDialog, self).__init__(*args, **kwds)
 
         self.proxy = sharing.getProxy(self.rv)
 
