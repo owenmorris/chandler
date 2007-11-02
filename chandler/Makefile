@@ -80,7 +80,7 @@ ARCHIVES = \
     $(OPENSSL) \
     $(OPENJDK) \
     $(READLINE) \
-    $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-563-$(BP)2.tar.gz \
+    $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-0.18.2-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.17-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.6-81-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.2.0-1-354-$(BP)1.tar.gz \
