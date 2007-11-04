@@ -1101,6 +1101,9 @@ class wxApplication (wx.App):
 
         feedback.stopRuntimeLog(Globals.options.profileDir)
 
+        # Turn off OnIdle() refreshing
+        self.updateUIInOnIdle = False
+
         # Close the repository
         self.UIRepositoryView.repository.close()
 
