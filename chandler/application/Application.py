@@ -210,12 +210,7 @@ class wxMainFrame (wxBlockFrameWindow):
         """
         Main window is about to be closed when the application is quitting.
         """
-        app = wx.GetApp()
-        app.shutdown()
-
-        # Exit the main loop instead of deleting ourself so as to avoid events
-        # firing when object are being deleted
-        app.ExitMainLoop()
+        wx.GetApp().shutdown()
 
 
 # We'll create a singleton item to remember our locale, to detect changes.
@@ -223,9 +218,31 @@ class LocaleInfo(schema.Item):
     localeName = schema.One(schema.Text)
 
 class wxApplication (wx.App):
+    # Class level flag that will
+    # either be None or contain
+    # a list of arguments to
+    # pass when spawning a new
+    # Chandler process.
+    #
+    # The population of this variable
+    # with args tells the
+    # OnExit method to spawn a
+    # new Chandler process after the
+    # current Repository instance
+    # has been closed.
+    #
+    # The spawn code must be executed after
+    # the Repository.close() method
+    # to prevent two instances of
+    # Chandler from accessing the
+    # same Repository and is
+    # a fix for bug [Bug 11186] File-Reload
+    # throws RepositoryOpenDeniedError and
+    # crashes app
+    CHANDLER_RESTART_ARGS = None
 
     outputWindowClass = feedback.FeedbackWindow
-    
+
     #List of callables for registering to be called during FilterEvent
     filterEventCallables = set()
 
@@ -1017,9 +1034,23 @@ class wxApplication (wx.App):
         """
         Main application termination. Called after the window is torn down.
         """
+        # Close the repository
+        self.UIRepositoryView.repository.close()
+
         from osaf.framework import MasterPassword
         from osaf.framework.twisted import waitForDeferred
         waitForDeferred(MasterPassword.clear())
+
+        if self.CHANDLER_RESTART_ARGS is not None:
+            # The spawn code must be executed after
+            # the Repository.close() method
+            # to prevent two instances of
+            # Chandler from accessing the
+            # same Repository and is
+            # a fix for bug [Bug 11186] File-Reload
+            # throws RepositoryOpenDeniedError and
+            # crashes app
+            self.spawnNewChandler(self.CHANDLER_RESTART_ARGS)
 
     def shutdown(self, repositoryCheck=True, repositoryCheckPoint=True):
         """
@@ -1036,7 +1067,6 @@ class wxApplication (wx.App):
               8. Stops the M2Cypto layer
               9. Checkpoints the Repository
               10. Stops the Feedback Runtime log
-              11. Closes the Repository
 
         Note: This method does not terminate the wx.App()
               Main Loop. That operation is left to the caller.
@@ -1101,12 +1131,9 @@ class wxApplication (wx.App):
 
         feedback.stopRuntimeLog(Globals.options.profileDir)
 
-        # Turn off OnIdle() refreshing
-        self.updateUIInOnIdle = False
-
-        # Close the repository
-        self.UIRepositoryView.repository.close()
-
+        # Exit the main loop instead of deleting ourself so as to avoid events
+        # firing when object are being deleted
+        self.ExitMainLoop()
 
     def restart(self, *args, **kwds):
         """
@@ -1132,10 +1159,7 @@ class wxApplication (wx.App):
                      produce a command line containing:
                      C{'--backup --restore=path --mvcc'}
         """
-
         windows = os.name == 'nt'
-        mac = sys.platform == 'darwin'
-        linux = sys.platform.startswith('linux')
 
         encoding = sys.getfilesystemencoding()
         argv = []
@@ -1185,10 +1209,31 @@ class wxApplication (wx.App):
                 arg = '--%s=%s' %(name, value)
             argv.append(arg)
 
+        # Saving the restart argv values in
+        # the CHANDLER_RESTART_ARGS class
+        # instance signals to the OnExit
+        # method to spawn a new Chandler process
+        # after the Repository has been closed.
+        #
+        # The spawn code must be executed after
+        # the Repository.close() method
+        # to prevent two instances of
+        # Chandler from accessing the
+        # same Repository and is
+        # a fix for bug [Bug 11186] File-Reload
+        # throws RepositoryOpenDeniedError and
+        # crashes app
+        self.CHANDLER_RESTART_ARGS = argv
+
         # Shutdown the application service layers
         # and do not perform any repository
         # checking or checkpointing.
         self.shutdown(repositoryCheck=False, repositoryCheckPoint=False)
+
+    def spawnNewChandler(self, argv):
+        windows = os.name == 'nt'
+        mac = sys.platform == 'darwin'
+        linux = sys.platform.startswith('linux')
 
         try:
             executable = sys.executable
@@ -1205,10 +1250,7 @@ class wxApplication (wx.App):
                 logger.exception("while restarting")
         except:
             logger.exception("while restarting")
-        finally:
-            # Exit the main loop instead of deleting ourself so as to avoid events
-            # firing when object are being deleted
-            self.ExitMainLoop()
+
 
     def OnMainThreadCallbackEvent(self, event):
         """
