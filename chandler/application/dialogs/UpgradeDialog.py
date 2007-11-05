@@ -81,7 +81,7 @@ class UpgradeDialog(wx.Dialog):
         sizer.Add(self.linkText, flag=wx.ALL, border=5)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
-        okButton = wx.Button(self, wx.OK, _(u"OK"))
+        okButton = wx.Button(self, -1, _(u"OK"))
         okButton.Bind(wx.EVT_BUTTON, self.onButton)
         box.Add(okButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
         sizer.Add(box, 1, flag=wx.ALIGN_CENTER_VERTICAL|wx.ALL, border=5)
@@ -148,14 +148,14 @@ class MigrationDialog(wx.Dialog):
 
         box.Add((0,0), proportion=1, flag=wx.ALL)
 
-        moveButton = wx.Button(self, wx.HELP, _(u"&Move Data"))
+        moveButton = wx.Button(self, -1, _(u"&Move Data"))
         moveButton.Bind(wx.EVT_BUTTON, self.onMoveDataButton)
         box.Add(moveButton, flag=wx.ALL, border=5)
 
         #self.linkText = wx.HyperlinkCtrl(self, -1, _(u'Move Data'), MIGRATION_URL)
         #box.Add(self.linkText, flag=wx.ALL, border=5)
 
-        deleteButton = wx.Button(self, wx.OK, _(u"&Delete Data"))
+        deleteButton = wx.Button(self, -1, _(u"&Delete Data"))
         deleteButton.Bind(wx.EVT_BUTTON, self.onDeleteDataButton)
         box.Add(deleteButton, flag=wx.ALL, border=5)
 
