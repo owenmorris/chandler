@@ -171,7 +171,7 @@ class CosmoAccount(accounts.SharingAccount):
 
         return info
 
-    def autoRestoreShares(self):
+    def autoRestoreShares(self, activity=None):
         rv = self.itsView
 
         if not self.isSetUp():
@@ -200,12 +200,9 @@ class CosmoAccount(accounts.SharingAccount):
                 share.conduit.filters.add('cid:needs-reply-filter@osaf.us')
                 share.conduit.filters.add('cid:bcc-filter@osaf.us')
 
-                activity = Activity(_(u"Restore %(shareName)s") % {'shareName': name})
-                activity.started()
                 share.get(activity=activity)
                 share.sharer = schema.ns("osaf.pim", rv).currentContact.item
                 schema.ns("osaf.app", rv).sidebarCollection.add(share.contents)
-                activity.completed()
 
 
 

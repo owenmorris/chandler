@@ -267,17 +267,29 @@ def scheduleNow(rv, *args, **kwds):
 
     task.run_once(*args, **kwds)
 
+
+
+
+current_activity = None
+
+# ...set to an Activity object when sharing work is performed; interrupt( ) can
+# be called from any thread -- it simply asks the activity to abort.  The next
+# time the code which is carrying out the activity calls acitivity.update( ),
+# the activity will raise an ActivityAborted.
+
 def interrupt(graceful=True):
     """ Stop sync operations; if graceful=True, then the Share being synced
         at the moment is allowed to complete.  If graceful=False, stop the
         current Share in the middle of whatever it's doing.
     """
-    global interrupt_flag
+    global interrupt_flag, current_activity
 
     if graceful:
         interrupt_flag = GRACEFUL_STOP # allow the current sync( ) to complete
     else:
         interrupt_flag = IMMEDIATE_STOP # interrupt current sync( )
+        if current_activity is not None:
+            current_activity.requestAbort()
 
 
 
@@ -317,17 +329,7 @@ class BackgroundSyncHandler:
 
         # This method must return True -- no raising exceptions!
 
-        global interrupt_flag, running_status
-
-        # A callback to allow cancelling of a sync( )
-        def callback(msg=None, work=None, totalWork=None):
-            kwds = {'msg':msg, 'work':work, 'totalWork':totalWork}
-            callCallbacks(UPDATE, **kwds)
-            return interrupt_flag == IMMEDIATE_STOP
-
-        def silentCallback(*args, **kwds):
-            # Simply return the interrupt flag
-            return interrupt_flag == IMMEDIATE_STOP
+        global interrupt_flag, running_status, current_activity
 
         if Globals.options.offline:
             # In offline mode, no sharing
@@ -360,8 +362,29 @@ class BackgroundSyncHandler:
                     CosmoAccount.iterItems(self.rv)]
                 for uuid in uuids:
                     account = self.rv.findUUID(uuid)
-                    if account is not None:
-                         account.autoRestoreShares()
+                    if account is not None and account.isSetUp():
+                        try:
+                            msg = _(u"Restoring collections from %(account)s") \
+                                % {'account' : account.displayName}
+                            activity = Activity(msg)
+                            activity.started()
+                            current_activity = activity
+                            account.autoRestoreShares(activity=activity)
+                            current_activity = None
+                            activity.completed()
+
+                        except Exception, e:
+                            current_activity = None
+                            if isinstance(e, ActivityAborted):
+                                if shutdown_deferred:
+                                    shutdown_deferred.callback(None)
+                                running_status = IDLE
+                                return True
+
+                            # Some other failure, aside from an abort
+                            logger.exception("Collection restore error")
+                            activity.failed(e)
+
 
             shares = getSyncableShares(self.rv, collection)
 
@@ -371,6 +394,7 @@ class BackgroundSyncHandler:
                     # We have been asked to stop, so fire the deferred
                     if shutdown_deferred:
                         shutdown_deferred.callback(None)
+                    running_status = IDLE
                     return True
 
                 callCallbacks(UPDATE, msg="Syncing collection '%s'" %
@@ -378,17 +402,25 @@ class BackgroundSyncHandler:
                 try:
                     activity = Activity("Sync: %s" % share.contents.displayName)
                     activity.started()
+                    current_activity = activity
                     stats.extend(share.sync(modeOverride=modeOverride,
                                             activity=activity,
                                             forceUpdate=forceUpdate))
+                    current_activity = None
                     activity.completed()
 
                 except Exception, e:
                     stats.extend( [ { 'collection' : share.contents.itsUUID,
                                     'error' : str(e) } ] )
+                    current_activity = None
+                    if isinstance(e, ActivityAborted):
+                        if shutdown_deferred:
+                            shutdown_deferred.callback(None)
+                        running_status = IDLE
+                        return True
 
-                    if not isinstance(e, ActivityAborted):
-                        activity.failed(e)
+                    # Some other failure, aside from an abort
+                    activity.failed(e)
 
         except: # Failed to sync at least one collection; continue on
             logger.exception("Background sync error")
