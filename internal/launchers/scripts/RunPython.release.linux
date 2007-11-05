@@ -23,7 +23,6 @@ else
 fi
 
 export PYTHONPATH="$CHANDLERHOME:$CHANDLERHOME/parcels"
-export PYTHONHOME="$CHANDLERBIN"/release
 export LD_LIBRARY_PATH="$CHANDLERBIN"/release/lib:"$CHANDLERBIN"/release/db/lib:"$CHANDLERBIN"/release/icu/lib:"$CHANDLERBIN"/release/j2re-image/lib/i386:"$CHANDLERBIN"/release/j2re-image/lib/i386/client
 export LC_PATH="$CHANDLERBIN"/release/share/locale
 unset PYTHONHOME
