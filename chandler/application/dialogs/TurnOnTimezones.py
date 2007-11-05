@@ -120,7 +120,7 @@ class TurnOnTimezonesDialog(wx.Dialog):
         
 
     def SetText(self):
-        self.checkbox.SetLabel(_(u"&Don't ask again"))
+        self.checkbox.SetLabel(_(u"&Never ask again"))
         self.checkbox.SetValue(True)
         
         data = stateData[self.state]
