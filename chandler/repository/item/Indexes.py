@@ -506,12 +506,20 @@ class SortedIndex(DelegatingIndex):
 
         if self._subIndexes:
             view = self._valueMap.itsView
-            for uuid, attr, name in self._subIndexes:
-                indexed = getattr(view[uuid], attr)
-                index = indexed.getIndex(name, Nil)
-                if key in index:
-                    index.moveKey(key, ignore, insertMissing)
-                    indexed._setDirty(True)
+            gone = ()
+            for uItem, attr, name in self._subIndexes:
+                item = view.find(uItem)
+                if item is None:
+                    gone += (uItem,)
+                else:
+                    indexed = getattr(item, attr)
+                    index = indexed.getIndex(name, Nil)
+                    if key in index:
+                        index.moveKey(key, ignore, insertMissing)
+                        indexed._setDirty(True)
+            if gone:
+                self._subIndexes = set(subIndex for subIndex in self._subIndexes
+                                       if subIndex[0] not in gone)
 
     def moveKeys(self, keys, ignore=None, insertMissing=None):
 
@@ -561,14 +569,22 @@ class SortedIndex(DelegatingIndex):
 
         if self._subIndexes:
             view = self._valueMap.itsView
-            for uuid, attr, name in self._subIndexes:
-                indexed = getattr(view[uuid], attr)
-                index = indexed.getIndex(name, None)
-                if index is not None:
-                    subKeys = [key for key in keys if key in index]
-                    if subKeys:
-                        index.moveKeys(subKeys, ignore, insertMissing)
-                        indexed._setDirty(True)
+            gone = ()
+            for uItem, attr, name in self._subIndexes:
+                item = view.find(uItem)
+                if item is None:
+                    gone += (uItem,)
+                else:
+                    indexed = getattr(item, attr)
+                    index = indexed.getIndex(name, None)
+                    if index is not None:
+                        subKeys = [key for key in keys if key in index]
+                        if subKeys:
+                            index.moveKeys(subKeys, ignore, insertMissing)
+                            indexed._setDirty(True)
+            if gone:
+                self._subIndexes = set(subIndex for subIndex in self._subIndexes
+                                       if subIndex[0] not in gone)
 
     # Used during merging.
     # Not notifications safe, removes the keys from sub indexes too.
@@ -578,11 +594,19 @@ class SortedIndex(DelegatingIndex):
         removed = self._index.removeKeys(keys)
         if self._subIndexes:
             view = self._valueMap.itsView
-            for uuid, attr, name in self._subIndexes:
-                indexed = getattr(view[uuid], attr)
-                index = indexed.getIndex(name, None)
-                if index is not None and index.removeKeys(keys):
-                    indexed._setDirty(True)
+            gone = ()
+            for uItem, attr, name in self._subIndexes:
+                item = view.find(uItem)
+                if item is None:
+                    gone += (uItem,)
+                else:
+                    indexed = getattr(item, attr)
+                    index = indexed.getIndex(name, None)
+                    if index is not None and index.removeKeys(keys):
+                        indexed._setDirty(True)
+            if gone:
+                self._subIndexes = set(subIndex for subIndex in self._subIndexes
+                                       if subIndex[0] not in gone)
 
         return removed
 
