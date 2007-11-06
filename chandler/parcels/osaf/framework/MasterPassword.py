@@ -493,12 +493,12 @@ class ChangeMasterPasswordDialog(wx.Dialog):
 
         sizer.Add(grid, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
-        message = _(u'Do not forget your master password or your account passwords will be deleted the next time you are asked to enter your master password.')
+        message = _(u"Don't forget your master password or your account passwords will be lost if you need to reset your master password.")
         label = wx.StaticText(self, -1, message)
         label.Wrap(400)
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
-         # buttons
+        # buttons
         box = wx.BoxSizer(wx.HORIZONTAL)
 
         if changing:
