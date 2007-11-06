@@ -193,6 +193,7 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
         proxy.passwd = "password"
         proxy.active = True
         proxy.useAuth = True
+        proxy.bypass = "192.168.1, localhost"
         uuids.add(proxy.itsUUID)
 
 
@@ -440,6 +441,7 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assertEquals(proxy1.host, "host")
             self.assertEquals(proxy1.port, 123)
             self.assertEquals(proxy1.username, "username")
+            self.assertEquals(proxy1.bypass, "192.168.1, localhost")
 
             pw = waitForDeferred(proxy1.password.decryptPassword('secret'))
             self.assertEquals(pw, "password")

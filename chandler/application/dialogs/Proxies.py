@@ -72,6 +72,13 @@ class ProxiesDialog(wx.Dialog):
             wx.ALIGN_LEFT|wx.ALL, 3)
         self.portField.SetValue(str(self.proxy.port))
 
+        self.bypassLabel = wx.StaticText(self.panel, -1, _(u"No proxy for:"))
+        self.bypassField = wx.TextCtrl(self.panel, -1, "",
+            wx.DefaultPosition) #, size=(300, -1))
+        self.bypassField.SetValue(self.proxy.bypass)
+        self.bypassExample = wx.StaticText(self.panel, -1,
+            _(u"Example: example.com, 192.168.1."))
+        self.bypassExample.Enable(False)
 
         self.authCheckbox = wx.CheckBox(self.panel, -1,
             _(u"Proxy requires authentication"))
@@ -100,7 +107,10 @@ class ProxiesDialog(wx.Dialog):
 
         self.proxySizer = wx.BoxSizer(wx.VERTICAL)
         self.proxySizer.Add(self.flexHost, 1, wx.EXPAND|wx.ALL, 1)
-        self.proxySizer.Add(self.authCheckbox, 1, wx.EXPAND|wx.ALL, 1)
+        self.proxySizer.Add(self.bypassLabel, 0, wx.EXPAND|wx.ALL, 4)
+        self.proxySizer.Add(self.bypassField, 0, wx.EXPAND|wx.ALL, 4)
+        self.proxySizer.Add(self.bypassExample, 0, wx.EXPAND|wx.ALL, 4)
+        self.proxySizer.Add(self.authCheckbox, 0, wx.EXPAND|wx.ALL, 1)
         self.proxySizer.Add(self.flexAuth, 1, wx.EXPAND|wx.ALL, 1)
 
         self.sizer.Add(self.proxySizer, 1, wx.EXPAND|wx.ALL, 10)
@@ -163,6 +173,7 @@ class ProxiesDialog(wx.Dialog):
         self.proxy.active = bool(self.proxyCheckbox.GetValue() and
             self.proxy.host and self.proxy.port)
         self.proxy.useAuth = bool(self.authCheckbox.GetValue())
+        self.proxy.bypass = self.bypassField.GetValue()
         self.rv.commit()
         self.Destroy()
 

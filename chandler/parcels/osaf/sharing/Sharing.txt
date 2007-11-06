@@ -16,5 +16,21 @@ Define proxies::
     >>> len(sharing.getProxies(rv))
     3
 
+Test proxy bypass::
 
+    >>> http_proxy.bypass = "localhost, .local, example.com, 192.168"
+    >>> http_proxy.appliesTo("localhost")
+    False
+    >>> http_proxy.appliesTo("hub.chandlerproject.org")
+    True
+    >>> http_proxy.appliesTo("www.example.com")
+    False
+    >>> http_proxy.appliesTo("WWW.EXAMPLE.COM")
+    False
+    >>> http_proxy.appliesTo("Computer.local")
+    False
+    >>> http_proxy.appliesTo("1.2.3.4")
+    True
+    >>> http_proxy.appliesTo("192.168.1.1")
+    False
 

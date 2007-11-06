@@ -530,6 +530,7 @@ class ShareProxyRecord(eim.Record):
     username = eim.field(text256)
     password = eim.field(schema.UUID)
     active = eim.field(eim.IntType)
+    bypass = eim.field(text256, default=u'')
 
 
 

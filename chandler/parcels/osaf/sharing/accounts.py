@@ -164,6 +164,7 @@ class Proxy(schema.Item):
     username = schema.One(schema.Text, defaultValue = u'')
     password = passwordAttribute
     active = schema.One(schema.Boolean, defaultValue = False)
+    bypass = schema.One(schema.Text, defaultValue = u'localhost, .local, 127.0.0.1')
 
     def getPasswd(self):
         pw = getattr(self, "password", None)
@@ -192,6 +193,24 @@ class Proxy(schema.Item):
     # 'password', but Password.holders seems to require 'password' to be a
     # persistent attribute.
     passwd = property(getPasswd, setPasswd, delPasswd)
+
+    def appliesTo(self, host):
+        if not self.bypass:
+            return True # not bypassing anything
+
+        host = host.lower()
+        for s in self.bypass.lower().split(','):
+            if s:
+                s = s.strip()
+                if s[0].isalpha() or s[0] == '.': # hostname/domain
+                    if host.endswith(s):
+                        return False # a match; we're not proxying this host
+                else: # IP address
+                    if host.startswith(s):
+                        return False # a match; we're not proxying this host
+
+        return True
+
 
 def getProxy(rv, protocol=u'HTTP'):
     for proxy in Proxy.iterItems(rv):

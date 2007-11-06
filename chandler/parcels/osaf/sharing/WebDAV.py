@@ -147,6 +147,8 @@ def createHTTPFactory(host, port, username, password, useSSL, repositoryView):
         getProxy = schema.ns("osaf.sharing.accounts", repositoryView).getProxy
         
         proxy = getProxy(repositoryView, 'HTTP')
+        if not proxy.appliesTo(host):
+            proxy = None
     else:
         proxy = None
         

@@ -2396,7 +2396,8 @@ class DumpTranslator(SharingTranslator):
             host=record.host,
             port=record.port,
             protocol=record.protocol,
-            username=record.username
+            username=record.username,
+            bypass=record.bypass,
         )
         def do(proxy):
             if record.useAuth not in (eim.NoChange, None):
@@ -2423,7 +2424,8 @@ class DumpTranslator(SharingTranslator):
             1 if proxy.useAuth else 0,
             proxy.username,
             getattr(proxy, "password", None),
-            1 if proxy.active else 0
+            1 if proxy.active else 0,
+            proxy.bypass
         )
 
 
