@@ -517,7 +517,7 @@ class ShareHubAccountRecord(eim.Record):
 class SharePrefsRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/prefs/0"
 
-    currentAccount = eim.field(schema.UUID) # empty string means no account
+    isOnline = eim.field(eim.IntType, default=1) # 1 = online, 0 = offline
 
 class ShareProxyRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/proxy/0"
@@ -549,3 +549,9 @@ class PrefTimezonesRecord(eim.Record):
     showPrompt = eim.field(eim.IntType)
     default = eim.field(text256)
     wellKnownIDs = eim.field(text1024)
+
+class ApplicationPrefsRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/preferences/application/0"
+
+    isOnline = eim.field(eim.IntType, default=1) # 1 = online, 0 = offline
+

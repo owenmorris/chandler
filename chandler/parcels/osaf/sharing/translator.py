@@ -2826,7 +2826,26 @@ class DumpTranslator(SharingTranslator):
         )
 
 
+    @model.ApplicationPrefsRecord.importer
+    def import_application_prefs(self, record):
+        prefs = schema.ns("osaf.app", self.rv).prefs
+        prefs.isOnline = bool(record.isOnline)
 
+    # Called from finishExport()
+    def export_application_prefs(self):
+        prefs = schema.ns("osaf.app", self.rv).prefs
+        yield model.ApplicationPrefsRecord(1 if prefs.isOnline else 0)
+
+
+    @model.SharePrefsRecord.importer
+    def import_share_prefs(self, record):
+        prefs = schema.ns("osaf.sharing", self.rv).prefs
+        prefs.isOnline = bool(record.isOnline)
+
+    # Called from finishExport()
+    def export_share_prefs(self):
+        prefs = schema.ns("osaf.sharing", self.rv).prefs
+        yield model.SharePrefsRecord(1 if prefs.isOnline else 0)
 
 
 
@@ -2876,6 +2895,14 @@ class DumpTranslator(SharingTranslator):
 
             # passwords prefs
             for record in self.export_password_prefs():
+                yield record
+
+            # sharing prefs
+            for record in self.export_share_prefs():
+                yield record
+
+            # application prefs
+            for record in self.export_application_prefs():
                 yield record
 
 

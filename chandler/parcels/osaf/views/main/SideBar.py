@@ -972,7 +972,7 @@ class SSSidebarSharingButton (SSSidebarButton):
         iconName = ""
         if shared:
             # First check to see if we're offline
-            if not sharing.isOnline (item):
+            if not sharing.isCollectionOnline (item):
                 iconName = "Offline"
 
             # If we're not Offline, check to see if we have an error

@@ -238,6 +238,7 @@ def makeMainMenus(parcel):
                                 helpString = _(u'Take mail offline or online')),
                             MenuItem.template('SharesOfflineItem',
                                 event = main.TakeSharesOnlineOffline,
+                                menuItemKind = 'Check',
                                 title = _(u'&Shares'),
                                 helpString = _(u'Take shared collections offline or online')),
                             ]), # Menu OfflineMenu              

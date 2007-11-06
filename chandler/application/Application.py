@@ -448,6 +448,8 @@ class wxApplication (wx.App):
         self.UIRepositoryView = view
         view.setMergeFn(otherViewWins)
 
+        Utility.initOnlineStatus(view, options)
+
         # If the locale changed, force index rebuild. (We'll save the locale
         # below if it changed - we'll need the parcels loaded for that)
         if self.localeChanged():
@@ -603,12 +605,11 @@ class wxApplication (wx.App):
             wx.CallAfter(afterInit)
 
 
-        # Start a background sync of shares, but only if not in offline mode,
-        # and not running tests, and if the autosync function is not set to
-        # "manual" (indicated by an autosync interval of None):
-        if not Globals.options.offline and \
-            Globals.options.catch != 'tests' and \
-            sharing.getAutoSyncInterval(self.UIRepositoryView) is not None:
+        # Start a background sync of shares, but only if not running tests,
+        # and if the autosync function is not set to "manual" (indicated by
+        # an autosync interval of None):
+        if (Globals.options.catch != 'tests' and
+            sharing.getAutoSyncInterval(self.UIRepositoryView) is not None):
             sharing.scheduleNow(self.UIRepositoryView)
 
         util.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA

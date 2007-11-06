@@ -35,7 +35,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "461" # morgen: proxy bypass
+SCHEMA_VERSION = "462" # morgen: App-wide online/offline
 
 logger = None # initialized in initLogging()
 
@@ -1037,6 +1037,14 @@ def initWakeup(view):
 
 def stopWakeup():
     pass
+
+
+def initOnlineStatus(view, options):
+    if options.offline: # offline specified on command line; persist value
+        schema.ns('osaf.app', view).prefs.isOnline = False
+    else: # not specified on command line; inherit persisted value
+        options.offline = not schema.ns('osaf.app', view).prefs.isOnline
+
 
 class SchemaMismatchError(Exception):
     """

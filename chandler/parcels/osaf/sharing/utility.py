@@ -29,6 +29,9 @@ __all__ = [
     'isOnline',
     'takeOnline',
     'takeOffline',
+    'isCollectionOnline',
+    'takeCollectionOnline',
+    'takeCollectionOffline',
     'getActiveShares',
     'checkForActiveShares',
     'getExistingResources',
@@ -489,25 +492,45 @@ def getFreeBusyShare(collection):
     return None
 
 
+# Controls the online/offline state of the entire sharing layer:
+
+def isOnline(rv):
+    return schema.ns('osaf.sharing', rv).prefs.isOnline
+
+def takeOnline(rv):
+    schema.ns('osaf.sharing', rv).prefs.isOnline = True
+    rv.commit(mergeFunction)
+
+def takeOffline(rv):
+    schema.ns('osaf.sharing', rv).prefs.isOnline = False
+    rv.commit(mergeFunction)
 
 
-def isOnline(collection):
+
+
+
+# Controls the online/offline state of a single collection:
+
+def isCollectionOnline(collection):
     """ Return the active state of the first share, if any """
-    if Globals.options.offline:
+    if not isOnline(collection.itsView):
         return False
+
     if pim.has_stamp(collection, shares.SharedItem):
         collection = shares.SharedItem(collection)
         for share in collection.shares:
             return share.active
     return False
 
-def takeOnline(collection):
+def takeCollectionOnline(collection):
+    rv = collection.itsView
     if pim.has_stamp(collection, shares.SharedItem):
         collection = shares.SharedItem(collection)
         for share in collection.shares:
             share.active = True
+        takeOnline(rv) # take sharing layer online
 
-def takeOffline(collection):
+def takeCollectionOffline(collection):
     if pim.has_stamp(collection, shares.SharedItem):
         collection = shares.SharedItem(collection)
         for share in collection.shares:

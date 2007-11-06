@@ -18,10 +18,13 @@ import version
 from application import schema, Globals
 from application.Parcel import Reference
 from i18n import ChandlerMessageFactory as _
-from osaf import pim, messages, startup, sharing
+from osaf import pim, messages, startup, sharing, preferences
 from osaf.framework import scripting, password
 from osaf.usercollections import UserCollection
 
+
+class ApplicationPrefs(preferences.Preferences):
+    isOnline = schema.One(schema.Boolean, defaultValue=True)
 
 def installParcel(parcel, oldVersion=None):
 
@@ -31,6 +34,7 @@ def installParcel(parcel, oldVersion=None):
     pim_ns = schema.ns('osaf.pim', parcel)
     sharing_ns = schema.ns('osaf.sharing', parcel)
 
+    ApplicationPrefs.update(parcel, 'prefs')
 
     message = _(u'User')
 

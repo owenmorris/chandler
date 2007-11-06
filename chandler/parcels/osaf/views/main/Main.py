@@ -915,11 +915,12 @@ class MainView(View):
     def onSubscribeToCollectionEvent(self, event):
         # Triggered from "Collection | Subscribe to collection..."
 
-        if not Globals.options.offline:
+        if schema.ns('osaf.app', self.itsView).prefs.isOnline:
             SubscribeCollection.Show(self.itsView)
 
     def onSubscribeToCollectionEventUpdateUI(self, event):
-        event.arguments['Enable'] = not Globals.options.offline
+        event.arguments['Enable'] = schema.ns('osaf.app',
+            self.itsView).prefs.isOnline and sharing.isOnline(self.itsView)
 
     def _dumpFile(self, obfuscate=False):
         from osaf.framework import MasterPassword
@@ -1174,9 +1175,10 @@ class MainView(View):
         """
 
         collection = self.getSidebarSelectedCollection()
-        if (collection is not None) and \
-           (not Globals.options.offline) and \
-           (not UserCollection(collection).outOfTheBoxCollection):
+        if (collection is not None and
+            schema.ns('osaf.app', self.itsView).prefs.isOnline and
+            sharing.isOnline(self.itsView) and
+            not UserCollection(collection).outOfTheBoxCollection):
 
             if (not sharing.isShared(collection) and
                 not sharing.ensureAccountSetUp(self.itsView, sharing=True)):
@@ -1189,16 +1191,18 @@ class MainView(View):
         Update the menu to reflect the selected collection name.
         """
         collection = self.getSidebarSelectedCollection()
-        event.arguments['Enable'] = collection is not None and \
-             not Globals.options.offline and \
-             (not UserCollection(collection).outOfTheBoxCollection) and \
-             (not sharing.isShared(collection))
+        event.arguments['Enable'] = (collection is not None and
+             schema.ns('osaf.app', self.itsView).prefs.isOnline and
+             sharing.isOnline(self.itsView) and
+             not UserCollection(collection).outOfTheBoxCollection and
+             not sharing.isShared(collection))
 
     def onManageSidebarCollectionEventUpdateUI (self, event):
         collection = self.getSidebarSelectedCollection ()
-        event.arguments['Enable'] = collection is not None and \
-             not Globals.options.offline and \
-             (sharing.isShared(collection))
+        event.arguments['Enable'] = (collection is not None and
+             schema.ns('osaf.app', self.itsView).prefs.isOnline and
+             sharing.isOnline(self.itsView) and
+             sharing.isShared(collection))
 
     def _unsubscribeCollection(self):
         # Unsubscribe works for published collections, or collections that
@@ -1260,9 +1264,10 @@ class MainView(View):
         if collection is not None:
             share = sharing.getShare(collection)
             sharedByMe = sharing.isSharedByMe(share)
-        event.arguments['Enable'] = collection is not None and \
-             not Globals.options.offline and \
-             sharing.isShared(collection) and sharedByMe
+            event.arguments['Enable'] = (
+                schema.ns('osaf.app', self.itsView).prefs.isOnline and
+                sharing.isOnline(self.itsView) and
+                sharing.isShared(collection) and sharedByMe)
 
     def _freeBusyShared(self):
         allCollection = schema.ns('osaf.pim', self).allCollection
@@ -1319,7 +1324,9 @@ class MainView(View):
     def onSyncCollectionEvent (self, event):
         rv = self.itsView
         collection = self.getSidebarSelectedCollection()
-        if collection is not None and not Globals.options.offline:
+        if (collection is not None and
+            schema.ns('osaf.app', self.itsView).prefs.isOnline
+            and sharing.isOnline(self.itsView)):
 
             # Ensure changes in attribute editors are saved
             wx.GetApp().mainFrame.SetFocus()
@@ -1344,9 +1351,10 @@ class MainView(View):
             else:
                 event.arguments ['Text'] = _(u'%(collectionName)s') % \
                      {'collectionName': collName}
-        event.arguments['Enable'] = collection is not None and \
-             not Globals.options.offline and \
-             sharing.isShared(collection)
+        event.arguments['Enable'] = (collection is not None and
+             schema.ns('osaf.app', self.itsView).prefs.isOnline and
+             sharing.isOnline(self.itsView) and
+             sharing.isShared(collection))
 
     def onCollectionInviteEvent(self, event):
         collection = self.getSidebarSelectedCollection()
@@ -1367,10 +1375,10 @@ class MainView(View):
     def onTakeOnlineOfflineEvent(self, event):
         collection = self.getSidebarSelectedCollection()
         if collection is not None:
-            if sharing.isOnline(collection):
-                sharing.takeOffline(collection)
+            if sharing.isCollectionOnline(collection):
+                sharing.takeCollectionOffline(collection)
             else:
-                sharing.takeOnline(collection)
+                sharing.takeCollectionOnline(collection)
 
             # To make changes available to sharing thread
             self.RepositoryCommitWithStatus ()
@@ -1395,18 +1403,24 @@ class MainView(View):
 
             if sharing.isShared(collection):
                 event.arguments['Enable'] = True
-                event.arguments['Check'] = not sharing.isOnline(collection)
+                event.arguments['Check'] = \
+                    not sharing.isCollectionOnline(collection)
 
     def onTakeAllOnlineOfflineEventUpdateUI(self, event):
-        event.arguments['Check'] = Globals.options.offline
+        event.arguments['Check'] = \
+            not schema.ns('osaf.app', self.itsView).prefs.isOnline
 
     def onTakeAllOnlineOfflineEvent(self, event):
-        if Globals.options.offline:
-            Globals.options.offline = False
+        prefs = schema.ns('osaf.app', self.itsView).prefs
+
+        if not prefs.isOnline:
+            prefs.isOnline = True
             Globals.mailService.takeOnline()
         else:
-            Globals.options.offline = True
+            prefs.isOnline = False
             Globals.mailService.takeOffline()
+
+        self.RepositoryCommitWithStatus()
 
     def onTakeMailOnlineOfflineEvent(self, event):
         if Globals.mailService.isOnline():
@@ -1415,16 +1429,36 @@ class MainView(View):
             Globals.mailService.takeOnline()
 
     def onTakeMailOnlineOfflineEventUpdateUI(self, event):
-        event.arguments ['Check'] = not Globals.mailService.isOnline()
+        prefs = schema.ns('osaf.app', self.itsView).prefs
 
-    def onTakeSharesOnlineOfflineEventUpdateUI(self, event):
-        event.arguments['Enable'] = False
+        if prefs.isOnline:
+            event.arguments['Enable'] = True
+            event.arguments['Check'] = not Globals.mailService.isOnline()
+        else:
+            event.arguments['Enable'] = False
+            event.arguments['Check'] = True
 
     def onTakeSharesOnlineOfflineEvent(self, event):
-        pass
+        if sharing.isOnline(self.itsView):
+            sharing.takeOffline(self.itsView)
+        else:
+            sharing.takeOnline(self.itsView)
+
+
+    def onTakeSharesOnlineOfflineEventUpdateUI(self, event):
+        prefs = schema.ns('osaf.app', self.itsView).prefs
+
+        if prefs.isOnline:
+            event.arguments['Enable'] = True
+            event.arguments['Check'] = not sharing.isOnline(self.itsView)
+        else:
+            event.arguments['Enable'] = False
+            event.arguments['Check'] = True
+
 
     def onSyncAllEventUpdateUI(self, event):
-        event.arguments['Enable'] = not Globals.options.offline
+        event.arguments['Enable'] = \
+            schema.ns('osaf.app', self.itsView).prefs.isOnline
 
     def onSyncAllEvent (self, event):
         """
@@ -1436,7 +1470,7 @@ class MainView(View):
         # and sharing
         self.RepositoryCommitWithStatus ()
 
-        if Globals.options.offline:
+        if not schema.ns('osaf.app', self.itsView).prefs.isOnline:
             return
 
         view = self.itsView
@@ -1482,7 +1516,8 @@ class MainView(View):
             self.onGetNewMailEvent (event)
 
     def onSyncWebDAVEventUpdateUI (self, event):
-        event.arguments['Enable'] = not Globals.options.offline
+        event.arguments['Enable'] = schema.ns('osaf.app',
+            self.itsView).prefs.isOnline and sharing.isOnline(self.itsView)
 
     def onSyncWebDAVEvent (self, event):
         """
@@ -1491,7 +1526,7 @@ class MainView(View):
         The "File | Sync | Shares" menu item.
         """
 
-        if Globals.options.offline:
+        if not schema.ns('osaf.app', self.itsView).prefs.isOnline:
             return
 
         view = self.itsView
@@ -1527,7 +1562,7 @@ class MainView(View):
         The "File | Sync | Mail" menu item.
         """
 
-        if Globals.options.offline:
+        if not schema.ns('osaf.app', self.itsView).prefs.isOnline:
             return
 
         view = self.itsView

@@ -196,6 +196,9 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
         proxy.bypass = "192.168.1, localhost"
         uuids.add(proxy.itsUUID)
 
+        # Online state
+        schema.ns('osaf.app', view0).prefs.isOnline = False
+        schema.ns('osaf.sharing', view0).prefs.isOnline = False
 
         #Mail Accounts
 
@@ -447,6 +450,11 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assertEquals(pw, "password")
             self.assertEquals(proxy1.active, True)
             self.assertEquals(proxy1.useAuth, True)
+
+            self.assertEquals(schema.ns('osaf.app', view1).prefs.isOnline,
+                False)
+            self.assertEquals(schema.ns('osaf.sharing', view1).prefs.isOnline,
+                False)
 
             # Verify Calendar prefs
             pref = schema.ns('osaf.pim', view1).TimezonePrefs

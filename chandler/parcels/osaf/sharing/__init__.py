@@ -101,6 +101,7 @@ class SharingPreferences(schema.Item):
     import_as_new = schema.One(schema.Boolean, defaultValue = True)
     freeBusyAccount = schema.One(WebDAVAccount, defaultValue=None)
     freeBusyShare   = schema.One(Share, defaultValue=None)
+    isOnline = schema.One(schema.Boolean, defaultValue=True)
 
 
 
@@ -331,10 +332,6 @@ class BackgroundSyncHandler:
 
         global interrupt_flag, running_status, current_activity
 
-        if Globals.options.offline:
-            # In offline mode, no sharing
-            return True
-
         if running_status != IDLE:
             # busy
             return True
@@ -348,6 +345,12 @@ class BackgroundSyncHandler:
             forceUpdate = kwds.get('forceUpdate', None)
 
             self.rv.refresh(notify=False)
+
+            if not (schema.ns('osaf.app', self.rv).prefs.isOnline and
+                isOnline(self.rv)):
+                # app and sharing layer must both be online to perform a sync
+                running_status = IDLE
+                return True
 
             shares = []
 
@@ -551,7 +554,7 @@ def publish(collection, account, classesToInclude=None,
     """
 
 
-    if Globals.options.offline:
+    if not isOnline(collection.itsView):
         raise OfflineError(_(u"Could not perform request. Sharing is offline."))
 
     try:
@@ -927,7 +930,7 @@ def unpublishFreeBusy(collection):
 def subscribe(view, url, activity=None, username=None, password=None,
     filters=None, forceFreeBusy=False):
 
-    if Globals.options.offline:
+    if not isOnline(view):
         raise OfflineError(_(u"Could not perform request. Sharing is offline."))
 
     if not url:

@@ -101,7 +101,7 @@ class MailService(object):
 
         self._started = True
 
-        if Globals.options.offline:
+        if not schema.ns('osaf.app', self._view).prefs.isOnline:
             self.takeOffline()
 
     def shutdown(self):
