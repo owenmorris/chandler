@@ -1257,7 +1257,12 @@ class wxApplication (wx.App):
         Fire off a custom event handler
         """
         event.lock.release()
-        event.target(*event.args, **event.kwds)
+        try:
+            event.target(*event.args, **event.kwds)
+        except TypeError:
+            logger.error('OnMainThreadCallbackEvent event=%s <%s>' % \
+                         (str(event), type(event)))
+            raise
         event.Skip()
 
     def PostAsyncEvent(self, callback, *args, **kwds):
