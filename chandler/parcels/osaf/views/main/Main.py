@@ -449,7 +449,7 @@ class MainView(View):
             webbrowser.open(url)
         except OSError:
             wx.MessageBox (_(u"Chandler could not access a browser to open %(url)s.") % {'url' : url},
-                           _(u"Browser not found"),
+                           _(u"Browser Not Found"),
                            parent=wx.GetApp().mainFrame)
 
     def onHelpEvent(self, event):
@@ -823,7 +823,7 @@ class MainView(View):
                 break
         else:
             wx.MessageBox (_(u"This collection contains no events."),
-                           _(u"Export cancelled."),
+                           _(u"Export Cancelled"),
                            parent=wx.GetApp().mainFrame)
             return
 

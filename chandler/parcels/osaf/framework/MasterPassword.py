@@ -115,7 +115,7 @@ def get(view, parent=None, testPassword=None):
             raise RuntimeError('At least one password was expected to be initialized')
         if again:
             wx.MessageBox (_(u'Master password was incorrect, please try again.'),
-                           _(u'Incorrect password.'),
+                           _(u'Incorrect Password'),
                            parent=parent)
             continue
         
@@ -165,7 +165,7 @@ def change(view, parent=None):
     
                 if not _change(oldMaster, newMaster, view, prefs):
                     wx.MessageBox(_(u'Old password was incorrect, please try again.'),
-                                  _(u'Incorrect password.'),
+                                  _(u'Incorrect Password'),
                                   parent=parent)
                     continue
                 
@@ -559,7 +559,7 @@ class ChangeMasterPasswordDialog(wx.Dialog):
 
     def OnReset(self, evt):
         if wx.MessageBox (_(u'Account passwords will be deleted.\nAre you sure you want to reset your Master Password?'),
-                          _(u'Confirm Reset?'),
+                          _(u'Confirm Reset'),
                           style = wx.YES_NO,
                           parent=self) == wx.YES:
             try:

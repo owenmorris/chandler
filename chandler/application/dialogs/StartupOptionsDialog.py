@@ -201,7 +201,7 @@ class StartupOptionsDialog(wx.Dialog):
                 MasterPassword.beforeBackup(view, self)
             except:
                 wx.MessageBox(_(u'Failed to encrypt passwords.'),
-                              _(u'Password protection failed.'),
+                              _(u'Password Protection Failed'),
                               parent=self)
 
             repoDir = repository.backup(os.path.join(os.path.dirname(tarPath),

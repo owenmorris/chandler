@@ -1696,7 +1696,7 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
                 msg = _(u"The custom recurrence rule will be lost if you change it. "
                          "You will not be able to restore it.\n\n"
                          "Are you sure you want change it?")
-                caption = _(u"Discard custom recurrence?")
+                caption = _(u"Discard Custom Recurrence")
 
                 if wx.MessageBox(msg, caption, style = wx.YES_NO,
                                  parent=wx.GetApp().mainFrame) == wx.NO:

@@ -942,12 +942,12 @@ class wxApplication (wx.App):
                         raise
                     elif count == 2:
                         wx.MessageBox(_(u'An application error occurred. Your unsaved changes will be lost while Chandler attempts to recover.'),
-                                      _(u'Chandler has experienced an error'))
+                                      _(u'Chandler Has Experienced An Error'))
                         self.UIRepositoryView.cancel()
                         count -= 1
                     elif count == 1:
                         wx.MessageBox(_(u'Chandler has experienced an error while recovering and needs to restart.'),
-                                      _(u'Chandler will restart'))
+                                      _(u'Chandler Will Restart'))
                         self.restart()
                 else:
                     break

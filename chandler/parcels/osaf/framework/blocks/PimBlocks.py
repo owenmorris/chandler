@@ -188,7 +188,7 @@ class FocusEventHandlers(Item):
                 if not item.private and sharing.isShared(item):
                     # Marking a shared item as "private" could act weird...
                     # Are you sure?
-                    caption = _(u"Never share this item")
+                    caption = _(u"Never Share This Item")
                     msg = _(u"Other people may be subscribed to this item; " \
                             "are you sure you want to mark it as private?")
                     if wx.MessageBox (msg, caption, style = wx.YES_NO,

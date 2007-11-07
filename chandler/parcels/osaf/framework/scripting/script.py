@@ -102,7 +102,7 @@ class Script(pim.ContentItem):
                 # model is newer
                 if fileModTime > self.lastSync:
                     msg = _(u"The file associated with this script has changes that are older than your recent edits.\n\nDo you want to overwrite the older changes?")
-                    caption = _(u"Overwrite Script File?")
+                    caption = _(u"Overwrite Script File")
                     if wx.MessageBox(msg, caption, style = wx.YES_NO,
                                      parent = wx.GetApp().mainFrame) == wx.NO:
                         return

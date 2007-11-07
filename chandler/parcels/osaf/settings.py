@@ -663,7 +663,7 @@ def restoreMasterPassword(rv, cfg, testmode, oldMaster, newMaster):
                             break
                         except password.NoMasterPassword:
                             if wx.MessageBox(_(u'If you do not remember your master password, all account passwords will be deleted. Delete account passwords?'),
-                                             _(u'Reset Master Password?'),
+                                             _(u'Reset Master Password'),
                                              style = wx.YES_NO,
                                              parent = wx.GetApp().mainFrame) == wx.YES:
                                 MasterPassword.reset(rv)
