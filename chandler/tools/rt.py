@@ -1663,6 +1663,12 @@ def main(options):
         except OSError:
             pass
 
+    # Remove backup.chex file
+    try:
+        os.remove(os.path.join(options.profileDir, 'backup.chex'))
+    except OSError:
+        pass
+
     failed = False
 
     if options.testcase:

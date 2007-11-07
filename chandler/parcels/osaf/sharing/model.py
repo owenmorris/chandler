@@ -555,3 +555,4 @@ class ApplicationPrefsRecord(eim.Record):
 
     isOnline = eim.field(eim.IntType, default=1) # 1 = online, 0 = offline
 
+    backupOnQuit = eim.field(eim.IntType, default=0) # 0 = None, 1 = True, 2 = False

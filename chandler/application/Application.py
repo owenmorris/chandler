@@ -398,52 +398,23 @@ class wxApplication (wx.App):
             splash.updateGauge('crypto')
         Utility.initCrypto(options.profileDir)
 
-        # The repository opening code was moved to a method so that it can
-        # be called again if there is a schema mismatch and the user chooses
-        # to reopen the repository in create mode.
+        # repository initialization.
         if splash:
             splash.updateGauge('repository')
-        repoDir = Utility.locateRepositoryDirectory(options.profileDir, options)
-        newRepo = not os.path.isdir(repoDir)
-
-        # Check if this is the first time Chandler has run, will stop the program if
-        # the user wants to migrate data. Must be done right before initRepository()
-        # so it has a fighting chance of detecting the first run after a new install.
-        if shouldMigrateOldRepository(options, repoDir):
-            if not showMigrationWindow():
-                self.exitValue = 1
-                return True
 
         try:
-            from application.dialogs.GetPasswordDialog import getPassword
-            options.getPassword = getPassword
-            view = Utility.initRepository(repoDir, options)
-        except RepositoryVersionError, e:
-            if showSchemaWindow():
-                options.create = True
-                view = Utility.initRepository(repoDir, options)
-            else:
-                raise Utility.SchemaMismatchError, e
+            view, repoDir, newRepo = Utility.openRepositoryOrBackup(self,
+                                                                    options)
+            if view is None:
+                return True
         except RepositoryPlatformError, e:
             if self.ShowPlatformMismatchWindow(e.args[0], e.args[1]):
                 options.create = True
                 view = Utility.initRepository(repoDir, options)
             else:
                 raise
-
+            
         self.repository = view.repository
-
-        # Verify Schema Version
-        verify, repoVersion, schemaVersion = Utility.verifySchema(view)
-        if not verify:
-            if showSchemaWindow():
-                # Blow away the repository
-                self.repository.close()
-                options.create = True
-                view = Utility.initRepository(repoDir, options)
-                self.repository = view.repository
-            else:
-                raise Utility.SchemaMismatchError, (repoVersion, schemaVersion)
 
         self.UIRepositoryView = view
         view.setMergeFn(otherViewWins)
@@ -615,6 +586,7 @@ class wxApplication (wx.App):
         util.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 
         self.initialized = True
+        
         return True    # indicates we succeeded with initialization
 
     def reload(self, parentWin):
@@ -957,7 +929,6 @@ class wxApplication (wx.App):
         self.doCommitSoon = True
         
     def OnIdle(self, event):
-
         if self.updateUIInOnIdle:
             count = 2
             while count:
@@ -1055,22 +1026,20 @@ class wxApplication (wx.App):
 
     def shutdown(self, repositoryCheck=True, repositoryCheckPoint=True):
         """
-           Shuts down Chandler Services and the Repository.
+        Shuts down Chandler Services and the Repository.
 
-           Performs the following actions in order:
-              1. Finishes any edits in progress
-              2. Checks the Repository
-              3. Shuts down the Mail Service
-              4. Stops the Wake up Service
-              5. Stops the Sharing layer
-              6. Stops Twisted
-              7. Commits the Repository
-              8. Stops the M2Cypto layer
-              9. Checkpoints the Repository
-              10. Stops the Feedback Runtime log
-
-        Note: This method does not terminate the wx.App()
-              Main Loop. That operation is left to the caller.
+        Performs the following actions in order:
+            1. Finishes any edits in progress
+            2. Optionally export backup.chex
+            3. Checks the Repository
+            4. Shuts down the Mail Service
+            5. Stops the Wake up Service
+            6. Stops the Sharing layer
+            7. Stops Twisted
+            8. Commits the Repository
+            9. Stops the M2Cypto layer
+            10. Checkpoints the Repository
+            11. Stops the Feedback Runtime log
         """
         def displayInfoWhileProcessing (message, method, *args, **kwds):
             busyInfo = wx.BusyInfo (message, self.mainFrame)
@@ -1088,6 +1057,38 @@ class wxApplication (wx.App):
         # Finish any edits in progress.
         from osaf.framework.blocks.Block import Block
         Block.finishEdits()
+
+        # Optionally save a backup.chex so that automatic migration will work
+        
+        # Do not backup when running tests to save time; also prevents
+        # the dialog from stopping tests
+        if Globals.options.catch == 'tests':
+            backup = False
+        else:
+            prefs = schema.ns("osaf.app",
+                              self.UIRepositoryView).prefs
+            if not hasattr(prefs, 'backupOnQuit'):
+                from application.dialogs.Util import checkboxUserDialog
+                dlg = checkboxUserDialog(self.mainFrame,
+                                         _(u'Export Collections and Settings'),
+                                         _(u'Export Collections and Settings when quitting to enable automatic migration when upgrading Chandler?'),
+                                         _(u'&Never ask again'))
+                if dlg.ShowModal() == wx.ID_YES:
+                    backup = True
+                else:
+                    backup = False
+                if dlg.GetValue():
+                    prefs.backupOnQuit = backup
+                dlg.Destroy()
+                
+                # will commit below
+            else:
+                backup = prefs.backupOnQuit
+
+        if backup:
+            mainView = Block.findBlockByName("MainView")
+            mainView._dumpFile(path=os.path.join(Globals.options.profileDir,
+                                                 'backup.chex'))
 
         # For some strange reason when there's an idle handler on the
         # application the mainFrame windows doesn't get destroyed, so
@@ -1561,47 +1562,3 @@ def checkPlatform():
         # or even should be done (could crash anytime), the best is to just exit when
         # we still can...
         sys.exit(1)
-
-
-def showSchemaWindow():
-    from application.dialogs.UpgradeDialog import UpgradeDialog
-
-    logger.info("Schema version of repository does not match Chandler's")
-
-    response = UpgradeDialog.run()
-
-    return response == wx.OK
-
-
-def showMigrationWindow():
-    from application.dialogs.UpgradeDialog import MigrationDialog
-
-    response = MigrationDialog.run()
-
-    return response == wx.OK
-
-
-def shouldMigrateOldRepository(options, repoDir):
-    """
-    Check to see if Chandler is starting for the first time.
-    If it is and we can locate another Chandler's repository, prompt the user to check
-    if they want to migrate the previous data.
-    
-    The profile directory should always exist as it's created before this call.
-    """
-    migrate = False
-
-    if not options.reload and not options.profileDirWasPassedIn and \
-       not (os.path.isdir(repoDir) or options.create):
-        # Scan the parent directory of the chandler profile directory for
-        # version-named directories.  Any directories found, minus the current
-        # directory name, means another Chandler repository is available.
-        profileBase = os.path.dirname(options.profileDir)
-        baseName    = os.path.basename(profileBase)
-        dirList     = os.listdir(os.path.dirname(profileBase))
-
-        dirList.remove(baseName)
-
-        migrate = len(dirList) > 0
-
-    return migrate

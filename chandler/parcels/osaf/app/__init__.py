@@ -22,9 +22,14 @@ from osaf import pim, messages, startup, sharing, preferences
 from osaf.framework import scripting, password
 from osaf.usercollections import UserCollection
 
-
 class ApplicationPrefs(preferences.Preferences):
     isOnline = schema.One(schema.Boolean, defaultValue=True)
+
+    backupOnQuit = schema.One(
+        schema.Boolean,
+        doc = 'Should we backup (export collections and settings) on quit to automate migration?'
+    )
+
 
 def installParcel(parcel, oldVersion=None):
 
@@ -393,5 +398,7 @@ The Chandler Team""")
                                         )
     newScript.set_file(u"PasteNewItem.py", Scripts.__file__)
 
+
+    # Compact task should come last
     from osaf.app import compact
     compact.CompactTask.update(parcel, 'compactTask')

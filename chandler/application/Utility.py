@@ -16,7 +16,7 @@
 Application utilities.
 """
 
-import os, sys, logging, logging.config, logging.handlers, string
+import os, sys, logging, logging.config, logging.handlers, string, glob
 import i18n, schema
 import M2Crypto.Rand as Rand, M2Crypto.threading as m2threading
 from optparse import OptionParser
@@ -35,7 +35,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "462" # morgen: App-wide online/offline
+SCHEMA_VERSION = "463" # heikki: backup on quit pref
 
 logger = None # initialized in initLogging()
 
@@ -61,8 +61,6 @@ def locateProfileDir():
         createProfileDir(profileDir)
         return profileDir
 
-    releaseMajorMinor = version.release.split('-', 1)[0]
-
     if os.name == 'nt':
         dataDir = None
 
@@ -84,7 +82,7 @@ def locateProfileDir():
 
         profileDir = os.path.join(dataDir,
                                   'Open Source Applications Foundation',
-                                  'Chandler', releaseMajorMinor)
+                                  'Chandler')
 
     elif sys.platform == 'darwin':
         dataDir = os.path.join(os.path.expanduser('~'),
@@ -92,16 +90,15 @@ def locateProfileDir():
                                'Application Support')
         profileDir = os.path.join(dataDir,
                                   'Open Source Applications Foundation',
-                                  'Chandler', releaseMajorMinor)
+                                  'Chandler')
 
     else:
         dataDir = os.path.expanduser('~')
-        profileDir = os.path.join(dataDir, '.chandler', releaseMajorMinor)
+        profileDir = os.path.join(dataDir, '.chandler')
 
     # Deal with the random part
     pattern = '%s%s*.default' % (profileDir, os.sep)
     try:
-        import glob
         profileDir = glob.glob(pattern)[0]
     except IndexError:
         try:
@@ -1052,3 +1049,82 @@ class SchemaMismatchError(Exception):
     """
     pass
 
+def openRepository(options, repoDir):
+    """
+    Helper to open repository, checks for schema error as well.
+    
+    @return: Repository view
+    """
+    view = initRepository(repoDir, options)
+    verify, repoVersion, schemaVersion = verifySchema(view)
+    if not verify:
+        raise SchemaMismatchError, (repoVersion, schemaVersion)
+    return view
+
+def openRepositoryOrBackup(app, options):
+    """
+    Open repository, or if that fails due to schema mismatch, open backup.chex,
+    or if that does not exist, then display a manual migration dialog.
+    
+    @param app:     The application object.
+    @param options: Options.
+    @return:        view, repoDir, newRepo
+    """
+    from application.dialogs.GetPasswordDialog import getPassword
+    options.getPassword = getPassword
+    from application.dialogs.UpgradeDialog import MigrationDialog
+
+    repoDir = locateRepositoryDirectory(options.profileDir, options)
+    newRepo = not os.path.isdir(repoDir)
+    view = None
+
+    try:
+        detectOldProfiles(options, repoDir)
+
+        view = openRepository(options, repoDir)
+    except (RepositoryVersionError, SchemaMismatchError), err:
+        newRepo = False
+        
+        logger.info('Repository open failed with ' + str(err))
+        if view is not None:
+            view.repository.close()
+            view = None
+        
+        import wx
+
+        backup = os.path.join(options.profileDir, 'backup.chex')
+        if os.path.isfile(backup):
+            ret = MigrationDialog.run(backup)
+            if ret == wx.YES:
+                logger.info('Reloading backup')
+                options.reload = backup
+                options.create = True
+                view = initRepository(repoDir, options)
+            elif ret == wx.OK:
+                options.create = True
+                view = initRepository(repoDir, options)
+            else:
+                app.exitValue = 1
+        else:
+            if MigrationDialog.run() == wx.OK:
+                options.create = True
+                view = initRepository(repoDir, options)
+            else:
+                app.exitValue = 1
+            
+    return view, repoDir, newRepo
+
+def detectOldProfiles(options, repoDir):
+    """
+    If we find old profiles that cannot be automatically migrated, this will
+    raise SchemaMismatchError.
+    """
+    if not (options.profileDirWasPassedIn or
+            os.path.isdir(repoDir) or
+            options.create):
+        if glob.glob(os.path.join(options.profileDir, '..', '0.*')):
+            # So now we know we are migrating from incompatibe release. 0.7.1
+            # or earlier repository can not be automatically migrated to 0.7.2
+            # or later. So let's raise a schema error, since we deal with that
+            # the same way.
+            raise SchemaMismatchError('Found old profiles that cannot be automatically migrated')

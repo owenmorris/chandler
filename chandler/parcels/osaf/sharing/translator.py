@@ -2831,11 +2831,26 @@ class DumpTranslator(SharingTranslator):
         prefs = schema.ns("osaf.app", self.rv).prefs
         prefs.isOnline = bool(record.isOnline)
 
+        backup = getattr(record, "backupOnQuit", 0)
+        if backup == 1:
+            prefs.backupOnQuit = True
+        elif backup == 2:
+            prefs.backupOnQuit = False
+
     # Called from finishExport()
     def export_application_prefs(self):
         prefs = schema.ns("osaf.app", self.rv).prefs
-        yield model.ApplicationPrefsRecord(1 if prefs.isOnline else 0)
+        
+        backup = getattr(prefs, "backupOnQuit", None)
+        if backup is None:
+            backup = 0
+        elif backup == True:
+            backup = 1
+        elif backup == False:
+            backup = 2
 
+        yield model.ApplicationPrefsRecord(1 if prefs.isOnline else 0,
+                                           backup)
 
     @model.SharePrefsRecord.importer
     def import_share_prefs(self, record):
@@ -2878,8 +2893,6 @@ class DumpTranslator(SharingTranslator):
             if (not str(item.itsPath).startswith("//parcels") and
                 not isinstance(item, Occurrence)):
                 yield model.TrashMembershipRecord(item)
-
-
 
         if not self.obfuscation:
 

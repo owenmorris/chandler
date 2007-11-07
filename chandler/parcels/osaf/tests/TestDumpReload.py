@@ -311,7 +311,11 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
         MasterPassword._change('', 'secret', view0, mpwPrefs)
         mpwPrefs.timeout = 10
 
-
+        # backup on quit preference
+        backupPrefs = schema.ns("osaf.app",
+                                view0).prefs
+        self.assertFalse(hasattr(backupPrefs, 'backupOnQuit'))
+        backupPrefs.backupOnQuit = True
 
         # Ensure sidebar is loaded in view1
         sidebar1 = schema.ns("osaf.app", view1).sidebarCollection
@@ -531,6 +535,11 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
                     break
 
             self.assertTrue(found)
+
+            # backup on quit preference
+            backupPrefs1 = schema.ns("osaf.app",
+                                     view1).prefs
+            self.assertTrue(backupPrefs1.backupOnQuit)
             
         finally:
             os.remove(filename)

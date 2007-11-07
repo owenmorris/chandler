@@ -922,21 +922,22 @@ class MainView(View):
         event.arguments['Enable'] = schema.ns('osaf.app',
             self.itsView).prefs.isOnline and sharing.isOnline(self.itsView)
 
-    def _dumpFile(self, obfuscate=False):
+    def _dumpFile(self, obfuscate=False, path=None):
         from osaf.framework import MasterPassword
         MasterPassword.beforeBackup(self.itsView)
 
-        filename = "%s.chex" % strftime("%Y%m%d%H%M%S")
-        wildcard = "%s|*.chex|%s (*.*)|*.*" % (_(u"Chandler export files"), _(u"All files"))
+        if path is None:
+            filename = "%s.chex" % strftime("%Y%m%d%H%M%S")
+            wildcard = "%s|*.chex|%s (*.*)|*.*" % (_(u"Chandler export files"), _(u"All files"))
+    
+            dlg = wx.FileDialog(wx.GetApp().mainFrame,
+                                _(u"Export Collections and Settings"), "", filename, wildcard,
+                                wx.SAVE|wx.OVERWRITE_PROMPT)
 
-        dlg = wx.FileDialog(wx.GetApp().mainFrame,
-                            _(u"Export Collections and Settings"), "", filename, wildcard,
-                            wx.SAVE|wx.OVERWRITE_PROMPT)
+            if dlg.ShowModal() == wx.ID_OK:
+                path = dlg.GetPath()
+            dlg.Destroy()
 
-        path = None
-        if dlg.ShowModal() == wx.ID_OK:
-            path = dlg.GetPath()
-        dlg.Destroy()
         if path:
             activity = Activity("Export to %s" % path)
             Progress.Show(activity)
