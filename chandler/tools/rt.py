@@ -1553,11 +1553,11 @@ def main(options):
     
       unit test and functional test:
     
-    >>> options.single = 'TestCrypto,TestSharing'
+    >>> options.single = 'TestCrypto,TestBlocks'
     >>> main(options)
     /.../RunPython... application/tests/TestCrypto.py -v
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /.../release/RunPython... Chandler.py --create --catch=tests --profileDir=test_profile --parcelPath=tools/cats/DataFiles --chandlerTests=TestSharing -D2 -M0
+    /.../release/RunPython... Chandler.py --create --catch=tests --profileDir=test_profile --parcelPath=tools/cats/DataFiles --chandlerTests=TestBlocks -D2 -M0
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
     
