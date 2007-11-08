@@ -253,7 +253,7 @@ PREFILLED_OUTGOING_EMAIL = {
         'gmail.com': {
             'server' : 'smtp.gmail.com',
             'port'   : 465,
-            'useSSL' : 'TLS', # http://mail.google.com/support/bin/answer.py?hl=en&answer=13287. Auto-configure suggests SSL. Both work.
+            'useSSL' : 'SSL',
             'auth'   : True,
             'user'   : False
         },
