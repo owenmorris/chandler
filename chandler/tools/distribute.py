@@ -173,19 +173,21 @@ def buildDistribName(mode, options):
 def buildDistributionImage(mode, options):
     if options.platformID == 'iosx':
         p = 'osx'
-        s = p
 
         if options.platformSubID == 'leopard':
             s = options.platformSubID
+        else:
+            s = p
     else:
         if options.platformID == 'linux':
             p = 'linux'
-            s = p
 
             if options.platformSubID == 'gutsy':
                 s = options.platformSubID
+            else:
+                s = p
         else:
-            p = 'win'
+            p = options.platformID
             s = p
 
     if mode == 'release':
