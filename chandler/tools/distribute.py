@@ -180,13 +180,13 @@ def buildDistributionImage(mode, options):
     else:
         if options.platformID == 'linux':
             p = 'linux'
-            s = os
+            s = p
 
             if options.platformSubID == 'gutsy':
                 s = options.platformSubID
         else:
             p = 'win'
-            s = os
+            s = p
 
     if mode == 'release':
         manifestFile = os.path.join(options.sourceDir, 'distrib', p, 'manifest.%s' % s)
