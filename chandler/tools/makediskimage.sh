@@ -51,7 +51,8 @@ echo
 
 DEVICES=`hdid -nomount $TMPFILE`
 DEVMASTER=`echo $DEVICES| awk '{ print $1 }'`
-DEVHFS=`echo $DEVICES| awk '{ print $5 }'`
+#DEVHFS=`echo $DEVICES| awk '{ print $5 }'`
+DEVHFS=`hdid -nomount $TMPFILE | grep Apple_HFS | awk '{ print $1 }'`
 echo Creating HFS partition $NAME on $TMPFILE at $DEVHFS
 newfs_hfs -v "$NAME" $DEVHFS
 if [ $? -ne 0 ] ; then
