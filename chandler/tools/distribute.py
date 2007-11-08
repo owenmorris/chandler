@@ -70,8 +70,12 @@ def parseOptions():
     return options
 
 def buildPlatform(options):
+    options.platformName  = 'Unknown'
+    options.platformID    = ''
+    options.platformSubID = ''
+
     rv = True
-    
+
     if os.name == 'nt':
         options.platformName = 'Windows'
         options.platformID   = 'win'
@@ -83,17 +87,38 @@ def buildPlatform(options):
             else:
                 options.platformName = 'Mac OS X (ppc)'
                 options.platformID   = 'osx'
+
+            release   = platform.release()
+            version   = release.split('.')
+            platforms = {'7': 'panther', '8': 'tiger', '9': 'leopard'}
+
+            if len(version) == 3:
+                options.platformSubID = platforms.get(version[0], version[0])
+
         elif sys.platform == 'cygwin':
             options.platformName = 'Windows'
             options.platformID   = 'win'
         else:
             options.platformName = 'Linux'
             options.platformID   = 'linux'
+
+            if os.path.exists('/etc/lsb-release'):
+                try:
+                    for line in open('/etc/lsb-release', 'r').readlines():
+                        name, value = line.split('=')
+
+                        if name.startswith('DISTRIB_CODENAME'):
+                            options.platformSubID = value.strip()
+                            break
+
+                except IOError:
+                    pass
     else:
         log('Unknown platform: ' + os.name, error=True)
         rv = False
 
     return rv
+
 
 def buildDistributionList(options):
     options.distribs = []
@@ -131,7 +156,7 @@ def buildDistributionList(options):
                 log('Platform is [%s] -- ignoring exe request' % options.platformName)
     else:
         if options.platformID == 'linux':
-            options.distribs = [ 'tarball', 'rpm', 'deb' ]
+            options.distribs = [ 'tarball', 'deb' ]
         else:
             if options.platformID == 'win':
                 options.distribs = [ 'tarball', 'exe' ]
@@ -147,14 +172,26 @@ def buildDistribName(mode, options):
 
 def buildDistributionImage(mode, options):
     if options.platformID == 'iosx':
-        s = 'osx'
+        p = 'osx'
+        s = p
+
+        if options.platformSubID == 'leopard':
+            s = options.platformSubID
     else:
-        s = options.platformID
+        if options.platformID == 'linux':
+            p = 'linux'
+            s = os
+
+            if options.platformSubID == 'gutsy':
+                s = options.platformSubID
+        else:
+            p = 'win'
+            s = os
 
     if mode == 'release':
-        manifestFile = os.path.join(options.sourceDir, 'distrib', s, 'manifest.%s' % s)
+        manifestFile = os.path.join(options.sourceDir, 'distrib', p, 'manifest.%s' % s)
     else:
-        manifestFile = os.path.join(options.sourceDir, 'distrib', s, 'manifest.debug.%s' % s)
+        manifestFile = os.path.join(options.sourceDir, 'distrib', p, 'manifest.debug.%s' % s)
 
     options.distribName = buildDistribName(mode, options)
     options.distribDir  = os.path.join(options.buildDir, options.distribName)
@@ -393,7 +430,6 @@ def generateTinderboxOutput(mode, distribFiles):
 
 if __name__ == '__main__':
     success = True
-    
     options = parseOptions()
 
     if not checkOptions(options):
@@ -401,7 +437,7 @@ if __name__ == '__main__':
 
     if not buildPlatform(options):
         sys.exit(3)
-    
+
     buildDistributionList(options)
 
     options.version_info = generateVersionData(options.sourceDir, options.platformName, options.tag)
@@ -412,16 +448,16 @@ if __name__ == '__main__':
     try:
         if len(options.distribs) > 0:
             options.distribFiles = {}
-    
+
             for mode in options.modes:
                 if os.path.isdir(os.path.join(options.binDir, mode)):
                     if not buildDistributionImage(mode, options):
                         log('An error occurred while creating the %s distribution image' % mode, error=True)
                         success = False
                         break
-    
+
                     options.distribFiles[mode] = []
-    
+
                     for build in options.distribs:
                         if build == 'tarball':
                             options.distribFiles[mode].append(buildTarball(mode, options))
@@ -433,22 +469,23 @@ if __name__ == '__main__':
                             options.distribFiles[mode].append(buildRPM(mode, options))
                         if build == 'deb':
                             options.distribFiles[mode].append(buildDEB(mode, options))
-    
+
                     if options.outputDir <> options.buildDir:
                         generateTinderboxOutput(mode, options.distribFiles[mode])
-    
+
                     if os.access(options.distribDir, os.F_OK):
                         rmdirs(options.distribDir)
-    
+
                     if _debug:
                         log(options.distribFiles[mode])
                 else:
                     log('Skipping %s because the directory is not present' % mode, error=True)
     except DistributionError:
         success = False
-        
+
     # revert the contents of version.py to clear any previously generated values
     runCommand([ findInPath(os.environ['PATH'], 'svn'), 'revert', os.path.join(options.sourceDir, 'version.py') ])
 
     if not success:
         sys.exit('Failed to create distributions')
+
