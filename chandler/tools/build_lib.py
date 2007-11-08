@@ -433,6 +433,7 @@ def handleManifest(buildDir, outputDir, distribDir, manifestFile, platformID):
             filedata.close()
     else:
         log('Unable to locate manifest file [%s]' % manifestFile)
+        result = False
 
     return result
 

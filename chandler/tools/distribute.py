@@ -26,6 +26,8 @@ from build_lib import initLog, log, rmdirs, handleManifest, runCommand, getComma
 
 _debug = False
 
+class DistributionError(Exception): pass
+
 def parseOptions():
     _configItems = {
         'mode':      ('-m', '--mode',    's', None,  'distribute release or debug; defaults to trying both'),
@@ -68,9 +70,8 @@ def parseOptions():
     return options
 
 def buildPlatform(options):
-    options.platformName = 'Unknown'
-    options.platformID   = ''
-
+    rv = True
+    
     if os.name == 'nt':
         options.platformName = 'Windows'
         options.platformID   = 'win'
@@ -88,6 +89,11 @@ def buildPlatform(options):
         else:
             options.platformName = 'Linux'
             options.platformID   = 'linux'
+    else:
+        log('Unknown platform: ' + os.name, error=True)
+        rv = False
+
+    return rv
 
 def buildDistributionList(options):
     options.distribs = []
@@ -196,6 +202,9 @@ def buildTarball(mode, options):
     r = runCommand(cmd)
 
     log('Compressed distribution file created (%d)' % r)
+    
+    if r:
+        raise DistributionError(str(r))
 
     return distribFile
 
@@ -212,6 +221,9 @@ def buildDMG(mode, options):
     r = runCommand(cmd)
 
     log('OS X disk image file created (%d)' % r)
+
+    if r:
+        raise DistributionError(str(r))
 
     return distribFile
 
@@ -249,6 +261,9 @@ def buildEXE(mode, options):
 
             result = distribFile
 
+    if r:
+        raise DistributionError(str(r))
+
     return result
 
 def buildRPM(mode, options):
@@ -266,6 +281,9 @@ def buildRPM(mode, options):
 
     log('RPM created (%d)' % r)
 
+    if r:
+        raise DistributionError(str(r))
+
     return '%s.i386.rpm' % options.distribName
 
 
@@ -281,6 +299,9 @@ def buildDEB(mode, options):
     r = runCommand(cmd)
 
     log('DEB created (%d)' % r)
+
+    if r:
+        raise DistributionError(str(r))
 
     return '%s_i386.deb' % options.distribName
 
@@ -302,11 +323,11 @@ def checkOptions(options):
 
     if not os.path.isdir(options.buildDir):
         sys.stderror.write('Unable to locate build directory [%s]\n' % options.buildDir)
-        sys.exit(3)
+        return False
 
     if not os.path.isdir(options.sourceDir):
         log('Unable to locate source (aka Chandler) directory [%s]' % options.sourceDir, error=True)
-        sys.exit(3)
+        return False
 
     if not options.binDir:
         if 'CHANDLERBIN' in os.environ:
@@ -319,7 +340,7 @@ def checkOptions(options):
 
     if not os.path.isdir(options.binDir):
         log('Unable to locate bin (aka ChandlerBin) directory [%s]' % options.binDir, error=True)
-        sys.exit(3)
+        return False
 
     if options.outputDir:
         if not os.path.isdir(options.outputDir):
@@ -329,11 +350,11 @@ def checkOptions(options):
 
     if not os.path.isdir(options.outputDir):
         log('Unable to locate build output directory [%s]' % options.outputDir, error=True)
-        sys.exit(3)
+        return False
 
     if not os.path.isfile(os.path.join(options.sourceDir, 'version.py')):
         log('Source directory [%s] does not point to a Chandler install' % options.sourceDir, error=True)
-        sys.exit(3)
+        return False
 
     if options.tag is not None:
         options.tag = options.tag.strip()
@@ -347,7 +368,9 @@ def checkOptions(options):
             options.modes = [ s ]
         else:
             log('Invalid mode [%s] specified' % s, error=True)
-            sys.exit(3)
+            return False
+
+    return True
 
 
 def generateTinderboxOutput(mode, distribFiles):
@@ -369,11 +392,16 @@ def generateTinderboxOutput(mode, distribFiles):
 
 
 if __name__ == '__main__':
+    success = True
+    
     options = parseOptions()
 
-    checkOptions(options)
+    if not checkOptions(options):
+        sys.exit(3)
 
-    buildPlatform(options)
+    if not buildPlatform(options):
+        sys.exit(3)
+    
     buildDistributionList(options)
 
     options.version_info = generateVersionData(options.sourceDir, options.platformName, options.tag)
@@ -381,14 +409,19 @@ if __name__ == '__main__':
     if _debug:
         log(options)
 
-    if len(options.distribs) > 0:
-        options.distribFiles = {}
-
-        for mode in options.modes:
-            if os.path.isdir(os.path.join(options.binDir, mode)):
-                if buildDistributionImage(mode, options):
+    try:
+        if len(options.distribs) > 0:
+            options.distribFiles = {}
+    
+            for mode in options.modes:
+                if os.path.isdir(os.path.join(options.binDir, mode)):
+                    if not buildDistributionImage(mode, options):
+                        log('An error occurred while creating the %s distribution image' % mode, error=True)
+                        success = False
+                        break
+    
                     options.distribFiles[mode] = []
-
+    
                     for build in options.distribs:
                         if build == 'tarball':
                             options.distribFiles[mode].append(buildTarball(mode, options))
@@ -400,20 +433,22 @@ if __name__ == '__main__':
                             options.distribFiles[mode].append(buildRPM(mode, options))
                         if build == 'deb':
                             options.distribFiles[mode].append(buildDEB(mode, options))
-
+    
                     if options.outputDir <> options.buildDir:
                         generateTinderboxOutput(mode, options.distribFiles[mode])
-
+    
                     if os.access(options.distribDir, os.F_OK):
                         rmdirs(options.distribDir)
-
+    
                     if _debug:
                         log(options.distribFiles[mode])
                 else:
-                    log('An error occurred during while creating the %s distribution image' % mode, error=True)
-            else:
-                log('Skipping %s because the directory is not present' % mode, error=True)
-
+                    log('Skipping %s because the directory is not present' % mode, error=True)
+    except DistributionError:
+        success = False
+        
     # revert the contents of version.py to clear any previously generated values
     runCommand([ findInPath(os.environ['PATH'], 'svn'), 'revert', os.path.join(options.sourceDir, 'version.py') ])
 
+    if not success:
+        sys.exit('Failed to create distributions')
