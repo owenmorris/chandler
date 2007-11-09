@@ -49,12 +49,10 @@ endif
 ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
     OS       = Cygwin
     PLATFORM = windows
-    PLATFORM = windows
 endif
 
 ifeq ($(findstring WINNT,$(OS)),WINNT)
     OS       = Cygwin
-    PLATFORM = windows
     PLATFORM = windows
 endif
 
