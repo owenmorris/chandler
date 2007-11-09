@@ -31,7 +31,7 @@ installext:
 
 clean:
 	cd $(SRC)/$(BUILD); \
-      devenv.com Berkeley_DB.sln /project build_all /clean $(Snap)
+      devenv.com Berkeley_DB.sln /project build_all /clean "$(Snap) x86"
 	rm -f $(SRC)/$(BUILD)/Berkeley_DB.sln
 	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 
