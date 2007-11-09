@@ -157,7 +157,7 @@ class TranslationTool(LocalizationBase):
         files = " ".join(self.getPythonFiles())
 
         if dirs != ".":
-            files = "*.py %s" % files
+            files = "Chandler.py setup.py %s" % files
 
         exp = "%s --msgid-bugs-address=bkirsch@osafoundation.org --from-code=utf-8 --no-wrap --add-comments=L10N: -L Python -o %s %s" % (self.GETTEXT, os.path.join(self.CWD, self.OUTPUTFILE), files)
 
