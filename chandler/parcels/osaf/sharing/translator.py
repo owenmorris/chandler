@@ -1889,7 +1889,7 @@ class DumpTranslator(SharingTranslator):
             lastSuccess = None
 
         if hasattr(share, "lastAttempt"):
-            lastAttempt = datetimeToDecimal(share.lastSuccess)
+            lastAttempt = datetimeToDecimal(share.lastAttempt)
         else:
             lastAttempt = None
 
