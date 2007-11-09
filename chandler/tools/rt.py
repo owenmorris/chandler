@@ -371,7 +371,7 @@ def buildTestList(options, excludeTools=True):
         includePattern = 'Test*.py'
 
     excludeDirs = []
-    exclusions  = ['util', 'projects', 'plugins', 'build', 'Chandler.egg-info']
+    exclusions  = ['util', 'projects', 'plugins', 'build', 'Chandler.egg-info', 'relocatable']
 
     if excludeTools:
         exclusions.append('tools')
