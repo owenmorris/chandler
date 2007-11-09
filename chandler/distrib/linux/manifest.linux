@@ -78,7 +78,7 @@ site-packages
 # Grab the DB libraries
 dest=release/db/lib
 src=chandler/release/db/lib
-libdb-4.5.so
+libdb-4.6.21.so
 dest=release/db
 src=chandler/release/db
 bin
