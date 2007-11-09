@@ -19,7 +19,7 @@ bin
 # Grab certain dll's from debug/bin
 src=chandler/debug/bin
 dest=debug/bin
-libdb45d.dll
+libdb46d.dll
 msvcp71d.dll
 msvcr71d.dll
 msvcrtd.dll

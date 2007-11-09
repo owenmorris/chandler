@@ -19,7 +19,7 @@ bin
 # Grab certain dll's from release/bin
 src=chandler/release/bin
 dest=release/bin
-libdb45.dll
+libdb46.dll
 msvcp71.dll
 msvcr71.dll
 python25.dll
