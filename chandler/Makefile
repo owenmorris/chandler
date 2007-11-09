@@ -62,7 +62,7 @@ endif
 
 ifeq ($(OS),Linux)
     READLINE   =
-    PYTHON     = $(CHANDLERARCHIVES)/python-$(SNAP)-2.5.1-$(BP)5.tar.gz
+    PYTHON     = $(CHANDLERARCHIVES)/python-$(SNAP)-2.5.1-$(BP)6.tar.gz
     SETUPTOOLS = $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6-$(BP)1.tar.gz
     ICU        = $(CHANDLERARCHIVES)/icu-$(SNAP)-3.6-$(BP)1.tar.gz
     OPENJDK    = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b21-$(BP)2.tar.gz
@@ -84,7 +84,7 @@ ifeq ($(OS),Linux)
 endif
 
 ifneq ($(findstring $(PLATFORM),macosx maciosx),)
-    PYTHON     = $(CHANDLERARCHIVES)/python-$(SNAP)-2.5.1-$(BP)5.tar.gz
+    PYTHON     = $(CHANDLERARCHIVES)/python-$(SNAP)-2.5.1-$(BP)6.tar.gz
     SETUPTOOLS = $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6-$(BP)1.tar.gz
     DOCUTILS   = $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)1.tar.gz
     OPENSSL    = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)2.tar.gz
@@ -104,7 +104,7 @@ ifeq ($(findstring 10.5,$(PLATFORM)),10.5)
 endif
 
 ifeq ($(PLATFORM),windows)
-    PYTHON     = $(CHANDLERARCHIVES)/python-$(SNAP)-2.5.1-$(BP)5.tar.gz
+    PYTHON     = $(CHANDLERARCHIVES)/python-$(SNAP)-2.5.1-$(BP)6.tar.gz
     SETUPTOOLS = $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6-$(BP)1.tar.gz
     DOCUTILS   = $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)1.tar.gz
     OPENSSL    = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)2.tar.gz
