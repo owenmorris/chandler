@@ -194,18 +194,15 @@ def checkOptions(options):
     if 'CHANDLERHOME' in os.environ and os.environ['CHANDLERHOME'].strip():
         options.chandlerHome = os.environ['CHANDLERHOME']
     else:
-        options.chandlerHome = os.path.join(os.path.dirname(__file__), '..')
-
-    options.chandlerHome = os.path.abspath(options.chandlerHome)
+        options.chandlerHome = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
     if 'CHANDLERBIN' in os.environ and os.environ['CHANDLERBIN'].strip():
         options.chandlerBin = os.environ['CHANDLERBIN']
     else:
         options.chandlerBin = options.chandlerHome
 
-    options.chandlerBin = os.path.abspath(options.chandlerBin)
-    options.toolsDir    = os.path.join('tools')
-    options.parcelPath  = os.path.join(options.toolsDir, 'cats', 'DataFiles')
+    options.toolsDir   = os.path.join('tools')
+    options.parcelPath = os.path.join(options.toolsDir, 'cats', 'DataFiles')
 
     if options.profileDir is None:
         options.profileDir = os.path.join('test_profile')
@@ -526,13 +523,9 @@ def runLocalizationCheck(options):
     if options.dryrun:
         failed = False
     else:
-        env = os.environ.copy()
         cmd = ['python', os.path.join('tools', 'l10nValidator.py')]
 
-        env['CHANDLERHOME'] = options.chandlerHome
-        env['CHANDLERBIN']  = options.chandlerBin
-
-        result = build_lib.runCommand(cmd, timeout=180, env=env)
+        result = build_lib.runCommand(cmd, timeout=180)
         failed = result != 0
 
         if failed:
@@ -837,9 +830,7 @@ def runPluginTests(options):
 
                         os.chdir(os.path.abspath(os.path.dirname(test)))
 
-                        env['CHANDLERHOME'] = options.chandlerHome
-                        env['CHANDLERBIN']  = options.chandlerBin
-                        env['PARCELPATH']   = os.path.join(options.chandlerHome, 'plugins')
+                        env['PARCELPATH'] = os.path.join(options.chandlerHome, 'plugins')
 
                         result = build_lib.runCommand(cmd, timeout=600, env=env)
 
