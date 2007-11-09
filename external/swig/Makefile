@@ -26,9 +26,8 @@ clean:
 else
 
 $(SRC)/$(BUILD)/Makefile:
-	mkdir -p $(SRC)/$(BUILD); \
-		cd $(SRC)/$(BUILD); \
-		../configure --prefix=$(PREFIX) --with-python=$(PYTHON)
+	mkdir -p $(SRC)/$(BUILD)
+	cd $(SRC)/$(BUILD); ../configure --prefix=$(PREFIX)
 
 swig: $(SRC)/$(BUILD)/Makefile
 	$(MAKE) -C $(SRC)/$(BUILD)
@@ -40,7 +39,6 @@ clean:
 endif
 
 endif
-
 
 apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION); echo ok

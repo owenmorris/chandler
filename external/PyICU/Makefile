@@ -32,7 +32,15 @@ build: expand
 else
 
 ifeq ($(OS),Darwin)
-PREFIX_PYTHON=$(PREFIX)/$(FRAMEWORK)
+ifeq ($(PYTHON_BUILD),)
+    PREFIX_PYTHON=$(FRAMEWORK)
+    PREFIX_FRAMEWORKS=/System/Library/Frameworks
+    PYTHON_SITE=$(BUILD_ROOT)/$(SNAP)/$(SITE)
+else
+    PREFIX_PYTHON=$(PREFIX)/$(FRAMEWORK)
+    PREFIX_FRAMEWORKS=$(PREFIX)/Library/Frameworks
+    PYTHON_SITE=$(PREFIX_PYTHON)/lib/python$(PYTHON_VER)/site-packages
+endif
 
 MANIFEST=$(SNAP)/$(SITE)/PyICU.py $(SNAP)/$(SITE)/_PyICU.so
 
@@ -43,24 +51,39 @@ build: expand apply
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
 	$(MAKE) -C $(SRC) \
             PREFIX=$(PREFIX) \
-            PREFIX_FRAMEWORKS=$(PREFIX)/Library/Frameworks \
+            PREFIX_FRAMEWORKS=$(PREFIX_FRAMEWORKS) \
             PREFIX_PYTHON=$(PREFIX_PYTHON) \
             PREFIX_ICU=$(PREFIX)/icu \
             PYTHON_VER=$(PYTHON_VER) \
+            PYTHON_SITE=$(PYTHON_SITE) \
             VERSION=$(VERSION) \
             all install
 else
 
 ifeq ($(OS),Linux)
-PREFIX_PYTHON=$(PREFIX)
 MANIFEST=$(SNAP)/$(SITE)/PyICU.py $(SNAP)/$(SITE)/_PyICU.so
+
+ifeq ($(ICU_BUILD),)
+    PREFIX_ICU=/usr
+else
+    PREFIX_ICU=$(PREFIX)/icu
+endif
+
+ifeq ($(PYTHON_BUILD),)
+    PREFIX_PYTHON=/usr
+    PYTHON_SITE=$(BUILD_ROOT)/$(SNAP)/$(SITE)
+else
+    PREFIX_PYTHON=$(PREFIX)
+    PYTHON_SITE=$(BUILD_ROOT)/$(SNAP)/$(SITE)
+endif
 
 build: expand
 	$(MAKE) -C $(SRC) \
             PREFIX=$(PREFIX) \
             PREFIX_PYTHON=$(PREFIX_PYTHON) \
-            PREFIX_ICU=$(PREFIX)/icu \
+            PREFIX_ICU=$(PREFIX_ICU) \
             PYTHON_VER=$(PYTHON_VER) \
+            PYTHON_SITE=$(PYTHON_SITE) \
             VERSION=$(VERSION) \
             all install
 

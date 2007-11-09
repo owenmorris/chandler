@@ -1,24 +1,27 @@
 #!/bin/sh
 
-if [ "$CHANDLERHOME" = "" ]
-then
+if [ "$CHANDLERHOME" = "" ]; then
     export CHANDLERHOME=$(dirname "$(dirname "${0}")")
 fi
 
-if [ "$CHANDLERBIN" = "" ]
-then
+if [ "$CHANDLERBIN" = "" ]; then
     export CHANDLERBIN="$CHANDLERHOME"
 fi
 
-if [ "$PYTHON_VER" = "" ]
-then
+if [ "$PYTHON_VER" = "" ]; then
     PYTHON_VER=2.5
 fi
 
-export PYTHONBIN="$CHANDLERBIN"/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python
+if [ -d "$CHANDLERBIN/debug/Library/Frameworks/Python.framework" ]; then
+    export PYTHONBIN="$CHANDLERBIN"/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python
+    export PYTHONPATH="$CHANDLERHOME":"$CHANDLERHOME"/parcels
+    export DYLD_FRAMEWORK_PATH="$CHANDLERBIN"/debug/Library/Frameworks
+else
+    export PYTHONBIN=/System/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python
+    export PYTHONPATH="$CHANDLERBIN"/debug/site-packages:"$CHANDLERHOME":"$CHANDLERHOME"/parcels
+fi
 
-if [ -f "$PYTHONBIN" ]
-then
+if [ -f "$PYTHONBIN" ]; then
     echo "Using $PYTHONBIN $@"
 else
     echo "Error:  Please unset the CHANDLERBIN environment variable or "
@@ -27,22 +30,17 @@ else
     exit 1
 fi
 
-export PYTHONPATH="$CHANDLERHOME:$CHANDLERHOME/parcels"
 export DYLD_LIBRARY_PATH="$CHANDLERBIN"/debug/lib:"$CHANDLERBIN"/debug/db/lib:"$CHANDLERBIN"/debug/icu/lib
-export DYLD_FRAMEWORK_PATH="$CHANDLERBIN"/debug/Library/Frameworks
 export LC_PATH="$CHANDLERBIN"/debug/share/locale
 unset PYTHONHOME
 
-if [ "$PARCELPATH" != "" ]
-then
+if [ "$PARCELPATH" != "" ]; then
     export PYTHONPATH="$PYTHONPATH":"$PARCELPATH"
 fi
 
-if [ "$GDB" != "" ]
-then
+if [ "$GDB" != "" ]; then
     exec gdb --args "$PYTHONBIN" $@
-elif [ "$PDB" != "" ]
-then
+elif [ "$PDB" != "" ]; then
     exec "$PYTHONBIN" -m pdb "$@"
 else
     exec "$PYTHONBIN" "$@"

@@ -1,0 +1,141 @@
+--- db-4.6.21/dbinc/db.in	2007-06-28 07:23:35.000000000 -0700
++++ db-4.6.21-patched/dbinc/db.in	2007-10-11 16:45:59.000000000 -0700
+@@ -203,6 +203,12 @@
+ #define	DB_DBT_USERCOPY		0x080	/* Use the user-supplied callback. */
+ #define	DB_DBT_USERMEM		0x100	/* Return in user's memory. */
+ 	u_int32_t flags;
++
++	/* Application callback to copy data to/from a custom data source. */
++#define	DB_USERCOPY_GETDATA	0x0001
++#define	DB_USERCOPY_SETDATA	0x0002
++	int (*usercopy)
++	    __P((DBT *, u_int32_t, void *, u_int32_t, u_int32_t));
+ };
+ 
+ /*
+@@ -2088,12 +2094,6 @@
+ 	void *(*db_realloc) __P((void *, size_t));
+ 	void (*db_free) __P((void *));
+ 
+-	/* Application callback to copy data to/from a custom data source. */
+-#define	DB_USERCOPY_GETDATA	0x0001
+-#define	DB_USERCOPY_SETDATA	0x0002
+-	int (*dbt_usercopy)
+-	    __P((DBT *, u_int32_t, void *, u_int32_t, u_int32_t));
+-
+ 	/*
+ 	 * Currently, the verbose list is a bit field with room for 32
+ 	 * entries.  There's no reason that it needs to be limited, if
+--- db-4.6.21/build_windows/db.h	2007-09-27 08:32:08.000000000 -0700
++++ db-4.6.21-patched/build_windows/db.h	2007-10-11 16:45:04.000000000 -0700
+@@ -230,6 +230,12 @@
+ #define	DB_DBT_USERCOPY		0x080	/* Use the user-supplied callback. */
+ #define	DB_DBT_USERMEM		0x100	/* Return in user's memory. */
+ 	u_int32_t flags;
++
++	/* Application callback to copy data to/from a custom data source. */
++#define	DB_USERCOPY_GETDATA	0x0001
++#define	DB_USERCOPY_SETDATA	0x0002
++	int (*usercopy)
++	    __P((DBT *, u_int32_t, void *, u_int32_t, u_int32_t));
+ };
+ 
+ /*
+@@ -2115,12 +2121,6 @@
+ 	void *(*db_realloc) __P((void *, size_t));
+ 	void (*db_free) __P((void *));
+ 
+-	/* Application callback to copy data to/from a custom data source. */
+-#define	DB_USERCOPY_GETDATA	0x0001
+-#define	DB_USERCOPY_SETDATA	0x0002
+-	int (*dbt_usercopy)
+-	    __P((DBT *, u_int32_t, void *, u_int32_t, u_int32_t));
+-
+ 	/*
+ 	 * Currently, the verbose list is a bit field with room for 32
+ 	 * entries.  There's no reason that it needs to be limited, if
+--- db-4.6.21/db/db_iface.c	2007-06-14 12:00:55.000000000 -0700
++++ db-4.6.21-patched/db/db_iface.c	2007-10-11 16:48:01.000000000 -0700
+@@ -2652,7 +2652,7 @@
+ 
+ 	buf = NULL;
+ 	if ((ret = __os_umalloc(dbenv, dbt->size, &buf)) != 0 ||
+-	    (ret = dbenv->dbt_usercopy(dbt, 0, buf, dbt->size,
++	    (ret = dbt->usercopy(dbt, 0, buf, dbt->size,
+ 	    DB_USERCOPY_GETDATA)) != 0)
+ 		goto err;
+ 	dbt->data = buf;
+--- db-4.6.21/db/db_overflow.c	2007-05-17 12:33:03.000000000 -0700
++++ db-4.6.21-patched/db/db_overflow.c	2007-10-11 16:58:04.000000000 -0700
+@@ -162,7 +162,7 @@
+ 				 * needs to be taken if doing a partial copy
+ 				 * beginning at an offset other than 0.
+ 				 */
+-				if ((ret = dbenv->dbt_usercopy(
++				if ((ret = dbt->usercopy(
+ 				    dbt, dbt->size - needed,
+ 				    src, bytes, DB_USERCOPY_SETDATA)) != 0) {
+ 					(void)__memp_fput(mpf,
+--- db-4.6.21/db/db_ret.c	2007-05-17 08:14:57.000000000 -0700
++++ db-4.6.21-patched/db/db_ret.c	2007-10-11 16:49:59.000000000 -0700
+@@ -115,7 +115,7 @@
+ 	 */
+ 	if (F_ISSET(dbt, DB_DBT_USERCOPY)) {
+ 		dbt->size = len;
+-		return (len == 0 ? 0 : dbenv->dbt_usercopy(dbt, 0, data,
++		return (len == 0 ? 0 : dbt->usercopy(dbt, 0, data,
+ 		    len, DB_USERCOPY_SETDATA));
+ 
+ 	} else if (F_ISSET(dbt, DB_DBT_MALLOC))
+--- db-4.6.21/libdb_java/db_java_wrap.c	2007-09-27 08:32:06.000000000 -0700
++++ db-4.6.21-patched/libdb_java/db_java_wrap.c	2007-10-11 16:52:46.000000000 -0700
+@@ -1434,8 +1434,10 @@
+ 		    ldbt->jarr, NULL)) == NULL)
+ 			return (EINVAL); /* an exception will be pending */
+ 		dbt->data = (u_int8_t *)dbt->data + ldbt->offset;
+-	} else
++	} else {
+ 		F_SET(dbt, DB_DBT_USERCOPY);
++		dbt->usercopy = __dbj_dbt_memcopy;
++        }
+ 	dbt->app_data = ldbt;
+ 
+ 	return (0);
+@@ -2347,8 +2349,6 @@
+ SWIGINTERN struct Db *new_Db(DB_ENV *dbenv,u_int32_t flags){
+ 		DB *self = NULL;
+ 		errno = db_create(&self, dbenv, flags);
+-		if (errno == 0 && dbenv == NULL)
+-			self->dbenv->dbt_usercopy = __dbj_dbt_memcopy;
+ 		return self;
+ 	}
+ SWIGINTERN db_ret_t Db_associate(struct Db *self,DB_TXN *txnid,DB *secondary,int (*callback)(DB *,DBT const *,DBT const *,DBT *),u_int32_t flags){
+@@ -2648,8 +2648,6 @@
+ SWIGINTERN struct DbEnv *new_DbEnv(u_int32_t flags){
+ 		DB_ENV *self = NULL;
+ 		errno = db_env_create(&self, flags);
+-		if (errno == 0)
+-			self->dbt_usercopy = __dbj_dbt_memcopy;
+ 		return self;
+ 	}
+ SWIGINTERN db_ret_t DbEnv_close(struct DbEnv *self,u_int32_t flags){
+--- db-4.6.21/libdb_java/db.i	2007-06-28 07:23:38.000000000 -0700
++++ db-4.6.21-patched/libdb_java/db.i	2007-10-11 16:59:50.000000000 -0700
+@@ -95,8 +95,6 @@
+ 	Db(DB_ENV *dbenv, u_int32_t flags) {
+ 		DB *self = NULL;
+ 		errno = db_create(&self, dbenv, flags);
+-		if (errno == 0 && dbenv == NULL)
+-			self->dbenv->dbt_usercopy = __dbj_dbt_memcopy;
+ 		return self;
+ 	}
+ 
+@@ -582,8 +580,6 @@
+ 	DbEnv(u_int32_t flags) {
+ 		DB_ENV *self = NULL;
+ 		errno = db_env_create(&self, flags);
+-		if (errno == 0)
+-			self->dbt_usercopy = __dbj_dbt_memcopy;
+ 		return self;
+ 	}
+ 

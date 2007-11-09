@@ -1,7 +1,7 @@
 
-RELVER=0.7-$(BRANCH_REV_PREFIX)27
+RELVER=0.7-$(BRANCH_REV_PREFIX)28
 CHANDLERDB=$(INTERNAL)/chandlerdb
-DB_VER=4.5
+DB_VER=4.6
 SRC=$(CHANDLERDB)
 BUILD=build_$(SNAP)
 TARBALL=chandlerdb-$(SNAP)-$(RELVER).tar.gz
@@ -21,10 +21,7 @@ _chandlerbin=$(CHANDLERBIN)
 endif
 
 build:
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
-        PREFIX=$(_prefix) \
-        DB_VER=$(DB_VER) \
-        VERSION=$(RELVER) \
+	PREFIX=$(_prefix) DB_VER=$(DB_VER) VERSION=$(RELVER) \
         $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 

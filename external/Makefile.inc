@@ -59,47 +59,95 @@ endif
 PYTHON_VER=2.5
 
 ifeq ($(OS),Cygwin)
-PYTHON_BINDIR:=bin
-PYTHON:=$(PREFIX)/$(PYTHON_BINDIR)/$(PYTHON).exe
-SITE=bin/Lib/site-packages
-PLATFORM=windows
-SWIG=$(PREFIX)/bin/swig/swig.exe
-UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
-READLINE_WIN=readline
-OPENSSL=openssl
-OPENJDK=openjdk
-else
+    PYTHON_BINDIR:=bin
+    PYTHON:=$(PREFIX)/$(PYTHON_BINDIR)/$(PYTHON).exe
+    SITE=bin/Lib/site-packages
+    PLATFORM=windows
+    SWIG=$(PREFIX)/bin/swig/swig.exe
+    UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
+    READLINE_BUILD=readline
+    OPENSSL_BUILD=openssl
+    OPENJDK_BUILD=openjdk
+    PYTHON_BUILD=python
+    SETUPTOOLS_BUILD=setuptools
+    ICU_BUILD=icu
+    DOCUTILS_BUILD=docutils
+endif
+
 ifeq ($(OS),Darwin)
-FRAMEWORK=Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
-ifeq ($(MACOSX_DEPLOYMENT_TARGET),)
-ifeq ($(ARCH),ppc)
-MACOSX_DEPLOYMENT_TARGET=10.3
-else
-MACOSX_DEPLOYMENT_TARGET=10.4
+    PLATFORM=macosx
+    SWIG=$(PREFIX)/bin/swig
+    ifeq ($(ARCH),i386)
+        UPLOAD=builder@builds.osafoundation.org:/www/docs/external/maciosx
+    else
+        UPLOAD=builder@builds.osafoundation.org:/www/docs/external/macosx
+    endif
+    ifeq ($(OS_MAJOR_VER),9)
+        MACOSX_DEPLOYMENT_TARGET=10.5
+        FRAMEWORK=/System/Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
+        SITE=site-packages
+        PYTHON_BINDIR:=$(FRAMEWORK)/bin
+        PYTHON:=PYTHONPATH=$(BUILD_ROOT)/$(SNAP)/$(SITE) $(PYTHON_BINDIR)/python
+        UPLOAD:=$(UPLOAD)/10.5
+    else
+        ifeq ($(MACOSX_DEPLOYMENT_TARGET),)
+            ifeq ($(ARCH),ppc)
+                MACOSX_DEPLOYMENT_TARGET=10.3
+            else
+                MACOSX_DEPLOYMENT_TARGET=10.4
+            endif
+        endif
+        FRAMEWORK=Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
+        SITE=$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
+        PYTHON_BINDIR:=$(FRAMEWORK)/bin
+        PYTHON:=$(PREFIX)/$(PYTHON_BINDIR)/$(PYTHON)
+    endif
+    PYTHON:=MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON)
+    OPENSSL_BUILD=openssl
+    OPENJDK_BUILD=
+    ifeq ($(OS_MAJOR_VER),9)
+        READLINE_BUILD=
+        PYTHON_BUILD=
+        SETUPTOOLS_BUILD=
+    else
+        READLINE_BUILD=readline
+        PYTHON_BUILD=python
+        SETUPTOOLS_BUILD=setuptools
+    endif
+    ICU_BUILD=icu
+    DOCUTILS_BUILD=docutils
 endif
-endif
-READLINE_OSX=readline
-OPENSSL=openssl
-PYTHON_BINDIR:=$(FRAMEWORK)/bin
-PYTHON:=$(PREFIX)/$(PYTHON_BINDIR)/$(PYTHON)
-SITE=$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
-PLATFORM=macosx
-SWIG=$(PREFIX)/bin/swig
-ifeq ($(ARCH),i386)
-UPLOAD=builder@builds.osafoundation.org:/www/docs/external/maciosx
-else
-UPLOAD=builder@builds.osafoundation.org:/www/docs/external/macosx
-endif
-else
-OPENJDK=openjdk
-OPENSSL=openssl
-PYTHON_BINDIR:=bin
-PYTHON:=$(PREFIX)/$(PYTHON_BINDIR)/$(PYTHON)
-SITE=lib/python$(PYTHON_VER)/site-packages
-PLATFORM=linux
-SWIG=$(PREFIX)/bin/swig
-UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
-endif
+
+ifeq ($(OS),Linux)
+    PLATFORM=linux
+    DISTRIB_CODENAME=$(subst DISTRIB_CODENAME=,,$(shell cat /etc/lsb-release | grep DISTRIB_CODENAME))
+    SWIG=$(PREFIX)/bin/swig
+    UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
+    ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy),)
+        SITE=site-packages
+        PYTHON_BINDIR:=/usr/bin
+        PYTHON:=PYTHONPATH=$(BUILD_ROOT)/$(SNAP)/$(SITE) $(PYTHON_BINDIR)/python
+        UPLOAD:=$(UPLOAD)/$(DISTRIB_CODENAME)
+        ifeq ($(DISTRIB_CODENAME),feisty)
+            OPENSSL_BUILD=openssl
+        else
+            OPENSSL_BUILD=
+        endif
+        PYTHON_BUILD=
+        ICU_BUILD=
+        DOCUTILS_BUILD=
+    else
+        PYTHON_BINDIR:=bin
+        PYTHON:=$(PREFIX)/$(PYTHON_BINDIR)/$(PYTHON)
+        SITE=lib/python$(PYTHON_VER)/site-packages
+        OPENSSL_BUILD=openssl
+        PYTHON_BUILD=python
+        ICU_BUILD=icu
+        DOCUTILS_BUILD=docutils
+    endif
+    READLINE_BUILD=
+    OPENJDK_BUILD=openjdk
+    SETUPTOOLS_BUILD=setuptools
 endif
 
 ifeq ($(CHANDLERHOME),)
@@ -139,6 +187,7 @@ default: all
 
 env::
 	@echo Operating system is $(OS)
+	@echo UPLOAD is $(UPLOAD)
 ifndef BUILD_ROOT
 	@echo BUILD_ROOT is not set && false
 else
@@ -212,6 +261,8 @@ _realclean::
 	    echo SRC is not set; false; \
 	elif [ "$(SRC)" = "/" ]; then \
 	    echo SRC is set to $(SRC); false; \
+	elif [ "$(SRC)" = "none" ]; then \
+	    true; \
 	else \
 	    rm -f $(SRC)/../*-release-* $(SRC)/../*-debug-* $(SRC)/../*-expanded; \
 	    rm -rf $(SRC)*;  \

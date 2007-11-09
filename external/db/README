@@ -13,6 +13,8 @@ Upgrading db build
           instead of silent success and really hard to debug bugs later
    - change the Berkeley_DB.sln project to not build db_java and the ex_*
      projects, they're not needed and slow down the build
+   - change the Berkeley_DB.sln project to not build the db_tcl and db_test
+     projects, they're not needed and slow down the build
    - copy these project files into persistence/db/win32/$(DB_VER)
    - make
 

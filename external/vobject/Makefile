@@ -32,29 +32,24 @@ apply: patches-$(VERSION)
 
 ifeq ($(OS),Cygwin)
 build: expand apply
-	cd $(SRC); \
-    MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
-        build --build-base=$(BUILD) $(DIST_OPT) \
-        install_lib --force --install-dir=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/$(SITE)`
+	cd $(SRC); $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+                                      install_lib --force --install-dir=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/$(SITE)`
 else
 build: expand apply
-	cd $(SRC); \
-    MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
-        build --build-base=$(BUILD) $(DIST_OPT) \
-        install_lib --force --install-dir=$(BUILD_ROOT)/$(SNAP)/$(SITE)
+	cd $(SRC); $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+                                      install_lib --force --install-dir=$(BUILD_ROOT)/$(SNAP)/$(SITE)
 endif
 
 binaries: strip
 	tar -C $(BUILD_ROOT) -cvzf $(VOBJECT)/$(TARBALL) \
-        --exclude '*.py?' \
+            --exclude '*.py?' \
         $(MANIFEST)
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
 test:
-	cd $(SRC); \
-    MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) tests/tests.py -v
+	cd $(SRC); $(PYTHON) tests/tests.py -v
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

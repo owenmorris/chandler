@@ -13,16 +13,28 @@ fi
 export CHANDLERHOME
 export CHANDLERBIN
 
-export PYTHONPATH="$CHANDLERHOME:$CHANDLERHOME/parcels"
-export LD_LIBRARY_PATH="$CHANDLERBIN"/debug/lib:"$CHANDLERBIN"/debug/db/lib:"$CHANDLERBIN"/debug/icu/lib:"$CHANDLERBIN"/debug/j2re-image/lib/i386:"$CHANDLERBIN"/debug/j2re-image/lib/i386/client
 export LC_PATH="$CHANDLERBIN"/debug/share/locale
 unset PYTHONHOME
 
-if [ "$PARCELPATH" != "" ]
-then
+if [ -d "$CHANDLERBIN/debug/site-packages" ]; then
+    export PYTHONPATH="$CHANDLERBIN"/debug/site-packages:"$CHANDLERHOME":"$CHANDLERHOME"/parcels
+    export PYTHONBIN=/usr/bin/python
+else
+    export PYTHONPATH="$CHANDLERHOME":"$CHANDLERHOME"/parcels
+    export PYTHONBIN="$CHANDLERBIN"/debug/bin/python_d
+fi
+
+export LD_LIBRARY_PATH="$CHANDLERBIN"/debug/lib:"$CHANDLERBIN"/debug/db/lib:"$CHANDLERBIN"/debug/j2re-image/lib/i386:"$CHANDLERBIN"/debug/j2re-image/lib/i386/client
+
+if [ -d "$CHANDLERBIN/debug/icu" ]; then
+    export LD_LIBRARY_PATH="$CHANDLERBIN"/debug/icu/lib:"$LD_LIBRARY_PATH"
+fi
+
+if [ "$PARCELPATH" != "" ]; then
     export PYTHONPATH="$PYTHONPATH":"$PARCELPATH"
 fi
 
 cd $CHANDLERHOME
 
-"$CHANDLERBIN"/debug/bin/python_d Chandler.py "$@"
+"$PYTHONBIN" Chandler.py "$@"
+

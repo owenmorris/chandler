@@ -22,11 +22,13 @@ build: expand apply
           install_lib --force
 
 else
-WITH_OPENSSL=--openssl=$(BUILD_ROOT)/$(SNAP)
+
+ifneq ($(OPENSSL_BUILD),)
+    WITH_OPENSSL=--openssl=$(BUILD_ROOT)/$(SNAP)
+endif
 
 build: expand apply
-	cd $(SRC); \
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
+	cd $(SRC); $(PYTHON) setup.py \
           build_ext --swig=$(SWIG) \
                     --library-dirs=$(BUILD_ROOT)/$(SNAP)/lib \
                     --include-dirs=$(BUILD_ROOT)/$(SNAP)/include \

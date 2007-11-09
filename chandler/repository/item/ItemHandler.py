@@ -466,7 +466,7 @@ class ItemHandler(ValueHandler):
         refList = None
         otherName = self.getOtherName(name, attribute, attrs)
 
-        if 'uuid' in attrs:
+        if attrs.has_key('uuid'):  # some xml parsers don't like 'in' here
             uuid = UUID(attrs['uuid'])
         else:
             uuid = None

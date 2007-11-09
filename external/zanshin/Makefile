@@ -11,16 +11,12 @@ include $(BUILD_ROOT)/Makefile.inc
 
 ifeq ($(OS),Cygwin)
 build: expand
-	cd $(SRC); \
-      MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
-          build --build-base=$(BUILD) $(DIST_OPT) \
-          install_lib --force --install-dir=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/$(SITE)`
+	cd $(SRC); $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+                                      install_lib --force --install-dir=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/$(SITE)`
 else
 build: expand
-	cd $(SRC); \
-      MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
-          build --build-base=$(BUILD) $(DIST_OPT) \
-          install_lib --force --install-dir=$(BUILD_ROOT)/$(SNAP)/$(SITE)
+	cd $(SRC); $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+                                      install_lib --force --install-dir=$(BUILD_ROOT)/$(SNAP)/$(SITE)
 endif
 
 zanshin-$(VERSION).tar.gz:
@@ -43,8 +39,7 @@ install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
 test:
-	cd $(SRC); \
-    MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py test
+	cd $(SRC); $(PYTHON) setup.py test
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

@@ -13,16 +13,28 @@ fi
 export CHANDLERHOME
 export CHANDLERBIN
 
-export PYTHONPATH="$CHANDLERHOME:$CHANDLERHOME/parcels"
-export LD_LIBRARY_PATH="$CHANDLERBIN"/release/lib:"$CHANDLERBIN"/release/db/lib:"$CHANDLERBIN"/release/icu/lib:"$CHANDLERBIN"/release/j2re-image/lib/i386:"$CHANDLERBIN"/release/j2re-image/lib/i386/client
 export LC_PATH="$CHANDLERBIN"/release/share/locale
 unset PYTHONHOME
 
-if [ "$PARCELPATH" != "" ]
-then
+if [ -d "$CHANDLERBIN/release/site-packages" ]; then
+    export PYTHONPATH="$CHANDLERBIN"/release/site-packages:"$CHANDLERHOME":"$CHANDLERHOME"/parcels
+    export PYTHONBIN=/usr/bin/python
+else
+    export PYTHONPATH="$CHANDLERHOME":"$CHANDLERHOME"/parcels
+    export PYTHONBIN="$CHANDLERBIN"/release/bin/python
+fi
+ 
+export LD_LIBRARY_PATH="$CHANDLERBIN"/release/lib:"$CHANDLERBIN"/release/db/lib:"$CHANDLERBIN"/release/j2re-image/lib/i386:"$CHANDLERBIN"/release/j2re-image/lib/i386/client
+ 
+if [ -d "$CHANDLERBIN/release/icu" ]; then
+    export LD_LIBRARY_PATH="$CHANDLERBIN"/release/icu/lib:"$LD_LIBRARY_PATH"
+fi
+
+if [ "$PARCELPATH" != "" ]; then
     export PYTHONPATH="$PYTHONPATH":"$PARCELPATH"
 fi
 
 cd $CHANDLERHOME
 
-"$CHANDLERBIN"/release/bin/python -O Chandler.py "$@"
+"$PYTHONBIN" -O Chandler.py "$@"
+

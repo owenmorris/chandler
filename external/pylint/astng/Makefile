@@ -11,10 +11,8 @@ BUILD=build_$(SNAP)
 
 
 build: expand
-	cd $(SRC); \
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build \
-        --build-base=$(BUILD) $(DIST_OPT) \
-        install --force
+	cd $(SRC); $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+                                      install --force
 	rm -fr $(BUILD_ROOT)/$(SNAP)/$(SITE)/logilab/astng/test
 
 logilab-astng-$(VERSION).tar.gz:

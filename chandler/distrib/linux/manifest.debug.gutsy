@@ -1,0 +1,81 @@
+# manifest.linux.debug
+#
+# Variables maintain their value until changed, so be aware of the order of
+# things...
+#
+# src: set this to be relative to buildenv['root']
+# dest: set this to be relative to buildenv['distdir']
+# recursive: set to yes or no
+# glob: set to a comma-separated list of glob patterns
+
+exclude=.svn,*.pyo,*.pyc
+
+# Grab the WX libs
+src=chandler/debug
+recursive=no
+dest=debug
+glob=libwx*
+lib
+
+# Grab the locale files
+src=chandler/debug
+dest=debug
+glob=*
+share
+
+# Recursively grab our custom site-packages
+src=chandler/debug
+dest=debug
+recursive=yes
+glob=*
+site-packages
+
+# Grab the DB libraries
+dest=debug/db/lib
+src=chandler/debug/db/lib
+libdb-4.6.so
+dest=debug/db
+src=chandler/debug/db
+bin
+
+# grab openjdk
+src=chandler/debug
+dest=debug
+glob=*
+j2re-image
+
+# Grab Chandler.py, and others
+src=chandler
+dest=
+Chandler.py
+version.py
+LICENSE.txt
+NOTICE.txt
+WingLinuxDebug.wpr
+
+# Grab the rest of Chandler from the application/ and parcel/ folders
+recursive=yes
+glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html,*.pack,*.pem,*.ics,*.js,*.css,*.sh,*.conf
+application
+parcels
+util
+tools
+
+glob=*
+repository
+i18n
+Chandler.egg-info
+
+# Grab the linux README
+src=chandler/distrib/linux
+README.linux.txt
+
+# Grab the launcher programs
+src=chandler
+dest=
+chandlerDebug
+# and the launch scripts
+src=chandler/debug
+dest=debug
+RunPython
+

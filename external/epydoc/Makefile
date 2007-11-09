@@ -16,10 +16,8 @@ apply: patches-$(VERSION)
         fi
 
 build: expand apply
-	cd $(SRC); \
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build \
-        --build-base=$(BUILD) $(DIST_OPT) \
-        install --force
+	cd $(SRC); $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+                                      install --force
 
 epydoc-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/epydoc-$(VERSION).tar.gz

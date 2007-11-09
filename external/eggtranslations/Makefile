@@ -11,10 +11,8 @@ SRC=eggtranslations-$(RELVER)
 include $(BUILD_ROOT)/Makefile.inc
 
 build: expand
-	cd $(SRC); \
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
-            $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
-                               install --force
+	cd $(SRC); $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+                                      install --force
 
 eggtranslations-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/$@

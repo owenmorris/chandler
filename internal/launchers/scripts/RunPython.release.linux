@@ -1,43 +1,40 @@
 #!/bin/bash
 
-if [ "$CHANDLERHOME" = "" ]
-then
+if [ "$CHANDLERHOME" = "" ]; then
     export CHANDLERHOME=$(dirname "$(dirname "${0}")")
 fi
 
-if [ "$CHANDLERBIN" = "" ]
-then
+if [ "$CHANDLERBIN" = "" ]; then
     export CHANDLERBIN="$CHANDLERHOME"
 fi
 
-export PYTHONBIN="$CHANDLERBIN"/release/bin/python
+export PYTHONPATH="$CHANDLERHOME:$CHANDLERHOME/parcels"
 
-if [ -f "$PYTHONBIN" ]
-then
-    echo "Using $PYTHONBIN $@"
+if [ -d "$CHANDLERBIN/release/site-packages" ]; then
+    export PYTHONPATH="$CHANDLERBIN"/release/site-packages:"$PYTHONPATH"
+    export PYTHONBIN=/usr/bin/python
 else
-    echo "Error:  Please unset the CHANDLERBIN environment variable or "
-    echo "        set it to point to the directory that contains the debug "
-    echo "        subdirectory, then rerun RunPython"
-    exit 1
+    export PYTHONBIN="$CHANDLERBIN"/release/bin/python
 fi
 
-export PYTHONPATH="$CHANDLERHOME:$CHANDLERHOME/parcels"
-export LD_LIBRARY_PATH="$CHANDLERBIN"/release/lib:"$CHANDLERBIN"/release/db/lib:"$CHANDLERBIN"/release/icu/lib:"$CHANDLERBIN"/release/j2re-image/lib/i386:"$CHANDLERBIN"/release/j2re-image/lib/i386/client
+export LD_LIBRARY_PATH="$CHANDLERBIN"/release/lib:"$CHANDLERBIN"/release/db/lib:"$CHANDLERBIN"/release/j2re-image/lib/i386:"$CHANDLERBIN"/release/j2re-image/lib/i386/client
+
+if [ -d "$CHANDLERBIN/release/icu" ]; then
+    export LD_LIBRARY_PATH="$CHANDLERBIN"/release/icu/lib:$LD_LIBRARY_PATH
+fi
+
 export LC_PATH="$CHANDLERBIN"/release/share/locale
 unset PYTHONHOME
 
-if [ "$PARCELPATH" != "" ]
-then
+if [ "$PARCELPATH" != "" ]; then
     export PYTHONPATH="$PYTHONPATH":"$PARCELPATH"
 fi
 
-if [ "$GDB" != "" ]
-then
+if [ "$GDB" != "" ]; then
     exec gdb --args "$PYTHONBIN" $@
-elif [ "$PDB" != "" ]
-then
+elif [ "$PDB" != "" ]; then
     exec "$PYTHONBIN" -m pdb ${@/${OPTIMIZE-"-O"}/}
 else
     exec "$PYTHONBIN" "$@"
 fi
+

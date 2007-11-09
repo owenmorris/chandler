@@ -14,16 +14,16 @@
 
 include Makefile.inc
 
-BUILD_ONLY_SYSTEMS=swig
+BUILD_ONLY_SYSTEMS=config \
+                   swig
 
 SYSTEMS=db \
-        icu \
-        $(OPENSSL) \
-        $(READLINE_OSX) \
-        $(READLINE_WIN) \
-        $(OPENJDK) \
-        python \
-        setuptools \
+        $(ICU_BUILD) \
+        $(OPENSSL_BUILD) \
+        $(OPENJDK_BUILD) \
+        $(READLINE_BUILD) \
+        $(PYTHON_BUILD) \
+        $(SETUPTOOLS_BUILD) \
         epydoc \
         PyLucene \
         PyICU \
@@ -38,7 +38,7 @@ SYSTEMS=db \
         pylint \
         parsedatetime \
         configobj \
-        docutils \
+        $(DOCUTILS_BUILD) \
         wx
 
 SYS_TESTS=dateutil \

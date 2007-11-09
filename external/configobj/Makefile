@@ -10,9 +10,8 @@ include $(BUILD_ROOT)/Makefile.inc
 BUILD=build_$(SNAP)
 
 build: expand
-	cd $(SRC); MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
-            $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
-                               install --force	
+	cd $(SRC); $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+                                      install --force	
 
 sources: configobj-$(VERSION).tar.bz2
 

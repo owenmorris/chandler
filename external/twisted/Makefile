@@ -16,10 +16,8 @@ apply: patches-$(VERSION)
         fi
 
 build: expand apply
-	cd $(SRC); \
-      MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
-          build --build-base=$(BUILD) $(DIST_OPT) \
-          install --force
+	cd $(SRC); $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+                                      install --force
 
 twisted-$(VERSION).tar.bz2:
 	$(CURL) http://builds.osafoundation.org/external/twisted-$(VERSION).tar.bz2
@@ -41,8 +39,7 @@ install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
 test:
-	cd $(SRC); \
-    MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py test
+	cd $(SRC); $(PYTHON) setup.py test
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

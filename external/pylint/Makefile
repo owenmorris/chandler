@@ -15,10 +15,8 @@ build-astng:
 	$(MAKE) -C astng DEBUG=$(DEBUG) all
 
 build: build-common build-astng expand
-	cd $(SRC); \
-      MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
-          build --build-base=$(BUILD) $(DIST_OPT) \
-          install --force
+	cd $(SRC); $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+                                      install --force
 
 pylint-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/pylint-$(VERSION).tar.gz

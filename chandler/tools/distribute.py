@@ -39,7 +39,7 @@ def parseOptions():
         'tarball':   ('',   '--tarball', 'b', False, 'only create the tarball (or zip) distribution'),
         'dmg':       ('',   '--dmg',     'b', False, 'only create the OS X .dmg bundle'),
         'deb':       ('',   '--deb',     'b', False, 'only create the debian package'),
-        'rpm':       ('',   '--rpm',     'b', False, 'only create the rpm package'),
+        'rpm':       ('',   '--rpm',     'b', False, 'create the rpm package'),
         'exe':       ('',   '--exe',     'b', False, 'only create the windows .exe installer'),
         'tag':       ('-t', '--tag',     's', None,  'continuous build name/tag to add to version information')
         }

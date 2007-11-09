@@ -18,9 +18,9 @@ ifeq ($(WXSVN),)
         fi
 else
 	if [ ! -d wxPython-r$(SVNVER) ]; then \
-            pushd $(WXSVN); svn update -r $(SVNVER); popd; \
+            cd $(WXSVN); svn update -r $(SVNVER); cd $(WX); \
             mkdir wxPython-r$(SVNVER) ; \
-            tar -C $(WXSVN) -cf - . --exclude .svn | \
+            tar -C $(WXSVN) -cf - --exclude .svn . | \
             tar -C wxPython-r$(SVNVER) -xf - ; \
         fi
 endif

@@ -34,18 +34,18 @@ class DbLock(PythonLock):
 
     def __init__(self, name):
         super(DbLock, self).__init__()
-        self.name = name
-        self.locked = False
+        self._name = name
+        self._locked = False
         
     def isLocked(self):
-        return self.locked
+        return self._locked
 
     def obtain(self, timeout=None):
-        self.locked = True
+        self._locked = True
         return True
 
     def release(self):
-        self.locked = False
+        self._locked = False
 
 class DbIndexOutput(PythonIndexOutput):
 

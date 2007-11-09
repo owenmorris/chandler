@@ -9,11 +9,17 @@ SRC=$(SETUPTOOLS)/setuptools-$(VERSION)
 
 include $(BUILD_ROOT)/Makefile.inc
 
+MANIFEST=$(SNAP)/$(SITE)/$(EGG) \
+         $(SNAP)/$(SITE)/setuptools.pth
+
+ifeq ($(PYTHON_BUILD),)
+    MANIFEST:=$(MANIFEST) $(SNAP)/$(SITE)/site.py
+endif
+
+
 build: expand
-	cd $(SRC); \
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
-            $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
-                               install --force
+	cd $(SRC); $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+                                      install --force
 
 setuptools-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/$@
@@ -28,9 +34,7 @@ expand: setuptools-$(VERSION)-expanded
 
 binaries: $(BUILD_ROOT)/$(SNAP)/$(SITE)/$(EGG)
 	echo "./$(EGG)" > $(BUILD_ROOT)/$(SNAP)/$(SITE)/setuptools.pth
-	tar -C $(BUILD_ROOT) -cvzf $(SETUPTOOLS)/$(TARBALL) \
-             $(SNAP)/$(SITE)/$(EGG) \
-             $(SNAP)/$(SITE)/setuptools.pth
+	tar -C $(BUILD_ROOT) -cvzf $(SETUPTOOLS)/$(TARBALL) $(MANIFEST)
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)

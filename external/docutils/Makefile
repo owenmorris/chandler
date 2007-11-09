@@ -9,20 +9,23 @@ include $(BUILD_ROOT)/Makefile.inc
 
 BUILD=build_$(SNAP)
 
-ifeq ($(OS),Cygwin)
-    SCRIPTS=$(SNAP)/bin/Scripts
+ifeq ($(PYTHON_BUILD),)
+    SCRIPTS=$(SNAP)/bin
 else
     ifeq ($(OS),Darwin)
         SCRIPTS=$(SNAP)/$(FRAMEWORK)/bin
-    else
+    endif
+    ifeq ($(OS),Cygwin)
+        SCRIPTS=$(SNAP)/bin/Scripts
+    endif
+    ifeq ($(OS),Linux)
         SCRIPTS=$(SNAP)/bin
     endif
 endif
 
 build: expand
-	cd $(SRC); MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
-            $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
-                               install --force	
+	cd $(SRC); $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+                                      install --force	
 
 sources: docutils-$(VERSION).tar.gz
 

@@ -1,0 +1,126 @@
+# manifest.osx
+#
+# Variables maintain their value until changed, so be aware of the order of
+# things...
+# 
+# src: set this to be relative to buildenv['root']
+# dest: set this to be relative to buildenv['distdir']
+# recursive: set to yes or no
+# glob: set to a comma-separated list of glob patterns
+
+exclude=.svn,*.pyo,*.pyc
+
+## Grab the python modules 
+#src=chandler/debug/Library/Frameworks/Python.framework/Versions/2.5/lib
+#dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.5/lib
+#glob=*
+#recursive=yes
+#python2.5
+
+## Grab python scripts
+#src=chandler/debug/Library/Frameworks/Python.framework/Versions/2.5
+#dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.5
+#glob=rst*
+#bin
+
+## Grab python Framework file
+#src=chandler/debug/Library/Frameworks/Python.framework/Versions/2.5
+#dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.5
+#glob=*
+#Python
+
+# Grab wx and db libs
+src=chandler/debug
+dest=Contents/Resources
+glob=*.dylib,*.r,*.rsrc,*.jnilib,*.la
+lib
+src=chandler/debug/db
+glob=*.la,*.dylib,db_*
+bin
+lib
+
+# Grab icu libs
+src=chandler/debug/icu
+dest=Contents/Resources
+glob=libicu*
+lib
+
+# Grab the locale files
+src=chandler/debug
+dest=Contents/Resources
+glob=*
+share
+
+# create symlink of share dir
+dest=Contents/Resources/debug
+link=../
+share
+
+# create symlink of lib dir - this allows the app to be called from the command line
+dest=Contents/Resources/debug
+link=../
+lib
+
+# create symlink of Library dir - this allows the app to be called from the command line
+dest=Contents/Resources/debug
+link=../
+Library
+
+# Grab Chandler.py and others
+src=chandler
+dest=Contents/Resources
+Chandler.py
+version.py
+LICENSE.txt
+NOTICE.txt
+WingMacDebug.wpr
+
+# Grab the rest of Chandler from the application/ and parcel/ folders
+recursive=yes
+glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html,*.pack,*.pem,*.ics,*.js,*.css,*.sh,*.conf
+application
+parcels
+util
+tools
+
+glob=*
+repository
+i18n
+Chandler.egg-info
+
+# Grab the osx README
+src=chandler/distrib/osx
+README.osx.txt
+dest=Contents/Resources
+
+# Grab the bundle files
+src=chandler/distrib/osx/bundle
+dest=Contents
+Info.plist
+src=chandler/distrib/osx/bundle
+dest=Contents/Resources
+Chandler.icns
+
+src=chandler/distrib/osx/bundle/debug
+dest=Contents/MacOS
+ChandlerApp
+
+src=chandler/debug
+dest=Contents/Resources/debug
+RunPython
+
+#src=chandler/debug/Library/Frameworks/Python.framework
+#dest=Contents/Resources/Library/Frameworks/Python.framework
+#recursive=yes
+#Versions
+
+## create symlink of the Headers dir
+#dest=Contents/Resources/debug/Library/Frameworks/Python.framework
+#link=Versions/Current/
+#Headers
+
+## create symlink of the Resources dir
+#dest=Contents/Resources/debug/Library/Frameworks/Python.framework
+#link=Versions/Current/
+#Resources
+

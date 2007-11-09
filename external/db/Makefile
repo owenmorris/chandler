@@ -1,6 +1,6 @@
 
-VERSION=4.5.20
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)3
+VERSION=4.6.21
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 DB=$(BUILD_ROOT)/db
 SRC=$(DB)/db-$(VERSION)
 TARBALL=db-$(SNAP)-$(RELVER).tar.gz
@@ -19,7 +19,7 @@ build: expand apply compile installext
 
 compile: $(SRC)/$(BUILD)/Berkeley_DB.sln
 	cd $(SRC)/$(BUILD); \
-        devenv.com Berkeley_DB.sln /project build_all /build $(Snap)
+        devenv.com Berkeley_DB.sln /project build_all /build "$(Snap) x86"
 
 installext:
 	mkdir -p $(PREFIX)/bin/db $(PREFIX)/include/db $(PREFIX)/lib
@@ -80,7 +80,6 @@ binaries: strip
 endif
 
 apply: expand patches-$(VERSION)
-	cd $(SRC); patch -Np0 < ../$(VERSION)-mvcc-thaw-crash.diff; echo ok
 	patch -Nup0 < patches-$(VERSION); echo ok
 
 db-$(VERSION).tar.gz:

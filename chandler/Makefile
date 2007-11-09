@@ -7,9 +7,11 @@
 
 default: install
 
-OS         = $(shell uname)
-PYTHON_VER = 2.5
-BP         = 
+OS           = $(shell uname)
+OS_VER       = $(shell uname -r)
+OS_MAJOR_VER = $(firstword $(subst ., ,$(OS_VER)))
+PYTHON_VER   = 2.5
+BP           =
 
 BUILD_PLUGINS = Chandler-HelloWorldPlugin \
                 Chandler-AmazonPlugin \
@@ -30,60 +32,101 @@ ifeq ($(OS),Darwin)
     else
         PLATFORM = maciosx
     endif
+    ifeq ($(OS_MAJOR_VER),9)
+        PLATFORM := $(PLATFORM)/10.5
+    endif
 endif
 
 ifeq ($(OS),Linux)
-    PLATFORM = linux
+    PLATFORM         = linux
+    DISTRIB_CODENAME = $(subst DISTRIB_CODENAME=,,$(shell cat /etc/lsb-release | grep DISTRIB_CODENAME))
+
+    ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy),)
+        PLATFORM := $(PLATFORM)/$(DISTRIB_CODENAME)
+    endif
 endif
 
 ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
-    OS = Cygwin
+    OS       = Cygwin
+    PLATFORM = windows
     PLATFORM = windows
 endif
 
 ifeq ($(findstring WINNT,$(OS)),WINNT)
-    OS = Cygwin
+    OS       = Cygwin
+    PLATFORM = windows
     PLATFORM = windows
 endif
 
 # When a version changes, the ARCHIVES lists below need to be updated.
 
-OPENSSL = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)2.tar.gz
+ifeq ($(OS),Linux)
+    READLINE   =
+    PYTHON     = $(CHANDLERARCHIVES)/python-$(SNAP)-2.5.1-$(BP)5.tar.gz
+    SETUPTOOLS = $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6-$(BP)1.tar.gz
+    ICU        = $(CHANDLERARCHIVES)/icu-$(SNAP)-3.6-$(BP)1.tar.gz
+    OPENJDK    = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b21-$(BP)2.tar.gz
+    OPENSSL    = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)2.tar.gz
+    DOCUTILS   = $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)1.tar.gz
 
-ifeq ($(PLATFORM),linux)
-    OPENJDK = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b21-$(BP)2.tar.gz
-    READLINE = 
+    ifeq ($(PLATFORM),linux/feisty)
+        PYTHON   =
+        ICU      =
+        DOCUTILS =
+    endif
+
+    ifeq ($(PLATFORM),linux/gutsy)
+        OPENSSL  =
+        PYTHON   =
+        ICU      =
+        DOCUTILS =
+    endif
 endif
 
-ifeq ($(PLATFORM),macosx)
-    OPENJDK = 
-    READLINE = $(CHANDLERARCHIVES)/readline-$(SNAP)-5.2-$(BP)1.tar.gz
+ifneq ($(findstring $(PLATFORM),macosx maciosx),)
+    PYTHON     = $(CHANDLERARCHIVES)/python-$(SNAP)-2.5.1-$(BP)5.tar.gz
+    SETUPTOOLS = $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6-$(BP)1.tar.gz
+    DOCUTILS   = $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)1.tar.gz
+    OPENSSL    = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)2.tar.gz
+    OPENJDK    =
+    READLINE   = $(CHANDLERARCHIVES)/readline-$(SNAP)-5.2-$(BP)1.tar.gz
+    ICU        = $(CHANDLERARCHIVES)/icu-$(SNAP)-3.6-$(BP)1.tar.gz
 endif
 
-ifeq ($(PLATFORM),maciosx)
-    OPENJDK = 
-    READLINE = $(CHANDLERARCHIVES)/readline-$(SNAP)-5.2-$(BP)1.tar.gz
+ifeq ($(findstring 10.5,$(PLATFORM)),10.5)
+    PYTHON     =
+    SETUPTOOLS =
+    DOCUTILS   = $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)1.tar.gz
+    OPENSSL    = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)2.tar.gz
+    OPENJDK    =
+    READLINE   =
+    ICU        = $(CHANDLERARCHIVES)/icu-$(SNAP)-3.6-$(BP)1.tar.gz
 endif
 
 ifeq ($(PLATFORM),windows)
-    OPENJDK = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b21-$(BP)2.tar.gz
-    READLINE = 
+    PYTHON     = $(CHANDLERARCHIVES)/python-$(SNAP)-2.5.1-$(BP)5.tar.gz
+    SETUPTOOLS = $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6-$(BP)1.tar.gz
+    DOCUTILS   = $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)1.tar.gz
+    OPENSSL    = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)2.tar.gz
+    OPENJDK    = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b21-$(BP)2.tar.gz
+    READLINE   =
+    ICU        = $(CHANDLERARCHIVES)/icu-$(SNAP)-3.6-$(BP)1.tar.gz
 endif
 
 ARCHIVES = \
-    $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)26.tar.gz \
-    $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.7-$(BP)27.tar.gz \
-    $(CHANDLERARCHIVES)/db-$(SNAP)-4.5.20-$(BP)3.tar.gz \
-    $(CHANDLERARCHIVES)/python-$(SNAP)-2.5.1-$(BP)5.tar.gz \
-    $(CHANDLERARCHIVES)/epydoc-$(SNAP)-3.0beta1-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/icu-$(SNAP)-3.6-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)28.tar.gz \
+    $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.7-$(BP)28.tar.gz \
+    $(CHANDLERARCHIVES)/db-$(SNAP)-4.6.21-$(BP)1.tar.gz \
+    $(READLINE) \
+    $(PYTHON) \
+    $(SETUPTOOLS) \
+    $(ICU) \
     $(OPENSSL) \
     $(OPENJDK) \
-    $(READLINE) \
     $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-0.18.2-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.17-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.6-81-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.2.0-1-354-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.2.0-1-359-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/twisted-$(SNAP)-r18795-$(BP)2.tar.gz \
     $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.6.1-r198-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)5.tar.gz \
@@ -94,10 +137,10 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.13.1-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.8.4-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/configobj-$(SNAP)-4.3.2-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)1.tar.gz \
+    $(DOCUTILS) \
+    $(CHANDLERARCHIVES)/epydoc-$(SNAP)-3.0beta1-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/eggtranslations-$(SNAP)-1.1-r10-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/zope.interface-$(SNAP)-3.3.0b2-r71371-$(BP)3.tar.gz \
-    $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6-$(BP)1.tar.gz
+    $(CHANDLERARCHIVES)/zope.interface-$(SNAP)-3.3.0b2-r71371-$(BP)3.tar.gz
 
 ifeq ($(DEBUG),1)
     SNAP         = debug
@@ -143,23 +186,33 @@ ifeq ($(CHANDLERARCHIVES),)
 endif
 
 ifeq ($(OS),Cygwin)
-    SITE       = $(SNAP)/bin/Lib/site-packages
     SCRIPTS    = $(C_BIN)/$(SNAP)/bin/Scripts/
     RUN_PYTHON = CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(C_BIN)/$(SNAP)/RunPython.bat
     SED_MODERN = -r
-else
-    ifeq ($(OS),Darwin)
-        FRAMEWORK  = Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
-        SITE       = $(SNAP)/$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
-        SCRIPTS    = $(C_BIN)/$(SNAP)/$(FRAMEWORK)/bin/
-        RUN_PYTHON = MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/RunPython
-        SED_MODERN = -E
+endif
+
+ifeq ($(OS),Darwin)
+    ifeq ($(PYTHON),)
+        SCRIPTS = $(SNAP)/bin/
     else
         SITE       = $(SNAP)/lib/python$(PYTHON_VER)/site-packages
         SCRIPTS    = $(C_BIN)/$(SNAP)/bin/
         RUN_PYTHON = CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/RunPython
         SED_MODERN = -r
     endif
+    ARCH       = $(shell arch)
+    RUN_PYTHON = MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/RunPython
+    SED_MODERN = -E
+endif
+
+ifeq ($(OS),Linux)
+    ifeq ($(PYTHON),)
+        SCRIPTS = $(SNAP)/bin/
+    else
+        SCRIPTS = $(C_BIN)/$(SNAP)/bin/
+    endif
+    RUN_PYTHON = CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/RunPython
+    SED_MODERN = -r
 endif
 
 # We download some pretty big files, which can clog your network. You can now
@@ -235,9 +288,7 @@ $(addprefix develop-u-, $(BUILD_LOCALES)):
 
 $(addprefix install-, $(BUILD_LOCALES)):
 	cd $(C_HOME)/localizations/$(subst install-,,$@); \
-     $(RUN_PYTHON) setup.py egg_info install
-          --script-dir='$(CHANDLERHOME)' \
-          --install-dir='$(CHANDLERHOME)'
+     $(RUN_PYTHON) setup.py egg_info
 
 chandler-locale-data:
 	$(RUN_PYTHON) setup.py egg_info

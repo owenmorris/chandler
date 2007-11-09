@@ -1062,7 +1062,7 @@ class wxApplication (wx.App):
         
         # Do not backup when running tests to save time; also prevents
         # the dialog from stopping tests
-        if Globals.options.catch == 'tests':
+        if Globals.options.catch in ('tests', 'never'):
             backup = False
         else:
             prefs = schema.ns("osaf.app",

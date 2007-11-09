@@ -1,0 +1,727 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="7.10"
+	Name="db_java"
+	SccProjectName=""
+	SccLocalPath="">
+	<Platforms>
+		<Platform
+			Name="Win32"/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="ASCII Debug x86|Win32"
+			OutputDirectory=".\Debug_ASCII"
+			IntermediateDirectory=".\Debug_ASCII/db_java"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories=".,.."
+				PreprocessorDefinitions="DB_CREATE_DLL;DIAGNOSTIC;CONFIG_TEST;WIN32;_DEBUG;_WINDOWS"
+				RuntimeLibrary="3"
+				PrecompiledHeaderFile=".\Debug_ASCII/db_java/db_java.pch"
+				AssemblerListingLocation=".\Debug_ASCII/db_java/"
+				ObjectFile=".\Debug_ASCII/db_java/"
+				ProgramDataBaseFileName=".\Debug_ASCII/db_java/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="1"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"
+				Description="Compiling java files using javac"
+				CommandLine="echo compiling Berkeley DB classes
+mkdir &quot;$(INTDIR)\classes&quot;
+javac -g -d &quot;$(INTDIR)\classes&quot; -classpath &quot;$(INTDIR)\classes&quot; ..\java\src\com\sleepycat\db\*.java ..\java\src\com\sleepycat\db\internal\*.java ..\java\src\com\sleepycat\bind\*.java ..\java\src\com\sleepycat\bind\serial\*.java ..\java\src\com\sleepycat\bind\tuple\*.java ..\java\src\com\sleepycat\collections\*.java ..\java\src\com\sleepycat\compat\*.java ..\java\src\com\sleepycat\util\*.java ..\java\src\com\sleepycat\util\keyrange\*.java
+echo compiling examples
+mkdir &quot;$(INTDIR)\classes.ex&quot;
+javac -g -d &quot;$(INTDIR)\classes.ex&quot; -classpath &quot;$(INTDIR)\classes;$(INTDIR)\classes.ex&quot; ..\examples_java\src\db\*.java ..\examples_java\src\db\GettingStarted\*.java ..\examples_java\src\db\repquote\*.java ..\examples_java\src\collections\access\*.java ..\examples_java\src\collections\hello\*.java ..\examples_java\src\collections\ship\basic\*.java ..\examples_java\src\collections\ship\entity\*.java ..\examples_java\src\collections\ship\tuple\*.java ..\examples_java\src\collections\ship\sentity\*.java ..\examples_java\src\collections\ship\marshal\*.java ..\examples_java\src\collections\ship\factory\*.java
+echo creating jar files
+jar cf &quot;$(OUTDIR)/db.jar&quot; -C &quot;$(INTDIR)\classes&quot; .
+jar cf &quot;$(OUTDIR)/dbexamples.jar&quot; -C &quot;$(INTDIR)\classes.ex&quot; .
+echo Java build finished
+"
+				Outputs="force_compilation.txt"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/FIXED:NO /export:__db_assert"
+				AdditionalDependencies="libdb46d.lib"
+				OutputFile="Debug_ASCII/libdb_java46d.dll"
+				LinkIncremental="2"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="$(OUTDIR)"
+				GenerateDebugInformation="TRUE"
+				SubSystem="2"
+				BaseAddress="0x13000000"
+				ImportLibrary=".\Debug_ASCII/libdb_java46d.lib"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Debug_ASCII/db_java.tlb"
+				HeaderFileName=""/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release AMD64|Win32"
+			OutputDirectory=".\Release_AMD64"
+			IntermediateDirectory=".\Release_AMD64/db_java"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalOptions="/EHsc /Wp64 "
+				Optimization="2"
+				InlineFunctionExpansion="2"
+				AdditionalIncludeDirectories=".,.."
+				PreprocessorDefinitions="UNICODE;DB_CREATE_DLL;WIN32;NDEBUG;_WINDOWS"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				PrecompiledHeaderFile=".\Release_AMD64/db_java/db_java.pch"
+				AssemblerListingLocation=".\Release_AMD64/db_java/"
+				ObjectFile=".\Release_AMD64/db_java/"
+				ProgramDataBaseFileName=".\Release_AMD64/db_java/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"
+				Description="Compiling java files using javac"
+				CommandLine="echo compiling Berkeley DB classes
+mkdir &quot;$(INTDIR)\classes&quot;
+javac -g -d &quot;$(INTDIR)\classes&quot; -classpath &quot;$(INTDIR)\classes&quot; ..\java\src\com\sleepycat\db\*.java ..\java\src\com\sleepycat\db\internal\*.java ..\java\src\com\sleepycat\bind\*.java ..\java\src\com\sleepycat\bind\serial\*.java ..\java\src\com\sleepycat\bind\tuple\*.java ..\java\src\com\sleepycat\collections\*.java ..\java\src\com\sleepycat\compat\*.java ..\java\src\com\sleepycat\util\*.java ..\java\src\com\sleepycat\util\keyrange\*.java
+echo compiling examples
+mkdir &quot;$(INTDIR)\classes.ex&quot;
+javac -g -d &quot;$(INTDIR)\classes.ex&quot; -classpath &quot;$(INTDIR)\classes;$(INTDIR)\classes.ex&quot; ..\examples_java\src\db\*.java ..\examples_java\src\db\GettingStarted\*.java ..\examples_java\src\db\repquote\*.java ..\examples_java\src\collections\access\*.java ..\examples_java\src\collections\hello\*.java ..\examples_java\src\collections\ship\basic\*.java ..\examples_java\src\collections\ship\entity\*.java ..\examples_java\src\collections\ship\tuple\*.java ..\examples_java\src\collections\ship\sentity\*.java ..\examples_java\src\collections\ship\marshal\*.java ..\examples_java\src\collections\ship\factory\*.java
+echo creating jar files
+jar cf &quot;$(OUTDIR)/db.jar&quot; -C &quot;$(INTDIR)\classes&quot; .
+jar cf &quot;$(OUTDIR)/dbexamples.jar&quot; -C &quot;$(INTDIR)\classes.ex&quot; .
+echo Java build finished
+"
+				Outputs="force_compilation.txt"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/machine:AMD64"
+				AdditionalDependencies="libdb46.lib bufferoverflowU.lib"
+				OutputFile="Release_AMD64/libdb_java46.dll"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="$(OUTDIR)"
+				ProgramDatabaseFile=".\Release_AMD64/libdb_java46.pdb"
+				SubSystem="2"
+				BaseAddress="0x13000000"
+				ImportLibrary=".\Release_AMD64/libdb_java46.lib"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Release_AMD64/db_java.tlb"
+				HeaderFileName=""/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="ASCII Release x86|Win32"
+			OutputDirectory=".\Release_ASCII"
+			IntermediateDirectory=".\Release_ASCII/db_java"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				InlineFunctionExpansion="2"
+				AdditionalIncludeDirectories=".,.."
+				PreprocessorDefinitions="DB_CREATE_DLL;WIN32;NDEBUG;_WINDOWS"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				PrecompiledHeaderFile=".\Release_ASCII/db_java/db_java.pch"
+				AssemblerListingLocation=".\Release_ASCII/db_java/"
+				ObjectFile=".\Release_ASCII/db_java/"
+				ProgramDataBaseFileName=".\Release_ASCII/db_java/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"
+				Description="Compiling java files using javac"
+				CommandLine="echo compiling Berkeley DB classes
+mkdir &quot;$(INTDIR)\classes&quot;
+javac -g -d &quot;$(INTDIR)\classes&quot; -classpath &quot;$(INTDIR)\classes&quot; ..\java\src\com\sleepycat\db\*.java ..\java\src\com\sleepycat\db\internal\*.java ..\java\src\com\sleepycat\bind\*.java ..\java\src\com\sleepycat\bind\serial\*.java ..\java\src\com\sleepycat\bind\tuple\*.java ..\java\src\com\sleepycat\collections\*.java ..\java\src\com\sleepycat\compat\*.java ..\java\src\com\sleepycat\util\*.java ..\java\src\com\sleepycat\util\keyrange\*.java
+echo compiling examples
+mkdir &quot;$(INTDIR)\classes.ex&quot;
+javac -g -d &quot;$(INTDIR)\classes.ex&quot; -classpath &quot;$(INTDIR)\classes;$(INTDIR)\classes.ex&quot; ..\examples_java\src\db\*.java ..\examples_java\src\db\GettingStarted\*.java ..\examples_java\src\db\repquote\*.java ..\examples_java\src\collections\access\*.java ..\examples_java\src\collections\hello\*.java ..\examples_java\src\collections\ship\basic\*.java ..\examples_java\src\collections\ship\entity\*.java ..\examples_java\src\collections\ship\tuple\*.java ..\examples_java\src\collections\ship\sentity\*.java ..\examples_java\src\collections\ship\marshal\*.java ..\examples_java\src\collections\ship\factory\*.java
+echo creating jar files
+jar cf &quot;$(OUTDIR)/db.jar&quot; -C &quot;$(INTDIR)\classes&quot; .
+jar cf &quot;$(OUTDIR)/dbexamples.jar&quot; -C &quot;$(INTDIR)\classes.ex&quot; .
+echo Java build finished
+"
+				Outputs="force_compilation.txt"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="libdb46.lib"
+				OutputFile="Release_ASCII/libdb_java46.dll"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="$(OUTDIR)"
+				ProgramDatabaseFile=".\Release_ASCII/libdb_java46.pdb"
+				SubSystem="2"
+				BaseAddress="0x13000000"
+				ImportLibrary=".\Release_ASCII/libdb_java46.lib"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Release_ASCII/db_java.tlb"
+				HeaderFileName=""/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Debug AMD64|Win32"
+			OutputDirectory=".\Debug_AMD64"
+			IntermediateDirectory=".\Debug_AMD64/db_java"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalOptions="/EHsc /Wp64 "
+				Optimization="0"
+				AdditionalIncludeDirectories=".,.."
+				PreprocessorDefinitions="UNICODE;DB_CREATE_DLL;DIAGNOSTIC;CONFIG_TEST;WIN32;_DEBUG;_WINDOWS"
+				RuntimeLibrary="3"
+				PrecompiledHeaderFile=".\Debug_AMD64/db_java/db_java.pch"
+				AssemblerListingLocation=".\Debug_AMD64/db_java/"
+				ObjectFile=".\Debug_AMD64/db_java/"
+				ProgramDataBaseFileName=".\Debug_AMD64/db_java/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="1"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"
+				Description="Compiling java files using javac"
+				CommandLine="echo compiling Berkeley DB classes
+mkdir &quot;$(INTDIR)\classes&quot;
+javac -g -d &quot;$(INTDIR)\classes&quot; -classpath &quot;$(INTDIR)\classes&quot; ..\java\src\com\sleepycat\db\*.java ..\java\src\com\sleepycat\db\internal\*.java ..\java\src\com\sleepycat\bind\*.java ..\java\src\com\sleepycat\bind\serial\*.java ..\java\src\com\sleepycat\bind\tuple\*.java ..\java\src\com\sleepycat\collections\*.java ..\java\src\com\sleepycat\compat\*.java ..\java\src\com\sleepycat\util\*.java ..\java\src\com\sleepycat\util\keyrange\*.java
+echo compiling examples
+mkdir &quot;$(INTDIR)\classes.ex&quot;
+javac -g -d &quot;$(INTDIR)\classes.ex&quot; -classpath &quot;$(INTDIR)\classes;$(INTDIR)\classes.ex&quot; ..\examples_java\src\db\*.java ..\examples_java\src\db\GettingStarted\*.java ..\examples_java\src\db\repquote\*.java ..\examples_java\src\collections\access\*.java ..\examples_java\src\collections\hello\*.java ..\examples_java\src\collections\ship\basic\*.java ..\examples_java\src\collections\ship\entity\*.java ..\examples_java\src\collections\ship\tuple\*.java ..\examples_java\src\collections\ship\sentity\*.java ..\examples_java\src\collections\ship\marshal\*.java ..\examples_java\src\collections\ship\factory\*.java
+echo creating jar files
+jar cf &quot;$(OUTDIR)/db.jar&quot; -C &quot;$(INTDIR)\classes&quot; .
+jar cf &quot;$(OUTDIR)/dbexamples.jar&quot; -C &quot;$(INTDIR)\classes.ex&quot; .
+echo Java build finished
+"
+				Outputs="force_compilation.txt"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/FIXED:NO /export:__db_assert /machine:AMD64 "
+				AdditionalDependencies="libdb46d.lib bufferoverflowU.lib"
+				OutputFile="Debug_AMD64/libdb_java46d.dll"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="$(OUTDIR)"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile=".\Debug_AMD64/libdb_java46d.pdb"
+				SubSystem="2"
+				BaseAddress="0x13000000"
+				ImportLibrary=".\Debug_AMD64/libdb_java46d.lib"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Debug_AMD64/db_java.tlb"
+				HeaderFileName=""/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Debug x86|Win32"
+			OutputDirectory=".\Debug"
+			IntermediateDirectory=".\Debug/db_java"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories=".,.."
+				PreprocessorDefinitions="UNICODE;DB_CREATE_DLL;DIAGNOSTIC;CONFIG_TEST;WIN32;_DEBUG;_WINDOWS"
+				RuntimeLibrary="3"
+				PrecompiledHeaderFile=".\Debug/db_java/db_java.pch"
+				AssemblerListingLocation=".\Debug/db_java/"
+				ObjectFile=".\Debug/db_java/"
+				ProgramDataBaseFileName=".\Debug/db_java/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="1"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"
+				Description="Compiling java files using javac"
+				CommandLine="echo compiling Berkeley DB classes
+mkdir &quot;$(INTDIR)\classes&quot;
+javac -g -d &quot;$(INTDIR)\classes&quot; -classpath &quot;$(INTDIR)\classes&quot; ..\java\src\com\sleepycat\db\*.java ..\java\src\com\sleepycat\db\internal\*.java ..\java\src\com\sleepycat\bind\*.java ..\java\src\com\sleepycat\bind\serial\*.java ..\java\src\com\sleepycat\bind\tuple\*.java ..\java\src\com\sleepycat\collections\*.java ..\java\src\com\sleepycat\compat\*.java ..\java\src\com\sleepycat\util\*.java ..\java\src\com\sleepycat\util\keyrange\*.java
+echo compiling examples
+mkdir &quot;$(INTDIR)\classes.ex&quot;
+javac -g -d &quot;$(INTDIR)\classes.ex&quot; -classpath &quot;$(INTDIR)\classes;$(INTDIR)\classes.ex&quot; ..\examples_java\src\db\*.java ..\examples_java\src\db\GettingStarted\*.java ..\examples_java\src\db\repquote\*.java ..\examples_java\src\collections\access\*.java ..\examples_java\src\collections\hello\*.java ..\examples_java\src\collections\ship\basic\*.java ..\examples_java\src\collections\ship\entity\*.java ..\examples_java\src\collections\ship\tuple\*.java ..\examples_java\src\collections\ship\sentity\*.java ..\examples_java\src\collections\ship\marshal\*.java ..\examples_java\src\collections\ship\factory\*.java
+echo creating jar files
+jar cf &quot;$(OUTDIR)/db.jar&quot; -C &quot;$(INTDIR)\classes&quot; .
+jar cf &quot;$(OUTDIR)/dbexamples.jar&quot; -C &quot;$(INTDIR)\classes.ex&quot; .
+echo Java build finished
+"
+				Outputs="force_compilation.txt"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/FIXED:NO /export:__db_assert"
+				AdditionalDependencies="libdb46d.lib"
+				OutputFile="Debug/libdb_java46d.dll"
+				LinkIncremental="2"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="$(OUTDIR)"
+				GenerateDebugInformation="TRUE"
+				SubSystem="2"
+				BaseAddress="0x13000000"
+				ImportLibrary=".\Debug/libdb_java46d.lib"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Debug/db_java.tlb"
+				HeaderFileName=""/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Debug IA64|Win32"
+			OutputDirectory=".\Debug_IA64"
+			IntermediateDirectory=".\Debug_IA64/db_java"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalOptions="/EHsc /Wp64 "
+				Optimization="0"
+				AdditionalIncludeDirectories=".,.."
+				PreprocessorDefinitions="UNICODE;DB_CREATE_DLL;DIAGNOSTIC;CONFIG_TEST;WIN32;_DEBUG;_WINDOWS"
+				RuntimeLibrary="3"
+				PrecompiledHeaderFile=".\Debug_IA64/db_java/db_java.pch"
+				AssemblerListingLocation=".\Debug_IA64/db_java/"
+				ObjectFile=".\Debug_IA64/db_java/"
+				ProgramDataBaseFileName=".\Debug_IA64/db_java/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="1"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"
+				Description="Compiling java files using javac"
+				CommandLine="echo compiling Berkeley DB classes
+mkdir &quot;$(INTDIR)\classes&quot;
+javac -g -d &quot;$(INTDIR)\classes&quot; -classpath &quot;$(INTDIR)\classes&quot; ..\java\src\com\sleepycat\db\*.java ..\java\src\com\sleepycat\db\internal\*.java ..\java\src\com\sleepycat\bind\*.java ..\java\src\com\sleepycat\bind\serial\*.java ..\java\src\com\sleepycat\bind\tuple\*.java ..\java\src\com\sleepycat\collections\*.java ..\java\src\com\sleepycat\compat\*.java ..\java\src\com\sleepycat\util\*.java ..\java\src\com\sleepycat\util\keyrange\*.java
+echo compiling examples
+mkdir &quot;$(INTDIR)\classes.ex&quot;
+javac -g -d &quot;$(INTDIR)\classes.ex&quot; -classpath &quot;$(INTDIR)\classes;$(INTDIR)\classes.ex&quot; ..\examples_java\src\db\*.java ..\examples_java\src\db\GettingStarted\*.java ..\examples_java\src\db\repquote\*.java ..\examples_java\src\collections\access\*.java ..\examples_java\src\collections\hello\*.java ..\examples_java\src\collections\ship\basic\*.java ..\examples_java\src\collections\ship\entity\*.java ..\examples_java\src\collections\ship\tuple\*.java ..\examples_java\src\collections\ship\sentity\*.java ..\examples_java\src\collections\ship\marshal\*.java ..\examples_java\src\collections\ship\factory\*.java
+echo creating jar files
+jar cf &quot;$(OUTDIR)/db.jar&quot; -C &quot;$(INTDIR)\classes&quot; .
+jar cf &quot;$(OUTDIR)/dbexamples.jar&quot; -C &quot;$(INTDIR)\classes.ex&quot; .
+echo Java build finished
+"
+				Outputs="force_compilation.txt"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/FIXED:NO /export:__db_assert /machine:IA64 "
+				AdditionalDependencies="libdb46d.lib bufferoverflowU.lib"
+				OutputFile="Debug_IA64/libdb_java46d.dll"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="$(OUTDIR)"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile=".\Debug_IA64/libdb_java46d.pdb"
+				SubSystem="2"
+				BaseAddress="0x13000000"
+				ImportLibrary=".\Debug_IA64/libdb_java46d.lib"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Debug_IA64/db_java.tlb"
+				HeaderFileName=""/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release x86|Win32"
+			OutputDirectory=".\Release"
+			IntermediateDirectory=".\Release/db_java"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				InlineFunctionExpansion="2"
+				AdditionalIncludeDirectories=".,.."
+				PreprocessorDefinitions="UNICODE;DB_CREATE_DLL;WIN32;NDEBUG;_WINDOWS"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				PrecompiledHeaderFile=".\Release/db_java/db_java.pch"
+				AssemblerListingLocation=".\Release/db_java/"
+				ObjectFile=".\Release/db_java/"
+				ProgramDataBaseFileName=".\Release/db_java/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"
+				Description="Compiling java files using javac"
+				CommandLine="echo compiling Berkeley DB classes
+mkdir &quot;$(INTDIR)\classes&quot;
+javac -g -d &quot;$(INTDIR)\classes&quot; -classpath &quot;$(INTDIR)\classes&quot; ..\java\src\com\sleepycat\db\*.java ..\java\src\com\sleepycat\db\internal\*.java ..\java\src\com\sleepycat\bind\*.java ..\java\src\com\sleepycat\bind\serial\*.java ..\java\src\com\sleepycat\bind\tuple\*.java ..\java\src\com\sleepycat\collections\*.java ..\java\src\com\sleepycat\compat\*.java ..\java\src\com\sleepycat\util\*.java ..\java\src\com\sleepycat\util\keyrange\*.java
+echo compiling examples
+mkdir &quot;$(INTDIR)\classes.ex&quot;
+javac -g -d &quot;$(INTDIR)\classes.ex&quot; -classpath &quot;$(INTDIR)\classes;$(INTDIR)\classes.ex&quot; ..\examples_java\src\db\*.java ..\examples_java\src\db\GettingStarted\*.java ..\examples_java\src\db\repquote\*.java ..\examples_java\src\collections\access\*.java ..\examples_java\src\collections\hello\*.java ..\examples_java\src\collections\ship\basic\*.java ..\examples_java\src\collections\ship\entity\*.java ..\examples_java\src\collections\ship\tuple\*.java ..\examples_java\src\collections\ship\sentity\*.java ..\examples_java\src\collections\ship\marshal\*.java ..\examples_java\src\collections\ship\factory\*.java
+echo creating jar files
+jar cf &quot;$(OUTDIR)/db.jar&quot; -C &quot;$(INTDIR)\classes&quot; .
+jar cf &quot;$(OUTDIR)/dbexamples.jar&quot; -C &quot;$(INTDIR)\classes.ex&quot; .
+echo Java build finished
+"
+				Outputs="force_compilation.txt"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="libdb46.lib"
+				OutputFile="Release/libdb_java46.dll"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="$(OUTDIR)"
+				ProgramDatabaseFile=".\Release/libdb_java46.pdb"
+				SubSystem="2"
+				BaseAddress="0x13000000"
+				ImportLibrary=".\Release/libdb_java46.lib"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Release/db_java.tlb"
+				HeaderFileName=""/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release IA64|Win32"
+			OutputDirectory=".\Release_IA64"
+			IntermediateDirectory=".\Release_IA64/db_java"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalOptions="/EHsc /Wp64 "
+				Optimization="2"
+				InlineFunctionExpansion="2"
+				AdditionalIncludeDirectories=".,.."
+				PreprocessorDefinitions="UNICODE;DB_CREATE_DLL;WIN32;NDEBUG;_WINDOWS"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				PrecompiledHeaderFile=".\Release_IA64/db_java/db_java.pch"
+				AssemblerListingLocation=".\Release_IA64/db_java/"
+				ObjectFile=".\Release_IA64/db_java/"
+				ProgramDataBaseFileName=".\Release_IA64/db_java/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"
+				Description="Compiling java files using javac"
+				CommandLine="echo compiling Berkeley DB classes
+mkdir &quot;$(INTDIR)\classes&quot;
+javac -g -d &quot;$(INTDIR)\classes&quot; -classpath &quot;$(INTDIR)\classes&quot; ..\java\src\com\sleepycat\db\*.java ..\java\src\com\sleepycat\db\internal\*.java ..\java\src\com\sleepycat\bind\*.java ..\java\src\com\sleepycat\bind\serial\*.java ..\java\src\com\sleepycat\bind\tuple\*.java ..\java\src\com\sleepycat\collections\*.java ..\java\src\com\sleepycat\compat\*.java ..\java\src\com\sleepycat\util\*.java ..\java\src\com\sleepycat\util\keyrange\*.java
+echo compiling examples
+mkdir &quot;$(INTDIR)\classes.ex&quot;
+javac -g -d &quot;$(INTDIR)\classes.ex&quot; -classpath &quot;$(INTDIR)\classes;$(INTDIR)\classes.ex&quot; ..\examples_java\src\db\*.java ..\examples_java\src\db\GettingStarted\*.java ..\examples_java\src\db\repquote\*.java ..\examples_java\src\collections\access\*.java ..\examples_java\src\collections\hello\*.java ..\examples_java\src\collections\ship\basic\*.java ..\examples_java\src\collections\ship\entity\*.java ..\examples_java\src\collections\ship\tuple\*.java ..\examples_java\src\collections\ship\sentity\*.java ..\examples_java\src\collections\ship\marshal\*.java ..\examples_java\src\collections\ship\factory\*.java
+echo creating jar files
+jar cf &quot;$(OUTDIR)/db.jar&quot; -C &quot;$(INTDIR)\classes&quot; .
+jar cf &quot;$(OUTDIR)/dbexamples.jar&quot; -C &quot;$(INTDIR)\classes.ex&quot; .
+echo Java build finished
+"
+				Outputs="force_compilation.txt"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/machine:IA64"
+				AdditionalDependencies="libdb46.lib bufferoverflowU.lib"
+				OutputFile="Release_IA64/libdb_java46.dll"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="$(OUTDIR)"
+				ProgramDatabaseFile=".\Release_IA64/libdb_java46.pdb"
+				SubSystem="2"
+				BaseAddress="0x13000000"
+				ImportLibrary=".\Release_IA64/libdb_java46.lib"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Release_IA64/db_java.tlb"
+				HeaderFileName=""/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+		<File
+			RelativePath="..\libdb_java\db_java_wrap.c">
+			<FileConfiguration
+				Name="ASCII Debug x86|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					PreprocessorDefinitions="DB_CREATE_DLL;DIAGNOSTIC;CONFIG_TEST;WIN32;_DEBUG;_WINDOWS;_MBCS;$(NoInherit)"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release AMD64|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="2"
+					AdditionalIncludeDirectories=""
+					PreprocessorDefinitions="UNICODE;_UNICODE;DB_CREATE_DLL;WIN32;NDEBUG;_WINDOWS;$(NoInherit)"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="ASCII Release x86|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="2"
+					AdditionalIncludeDirectories=""
+					PreprocessorDefinitions="DB_CREATE_DLL;WIN32;NDEBUG;_WINDOWS;_MBCS;$(NoInherit)"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Debug AMD64|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					PreprocessorDefinitions="UNICODE;_UNICODE;DB_CREATE_DLL;DIAGNOSTIC;CONFIG_TEST;WIN32;_DEBUG;_WINDOWS;$(NoInherit)"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Debug x86|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					PreprocessorDefinitions="UNICODE;_UNICODE;DB_CREATE_DLL;DIAGNOSTIC;CONFIG_TEST;WIN32;_DEBUG;_WINDOWS;$(NoInherit)"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Debug IA64|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					PreprocessorDefinitions="UNICODE;_UNICODE;DB_CREATE_DLL;DIAGNOSTIC;CONFIG_TEST;WIN32;_DEBUG;_WINDOWS;$(NoInherit)"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release x86|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="2"
+					AdditionalIncludeDirectories=""
+					PreprocessorDefinitions="UNICODE;_UNICODE;DB_CREATE_DLL;WIN32;NDEBUG;_WINDOWS;$(NoInherit)"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release IA64|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="2"
+					AdditionalIncludeDirectories=""
+					PreprocessorDefinitions="UNICODE;_UNICODE;DB_CREATE_DLL;WIN32;NDEBUG;_WINDOWS;$(NoInherit)"/>
+			</FileConfiguration>
+		</File>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>
