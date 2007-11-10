@@ -825,12 +825,10 @@ def runPluginTests(options):
                     if options.dryrun:
                         result = 0
                     else:
-                        if options.verbose:
-                            log('chdir: %s' % os.path.abspath(os.path.dirname(test)))
-
                         os.chdir(os.path.abspath(os.path.dirname(test)))
 
-                        env['PARCELPATH'] = os.path.join(options.chandlerHome, 'plugins')
+                        # this path *must* be relative
+                        env['PARCELPATH'] = os.path.join('..', '..', 'plugins')
 
                         result = build_lib.runCommand(cmd, timeout=600, env=env)
 
