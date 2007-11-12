@@ -1,0 +1,227 @@
+.\"DO NOT EDIT. GENERATED FILE.
+.\"
+.\" To view the pretty printed version, do:
+.\"   groff -man -Tascii chandler.1 |less
+.\"
+.\"   Copyright (c) 2007 Open Source Applications Foundation
+.\"
+.\"   Licensed under the Apache License, Version 2.0 (the "License");
+.\"   you may not use this file except in compliance with the License.
+.\"   You may obtain a copy of the License at
+.\"
+.\"       http://www.apache.org/licenses/LICENSE-2.0
+.\"
+.\"   Unless required by applicable law or agreed to in writing, software
+.\"   distributed under the License is distributed on an "AS IS" BASIS,
+.\"   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+.\"   See the License for the specific language governing permissions and
+.\"   limitations under the License.
+.\"
+.TH chandler 1  "2007-11-08" "CHANDLER_VERSION" "Chandler Manual"
+.SH NAME
+chandler \- personal information manager
+.SH SYNOPSIS
+.B chandler
+.B [\-\-ask]
+.B [\-\-at
+.IB " at"]
+.B [\-\-backup]
+.B [\-\-backup\-dir
+.IB " backup\-dir"]
+.B [\-\-catch
+.IB " catch"]
+.B [\-\-datadir
+.IB " datadir"]
+.B [\-\-force\-platform]
+.B [\-\-logdir
+.IB " logdir"]
+.B [\-\-nonexclusive]
+.B [\-\-offline]
+.B [\-\-pluginPath
+.IB " pluginPath"]
+.B [\-\-prefs
+.IB " prefs"]
+.B [\-\-reload
+.IB " reload"]
+.B [\-\-repair]
+.B [\-\-repodir
+.IB " repodir"]
+.B [\-\-reset\-index]
+.B [\-\-tz
+.IB " tz"]
+.B [\-\-undo
+.IB " undo"]
+.B [\-N, \-\-nosplash]
+.B [\-P, \-\-profileDir
+.IB " profileDir"]
+.B [\-R, \-\-recover]
+.B [\-S, \-\-encrypt]
+.B [\-W, \-\-webserver
+.IB " webserver"]
+.B [\-c, \-\-create]
+.B [\-e, \-\-stderr]
+.B [\-i, \-\-indexer
+.IB " indexer"]
+.B [\-l, \-\-locale
+.IB " locale"]
+.B [\-p, \-\-parcelPath
+.IB " parcelPath"]
+.B [\-r, \-\-restore
+.IB " restore"]
+.B [...]
+.SH DESCRIPTION
+Chandler Desktop is an open source, standards-based personal information
+manager (PIM) built around small group collaboration and a core set of
+information management workflows modeled on Inbox usage patterns and
+David Allen's GTD methodology.
+.SH OPTIONS
+.TP
+.B "\-\-ask"
+give repository options on startup
+.TP
+.BI "\-\-at" " at"
+version to open repository at
+.TP
+.B "\-\-backup"
+backup repository before start
+.TP
+.BI "\-\-backup\-dir" " backup\-dir"
+backup repository before start into dir
+.TP
+.BI "\-\-catch" " catch"
+"normal" leaves outer and test exception handlers in place (the default); "tests" removes the outer one, and "never" removes both.
+.TP
+.BI "\-\-datadir" " datadir"
+Specify a directory for database files (relative to the __repository__ directory
+.TP
+.B "\-\-force\-platform"
+open repository with recovery if platform of env does not match current platform
+.TP
+.BI "\-\-logdir" " logdir"
+Specify a directory for transaction logs (relative to the __repository__ directory
+.TP
+.B "\-\-nonexclusive"
+Enable non\-exclusive repository access
+.TP
+.B "\-\-offline"
+Takes the Chandler Mail Service Offline
+.TP
+.BI "\-\-pluginPath" " pluginPath"
+Plugin search path, relative to CHANDLERHOME
+.TP
+.BI "\-\-prefs" " prefs"
+path to prefs file that contains defaults for command line options, relative to profile directory
+.TP
+.BI "\-\-reload" " reload"
+reload a dump file, will clear repository first
+.TP
+.B "\-\-repair"
+repair repository before start (currently repairs broken indices)
+.TP
+.BI "\-\-repodir" " repodir"
+Specify a home directory for the __repository__ directory (relative to the profile directory)
+.TP
+.B "\-\-reset\-index"
+re\-create full\-text index database and reset indexer to reindex from earliest version
+.TP
+.BI "\-\-tz" " tz"
+timezone to initialize repository with if creating a new repository
+.TP
+.BI "\-\-undo" " undo"
+undo \-<n> versions or until version <n> or until <check> or <repair> pass or until <start> succeeds
+.TP
+.B "\-N, \-\-nosplash"
+.TP
+.BI "\-P, \-\-profileDir" " profileDir"
+location of the Chandler user profile directory (relative to CHANDLERHOME)
+.TP
+.B "\-R, \-\-recover"
+open repository with recovery
+.TP
+.B "\-S, \-\-encrypt"
+Request prompt for password for repository encryption
+.TP
+.BI "\-W, \-\-webserver" " webserver"
+Activate the built\-in webserver
+.TP
+.B "\-c, \-\-create"
+Force creation of a new repository
+.TP
+.B "\-e, \-\-stderr"
+Echo error output to log file
+.TP
+.BI "\-i, \-\-indexer" " indexer"
+Run Lucene indexing in the background every 90s, in the foreground or none
+.TP
+.BI "\-l, \-\-locale" " locale"
+Set the default locale
+.TP
+.BI "\-p, \-\-parcelPath" " parcelPath"
+Parcel search path
+.TP
+.BI "\-r, \-\-restore" " restore"
+repository backup to restore from before repository open
+.SH FILES
+.TP
+.I ~/.chandler/[random_string].default
+.RS
+Chandler default profile directory, where
+.IR __repository__ ,
+.IR chandler.log ,
+.IR chandler.prefs ,
+.IR randpool.dat ,
+.IR start.log
+and possibly
+.IR backup.chex
+are located.
+.SH ENVIRONMENT
+.TP
+.B CHANDLERHOME
+directory where
+.I Chandler.py
+is located in, set automatically but can be overridden
+.TP
+.B CHANDLERBIN
+directory under which the
+.I release
+or
+.I debug
+directories are located in, typically same as
+.BR CHANDLERHOME ,
+set automatically but can be overridden
+.TP
+.B CHANDLERCATCH
+same as option
+.B \-\-catch
+.TP
+.B CHANDLERNONEXCLUSIVEREPO
+same as option
+.B \-\-nonexclusive
+.TP
+.B CHANDLERNOSPLASH
+same as option
+.B \-\-nosplash
+.TP
+.B CHANDLEROFFLINE
+same as option
+.B \-\-offline
+.TP
+.B CHANDLERWEBSERVER
+same as option
+.B \-\-webserver
+.TP
+.B CREATE
+same as option
+.B \-\-create
+.TP
+.B PARCELPATH
+same as option
+.B \-\-parcelPath
+.TP
+.B PROFILEDIR
+same as option
+.B \-\-profileDir
+.SH EXIT STATUS
+chandler returns 0 on successful exit, non-zero otherwise.
+.SH SEE ALSO
+http://chandlerproject.org
