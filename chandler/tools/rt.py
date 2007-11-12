@@ -530,7 +530,7 @@ def runLocalizationCheck(options):
     >>> options.modes   = ['release']
     
     >>> runLocalizationCheck(options)
-    /.../RunPython tools/l10nValidator.py
+    /.../RunPython... tools/l10nValidator.py
     False
     """
     cmd  = options.runpython[options.modes[0]][:]
@@ -1552,7 +1552,7 @@ def main(options):
     >>> options.dryrun  = True
     >>> options.verbose = True
     >>> main(options)
-    /.../RunPython tools/l10nValidator.py
+    /.../RunPython... tools/l10nValidator.py
     False
     
     Try and run a test that does not exist
