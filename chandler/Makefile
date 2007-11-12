@@ -64,22 +64,28 @@ SETUPTOOLS = $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6-$(BP)2.tar.gz
 ICU        = $(CHANDLERARCHIVES)/icu-$(SNAP)-3.6-$(BP)2.tar.gz
 OPENJDK    = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b21-$(BP)3.tar.gz
 OPENSSL    = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)3.tar.gz
+CONFIGOBJ  = $(CHANDLERARCHIVES)/configobj-$(SNAP)-4.3.2-$(BP)2.tar.gz
 DOCUTILS   = $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)2.tar.gz
+ZOPE       = $(CHANDLERARCHIVES)/zope.interface-$(SNAP)-3.3.0b2-r71371-$(BP)4.tar.gz
 
 ifeq ($(OS),Linux)
     READLINE     =
     ifeq ($(PLATFORM),linux/feisty)
-        PYTHON   =
-        ICU      =
-        DOCUTILS =
+        PYTHON     =
+        ICU        =
+        CONFIGOBJ  =
+        DOCUTILS   =
+        ZOPE       =
     endif
 
     ifeq ($(PLATFORM),linux/gutsy)
         OPENSSL    =
         PYTHON     =
         ICU        =
+        CONFIGOBJ  =
         DOCUTILS   =
         SETUPTOOLS =
+        ZOPE       =
     endif
 endif
 
@@ -109,7 +115,6 @@ ARCHIVES = \
     $(OPENSSL) \
     $(OPENJDK) \
     $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-0.18.2-$(BP)2.tar.gz \
-    $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.17-$(BP)2.tar.gz \
     $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.6-81-$(BP)2.tar.gz \
     $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.2.0-1-359-$(BP)2.tar.gz \
     $(CHANDLERARCHIVES)/twisted-$(SNAP)-r18795-$(BP)3.tar.gz \
@@ -121,11 +126,11 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/logilab-common-$(SNAP)-0.21.2-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.13.1-$(BP)2.tar.gz \
     $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.8.4-$(BP)2.tar.gz \
-    $(CHANDLERARCHIVES)/configobj-$(SNAP)-4.3.2-$(BP)2.tar.gz \
+    $(CONFIGOBJ) \
     $(DOCUTILS) \
     $(CHANDLERARCHIVES)/epydoc-$(SNAP)-3.0beta1-$(BP)2.tar.gz \
     $(CHANDLERARCHIVES)/eggtranslations-$(SNAP)-1.1-r10-$(BP)2.tar.gz \
-    $(CHANDLERARCHIVES)/zope.interface-$(SNAP)-3.3.0b2-r71371-$(BP)4.tar.gz
+    $(ZOPE)
 
 ifeq ($(DEBUG),1)
     SNAP         = debug
