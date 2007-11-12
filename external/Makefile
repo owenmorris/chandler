@@ -27,9 +27,8 @@ SYSTEMS=db \
         epydoc \
         PyLucene \
         PyICU \
-        zope \
+        $(ZOPE_BUILD) \
         twisted \
-        pychecker \
         vobject \
         dateutil \
         m2crypto \
@@ -37,13 +36,13 @@ SYSTEMS=db \
         eggtranslations \
         pylint \
         parsedatetime \
-        configobj \
+        $(CONFIGOBJ_BUILD) \
         $(DOCUTILS_BUILD) \
         wx
 
 SYS_TESTS=dateutil \
           m2crypto \
-          openssl \
+          $(OPENSSL_BUILD) \
           parsedatetime \
           vobject \
           zanshin \

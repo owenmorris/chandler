@@ -71,7 +71,9 @@ ifeq ($(OS),Cygwin)
     PYTHON_BUILD=python
     SETUPTOOLS_BUILD=setuptools
     ICU_BUILD=icu
+    CONFIGOBJ_BUILD=configobj
     DOCUTILS_BUILD=docutils
+    ZOPE_BUILD=zope
 endif
 
 ifeq ($(OS),Darwin)
@@ -115,7 +117,9 @@ ifeq ($(OS),Darwin)
         SETUPTOOLS_BUILD=setuptools
     endif
     ICU_BUILD=icu
+    CONFIGOBJ_BUILD=configobj
     DOCUTILS_BUILD=docutils
+    ZOPE_BUILD=zope
 endif
 
 ifeq ($(OS),Linux)
@@ -137,7 +141,9 @@ ifeq ($(OS),Linux)
         endif
         PYTHON_BUILD=
         ICU_BUILD=
+        CONFIGOBJ_BUILD=
         DOCUTILS_BUILD=
+        ZOPE_BUILD=
     else
         PYTHON_BINDIR:=bin
         PYTHON:=$(PREFIX)/$(PYTHON_BINDIR)/$(PYTHON)
@@ -145,8 +151,10 @@ ifeq ($(OS),Linux)
         OPENSSL_BUILD=openssl
         PYTHON_BUILD=python
         ICU_BUILD=icu
+        CONFIGOBJ_BUILD=configobj
         DOCUTILS_BUILD=docutils
         SETUPTOOLS_BUILD=setuptools
+        ZOPE_BUILD=zope
     endif
     READLINE_BUILD=
     OPENJDK_BUILD=openjdk
