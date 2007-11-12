@@ -130,8 +130,10 @@ ifeq ($(OS),Linux)
         UPLOAD:=$(UPLOAD)/$(DISTRIB_CODENAME)
         ifeq ($(DISTRIB_CODENAME),feisty)
             OPENSSL_BUILD=openssl
+            SETUPTOOLS_BUILD=setuptools
         else
             OPENSSL_BUILD=
+            SETUPTOOLS_BUILD=
         endif
         PYTHON_BUILD=
         ICU_BUILD=
@@ -144,10 +146,10 @@ ifeq ($(OS),Linux)
         PYTHON_BUILD=python
         ICU_BUILD=icu
         DOCUTILS_BUILD=docutils
+        SETUPTOOLS_BUILD=setuptools
     endif
     READLINE_BUILD=
     OPENJDK_BUILD=openjdk
-    SETUPTOOLS_BUILD=setuptools
 endif
 
 ifeq ($(CHANDLERHOME),)
