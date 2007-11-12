@@ -520,18 +520,36 @@ def runTestCase(options):
 
 
 def runLocalizationCheck(options):
+    """
+    Run localization check.
+    
+    >>> options = parseOptions()
+    >>> checkOptions(options)
+    >>> options.dryrun  = True
+    >>> options.verbose = True
+    >>> options.modes   = ['release']
+    
+    >>> runLocalizationCheck(options)
+    /.../RunPython tools/l10nValidator.py
+    False
+    """
+    cmd  = options.runpython[options.modes[0]][:]
+    cmd += [os.path.join('tools', 'l10nValidator.py')]
+
+    if options.verbose:
+        log(' '.join(cmd))
+
     if options.dryrun:
-        failed = False
+        result = 0
     else:
-        cmd = ['python', os.path.join('tools', 'l10nValidator.py')]
-
         result = build_lib.runCommand(cmd, timeout=180)
-        failed = result != 0
+    
+    failed = result != 0
 
-        if failed:
-            log('Localization Check FAILED (%d)' % result)
-            failedTests.append('Localization Check')
-            log('- + ' * 15)
+    if failed:
+        log('***Error Localization Check FAILED with exit code=%d' % result)
+        failedTests.append('l10nValidator.py')
+        log('- + ' * 15)
 
     return failed
 
@@ -1534,6 +1552,7 @@ def main(options):
     >>> options.dryrun  = True
     >>> options.verbose = True
     >>> main(options)
+    /.../RunPython tools/l10nValidator.py
     False
     
     Try and run a test that does not exist
