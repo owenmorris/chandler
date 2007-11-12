@@ -22,7 +22,6 @@ from distutils.file_util import copy_file
 import os, sys
 import build_lib
 
-
 try:
     from PyICU import Locale
     # We want the English textual representation
@@ -50,6 +49,7 @@ class TranslationEggTool(LocalizationBase):
     LOCALE = None
     OUTPUTDIR = None
     PLUGINDIR = None
+    PLUGINDIR_EXISTS = False
     PLUGINNAME = None
     EGGINFODIR = None
     CWD = None
@@ -59,6 +59,8 @@ class TranslationEggTool(LocalizationBase):
     IMGDIR = None
     HTMLDIR = None
     LOCALEDIR = None
+    DISTEGG = False
+    DISTNAME = None
     USE_MSGFMT_BINARY = False
 
 
@@ -80,6 +82,10 @@ class TranslationEggTool(LocalizationBase):
         else:
             self.PLUGINDIR = self.PLUGINNAME
 
+        # Did the Localization Egg Plug-In directory exist.
+        # If so do not delete the directory on dist or error.
+        self.PLUGINDIR_EXISTS = os.access(self.PLUGINDIR, os.F_OK)
+
         try:
             # Validate that PO exists and is correctly formatted
             self.validatePOFile()
@@ -91,7 +97,7 @@ class TranslationEggTool(LocalizationBase):
 
             self.writeReadMeFile()
             self.writeSetupFile()
-            self.putEggInDevelopMode()
+            self.createEggInfoDir()
 
             self.LOCALEDIR = os.path.join(self.EGGINFODIR, "locale", self.LOCALE)
 
@@ -104,6 +110,18 @@ class TranslationEggTool(LocalizationBase):
             if self.HTMLDIR:
                 self.copyHtml()
 
+            if self.DISTEGG:
+                self.packageEggForDistribution()
+                # When packaging an egg for distribution
+                # if the plugin directory did not already
+                # exist then remove the newly created
+                # directory.
+
+                if not self.PLUGINDIR_EXISTS:
+                    self.removePluginDir()
+            else:
+                self.putEggInDevelopMode()
+
             os.chdir(self.CWD)
 
             if self.OPTIONS.Debug:
@@ -111,12 +129,16 @@ class TranslationEggTool(LocalizationBase):
 
             print "\n\n           EGG CREATION COMPLETED"
             print "==========================================================="
-            print " Translation egg '%s' has been" % (self.PLUGINDIR)
-            print " installed in develop mode.\n"
 
-            if self.OPTIONS.Chandler:
-                print " To test, start Chandler and select '%s'" % self.getLocaleName()
-                print " from the File -> Switch Language... dialog."
+            if self.DISTEGG:
+                print " Translation egg '%s' has been built\nfor distribution.\n" % (self.DISTNAME)
+            else:
+                print " Translation egg '%s' has been" % (self.PLUGINDIR)
+                print " installed in develop mode.\n"
+
+                if self.OPTIONS.Chandler:
+                    print " To test, start Chandler and select '%s'" % self.getLocaleName()
+                    print " from the File -> Switch Language... dialog."
 
             acWarnings = checkAccelerators(self.POFILEOBJECT)
             nWarnings  = checkNewLines(self.POFILEOBJECT)
@@ -191,7 +213,7 @@ class TranslationEggTool(LocalizationBase):
 
         if errors:
             for poEntry, values in errors:
-                desc += "%s:%i: replaceable value%s %s missing from msgstr\n" % \
+                desc += "%s:%i: Replaceable value%s %s missing from msgstr.\n" % \
                         (self.POFILE, poEntry.msgstrLineNumber, len(values) > 1 and 's' or '',
                          ", ".join(values))
 
@@ -200,8 +222,8 @@ class TranslationEggTool(LocalizationBase):
 
         if errors:
             for poEntry, values in errors:
-                desc += "%s:%i: invalid value%s %s found, only replaceable values are " \
-                        "allowed in msgstr\n" % \
+                desc += "%s:%i: Invalid value%s %s found. Only replaceable values are " \
+                        "allowed in msgstr.\n" % \
                          (self.POFILE, poEntry.msgstrLineNumber, len(values) > 1 and 's' or '',
                           ", ".join(values))
 
@@ -237,19 +259,41 @@ class TranslationEggTool(LocalizationBase):
         except Exception, e:
              self.raiseError("Unable to create mo file from %s': %s." % (self.POFILEPATH, e))
 
-    def putEggInDevelopMode(self):
-        exp = "%s setup.py develop" % self.PYTHON
+    def createEggInfoDir(self):
+        exp = "%s setup.py egg_info" % self.PYTHON
         os.system(exp)
 
-        pluginDir = os.listdir(os.getcwd())
-        for item in pluginDir:
+        for item in os.listdir(os.getcwd()):
             if item.endswith(".egg-info"):
                 self.EGGINFODIR = item
                 break
 
         if not self.EGGINFODIR:
-            self.raiseError("Unable to locate the %s project .egg-info directory." \
+            self.raiseError("An Error occurred while building %s project. Please try again." \
                             % (self.PLUGINNAME))
+
+
+    def putEggInDevelopMode(self):
+        exp = "%s setup.py develop" % self.PYTHON
+        os.system(exp)
+
+    def packageEggForDistribution(self):
+        exp = "%s setup.py bdist_egg" % self.PYTHON
+        os.system(exp)
+
+        distDir = os.path.join(os.getcwd(), "dist")
+
+        for item in os.listdir(distDir):
+            if item.endswith(".egg"):
+                 self.DISTNAME = item
+                 break
+
+        if not self.DISTNAME:
+            self.raiseError("An Error occurred while building %s project.\n" \
+                            "Unable to build distribution egg." % (self.PLUGINNAME))
+
+        copy_file(os.path.join(distDir, self.DISTNAME), \
+                  self.OUTPUTDIR and self.OUTPUTDIR or self.CWD)
 
     def writeReadMeFile(self):
         txt = "README File for translation egg '%s'" % (self.PLUGINNAME)
@@ -348,6 +392,7 @@ setup(
         'Directory': ('-d', '--directory', True, 'An optional output directory where the translation egg will be written. The default is the current working directory.'),
         'ImageDir': ('', '--imagedir', True, 'An optional command that when specified will copy all files and directories under the imagedir to the translation eggs .egg-info/locale/LOCALENAME/images directory. The images resource directory will be registed with the eggs "resources.ini" file.'),
         'HtmlDir': ('', '--htmldir', True, 'An optional command that when specified will copy all files and directories under the htmldir to the translation eggs .egg-info/locale/LOCALENAME/html directory. The html resource directory will be registed with the eggs "resources.ini" file.'),
+        'DistEgg': ('', '--dist', False, 'An optional command that when specified will build and package a localization egg for distribution. The translation egg name will contain the project, locale, version, and python version used to build the egg. For example, "Chandler.fr-1.0-py2.5.egg"'),
         }
 
         if MSGFMT_INSTALLED:
@@ -369,6 +414,9 @@ setup(
            if not self.OUTPUTDIR:
                self.raiseError("The output directory specified '%s' is invalid." \
                                % self.OPTIONS.Directory)
+
+        if self.OPTIONS.DistEgg:
+            self.DISTEGG = True
 
         if MSGFMT_INSTALLED and self.OPTIONS.UseMsgFmtBinary:
             self.USE_MSGFMT_BINARY = True
@@ -447,21 +495,25 @@ setup(
 
 
     def raiseError(self, txt):
-        try:
-            if self.CWD and not os.getcwd() == self.CWD:
-                 os.chdir(self.CWD)
-
-            if os.access(self.PLUGINDIR, os.F_OK):
-                remove_tree(self.PLUGINDIR)
-        except:
-             pass
+        self.removePluginDir()
 
         buf = ["\n\n           EGG CREATION FAILED"]
         buf.append("===========================================================\n")
         buf.append(txt)
         buf.append("\n===========================================================\n\n")
-        
+
         super(TranslationEggTool, self).raiseError("\n".join(buf), banner=False)
+
+    def removePluginDir(self):
+        try:
+            if self.CWD and not os.getcwd() == self.CWD:
+                 os.chdir(self.CWD)
+
+            if not self.PLUGINDIR_EXISTS and \
+                    os.access(self.PLUGINDIR, os.F_OK):
+                remove_tree(self.PLUGINDIR)
+        except:
+             pass
 
 
 if __name__ == "__main__":
