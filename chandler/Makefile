@@ -75,10 +75,11 @@ ifeq ($(OS),Linux)
     endif
 
     ifeq ($(PLATFORM),linux/gutsy)
-        OPENSSL  =
-        PYTHON   =
-        ICU      =
-        DOCUTILS =
+        OPENSSL    =
+        PYTHON     =
+        ICU        =
+        DOCUTILS   =
+        SETUPTOOLS =
     endif
 endif
 
