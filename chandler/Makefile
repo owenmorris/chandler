@@ -322,9 +322,28 @@ distrib-plugins: $(addprefix develop-u-, $(BUILD_PLUGINS)) \
                  $(addprefix develop-u-, $(BUILD_LOCALES)) \
                  $(addprefix install-, $(BUILD_LOCALES))
 
-install: install-core plugins
+# On Ubuntu Feisty Fawn and Gutsy Gibbon users need to install some packages,
+# check that we have them:
+ifeq ($(OS),Linux)
+ifeq ($(PLATFORM),linux/feisty)
+py-env:
+	@echo Checking that you have required packages installed...
+	python -c "from pkg_resources import require; require('configobj >= 4.3.2')"
+	python -c "from pkg_resources import require; require('zope.interface >= 0')"
+endif
+ifeq ($(PLATFORM),linux/gutsy)
+py-env:
+	@echo Checking that you have required packages installed...
+	python -c "from pkg_resources import require; require('setuptools >= 0.6c6')"
+	python -c "from pkg_resources import require; require('configobj >= 4.3.2')"
+	python -c "from pkg_resources import require; require('zope.interface >= 0')"
+endif
+py-env:
+endif
 
-distrib: install-core distrib-plugins
+install: install-core py-env plugins
+
+distrib: install-core py-env distrib-plugins
 
 download: $(ARCHIVES)
 
