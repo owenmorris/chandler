@@ -137,7 +137,7 @@ def dump(rv, filename, uuids=None, serializer=PickleSerializer,
 
         if activity:
             count = len(aliases)
-            activity.update(msg="Dumping %d records" % count, totalWork=count)
+            activity.update(msg=_(u"Exporting %(total)d records") % {'total':count}, totalWork=count)
 
         i = 0
         for alias in aliases:
@@ -147,8 +147,8 @@ def dump(rv, filename, uuids=None, serializer=PickleSerializer,
                 dump(record)
             i += 1
             if activity:
-                activity.update(msg="Dumped %d of %d items" % (i, count),
-                    work=1)
+                activity.update(msg=_(u"Exported %(number)d of %(total)d items") % \
+                                {'number':i, 'total':count}, work=1)
 
         if activity:
             activity.update(totalWork=None) # we don't know upcoming total work
@@ -156,7 +156,7 @@ def dump(rv, filename, uuids=None, serializer=PickleSerializer,
         for record in trans.finishExport():
             if activity:
                 count += 1
-                activity.update(msg="Dumping additional record")
+                activity.update(msg=_(u"Exporting additional record"))
 
             dump(record)
 
@@ -168,7 +168,7 @@ def dump(rv, filename, uuids=None, serializer=PickleSerializer,
         output.close()
 
     if activity:
-        activity.update(msg="Dumped %d records" % count)
+        activity.update(msg=_(u"Exported %(total)d records") % {'total':count})
 
 
 
@@ -212,10 +212,10 @@ def reload(rv, filename, serializer=PickleSerializer, activity=None,
             trans.importRecord(record)
             i += 1
             if activity:
-                activity.update(msg="Imported %d records" % i, work=1)
+                activity.update(msg=_(u"Imported %(total)d records") % {'total':i}, work=1)
             if i % 1000 == 0: # Commit every 1,000 records
                 if activity:
-                    activity.update(msg="Saving...")
+                    activity.update(msg=_(u"Saving..."))
                 rv.commit()
 
         del load
@@ -225,7 +225,7 @@ def reload(rv, filename, serializer=PickleSerializer, activity=None,
     trans.finishImport()
 
     if activity:
-        activity.update(msg="Saving...")
+        activity.update(msg=_(u"Saving..."))
     rv.commit()
 
 
@@ -315,7 +315,7 @@ def convertToTextFile(fromPath, toPath, serializer=PickleSerializer,
             output.write("\n\n")
             i += 1
             if activity:
-                activity.update(msg="Converted %d records" % i, work=1)
+                activity.update(msg=_(u"Converted %(total)d records") % {'total':i}, work=1)
 
         del load
     finally:
