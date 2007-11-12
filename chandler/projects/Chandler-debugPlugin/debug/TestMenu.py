@@ -55,10 +55,10 @@ class TestMenuHandler(Block):
                                           wx.OPEN)
         cmd, dir, filename = res
         if cmd != wx.ID_OK:
-            self.setStatusMessage(_(u"Import aborted"))
+            self.setStatusMessage(_(u"Import aborted."))
             return
 
-        self.setStatusMessage(_(u"Importing from %(filename)s")
+        self.setStatusMessage(_(u"Importing from %(filename)s.")
                               %{'filename': filename})
 
         return GenerateItems(self.itsView, os.path.join(dir, filename))

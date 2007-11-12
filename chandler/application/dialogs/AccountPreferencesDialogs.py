@@ -221,7 +221,7 @@ class ChandlerIMAPFoldersDialog(ProgressDialog):
         return constants.MAIL_PROTOCOL_CONNECTION_ERROR
 
     def getTitleText(self):
-        return _(u"Configure Chandler folders")
+        return _(u"Configure Chandler Folders")
 
     def getStartText(self):
         return _(u"Configuring folders in your account...")
@@ -302,7 +302,7 @@ class RemoveChandlerIMAPFoldersDialog(ProgressDialog):
         return constants.MAIL_PROTOCOL_CONNECTION_ERROR
 
     def getTitleText(self):
-        return _(u"Remove Chandler folders")
+        return _(u"Remove Chandler Folders")
 
     def getStartText(self):
         return _(u"Removing Chandler folders from this account...")

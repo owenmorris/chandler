@@ -102,7 +102,7 @@ def installParcel(parcel, version=None):
     # ... and, below it, a menu item to manage p2p permissions to a collection
     MenuItem.update(parcel, "AccessMenuItem",
                     blockName="_p2p_AccessMenuItem",
-                    title=_(u"Grant Peer access to ..."),
+                    title=_(u"Grant Peer access to..."),
                     event=accessEvent,
                     eventsForNamedLookup=[accessEvent],
                     parentBlock=p2pMenu)

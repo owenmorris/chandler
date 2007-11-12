@@ -113,7 +113,7 @@ class SharingMenuHandler(Block):
                     logger.exception("Failed to convert file")
                     activity.failed(exception=e)
                     raise
-                self.setStatusMessage(_(u'File converted'))
+                self.setStatusMessage(_(u'File converted.'))
 
 
 def makeSharingMenu(parcel, sharingMenu):

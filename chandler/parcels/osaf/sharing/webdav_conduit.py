@@ -121,7 +121,7 @@ class DAVConduitMixin(conduits.HTTPMixin):
 
                 if err.status == twisted.web.http.UNAUTHORIZED:
                     # not authorized
-                    message = _(u"Not authorized to create collection %(url)s") % {'url': url}
+                    message = _(u"Not authorized to create collection %(url)s.") % {'url': url}
                     raise errors.NotAllowed(message)
 
                 if err.status == twisted.web.http.CONFLICT:
@@ -135,7 +135,7 @@ class DAVConduitMixin(conduits.HTTPMixin):
 
                 if err.status == twisted.web.http.FORBIDDEN:
                     # the server doesn't allow the creation of a collection here
-                    message = _(u"Server doesn't allow publishing collections to %(url)s") % {'url': url}
+                    message = _(u"Server doesn't allow publishing collections to %(url)s.") % {'url': url}
                     raise errors.IllegalOperation(message)
 
                 if err.status == twisted.web.http.PRECONDITION_FAILED:
@@ -193,12 +193,12 @@ class DAVConduitMixin(conduits.HTTPMixin):
             except zanshin.webdav.WebDAVError, e:
 
                 if e.status == twisted.web.http.NOT_FOUND:
-                    raise errors.NotFound(_(u"Path %(path)s not found") % {'path': shareCollection.path})
+                    raise errors.NotFound(_(u"Path %(path)s not found.") % {'path': shareCollection.path})
 
                 if e.status == twisted.web.http.UNAUTHORIZED:
-                    raise errors.NotAllowed(_(u"Not authorized to get %(path)s") % {'path': shareCollection.path})
+                    raise errors.NotAllowed(_(u"Not authorized to get %(path)s.") % {'path': shareCollection.path})
 
-                raise errors.SharingError(_(u"Sharing Error: %(error)s") % {'error': e})
+                raise errors.SharingError(_(u"Sharing Error: %(error)s.") % {'error': e})
 
 
             for child in children:
@@ -222,7 +222,7 @@ class DAVConduitMixin(conduits.HTTPMixin):
             except M2Crypto.BIO.BIOError, err:
                 raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
             except zanshin.webdav.PermissionsError, err:
-                message = _(u"Not authorized to GET %(path)s") % {'path': location}
+                message = _(u"Not authorized to GET %(path)s.") % {'path': location}
                 raise errors.NotAllowed(message)
             #else:
                 #if not exists:
@@ -418,12 +418,12 @@ class WebDAVConduit(conduits.LinkableConduit, DAVConduitMixin,
             raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
 
         if resp.status == twisted.web.http.NOT_FOUND:
-            message = _(u"Path %(path)s not found") % {'path': resource.path}
+            message = _(u"Path %(path)s not found.") % {'path': resource.path}
             raise errors.NotFound(message)
 
         if resp.status in (twisted.web.http.UNAUTHORIZED,
                            twisted.web.http.FORBIDDEN):
-            message = _(u"Not authorized to GET %(path)s") % {'path': resource.path}
+            message = _(u"Not authorized to GET %(path)s.") % {'path': resource.path}
             raise errors.NotAllowed(message)
 
         text = resp.body
@@ -487,12 +487,12 @@ class WebDAVRecordSetConduit(ResourceRecordSetConduit, DAVConduitMixin):
             raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
 
         if resp.status == twisted.web.http.NOT_FOUND:
-            message = _(u"Path %(path)s not found") % {'path': resource.path}
+            message = _(u"Path %(path)s not found.") % {'path': resource.path}
             raise errors.NotFound(message)
 
         if resp.status in (twisted.web.http.UNAUTHORIZED,
                            twisted.web.http.FORBIDDEN):
-            message = _(u"Not authorized to GET %(path)s") % {'path': resource.path}
+            message = _(u"Not authorized to GET %(path)s.") % {'path': resource.path}
             raise errors.NotAllowed(message)
 
         text = resp.body

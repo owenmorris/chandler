@@ -784,7 +784,7 @@ def getHEADInfo(rv, url, username=None, password=None):
     }
 
     if resp.status == http.FORBIDDEN:
-        msg = _(u"The server rejected our request. Please check the URL (HTTP status %(status)d)") % { 'status' : resp.status }
+        msg = _(u"The server rejected our request. Please check the URL. (HTTP status %(status)d)") % { 'status' : resp.status }
         raise errors.SharingError(msg,
             details=_(u"Received [%(body)s]") % {'body' : resp.body })
     elif resp.status != http.OK:
@@ -829,7 +829,7 @@ def getOPTIONS(rv, url, username=None, password=None):
     resultDict = { }
 
     if resp.status == http.FORBIDDEN:
-        msg = _(u"The server rejected our request. Please check the URL (HTTP status %(status)d)") % { 'status' : resp.status }
+        msg = _(u"The server rejected our request. Please check the URL. (HTTP status %(status)d)") % { 'status' : resp.status }
         raise errors.SharingError(msg,
             details=_(u"Received [%(body)s]") % {'body' : resp.body })
     elif resp.status != http.OK:

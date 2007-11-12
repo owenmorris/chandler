@@ -1034,7 +1034,7 @@ class ICalendarFormat(formats.ImportExportFormat):
 
         if monolithic:
             if calname is None:
-                calname = _(u"Imported Calendar.")
+                calname = _(u"Imported Calendar")
 
             if item is None:
                 item = SmartCollection(itsView=view)
@@ -1150,7 +1150,7 @@ class FreeBusyFileFormat(ICalendarFormat):
 
         if getattr(item, 'displayName', "") == "":
             if calname is None:
-                calname = _(u"Imported Free/Busy Calendar.")
+                calname = _(u"Imported Free/Busy Calendar")
             item.displayName = unicode(calname)
 
         return item

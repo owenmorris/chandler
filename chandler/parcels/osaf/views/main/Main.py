@@ -1059,7 +1059,7 @@ class MainView(View):
         dlg.Destroy()
         if path:
             settings.save(self.itsView, path)
-            self.setStatusMessage(_(u'Settings saved'))
+            self.setStatusMessage(_(u'Settings saved.'))
 
     def onRestoreSettingsEvent(self, event):
         # triggered from "Test | Restore Settings" Menu

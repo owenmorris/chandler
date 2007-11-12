@@ -34,7 +34,7 @@ DELETE_STATES = (DELETE_DASHBOARD, DELETE_LAST)
 # structure is [itemState](title text, dialog text)
 dialogTextData = {
     DELETE_DASHBOARD :
-        (_(u"Remove from Dashboard"), 
+        (_(u"Remove From Dashboard"), 
          _(u"Removing '%(itemName)s' from the Dashboard will move it to the Trash.")),
     DELETE_LAST :
         (_(u"Delete"),
@@ -45,7 +45,7 @@ dialogTextData = {
            u"It belongs to the view-only collection '%(readOnlyCollectionName)s'.")),
     READ_ONLY_SELECTED :
         (_(u"View-only"),
-         _(u"You cannot make changes to '%(collectionName)s'")),
+         _(u"You cannot make changes to '%(collectionName)s'.")),
 }
 
 def GetReadOnlyCollection(item, view):

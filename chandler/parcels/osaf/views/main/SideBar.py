@@ -1626,12 +1626,12 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                 # For now we'll write a message to the status bar because it's easy
                 # When we get more time to work on search, we should write the message
                 # just below the search box in the toolbar.
-                statusMessage = _(u"No results found")
+                statusMessage = _(u"No results found.")
             else:
                 if searchAborted:
-                    statusMessage = _(u"200 best results found (more exist, but search didn't have time to display them)")
+                    statusMessage = _(u"200 best results found (more exist, but search didn't have time to display them).")
                 else:
-                    statusMessage = _(u"%(itemsFound)i results found") % {"itemsFound": itemsFound}
+                    statusMessage = _(u"%(itemsFound)i results found.") % {"itemsFound": itemsFound}
 
             mainView.setStatusMessage (statusMessage)
 
@@ -1645,7 +1645,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
             wx.MessageBox (_(u"An error occured during search.\n\n%(message)s" ) % {"message": message},
                            _(u"Search Error"),
                            parent = app.mainFrame)
-            mainView.setStatusMessage (_(u"An error occured during search"))
+            mainView.setStatusMessage (_(u"An error occured during search."))
 
 
     def _makeBranchForCacheKey(self, keyItem):

@@ -2279,7 +2279,7 @@ class CalendarControl(CalendarRangeBlock):
         dateString = event.arguments.get('DateString')
         if newDate is None and dateString is None:
             dateString = Util.promptUser(
-                _(u"Go to date"),
+                _(u"Go To Date"),
                 _(u"Enter a date in the form %(dateFormat)s") %
                                    dict(dateFormat=DateTimeUtil.sampleDate))
             if dateString is None:

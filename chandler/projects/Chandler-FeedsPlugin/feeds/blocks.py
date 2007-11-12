@@ -88,7 +88,7 @@ class AddFeedCollectionEvent(Block.AddToSidebarEvent):
             if not channel.isEstablished and not success:
                 # request a new URL from the user.
                 url = dialogs.Util.promptUser(
-                    _(u"The provided URL seems to be invalid"),
+                    _(u"The Provided URL Seems To Be Invalid"),
                     _(u"Enter a URL for the RSS Channel"),
                     defaultValue = unicode(channel.url))
                 url = str(url)

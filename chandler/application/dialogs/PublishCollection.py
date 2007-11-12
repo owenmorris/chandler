@@ -177,7 +177,7 @@ class PublishCollectionDialog(wx.Dialog):
         if account is not None:
             name = share.conduit.account.displayName
         else:
-            name = u"(via ticket)"
+            name = _(u"(via ticket)")
         wx.xrc.XRCCTRL(self, "TEXT_ACCOUNT").SetLabel(name)
 
         if hasattr(share, 'lastSuccess'):

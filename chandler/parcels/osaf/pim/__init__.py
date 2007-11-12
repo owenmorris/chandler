@@ -223,7 +223,7 @@ def installParcel(parcel, oldVersion=None):
 
     if cur.item is None:
         cur.item = IMAPAccount(itsView=view,
-            displayName = _(u'Incoming mail'),
+            displayName = _(u'Incoming Mail'),
             replyToAddress = EmailAddress(itsView=view),
             password = password.Password(itsView=view)
             )

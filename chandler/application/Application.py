@@ -636,7 +636,7 @@ class wxApplication (wx.App):
         #L10N: The collections and settings that were exported to a dump file
         #      from a previous version of Chandler have now been reloaded
         #      in the latest version.
-        self.PostAsyncEvent(showStatus, _(u'Collections and settings reloaded'))
+        self.PostAsyncEvent(showStatus, _(u'Collections and settings reloaded.'))
 
     def localeChanged(self):
         """
@@ -1557,7 +1557,7 @@ def checkPlatform():
     if Utility.getPlatformName() != platform:
         # Prompt the user that we're going to exit
         wx.MessageBox(_(u'This version of Chandler runs on a different operating system. Please download the correct installer from the OSAF website.'),
-                      _(u'Quitting Chandler...'))
+                      _(u'Quitting Chandler'))
         # Stop the program. Somewhat unclean but since nothing can be done safely
         # or even should be done (could crash anytime), the best is to just exit when
         # we still can...

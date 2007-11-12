@@ -106,7 +106,7 @@ class DashboardBlock(Table):
             progress2 = _(u"Triaging recurring events...")
             progress3 = _(u"Saving...")
             failureMsg = _(u"Unable to triage. See chandler.log for details.")
-            failureTitle = _(u"Triage error")
+            failureTitle = _(u"Triage Error")
 
         # Don't fire all the observers (until we're done, that is).
         recurringEventsToHandle = set()

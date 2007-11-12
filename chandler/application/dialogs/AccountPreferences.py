@@ -61,7 +61,7 @@ HOST_REQUIRED  = _(u"Auto-configure requires a server name.")
 
 
 # --- Yes No Dialog Messages ----- #
-CREATE_FOLDERS_TITLE = _(u"Configure Chandler folders")
+CREATE_FOLDERS_TITLE = _(u"Configure Chandler Folders")
 CREATE_FOLDERS = _(u"""Chandler will attempt to create the following IMAP folders in your account on '%(host)s':
 
     Chandler Events
@@ -72,7 +72,7 @@ If you have already set up Chandler folders in your account, no new folders will
 
 Folders may take a while to show up in your email application.""")
 
-REMOVE_FOLDERS_TITLE = _(u"Remove Chandler folders")
+REMOVE_FOLDERS_TITLE = _(u"Remove Chandler Folders")
 REMOVE_FOLDERS = _(u"""Chandler will now attempt to remove the following IMAP folders on '%(host)s':
 
     Chandler Mail
@@ -361,7 +361,7 @@ class AccountPreferencesDialog(wx.Dialog):
                 "displayName" : u"INCOMING_DESCRIPTION",
                 "protocol" : "IMAP",
                 "class" : Mail.IMAPAccount,
-                "description" : _(u"Incoming mail"),
+                "description" : _(u"Incoming Mail"),
                 "callbacks" : (
                                 ("INCOMING_DISCOVERY", "OnIncomingDiscovery"),
                               ),

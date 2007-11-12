@@ -27,17 +27,17 @@ IMPORT    = 1
 EXPORT    = 2
 
 stateData = { IMPORT : 
-              {'title' : _(u"Use Time zones"),
+              {'title' : _(u"Use Time Zones"),
                'hide'  : [wx.ID_CANCEL],
                'text'  : _(u"To view events and alarms correctly, would you like to assign a time zone to your existing items?")
               },
               PUBLISH : 
-              {'title' : _(u"Use Time zones"),
+              {'title' : _(u"Use Time Zones"),
                'hide'  : [],
                'text'  : _(u"Would you like to assign a time zone to your items before sharing them with others?")
               },              
               EXPORT : 
-              {'title' : _(u"Use Time zones"),
+              {'title' : _(u"Use Time Zones"),
                'hide'  : [],
                'text'  : _(u"Would you like to assign a time zone to your items before exporting them?")
               },              

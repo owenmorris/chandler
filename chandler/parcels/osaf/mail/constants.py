@@ -28,7 +28,7 @@ CHANDLER_MAIL_FOLDER = _(u"Chandler Mail")
 CHANDLER_TASKS_FOLDER = _(u"Chandler Tasks")
 CHANDLER_EVENTS_FOLDER = _(u"Chandler Events")
 
-INVALID_EMAIL_ADDRESS = _(u"Email Address %(emailAddress)s is not valid")
+INVALID_EMAIL_ADDRESS = _(u"Email Address %(emailAddress)s is not valid.")
 
 # Generic mail protocol message strings
 MAIL_GENERIC_ERROR = _(u"Mail error:\n\n\t%(errText)s")
@@ -47,7 +47,7 @@ DOWNLOAD_CHECK_MESSAGES = _(u"%(accountName)s: Checking for new mail messages...
 INBOX_LIST_ERROR = _(u"Unable to determine status of Inbox on server.")
 
 # Translatable message strings for uploads(SMTP)
-UPLOAD_BAD_REPLY_ADDRESS = _(u"The Reply-to address %(emailAddress)s is not valid")
+UPLOAD_BAD_REPLY_ADDRESS = _(u"The Reply-to address %(emailAddress)s is not valid.")
 UPLOAD_FROM_REQUIRED = _(u"A From: address is required to send this message.")
 UPLOAD_TO_REQUIRED = _(u"At least one valid To: email address is required to send this message.")
 

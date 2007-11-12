@@ -322,9 +322,9 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
                 raise Exception('response.status=' + response.status)
             c.close()
         except:
-            self.frame.sendButton.SetLabel(_(u'Failed to send.'))
+            self.frame.sendButton.SetLabel(_(u'Failed to send'))
         else:
-            self.frame.sendButton.SetLabel(_(u'Sent.'))
+            self.frame.sendButton.SetLabel(_(u'Sent'))
             self.logReport(body, response.read())
                 
 FeedbackWindow = FeedbackWindow()

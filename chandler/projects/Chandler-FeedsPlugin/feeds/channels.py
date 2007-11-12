@@ -273,7 +273,7 @@ class FeedChannel(pim.ListCollection):
                 item.author = _(u"Chandler Feeds Parcel")
                 item.category = _(u"Internal")
                 item.date = datetime.now(view.tzinfo.default)
-                item.content = view.createLob(_(u"This feed channel is currently unreachable"))
+                item.content = view.createLob(_(u"This feed channel is currently unreachable."))
                 self.addFeedItem(item)
                 self.logItem = item
                 view.commit()

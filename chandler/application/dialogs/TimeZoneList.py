@@ -144,7 +144,7 @@ class TimeZoneChooser(wx.Dialog):
         self.view = view
         self.changed = {}
 
-        title = _(u"Use Time zones")
+        title = _(u"Use Time Zones")
         wx.Dialog.__init__(self, id=-1, name=u'TimeZoneChooser',
                            parent=None,
                            style=wx.DIALOG_MODAL | wx.DEFAULT_DIALOG_STYLE,
