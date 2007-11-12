@@ -17,6 +17,15 @@ else
     export PYTHONBIN="$CHANDLERBIN"/release/bin/python
 fi
 
+if [ -f "$PYTHONBIN" ]; then
+    echo "Using $PYTHONBIN $@"
+else
+    echo "Error:  Please unset the CHANDLERBIN environment variable or "
+    echo "        set it to point to the directory that contains the debug "
+    echo "        subdirectory, then rerun RunPython"
+    exit 1
+fi
+
 export LD_LIBRARY_PATH="$CHANDLERBIN"/release/lib:"$CHANDLERBIN"/release/db/lib:"$CHANDLERBIN"/release/j2re-image/lib/i386:"$CHANDLERBIN"/release/j2re-image/lib/i386/client
 
 if [ -d "$CHANDLERBIN/release/icu" ]; then
