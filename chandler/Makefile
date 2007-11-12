@@ -325,6 +325,9 @@ distrib-plugins: $(addprefix develop-u-, $(BUILD_PLUGINS)) \
 # On Ubuntu Feisty Fawn and Gutsy Gibbon users need to install some packages,
 # check that we have them:
 ifeq ($(OS),Linux)
+ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy),)
+py-env:
+endif
 ifeq ($(PLATFORM),linux/feisty)
 py-env:
 	@echo Checking that you have required packages installed...
@@ -338,6 +341,7 @@ py-env:
 	python -c "from pkg_resources import require; require('configobj >= 4.3.2')"
 	python -c "from pkg_resources import require; require('zope.interface >= 0')"
 endif
+else
 py-env:
 endif
 
