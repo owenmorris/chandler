@@ -128,15 +128,10 @@ def publishSubscribe(logger):
         
         # Get a read-write ticket to the published collection
         # XXX This is ripped from PublishCollection
-        if win.publishType == 'freebusy':
-            share = sharing.getFreeBusyShare(win.collection)
-        else:
-            share = sharing.getShare(win.collection)
+        share = sharing.getShare(win.collection)
         urls = sharing.getUrls(share)
         if len(urls) == 1:
             urlString = urls[0]
-        elif win.publishType == 'freebusy':
-            urlString = urls[1]
         else:
             urlString = urls[0] # read-write
         

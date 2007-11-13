@@ -99,9 +99,6 @@ def save(rv, filename):
                 cfg[section_name][u"url"] = url
                 if url != urls[0]:
                     cfg[section_name][u"ticket"] = urls[0]
-                ticketFreeBusy = getattr(share.conduit, "ticketFreeBusy", None)
-                if ticketFreeBusy:
-                    cfg[section_name][u"freebusy"] = u"True"
             if isinstance(share.conduit, sharing.RecordSetConduit):
                 c = share.conduit
                 cfg[section_name][u"filters"] = ",".join(c.filters)
@@ -328,9 +325,6 @@ def restore(rv, filename, testmode=False, newMaster=''):
             if not subscribed:
                 if section.has_key(u"ticket"):
                     url = section[u"ticket"]
-                freebusy = False
-                if section.has_key(u"freebusy"):
-                    freebusy = section.as_bool(u"freebusy")
                 title = section[u"title"]
 
                 if section.has_key(u"red"):

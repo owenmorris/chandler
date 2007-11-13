@@ -117,7 +117,7 @@ class Activity(object):
             percent = min(int(self.workDone * 100 / self.totalWork), 100)
             kwds['percent'] = percent
 
-        if Listener.broadcast(self, *args, **kwds) or self.abortRequested:
+        if self.abortRequested or Listener.broadcast(self, *args, **kwds):
             self.aborted()
             raise ActivityAborted(_(u"Cancelled by user."))
 

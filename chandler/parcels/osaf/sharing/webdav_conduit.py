@@ -13,12 +13,11 @@
 #   limitations under the License.
 
 __all__ = [
-    'WebDAVConduit',
     'WebDAVRecordSetConduit',
     'WebDAVMonolithicRecordSetConduit',
 ]
 
-import conduits, errors, formats
+import conduits, errors, utility
 import zanshin, M2Crypto.BIO, twisted.web.http, urlparse
 import twisted.internet.error
 from recordset_conduit import (
@@ -47,7 +46,7 @@ class DAVConduitMixin(conduits.HTTPMixin):
             sharePath = u"" # Avoid double-slashes on next line...
         resourcePath = u"%s/%s" % (sharePath, self.shareName)
 
-        if self.share.fileStyle() == formats.STYLE_DIRECTORY:
+        if self.share.fileStyle() == utility.STYLE_DIRECTORY:
             if not resourcePath.endswith("/"):
                 resourcePath += "/"
             resourcePath += path
@@ -83,7 +82,7 @@ class DAVConduitMixin(conduits.HTTPMixin):
 
         style = self.share.fileStyle()
 
-        if style == formats.STYLE_DIRECTORY:
+        if style == utility.STYLE_DIRECTORY:
             url = self.getLocation()
             handle = self._getServerHandle()
             try:
@@ -156,7 +155,7 @@ class DAVConduitMixin(conduits.HTTPMixin):
 
         style = self.share.fileStyle()
 
-        if style == formats.STYLE_DIRECTORY:
+        if style == utility.STYLE_DIRECTORY:
             path = self.getLocation()
         else:
             path = self._getSharePath()
@@ -179,7 +178,7 @@ class DAVConduitMixin(conduits.HTTPMixin):
         resourceList = {}
 
         style = self.share.fileStyle()
-        if style == formats.STYLE_DIRECTORY:
+        if style == utility.STYLE_DIRECTORY:
             shareCollection = self._getContainerResource()
 
             try:
@@ -209,7 +208,7 @@ class DAVConduitMixin(conduits.HTTPMixin):
                     if path:
                         resourceList[path] = { 'data' : etag }
 
-        elif style == formats.STYLE_SINGLE:
+        elif style == utility.STYLE_SINGLE:
             resource = self._getServerHandle().getResource(location)
             if getattr(self, 'ticket', False):
                 resource.ticketId = self.ticket
@@ -297,149 +296,6 @@ class DAVConduitMixin(conduits.HTTPMixin):
 
 
 
-
-
-
-class WebDAVConduit(conduits.LinkableConduit, DAVConduitMixin,
-    conduits.ManifestEngineMixin):
-    """ Implements the old Conduit interface """
-
-    def _putItem(self, item):
-        """
-        putItem should publish an item and return etag/date, etc.
-        """
-
-        try:
-            text = self.share.format.exportProcess(item)
-        except:
-            logger.exception("Failed to export item")
-            msg = _(u"Transformation failed for %(item)s.") % {'item': item}
-            raise errors.TransformationFailed(msg)
-
-        if text is None:
-            return None
-
-        contentType = self.share.format.contentType(item)
-        itemName = self._getItemPath(item)
-        container = self._getContainerResource()
-
-        try:
-            # @@@MOR For some reason, when doing a PUT on the rpi server, I
-            # can see it's returning 400 Bad Request, but zanshin doesn't
-            # seem to be raising an exception.  Putting in a check for
-            # newResource == None as another indicator that it failed to
-            # create the resource
-            newResource = None
-            serverHandle = self._getServerHandle()
-
-            # Here, if the resource doesn't exist on the server, we're
-            # going to call container.createFile(), which will fail
-            # with a 412 (PRECONDITION_FAILED) iff something already
-            # exists at that location.
-            #
-            # If the resource does exist, we get hold of it, and
-            # call resource.put(), which fails with a 412 iff the
-            # etag of the resource changed.
-
-            ## if not self.resourceList.has_key(itemName):
-            ##     newResource = serverHandle.blockUntil(
-            ##                       container.createFile, itemName, body=text,
-            ##                       type=contentType)
-            ## else:
-            resourcePath = container.path + itemName
-            resource = serverHandle.getResource(resourcePath)
-
-            if getattr(self, 'ticket', False):
-                resource.ticketId = self.ticket
-
-            serverHandle.blockUntil(resource.put, text, checkETag=False,
-                                    contentType=contentType)
-
-            # We're using newResource of None to track errors
-            newResource = resource
-
-        except zanshin.webdav.ConnectionError, err:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
-        except M2Crypto.BIO.BIOError, err:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
-        # 201 = new, 204 = overwrite
-
-        except zanshin.webdav.PermissionsError:
-            message = _(u"Not authorized to PUT %(info)s.") % {'info': itemName}
-            raise errors.NotAllowed(message)
-
-        except zanshin.webdav.WebDAVError, err:
-
-            if err.status in (twisted.web.http.FORBIDDEN,
-                              twisted.web.http.CONFLICT,
-                              twisted.web.http.PRECONDITION_FAILED):
-                # [@@@] grant: Should probably come up with a better message
-                # for PRECONDITION_FAILED (an ETag conflict).
-                # seen if trying to PUT to a nonexistent collection (@@@MOR verify)
-                message = _(u"Publishing %(itemName)s failed. Server rejected our request with status %(status)d") % {'itemName': itemName, 'status': err.status}
-                raise errors.NotAllowed(message)
-
-        if newResource is None:
-            message = _(u"Not authorized to PUT %(itemName)s %(body)s.") % {'itemName': itemName, 'body' : text}
-            raise errors.NotAllowed(message)
-
-        etag = newResource.etag
-
-        # @@@ [grant] Get mod-date?
-        return etag
-
-    def _deleteItem(self, itemPath):
-        resource = self._resourceFromPath(itemPath)
-        logger.info("...removing from server: %s" % resource.path)
-
-        if resource != None:
-            try:
-                deleteResp = self._getServerHandle().blockUntil(resource.delete)
-            except zanshin.webdav.ConnectionError, err:
-                raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
-            except M2Crypto.BIO.BIOError, err:
-                raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
-
-    def _getItem(self, contentView, itemPath, into=None, activity=None,
-                 stats=None):
-
-        resource = self._resourceFromPath(itemPath)
-
-        try:
-            resp = self._getServerHandle().blockUntil(resource.get)
-
-        except twisted.internet.error.ConnectionDone, err:
-            errors.annotate(err, _(u"Server reported incorrect Content-Length for %(itemPath)s.") % \
-                            {"itemPath": itemPath}, details=str(err))
-            raise
-        except zanshin.webdav.ConnectionError, err:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
-        except M2Crypto.BIO.BIOError, err:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
-
-        if resp.status == twisted.web.http.NOT_FOUND:
-            message = _(u"Path %(path)s not found.") % {'path': resource.path}
-            raise errors.NotFound(message)
-
-        if resp.status in (twisted.web.http.UNAUTHORIZED,
-                           twisted.web.http.FORBIDDEN):
-            message = _(u"Not authorized to GET %(path)s.") % {'path': resource.path}
-            raise errors.NotAllowed(message)
-
-        text = resp.body
-
-        etag = resource.etag
-
-        try:
-            item = self.share.format.importProcess(contentView, text,
-                item=into, activity=activity, stats=stats)
-
-        except errors.MalformedData:
-            logger.exception("Failed to parse resource for item %s: '%s'" %
-                (itemPath, text.encode('utf8', 'replace')))
-            raise
-
-        return (item, etag)
 
 
 

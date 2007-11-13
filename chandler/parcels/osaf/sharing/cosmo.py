@@ -19,9 +19,9 @@ __all__ = [
 ]
 
 from application import schema
-import shares, accounts, conduits, errors, formats, eim, recordset_conduit
+import shares, accounts, conduits, errors, eim, recordset_conduit, viewpool
 from shares import Share
-from osaf.activity import Activity
+from osaf.activity import Activity, ActivityAborted
 import translator, eimml, WebDAV, utility
 import zanshin, M2Crypto
 import urlparse, urllib
@@ -38,6 +38,9 @@ logger = logging.getLogger(__name__)
 
 
 mcURI = "http://osafoundation.org/mc/"
+
+
+
 
 
 class CosmoAccount(accounts.SharingAccount):
@@ -71,6 +74,18 @@ class CosmoAccount(accounts.SharingAccount):
     accountType = schema.One(
         initialValue = 'SHARING_MORSECODE',
     )
+
+    # modify this only in sharing view to avoid merge conflicts
+    unsubscribed = schema.Many(schema.Text, initialValue=set(),
+        doc = 'UUIDs of unsubscribed collections the user has not acted upon')
+
+    # modify this only in main view to avoid merge conflicts
+    ignored = schema.Many(schema.Text, initialValue=set(),
+        doc = 'UUIDs of unsubscribed collections the user chose to ignore')
+
+    # modify this only in main view to avoid merge conflicts
+    requested = schema.Many(schema.Text, initialValue=set(),
+        doc = 'UUIDs of unsubscribed collections the user wants to restore')
 
     def publish(self, collection, activity=None, filters=None, overwrite=False):
         rv = self.itsView
@@ -127,14 +142,14 @@ class CosmoAccount(accounts.SharingAccount):
         except zanshin.webdav.ConnectionError, err:
             exc = errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
             if callback:
-                return callMethodInUIThread(callback, (exc, None))
+                return callMethodInUIThread(callback, (exc, self.itsUUID, None))
             else:
                 raise exc
 
         except M2Crypto.BIO.BIOError, err:
             exc = errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
             if callback:
-                return callMethodInUIThread(callback, (exc, None))
+                return callMethodInUIThread(callback, (exc, self.itsUUID, None))
             else:
                 raise exc
 
@@ -143,7 +158,7 @@ class CosmoAccount(accounts.SharingAccount):
                 resp.status),
                 details="Received [%s]" % resp.body)
             if callback:
-                return callMethodInUIThread(callback, (exc, None))
+                return callMethodInUIThread(callback, (exc, self.itsUUID, None))
             else:
                 raise exc
 
@@ -164,46 +179,115 @@ class CosmoAccount(accounts.SharingAccount):
                     ticketType = subElement.get("type")
                     tickets.append( (ticket, ticketType) )
 
-            info.append( (name, uuid, href, tickets) )
+            subscribed = False
+            for conduit in getattr(self, 'conduits', []):
+                if hasattr(conduit, 'share'):
+                    collection = conduit.share.contents
+                    if (collection is not None and
+                        collection.itsUUID.str16() == uuid):
+                        # Already subscribed
+                        if uuid in self.unsubscribed:
+                            self.unsubscribed.remove(uuid)
+                        subscribed = True
+                        break
+            else:
+                # Not subscribed to this collection
+                if uuid not in self.ignored and uuid not in self.requested:
+                    if uuid not in self.unsubscribed:
+                        self.unsubscribed.add(uuid)
+
+            info.append((name, uuid, href, tickets, subscribed))
 
         if callback:
-            return callMethodInUIThread(callback, (None, info))
+            return callMethodInUIThread(callback, (None, self.itsUUID, info))
 
         return info
 
-    def autoRestoreShares(self, activity=None):
+    def ignoreUnsubscribed(self):
+        for uuid in list(self.unsubscribed):
+            self.unsubscribed.remove(uuid)
+            self.ignored.add(uuid)
+
+    def restoreCollections(self, activity=None):
         rv = self.itsView
 
         if not self.isSetUp():
             return
 
-        shares = list()
         info = self.getPublishedShares(blocking=True)
-        for name, uuid, href, tickets in info:
-            url = "%smc/%s" % (self.getLocation( ), href)
-            share = utility.findMatchingShare(rv, url)
-            if share is None:
-                share = Share(itsView=rv, displayName=name)
-                share.mode = 'both'
-                share.conduit = CosmoConduit(itsParent=share,
-                    shareName=uuid, account=self,
-                    translator=translator.SharingTranslator,
-                    serializer=eimml.EIMMLSerializer)
-                for ticket, ticketType in tickets:
-                    if ticketType == 'read-only':
-                        share.conduit.ticketReadOnly = ticket
-                    elif ticketType == 'read-write':
-                        share.conduit.ticketReadWrite = ticket
+        toRestore = list()
+        for name, uuid, href, tickets, subscribed in info:
+            if not subscribed and uuid in self.requested:
+                toRestore.append((name, uuid, href, tickets))
 
-                share.conduit.filters = set()
-                share.conduit.filters.add('cid:reminders-filter@osaf.us')
-                share.conduit.filters.add('cid:needs-reply-filter@osaf.us')
-                share.conduit.filters.add('cid:bcc-filter@osaf.us')
+        for name, uuid, href, tickets in toRestore:
 
-                share.get(activity=activity)
-                share.sharer = schema.ns("osaf.pim", rv).currentContact.item
-                schema.ns("osaf.app", rv).sidebarCollection.add(share.contents)
+                try:
+                    msg = _("Restoring %(collection)s collection") % {
+                        'collection' : name }
+                    logger.info(msg)
 
+                    subActivity = Activity(msg)
+                    subActivity.started()
+
+                    activity.update(msg=msg, work=1)
+
+                    altView = viewpool.getView(rv.repository)
+                    share = Share(itsView=altView, displayName=name)
+                    share.mode = 'both'
+                    share.conduit = CosmoConduit(itsParent=share,
+                        shareName=uuid, account=altView.findUUID(self.itsUUID),
+                        translator=translator.SharingTranslator,
+                        serializer=eimml.EIMMLSerializer)
+                    for ticket, ticketType in tickets:
+                        if ticketType == 'read-only':
+                            share.conduit.ticketReadOnly = ticket
+                        elif ticketType == 'read-write':
+                            share.conduit.ticketReadWrite = ticket
+
+                    share.conduit.filters = set()
+                    share.conduit.filters.add('cid:reminders-filter@osaf.us')
+                    share.conduit.filters.add('cid:needs-reply-filter@osaf.us')
+                    share.conduit.filters.add('cid:bcc-filter@osaf.us')
+
+                    share.get(activity=subActivity)
+                    if uuid in self.ignored:
+                        self.ignored.remove(uuid)
+                    self.requested.remove(uuid)
+                    share.sharer = schema.ns("osaf.pim",
+                        altView).currentContact.item
+                    schema.ns("osaf.app",
+                        altView).sidebarCollection.add(share.contents)
+
+                    altView.commit(utility.mergeFunction)
+                    subActivity.completed()
+
+                except Exception, e:
+                    altView.cancel()
+                    viewpool.releaseView(altView)
+                    if not isinstance(e, ActivityAborted):
+                        subActivity.failed(e)
+                        activity.failed(e)
+                        logger.exception("Restore failed")
+                    self.requested.remove(uuid)
+                    raise
+
+
+
+
+    @classmethod
+    def iterAccounts(cls, rv):
+        uuids = [account.itsUUID for account in CosmoAccount.iterItems(rv)]
+        for uuid in uuids:
+            account = rv.findUUID(uuid)
+            if account is not None:
+                yield account
+
+    @classmethod
+    def ignoreCollection(cls, collection):
+        rv = collection.itsView
+        for account in CosmoAccount.iterAccounts(rv):
+            account.ignored.add(collection.itsUUID.str16())
 
 
 class HubAccount(CosmoAccount):
@@ -362,7 +446,7 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
                 (resp.message, resp.status),
                 details="Collection already exists on server")
             toRaise.mine = False
-            for name, uuid, href, tickets in shares:
+            for name, uuid, href, tickets, unsubscribed in shares:
                 if uuid == self.share.contents.itsUUID.str16():
                     toRaise.mine = True
             raise toRaise

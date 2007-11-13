@@ -1157,9 +1157,12 @@ class MainView(View):
     def onSyncPrefsEvent(self, event):
         autosyncprefs.Show(self.itsView)
 
+    def onSyncManagerEvent(self, event):
+        self.onRestoreSharesEvent(event)
+
     def onRestoreSharesEvent(self, event):
         if sharing.ensureAccountSetUp(self.itsView, sharing=True):
-            RestoreShares.Show(self.itsView)
+            RestoreShares.Show()
 
     def onPublishCollectionEvent(self, event):
         self._onShareOrManageSidebarCollectionEvent(event)
@@ -1270,57 +1273,6 @@ class MainView(View):
                 sharing.isOnline(self.itsView) and
                 sharing.isShared(collection) and sharedByMe)
 
-    def _freeBusyShared(self):
-        allCollection = schema.ns('osaf.pim', self).allCollection
-        return (sharing.getFreeBusyShare(allCollection) is not None)
-
-    def onSharingPublishFreeBusyEvent(self, event):
-        if not sharing.ensureAccountSetUp(self.itsView, sharing=True):
-            return
-        allCollection = schema.ns('osaf.pim', self).allCollection
-        PublishCollection.ShowPublishDialog(view=self.itsView,
-                                            publishType = 'freebusy',
-                                            collection=allCollection)
-
-    def onSharingPublishFreeBusyEventUpdateUI(self, event):
-        # Freebusy Disabled
-        event.arguments['Enable'] = False
-        # event.arguments['Enable'] = not self._freeBusyShared()
-
-
-    def onSharingUnpublishFreeBusyEventUpdateUI(self, event):
-        # Freebusy Disabled
-        event.arguments['Enable'] = False
-        # event.arguments['Enable'] = self._freeBusyShared()
-
-    onCopyFreeBusyURLEventUpdateUI = onSharingUnpublishFreeBusyEventUpdateUI
-
-    def onCopyFreeBusyURLEvent(self, event):
-        allCollection = schema.ns('osaf.pim', self).allCollection
-        share = sharing.getFreeBusyShare(allCollection)
-        if share is not None:
-            urlString = sharing.getUrls(share)[-1]
-            gotClipboard = wx.TheClipboard.Open()
-            if gotClipboard:
-                wx.TheClipboard.SetData(wx.TextDataObject(unicode(urlString)))
-                wx.TheClipboard.Close()
-
-    def onSharingUnpublishFreeBusyEvent(self, event):
-        try:
-            sharing.unpublishFreeBusy(schema.ns('osaf.pim', self).allCollection)
-        except sharing.NotFound:
-            msg = _(u"Free/Busy URL not found, could not revoke Free/Busy access.")
-            self.setStatusMessage(msg)
-        except (sharing.CouldNotConnect, twisted.internet.error.TimeoutError):
-            msg = _(u"Unpublish failed, could not connect to server.")
-            self.setStatusMessage(msg)
-        except:
-            msg = _(u"Unpublish failed, unknown error.")
-            self.setStatusMessage(msg)
-            raise # figure out what the exception is
-        else:
-            msg = _(u"Collection unpublished.")
-            self.setStatusMessage(msg)
 
     def onSyncCollectionEvent (self, event):
         rv = self.itsView

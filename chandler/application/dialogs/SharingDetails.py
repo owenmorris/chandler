@@ -83,3 +83,4 @@ def Show(parent, share):
 def ShowText(parent, text, title=_(u"Sharing Details")):
     win = SharingDetailsFrame(parent, -1, title, text)
     win.Show()
+    win.CenterOnParent()

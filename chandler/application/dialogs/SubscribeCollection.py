@@ -132,18 +132,13 @@ class SubscribeDialog(wx.Dialog):
 
     def _finishedShare(self, uuid):
 
-        sharing.releaseView(self.taskView)
-
-        # Pull in the changes from sharing view
-        self.view.refresh(lambda code, item, attr, val: val)
-
-        collection = self.view[uuid]
+        collection = self.taskView[uuid]
 
         if self.name:
             collection.displayName = self.name
 
         if self.publisher:
-            me = schema.ns("osaf.pim", self.view).currentContact.item
+            me = schema.ns("osaf.pim", self.taskView).currentContact.item
             for share in sharing.SharedItem(collection).shares:
                 share.sharer = me
                 if share.mode == 'get':
@@ -152,9 +147,9 @@ class SubscribeDialog(wx.Dialog):
         # Put this collection into "My items" if not checked:
         if not self.checkboxKeepOut.GetValue() or self.mine:
             logger.info(_(u'Moving collection into Dashboard...'))
-            schema.ns('osaf.pim', self.view).mine.addSource(collection)
+            schema.ns('osaf.pim', taskView.view).mine.addSource(collection)
 
-        schema.ns("osaf.app", self.view).sidebarCollection.add(collection)
+        schema.ns("osaf.app", self.taskView).sidebarCollection.add(collection)
 
         if self.color:
             usercollections.UserCollection(collection).color = self.color
@@ -176,21 +171,30 @@ class SubscribeDialog(wx.Dialog):
         except ActivityAborted:
             pass # at this point, we've already got the collection and we
                  # need to add it to the sidebar, so ignore abort request
-        self.view.commit()
+        self.taskView.commit()
+        sharing.releaseView(self.taskView)
         self.activity.completed()
         self.listener.unregister()
 
         if self.modal:
             self.EndModal(True)
         self.Destroy()
-        
+
         self.subscribing = False
+
+
 
     def _shareError(self, (err, summary, extended)):
 
+        self.taskView.cancel()
         sharing.releaseView(self.taskView)
 
-        if not isinstance(err, ActivityAborted):
+        if isinstance(err, ActivityAborted):
+            if self.modal:
+                self.EndModal(False)
+            self.Destroy()
+            return
+        else:
             self.activity.failed(exception=err)
         self.listener.unregister()
 
@@ -233,16 +237,15 @@ class SubscribeDialog(wx.Dialog):
 
             if Globals.options.catch != 'tests':
                 text = "%s\n\n%s\n\n%s" % (self.url, summary, extended)
-                SharingDetails.ShowText(None, text, title=_(u"Subscribe Error"))
+                SharingDetails.ShowText(wx.GetApp().mainFrame, text,
+                    title=_(u"Subscribe Error"))
 
 
         self.subscribing = False
         self._resize()
 
     def _shutdownInitiated(self):
-        if self.modal:
-            self.EndModal(False)
-        self.Destroy()
+        self.activity.requestAbort()
 
     def OnSubscribe(self, evt):
 
@@ -288,7 +291,7 @@ class SubscribeDialog(wx.Dialog):
             def success(task, result):
                 self._finishedShare(result)
 
-            def shutdownInitiated(task, arg):
+            def shutdownInitiated(task):
                 self._shutdownInitiated()
 
             def run(task):

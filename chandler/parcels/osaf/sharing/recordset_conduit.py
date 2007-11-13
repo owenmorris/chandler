@@ -16,7 +16,7 @@ from __future__ import with_statement
 from osaf import pim
 from osaf.timemachine import getNow
 from osaf.pim import TriageEnum
-import conduits, errors, formats, eim, shares, model, utility
+import conduits, errors, eim, shares, model, utility
 from model import EventRecord, ItemRecord
 from utility import (splitUUID, getDateUtilRRuleSet, fromICalendarDateTime,
                      checkTriageOnly, getMasterAlias, code_to_triagestatus,
@@ -43,9 +43,20 @@ __all__ = [
     'InMemoryResourceRecordSetConduit',
     'hasChanges',
     'findRecurrenceConflicts',
+    'isReadOnlyMode',
+    'setReadOnlyMode',
 ]
 
 emptyValues = (eim.NoChange, eim.Inherit, None)
+
+
+# A flag to allow a developer to turn off all publishing while debugging
+_readOnlyMode = False
+def isReadOnlyMode():
+    return _readOnlyMode
+def setReadOnlyMode(active):
+    global _readOnlyMode
+    _readOnlyMode = active
 
 
 
@@ -61,7 +72,6 @@ class RecordSetConduit(conduits.BaseConduit):
     def sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):
 
-
         if forceUpdate:
             # We want to fetch all items from the server, not just changes
             # since the previous sync
@@ -69,20 +79,12 @@ class RecordSetConduit(conduits.BaseConduit):
 
         rv = self.itsView
 
-        try:
-            stats = self._sync(modeOverride=modeOverride,
-                activity=activity, forceUpdate=forceUpdate,
-                debug=debug)
+        stats = self._sync(modeOverride=modeOverride,
+            activity=activity, forceUpdate=forceUpdate,
+            debug=debug)
 
-            if activity:
-                activity.update(msg="Saving...", totalWork=None)
-            rv.commit(mergeFunction)
-            logger.debug("View version is now: %s", rv.itsVersion)
-
-        except Exception, exception:
-            logger.exception("Sharing Error")
-            rv.cancel() # Discard any changes we made
-            raise
+        if activity:
+            activity.update(msg="Saving...", totalWork=None)
 
         return stats
 
@@ -94,7 +96,6 @@ class RecordSetConduit(conduits.BaseConduit):
         debug=False):
 
         doLog = logger.info if debug else logger.debug
-
 
         def _callback(*args, **kwds):
             if activity:
@@ -119,6 +120,12 @@ class RecordSetConduit(conduits.BaseConduit):
         else:
             send = share.mode in ('put', 'both')
             receive = share.mode in ('get', 'both')
+
+        if isReadOnlyMode():
+            readOnly = True
+            send = False
+        else:
+            readOnly = (share.mode == 'get')
 
         translator = self.translator(rv)
 
@@ -212,14 +219,17 @@ class RecordSetConduit(conduits.BaseConduit):
             # honor the inbound rename.  If we are the collection's owner,
             # our local name is always sent out.
             share = self.share
+            localNameChange = False
             if not share.established:
                 share.displayName = extra.get('name', _(u"Untitled"))
                 share.contents.displayName = share.displayName
                 logger.info("Subscribed collection name: %s", share.displayName)
             else:
+                if share.displayName != share.contents.displayName:
+                    localNameChange = True
                 if extra.has_key('name'): # an inbound collection name
                     name = extra['name']
-                    if share.displayName == share.contents.displayName:
+                    if not localNameChange:
                         # apply inbound name if no local change to it
                         if share.contents.displayName != name:
                             share.contents.displayName = name
@@ -556,7 +566,6 @@ class RecordSetConduit(conduits.BaseConduit):
             else:
                 rsExternal = inbound.get(alias, eim.RecordSet())
 
-            readOnly = (share.mode == 'get')
             doLog("----- Merging %s %s", alias,
                 "(Read-only merge)" if readOnly else "")
 
@@ -941,10 +950,9 @@ class RecordSetConduit(conduits.BaseConduit):
             _callback(msg="%d local removal(s) detected" % removeCount,
                 totalWork=None)
 
-
         # Send if there is something to send or even if this is just an
         # initial publish of an empty collection:
-        if send and (toSend or not share.established):
+        if send and (toSend or not share.established or localNameChange):
             sendCount = len(toSend)
             _callback(msg="Sending %d outbound change(s)" % sendCount,
                 totalWork=None)
@@ -1167,7 +1175,7 @@ class RecordSetConduit(conduits.BaseConduit):
         raise NotImplementedError
 
     def fileStyle(self):
-        return formats.STYLE_DIRECTORY
+        return utility.STYLE_DIRECTORY
 
 
     def isAttributeModifiable(self, item, attribute):
@@ -1241,7 +1249,7 @@ class MonolithicRecordSetConduit(RecordSetConduit):
         self.put(text)
 
     def fileStyle(self):
-        return formats.STYLE_SINGLE
+        return utility.STYLE_SINGLE
 
 
 

@@ -45,15 +45,13 @@ class PublishCollectionDialog(wx.Dialog):
     def __init__(self, title, size=wx.DefaultSize,
                  pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
                  resources=None, view=None, collection=None,
-                 publishType='collection', modal=True,
-                 name=None, account=None):
+                 modal=True, name=None, account=None):
 
         wx.Dialog.__init__(self, None, -1, title, pos, size, style)
         self.resources = resources
         self.view = view
         self.collection = collection    # The collection to share
         self.modal = modal
-        self.publishType = publishType
         self.name = name
         self.account = account # use this account, overriding the default
 
@@ -141,18 +139,17 @@ class PublishCollectionDialog(wx.Dialog):
                   self.OnChangeAccount,
                   id=wx.xrc.XRCID("CHOICE_ACCOUNT"))
 
-        if self.publishType == 'collection': #freebusy doesn't need these
-            wx.xrc.XRCCTRL(self, "TEXT_COLLNAME").SetLabel(collName)
-            self.CheckboxShareAlarms = wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS")
-            self.CheckboxShareAlarms.SetValue(False)
-            self.CheckboxShareStatus = wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS")
-            self.CheckboxShareStatus.SetValue(True)
-            self.CheckboxShareTriage = wx.xrc.XRCCTRL(self, "CHECKBOX_TRIAGE")
-            self.CheckboxShareTriage.SetValue(True)
-            self.CheckboxShareReply = wx.xrc.XRCCTRL(self, "CHECKBOX_REPLY")
-            self.CheckboxShareReply.SetValue(False)
-            self.CheckboxShareBcc = wx.xrc.XRCCTRL(self, "CHECKBOX_BCC")
-            self.CheckboxShareBcc.SetValue(False)
+        wx.xrc.XRCCTRL(self, "TEXT_COLLNAME").SetLabel(collName)
+        self.CheckboxShareAlarms = wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS")
+        self.CheckboxShareAlarms.SetValue(False)
+        self.CheckboxShareStatus = wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS")
+        self.CheckboxShareStatus.SetValue(True)
+        self.CheckboxShareTriage = wx.xrc.XRCCTRL(self, "CHECKBOX_TRIAGE")
+        self.CheckboxShareTriage.SetValue(True)
+        self.CheckboxShareReply = wx.xrc.XRCCTRL(self, "CHECKBOX_REPLY")
+        self.CheckboxShareReply.SetValue(False)
+        self.CheckboxShareBcc = wx.xrc.XRCCTRL(self, "CHECKBOX_BCC")
+        self.CheckboxShareBcc.SetValue(False)
 
         self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
 
@@ -286,21 +283,17 @@ class PublishCollectionDialog(wx.Dialog):
 
 
     def _getAttributeFilterState(self):
-        attrs = []
-        if self.publishType == 'collection':
-
-            attrs = set()
-            if not self.CheckboxShareAlarms.GetValue():
-                attrs.add('cid:reminders-filter@osaf.us')
-            if not self.CheckboxShareStatus.GetValue():
-                attrs.add('cid:event-status-filter@osaf.us')
-            if not self.CheckboxShareTriage.GetValue():
-                attrs.add('cid:triage-filter@osaf.us')
-            if not self.CheckboxShareReply.GetValue():
-                attrs.add('cid:needs-reply-filter@osaf.us')
-            if not self.CheckboxShareBcc.GetValue():
-                attrs.add('cid:bcc-filter@osaf.us')
-
+        attrs = set()
+        if not self.CheckboxShareAlarms.GetValue():
+            attrs.add('cid:reminders-filter@osaf.us')
+        if not self.CheckboxShareStatus.GetValue():
+            attrs.add('cid:event-status-filter@osaf.us')
+        if not self.CheckboxShareTriage.GetValue():
+            attrs.add('cid:triage-filter@osaf.us')
+        if not self.CheckboxShareReply.GetValue():
+            attrs.add('cid:needs-reply-filter@osaf.us')
+        if not self.CheckboxShareBcc.GetValue():
+            attrs.add('cid:bcc-filter@osaf.us')
         return attrs
 
 
@@ -362,9 +355,7 @@ class PublishCollectionDialog(wx.Dialog):
                 self.gauge.SetValue(percent)
 
     def _shutdownInitiated(self):
-        if self.modal:
-            self.EndModal(False)
-        self.Destroy()
+        self.activity.requestAbort()
 
     def OnPublish(self, evt):
         self.PublishCollection()
@@ -424,10 +415,7 @@ class PublishCollectionDialog(wx.Dialog):
                 msg = _(u"Publishing collection to server...\n")
                 task.callInMainThread(self._showStatus, msg)
 
-                if self.publishType == 'freebusy':
-                    displayName = u"%s FreeBusy" % account.username
-                else:
-                    displayName = self.collection.displayName
+                displayName = self.collection.displayName
 
                 if self.name:
                     displayName = self.name
@@ -435,7 +423,6 @@ class PublishCollectionDialog(wx.Dialog):
                 shares = sharing.publish(collection, account,
                                          attrsToExclude=attrsToExclude,
                                          displayName=displayName,
-                                         publishType=self.publishType,
                                          activity=task.activity,
                                          overwrite=task.overwrite)
 
@@ -456,9 +443,14 @@ class PublishCollectionDialog(wx.Dialog):
 
     def _shareError(self, (err, summary, extended)):
 
+        self.taskView.cancel()
         sharing.releaseView(self.taskView)
 
-        if not isinstance(err, ActivityAborted):
+        if isinstance(err, ActivityAborted):
+            if self.modal:
+                self.EndModal(False)
+            self.Destroy()
+        else:
             self.activity.failed(exception=err)
         self.listener.unregister()
 
@@ -518,7 +510,7 @@ class PublishCollectionDialog(wx.Dialog):
             else:
                 if Globals.options.catch != 'tests':
                     text = "%s\n\n%s" % (summary, extended)
-                    SharingDetails.ShowText(None, text,
+                    SharingDetails.ShowText(wx.GetApp().mainFrame, text,
                         title=_(u"Error while publishing."))
 
                 txt = _(u"Sharing Error:\n%(error)s") % {'error': err}
@@ -546,22 +538,20 @@ class PublishCollectionDialog(wx.Dialog):
 
     def _finishedShare(self, shareUUIDs):
 
-        sharing.releaseView(self.taskView)
-
         self.activity.completed()
         self.listener.unregister()
 
-        # Pull in the changes from sharing view
-        self.view.refresh(lambda code, item, attr, val: val)
 
+        # Pull in the changes from sharing view
+        self.taskView.commit(sharing.mergeFunction)
+        sharing.releaseView(self.taskView)
+        self.view.refresh(lambda code, item, attr, val: val)
 
         self._showStatus(u" " + _(u"Done") + u"\n")
         self._hideUpdate()
 
-        if self.publishType == 'freebusy':
-            share = sharing.getFreeBusyShare(self.collection)
-        else:
-            share = sharing.getShare(self.collection)
+        share = sharing.getShare(self.collection)
+
 
         msg = _(u"Give out the URLs below to invite others to subscribe to:")
         self._showStatus("\n" + msg + "\n")
@@ -675,15 +665,11 @@ class PublishCollectionDialog(wx.Dialog):
         self.mySizer.Fit(self)
 
 
-type_to_xrc_map = {'collection' :
-                   ('PublishCollection.xrc', _(u"Publish")),
-                   'freebusy'   :
-                   ('PublishFreeBusy.xrc', _(u"Publish Free/Busy Calendar"))}
 
-def ShowPublishDialog(view=None, collection=None,
-                      publishType = 'collection', modal=False, name=None,
+def ShowPublishDialog(view=None, collection=None, modal=False, name=None,
                       account=None):
-    filename, title = type_to_xrc_map[publishType]
+    filename = 'PublishCollection.xrc'
+    title = _(u"Publish")
 
     isShared = sharing.isShared(collection)
     title = _(u"Manage Shared Collection") if isShared else _(u"Publish")
@@ -698,7 +684,6 @@ def ShowPublishDialog(view=None, collection=None,
                                   resources=resources,
                                   view=view,
                                   collection=collection,
-                                  publishType=publishType,
                                   modal=modal,
                                   name=name,
                                   account=account)

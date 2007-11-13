@@ -88,17 +88,12 @@ def makeMainEvents(parcel):
     BlockEvent.template('UnsubscribeCollection',
                         commitAfterDispatch = True).install(parcel)
 
-    BlockEvent.template('SharingPublishFreeBusy',
-                        commitAfterDispatch = True).install(parcel)
-
-    BlockEvent.template('SharingUnpublishFreeBusy',
-                        commitAfterDispatch = True).install(parcel)
-
-    BlockEvent.template('CopyFreeBusyURL').install(parcel)
-
     BlockEvent.template('ShowHideStatusBar',
                         methodName = 'onShowHideEvent',
                         dispatchToBlockName = 'StatusBar').install(parcel)
+
+    BlockEvent.template('SyncManager',
+                        commitAfterDispatch = True).install(parcel)
 
     BlockEvent.template('EnableTimezones',
                         commitAfterDispatch = True).install(parcel)

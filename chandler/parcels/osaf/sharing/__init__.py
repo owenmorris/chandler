@@ -34,13 +34,10 @@ import zanshin, M2Crypto, twisted, re
 
 from shares import *
 from conduits import *
-from formats import *
 from errors import *
 from utility import *
 from accounts import *
-from filesystem_conduit import *
 from webdav_conduit import *
-from inmemory_conduit import *
 from caldav_conduit import *
 from recordset_conduit import *
 from WebDAV import *
@@ -62,36 +59,6 @@ from stateless import *
 logger = logging.getLogger(__name__)
 
 
-# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-# CalDAV settings:
-
-
-# What to name the CloudXML subcollection on a CalDAV server:
-SUBCOLLECTION = u".chandler"
-
-# What attributes to filter out in the CloudXML subcollection on a CalDAV
-# server (@@@MOR This should change to using a schema decoration instead
-# of thie explicit list):
-
-CALDAVFILTER = [attr.name for attr in (
-                    pim.EventStamp.allDay,
-                    pim.EventStamp.anyTime,
-                    pim.EventStamp.duration,
-                    pim.EventStamp.isGenerated,
-                    pim.EventStamp.location,
-                    pim.EventStamp.modifications,
-                    pim.EventStamp.modifies,
-                    pim.EventStamp.occurrenceFor,
-                    pim.EventStamp.recurrenceID,
-                    pim.Remindable.reminders,
-                    pim.EventStamp.rruleset,
-                    pim.EventStamp.startTime,
-                    pim.EventStamp.transparency,
-                )]
-
-# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-
-PUBLISH_MONOLITHIC_ICS = True
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -99,8 +66,6 @@ class SharingPreferences(schema.Item):
     import_dir = schema.One(schema.Text,
                      defaultValue = unicode(getDesktopDir(), sys.getfilesystemencoding()))
     import_as_new = schema.One(schema.Boolean, defaultValue = True)
-    freeBusyAccount = schema.One(WebDAVAccount, defaultValue=None)
-    freeBusyShare   = schema.One(Share, defaultValue=None)
     isOnline = schema.One(schema.Boolean, defaultValue=True)
 
 
@@ -112,6 +77,8 @@ class SyncPeriodicTask(startup.PeriodicTask):
 
 
 def installParcel(parcel, oldVersion=None):
+
+    rv = parcel.itsView
 
     SharingPreferences.update(parcel, "prefs")
 
@@ -127,20 +94,12 @@ def installParcel(parcel, oldVersion=None):
         interval=datetime.timedelta(minutes=60)
     )
 
-    publishedFreeBusy = UnionCollection.update(parcel, 'publishedFreeBusy')
-    pim_ns = schema.ns('osaf.pim', parcel.itsView)
-    hiddenEvents = DifferenceCollection.update(parcel, "hiddenEvents",
-        sources=[pim_ns.allEventsCollection,
-            publishedFreeBusy],
-        displayName = 'Unpublished Freebusy Events'
-    )
-
 
     # Make a collection of all Notes with an icalUID, so that
     # we can index it.
     filterAttribute = pim.Note.icalUID.name
     iCalendarItems = FilteredCollection.update(parcel, 'iCalendarItems',
-        source=pim_ns.noteCollection,
+        source=schema.ns('osaf.pim', rv).noteCollection,
         filterExpression="view.hasTrueValues(uuid, '%s')" % (filterAttribute,),
         filterAttributes=[filterAttribute])
     iCalendarItems.addIndex('icalUID', 'value', attribute=filterAttribute)
@@ -152,7 +111,7 @@ def installParcel(parcel, oldVersion=None):
     pim.ListCollection.update(parcel, 'newItems')
 
     if not Globals.options.reload:
-        prepareAccounts(parcel.itsView)
+        prepareAccounts(rv)
 
 
 
@@ -339,12 +298,13 @@ class BackgroundSyncHandler:
         stats = []
         running_status = RUNNING
 
-        try: # Sync collections
+        try: # ensuring we always return True {
 
             modeOverride = kwds.get('modeOverride', None)
             forceUpdate = kwds.get('forceUpdate', None)
 
             self.rv.refresh(notify=False)
+            tz = self.rv.tzinfo.default
 
             if not (schema.ns('osaf.app', self.rv).prefs.isOnline and
                 isOnline(self.rv)):
@@ -361,32 +321,34 @@ class BackgroundSyncHandler:
                 collection = None
 
                 # TODO: someday replace this with an endpoint
-                uuids = [account.itsUUID for account in
-                    CosmoAccount.iterItems(self.rv)]
-                for uuid in uuids:
-                    account = self.rv.findUUID(uuid)
-                    if account is not None and account.isSetUp():
+                for account in CosmoAccount.iterAccounts(self.rv):
+                    if  account.isSetUp():
+
+                        if interrupt_flag != PROCEED: # interruption
+                            raise ActivityAborted(_(u"Cancelled by user"))
+
                         try:
-                            msg = _(u"Restoring collections from %(account)s") \
+                            msg = _(u"Examining collections for %(account)s") \
                                 % {'account' : account.displayName}
                             activity = Activity(msg)
                             activity.started()
                             current_activity = activity
-                            account.autoRestoreShares(activity=activity)
+                            info = account.getPublishedShares(blocking=True)
                             current_activity = None
                             activity.completed()
 
-                        except Exception, e:
-                            current_activity = None
-                            if isinstance(e, ActivityAborted):
-                                if shutdown_deferred:
-                                    shutdown_deferred.callback(None)
-                                running_status = IDLE
-                                return True
+                            for uuid in account.unsubscribed:
+                                if (uuid not in account.ignored and
+                                    uuid not in account.requested):
+                                    callCallbacks(UNSUBSCRIBEDCOLLECTIONS)
 
-                            # Some other failure, aside from an abort
+                        except ActivityAborted:
+                            raise
+
+                        except Exception, e:
                             logger.exception("Collection restore error")
                             activity.failed(e)
+                            current_activity = None
 
 
             shares = getSyncableShares(self.rv, collection)
@@ -394,41 +356,42 @@ class BackgroundSyncHandler:
             for share in shares:
 
                 if interrupt_flag != PROCEED: # interruption
-                    # We have been asked to stop, so fire the deferred
-                    if shutdown_deferred:
-                        shutdown_deferred.callback(None)
-                    running_status = IDLE
-                    return True
+                    raise ActivityAborted(_(u"Cancelled by user"))
 
                 callCallbacks(UPDATE, msg="Syncing collection '%s'" %
                     share.contents.displayName)
+
                 try:
                     activity = Activity("Sync: %s" % share.contents.displayName)
                     activity.started()
+                    altView = viewpool.getView(self.rv.repository)
+                    altShare = altView.findUUID(share.itsUUID)
                     current_activity = activity
-                    stats.extend(share.sync(modeOverride=modeOverride,
-                                            activity=activity,
-                                            forceUpdate=forceUpdate))
+                    stats.extend(altShare.sync(modeOverride=modeOverride,
+                        activity=activity, forceUpdate=forceUpdate))
+                    altView.commit(mergeFunction)
+                    viewpool.releaseView(altView)
                     current_activity = None
                     activity.completed()
 
+                except ActivityAborted:
+                    logger.exception("Syncing cancelled")
+                    altView.cancel()
+                    viewpool.releaseView(altView)
+                    raise
+
                 except Exception, e:
+                    logger.exception("Error syncing collection")
+                    altView.cancel()
+                    viewpool.releaseView(altView)
+                    share.error, share.errorDetails = errors.formatException(e)
+                    share.lastAttempt = datetime.datetime.now(tz)
                     stats.extend( [ { 'collection' : share.contents.itsUUID,
                                     'error' : str(e) } ] )
-                    current_activity = None
-                    if isinstance(e, ActivityAborted):
-                        if shutdown_deferred:
-                            shutdown_deferred.callback(None)
-                        running_status = IDLE
-                        return True
-
-                    # Some other failure, aside from an abort
                     activity.failed(e)
+                    current_activity = None
 
-        except: # Failed to sync at least one collection; continue on
-            logger.exception("Background sync error")
 
-        try: # Create the sync report event
             try:
                 log = schema.ns('osaf.sharing', self.rv).activityLog
             except AttributeError:
@@ -445,29 +408,22 @@ class BackgroundSyncHandler:
                 )
                 log.add(reportEvent.itsItem)
 
-        except: # Don't worry if this fails, just report it
-            logger.exception("Error trying to create sync report")
-
-        try: # Commit sync report and possible errors
             self.rv.commit(mergeFunction)
-        except: # No matter what we have to continue on
-            logger.exception("Error trying to commit in bgsync")
 
-
-        try: # One final update callback with an empty string
             callCallbacks(UPDATE, msg='')
-        except: # No matter what we have to continue on
-            logger.exception("Error calling callbacks")
 
 
-        running_status = IDLE
-        if interrupt_flag != PROCEED:
-            # We have been asked to stop, so fire the deferred
+        except ActivityAborted:
             if shutdown_deferred:
                 shutdown_deferred.callback(None)
 
-        interrupt_flag = PROCEED
 
+        except: # } Can't raise an error from this method, so just log it
+            logger.exception("Background sync error")
+
+
+        running_status = IDLE
+        interrupt_flag = PROCEED
         return True
 
 
@@ -528,11 +484,10 @@ def stats2str(rv, stats):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 def publish(collection, account, classesToInclude=None,
-            publishType = 'collection',
             attrsToExclude=None, displayName=None, activity=None,
             overwrite=False):
     """
-    Publish a collection, automatically determining which conduits/formats
+    Publish a collection, automatically determining which conduits
     to use, and how many
 
     @type collection: pim.ContentCollection
@@ -685,96 +640,47 @@ def publish(collection, account, classesToInclude=None,
             if ('calendar-access' in dav or 'MKCALENDAR' in allowed):
                 # We're speaking to a CalDAV server
                 sharing_ns = schema.ns('osaf.sharing', view)
-                if publishType == 'freebusy':
-                    share = Share(itsView=view)
-                    share.conduit = CalDAVConduit(itsView=view, account=account,
-                                                  shareName='')
 
-                    share.conduit.createFreeBusyTicket()
+                share = Share(itsView=view, contents=collection)
+                conduit = CalDAVRecordSetConduit(itsParent=share,
+                    account=account,
+                    shareName=shareName,
+                    translator=SharingTranslator,
+                    serializer=ICSSerializer)
+                share.conduit = conduit
+                if attrsToExclude:
+                    conduit.filters = attrsToExclude
 
-                    sharing_ns.prefs.freeBusyShare   = share
-                    sharing_ns.prefs.freeBusyAccount = account
-                    published = sharing_ns.publishedFreeBusy
-
-                    # put the appropriate collections into publishedFreeBusy to
-                    # avoid syncing the same event multiple times
-                    for share in getActiveShares(view):
-                        updatePublishedFreeBusy(share, location)
+                share.displayName = displayName or collection.displayName
+                share.sharer = pim_ns.currentContact.item
 
 
-                    hiddenResource = handle.getResource(location + 'hiddenEvents/')
+                try:
+                    SharedItem(collection).shares.append(share, alias)
+                except ValueError:
+                    # There is already a 'main' share for this collection
+                    SharedItem(collection).shares.append(share)
 
-                    if handle.blockUntil(hiddenResource.exists):
-                        # someone has already published hiddenEvents for this
-                        # account.  It's hard to say what should happen in this
-                        # case, for now just fail
-                        raise SharingError(_(u"Free/Busy information has already been published to this account."))
-                    # publish hiddenEvents
-                    share = _newOutboundShare(view,
-                                              sharing_ns.hiddenEvents,
-                                              shareName='hiddenEvents',
-                                              account=account,
-                                              useCalDAV=True)
-                    shares.append(share)
-                    sharing_ns.hiddenEvents.shares.append(share)
+                shares.append(share)
 
-                    share.conduit.inFreeBusy = True
-                    share.create()
-                    share.put(activity=activity)
+                if share.exists():
+                    raise SharingError(_(u"Collection already exists on server."))
 
-                else:
-                    share = Share(itsView=view, contents=collection)
-                    conduit = CalDAVRecordSetConduit(itsParent=share,
-                        account=account,
-                        shareName=shareName,
-                        translator=SharingTranslator,
-                        serializer=ICSSerializer)
-                    share.conduit = conduit
-                    if attrsToExclude:
-                        conduit.filters = attrsToExclude
+                share.create()
+                # bug 8128, this setDisplayName shouldn't be required, but
+                # cosmo isn't accepting setting displayname in MKCALENDAR
+                share.conduit.setDisplayName(displayName)
 
-                    share.displayName = displayName or collection.displayName
-                    share.sharer = pim_ns.currentContact.item
+                share.put(activity=activity)
 
-
-                    try:
-                        SharedItem(collection).shares.append(share, alias)
-                    except ValueError:
-                        # There is already a 'main' share for this collection
-                        SharedItem(collection).shares.append(share)
-
-                    shares.append(share)
-
-                    if share.exists():
-                        raise SharingError(_(u"Collection already exists on server."))
-
-                    inFreeBusy = collection in pim_ns.mine.sources
-                    if inFreeBusy:
-                        share.conduit.inFreeBusy = True
-
-                    share.create()
-                    # bug 8128, this setDisplayName shouldn't be required, but
-                    # cosmo isn't accepting setting displayname in MKCALENDAR
-                    share.conduit.setDisplayName(displayName)
-
-                    share.put(activity=activity)
-
-                    # tickets after putting
-                    if supportsTickets and publishType == 'collection':
-                        share.conduit.createTickets()
-
-                    if inFreeBusy:
-                        if account == sharing_ns.prefs.freeBusyAccount:
-                            sharing_ns.publishedFreeBusy.addSource(collection)
+                # tickets after putting
+                if supportsTickets:
+                    share.conduit.createTickets()
 
 
             elif dav is not None:
 
                 # TODO: Publish monolithic .ics file instead?
-
-                if publishType == 'freebusy':
-                    shareName += '.ifb'
-                    alias = 'freebusy'
 
                 # We're speaking to a WebDAV server -- use EIMML
 
@@ -804,26 +710,6 @@ def publish(collection, account, classesToInclude=None,
                 if supportsTickets:
                     share.conduit.createTickets()
 
-                if False and PUBLISH_MONOLITHIC_ICS:
-                    icsShareName = u"%s.ics" % shareName
-                    icsShare = _newOutboundShare(view, collection,
-                                             classesToInclude=classesToInclude,
-                                             shareName=icsShareName,
-                                             displayName=displayName,
-                                             account=account)
-                    shares.append(icsShare)
-                    # icsShare.follows = share
-                    icsShare.displayName = u"%s.ics" % displayName
-                    icsShare.format = ICalendarFormat(itsParent=icsShare)
-                    icsShare.mode = "put"
-
-                    if icsShare.exists():
-                        raise SharingError(_(u"Collection already exists on server."))
-
-                    icsShare.create()
-                    icsShare.put(activity=activity)
-                    if supportsTickets:
-                        icsShare.conduit.createTickets()
 
     except (SharingError,
             zanshin.error.Error,
@@ -847,21 +733,6 @@ def publish(collection, account, classesToInclude=None,
 
     return shares
 
-def updatePublishedFreeBusy(share, fbLocation=None):
-    """Add the given share to publishedFreeBusy if it matches fbLocation."""
-    sharing_ns = schema.ns('osaf.sharing', share.itsView)
-    if fbLocation == None:
-        if sharing_ns.prefs.freeBusyShare is not None:
-            location = freeBusyShare.getLocation()
-        else:
-            return
-        
-    published = sharing_ns.publishedFreeBusy
-    conduit = share.conduit
-    if (conduit.inFreeBusy and 
-        conduit.getLocation().startswith(fbLocation) and
-        share.contents != sharing_ns.hiddenEvents):
-            published.addSource(share.contents)
 
 def destroyShare(share):
     # Remove from server (or disk, etc.)
@@ -887,9 +758,6 @@ def unpublish(collection):
         for share in SharedItem(collection).shares:
             destroyShare(share)
 
-        sharing_ns = schema.ns('osaf.sharing', collection.itsView)
-        if collection in sharing_ns.publishedFreeBusy.sources:
-            sharing_ns.publishedFreeBusy.removeSource(collection)
 
 def deleteTicket(share, ticket):
     """Delete ticket associated with the given ticket string from the share."""
@@ -901,34 +769,12 @@ def deleteTicket(share, ticket):
     resource = handle.getResource(location)
     return handle.blockUntil(resource.deleteTicket, ticket)
 
-def unpublishFreeBusy(collection):
-    """
-    Remove a share from the server, and delete all associated Share objects
-    """
-    share = getFreeBusyShare(collection)
-    if share is not None:
-        # .ifb share, delete it
-        if share.contents == collection:
-            destroyShare(share)
-        # CalDAV parent collection for live data, deleting would be BAD
-        else:
-            # remove freebusy ticket from the collection
-            try:
-                deleteTicket(share, share.conduit.ticketFreeBusy)
-            except zanshin.http.HTTPError, err:
-                raise NotFound("Freebusy ticket not found")
-            # Clean up sharing-related objects
-            share.conduit.delete(True)
-            share.delete(True)
 
-            # also stop publishing hiddenEvents
-            sharing_ns = schema.ns('osaf.sharing', collection.itsView)
-            for share in sharing_ns.hiddenEvents.shares:
-                destroyShare(share)
+
 
 
 def subscribe(view, url, activity=None, username=None, password=None,
-    filters=None, forceFreeBusy=False):
+    filters=None):
 
     if not isOnline(view):
         raise OfflineError(_(u"Could not perform request. Sharing is offline."))
@@ -1135,88 +981,31 @@ def subscribeCalDAV(view, url, inspection, activity=None, account=None,
     if not path.endswith("/"):
         path += "/"
 
-    subUrl = urlparse.urlunsplit((parsedUrl.scheme,
-        parsedUrl.netloc, "%s%s/" % (path, SUBCOLLECTION), parsedUrl.query,
-        parsedUrl.fragment))
-
-    try:
-        subInspection = inspect(view, subUrl, username=username,
-            password=password)
-    except:
-        hasSubCollection = False
-    else:
-        hasSubCollection = True
-
-    # During subscribe, if this isn't dual-fork, use EIM.  If it is dual-fork
-    # (i.e., has a subcollection) use old framework
-    caldav_atop_eim = not hasSubCollection
-
     shareMode = 'both' if inspection['priv:write'] else 'get'
 
     share = None
-    subShare = None
-
-    if hasSubCollection:
-        # Here is the Share for the subcollection with cloudXML
-        subShare = Share(itsView=view)
-        subShare.mode = shareMode
-        subShareName = "%s/%s" % (shareName, SUBCOLLECTION)
-
-        if account:
-            subShare.conduit = WebDAVConduit(itsParent=subShare,
-                shareName=subShareName, account=account)
-        else:
-            (scheme, useSSL, host, port, path, query, fragment, ticket,
-                parentPath, shareName) = splitUrl(url)
-            subShare.conduit = WebDAVConduit(itsParent=subShare, host=host,
-                port=port, sharePath=parentPath, shareName=subShareName,
-                useSSL=useSSL, ticket=ticket)
-
-        subShare.format = CloudXMLFormat(itsParent=subShare)
-
-        subShare.filterAttributes = []
-        for attr in CALDAVFILTER:
-            subShare.filterAttributes.append(attr)
 
     share = Share(itsView=view)
     share.mode = shareMode
 
-    if caldav_atop_eim:
-
-        if account:
-            share.conduit = CalDAVRecordSetConduit(itsParent=share,
-                shareName=shareName,
-                account=account,
-                translator=SharingTranslator,
-                serializer=ICSSerializer)
-        else:
-            (scheme, useSSL, host, port, path, query, fragment, ticket,
-                parentPath, shareName) = splitUrl(url)
-            share.conduit = CalDAVRecordSetConduit(itsParent=share,
-                host=host, port=port,
-                sharePath=parentPath, shareName=shareName,
-                useSSL=useSSL, ticket=ticket,
-                translator=SharingTranslator,
-                serializer=ICSSerializer)
-
-        if filters:
-            share.conduit.filters = filters
-
-
+    if account:
+        share.conduit = CalDAVRecordSetConduit(itsParent=share,
+            shareName=shareName,
+            account=account,
+            translator=SharingTranslator,
+            serializer=ICSSerializer)
     else:
-        share.format = CalDAVFormat(itsParent=share)
-        if account:
-            share.conduit = CalDAVConduit(itsParent=share,
-                shareName=shareName, account=account)
-        else:
-            (scheme, useSSL, host, port, path, query, fragment, ticket,
-                parentPath, shareName) = splitUrl(url)
-            share.conduit = CalDAVConduit(itsParent=share, host=host,
-                port=port, sharePath=parentPath, shareName=shareName,
-                useSSL=useSSL, ticket=ticket)
+        (scheme, useSSL, host, port, path, query, fragment, ticket,
+            parentPath, shareName) = splitUrl(url)
+        share.conduit = CalDAVRecordSetConduit(itsParent=share,
+            host=host, port=port,
+            sharePath=parentPath, shareName=shareName,
+            useSSL=useSSL, ticket=ticket,
+            translator=SharingTranslator,
+            serializer=ICSSerializer)
 
-    if subShare is not None:
-        share.follows = subShare
+    if filters:
+        share.conduit.filters = filters
 
 
     share.get(activity=activity)
@@ -1227,52 +1016,12 @@ def subscribeCalDAV(view, url, inspection, activity=None, account=None,
         share.contents.displayName = displayName
         share.displayName = displayName
 
-    if subShare is not None:
-        # If this is a partial share, we need to store that fact
-        # into this Share object
-        if hasattr(subShare, 'filterClasses'):
-            share.filterClasses = list(subShare.filterClasses)
-
-        # Because of a bug, we don't really know whether the
-        # publisher of this share intended to share alarms and
-        # event status (transparency).  Let's assume not.  However,
-        # we *can* determine their intention for sharing triage
-        # status.
-        share.filterAttributes = [
-             pim.Remindable.reminders.name,
-             pim.EventStamp.transparency.name
-        ]
-        if '_triageStatus' in getattr(subShare, 'filterAttributes', []):
-            share.filterAttributes.append('_triageStatus')
-        """
-        Why just triageStatus and not triageStatusChanged in the code above?
-        Is that a bug?
-
-        Actually, not a bug.  Just an inconvenience related to
-        having dual-fork shares (.ics and .xml).  What happens is
-        the subShare (.xml fork) gets its filter list from the
-        server, then lets the upper share (.ics) know that triageStatus
-        is or is not being filtered.  As triageStatus is not actually
-        shared via .ics, it doesn't matter to the sharing layer
-        that triageStatusChanged isn't listed in the upper share's
-        filter list.  The real reason I add triageStatus to the
-        upper share's filter list is so the "manage share" dialog
-        can see that the triage status sharing checkbox should be
-        checked or not.  This is what happens when the system is
-        designed for one thing (single-fork shares) and eventually
-        bent to fit a new need (dual-fork shares).  As the dual-fork
-        stuff is going away soon, I wouldn't worry about this.
-        """
 
     try:
         SharedItem(share.contents).shares.append(share, 'main')
     except ValueError:
         # There is already a 'main' share for this collection
         SharedItem(share.contents).shares.append(share)
-
-    # If free busy has already been published, add the subscribed
-    # collection to publishedFreeBusy if appropriate
-    updatePublishedFreeBusy(share)
 
     return share.contents
 
@@ -1443,7 +1192,7 @@ def subscribeMorsecode(view, url, morsecodeUrl, inspection, activity=None,
     if account:
         # Retrieve tickets
         shares = account.getPublishedShares(blocking=True)
-        for name, uuid, href, tickets in shares:
+        for name, uuid, href, tickets, subscribed in shares:
             if uuid == share.contents.itsUUID.str16():
                 for ticket, ticketType in tickets:
                     if ticketType == 'read-only':
@@ -1465,130 +1214,15 @@ def subscribeMorsecode(view, url, morsecodeUrl, inspection, activity=None,
 
 def unsubscribe(collection):
     if has_stamp(collection, SharedItem):
+
+        # Make all CosmoAccounts ignore this collection when it comes to
+        # auto-restore:
+        CosmoAccount.ignoreCollection(collection)
+
         collection = SharedItem(collection)
         for share in collection.shares:
             deleteShare(share)
 
-
-def interrogate(conduit, location, ticket=None):
-    """ Determine sharing permissions and other details about a collection """
-
-    if not location.endswith("/"):
-        location += "/"
-
-    handle = conduit._getServerHandle()
-    resource = handle.getResource(location)
-    if ticket:
-        resource.ticketId = ticket
-    
-    logger.debug('Examining %s ...', location)
-    try:
-        exists = handle.blockUntil(resource.exists)
-        if not exists:
-            logger.debug("...doesn't exist")
-            raise NotFound(message="%s does not exist" % location)
-    except zanshin.webdav.PermissionsError:
-        raise NotAllowed(_(u"You don't have permission to access this collection."))
-
-    isReadOnly = True
-    shareMode = 'get'
-    hasPrivileges = False
-    hasSubCollection = False
-
-    logger.debug('Checking for write-access to %s...', location)
-    try:
-        privilege_set = handle.blockUntil(resource.getPrivileges)
-        if ('read', 'DAV:') in privilege_set.privileges:
-            hasPrivileges = True
-        if ('write', 'DAV:') in privilege_set.privileges:
-            isReadOnly = False
-            shareMode = 'both'
-    except zanshin.http.HTTPError, err:
-        logger.debug("PROPFIND of current-user-privilege-set failed; error status %d", err.status)
-
-
-    if isReadOnly and not hasPrivileges:
-        # Cosmo doesn't support the current-user-privilege-set property yet,
-        # so fall back to trying to create a child collection
-        # Create a random collection name to create
-        testCollName = u'.%s.tmp' % (UUID())
-        try:
-            child = handle.blockUntil(resource.createCollection,
-                                      testCollName)
-            handle.blockUntil(child.delete)
-            isReadOnly = False
-            shareMode = 'both'
-        except zanshin.http.HTTPError, err:
-            logger.debug("Failed to create test subcollection %s; error status %d", testCollName, err.status)
-
-    logger.debug('...Read Only?  %s', isReadOnly)
-
-    isCalendar = handle.blockUntil(resource.isCalendar)
-
-    subLocation = urlparse.urljoin(location, SUBCOLLECTION)
-    if not subLocation.endswith("/"):
-        subLocation += "/"
-    subResource = handle.getResource(subLocation)
-    if ticket:
-        subResource.ticketId = ticket
-    try:
-        hasSubCollection = handle.blockUntil(subResource.exists) and \
-            handle.blockUntil(subResource.isCollection)
-    except Exception, e:
-        logger.exception("Couldn't determine existence of subcollection %s",
-            subLocation)
-        hasSubCollection = False
-    logger.debug('...Has subcollection?  %s', hasSubCollection)
-
-    if hasSubCollection:
-        isCalendar = True # if there is a subcollection, then the main
-                          # collection has to be a calendar
-
-    logger.debug('...Calendar?  %s', isCalendar)
-
-    isCollection =  handle.blockUntil(resource.isCollection)
-    logger.debug('...Collection?  %s', isCollection)
-
-    response = handle.blockUntil(resource.options)
-    dav = response.headers.getHeader('DAV')
-    logger.debug('...DAV:  %s', dav)
-    allowed = response.headers.getHeader('Allow')
-    logger.debug('...Allow:  %s', allowed)
-
-    return (shareMode, hasSubCollection, isCalendar)
-
-
-
-
-# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-
-
-class ProgressMonitor:
-
-    def __init__(self, totalWork, callback):
-        self.totalWork = totalWork
-        self.updateCallback = callback
-        self.workDone = 0
-
-    def callback(self, **kwds):
-
-        totalWork = kwds.get('totalWork', None)
-        if totalWork is not None:
-            self.totalWork = totalWork
-
-        if kwds.get('work', None) is True:
-            self.workDone += 1
-            try:
-                percent = int(self.workDone * 100 / self.totalWork)
-            except ZeroDivisionError:
-                percent = 100
-            percent = min(percent, 100)
-        else:
-            percent = None
-
-        msg = kwds.get('msg', None)
-
-        return self.updateCallback(msg=msg, percent=percent)
 
 
 
@@ -1596,65 +1230,6 @@ class ProgressMonitor:
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 # Internal methods
 
-
-def _newOutboundShare(view, collection, classesToInclude=None, shareName=None,
-        displayName=None, account=None, useCalDAV=False,
-        publishType='collection', inFreeBusy = False):
-    """ Create a new Share item for a collection this client is publishing.
-
-    If account is provided, it will be used; otherwise, the default WebDAV
-    account will be used.  If there is no default account, None will be
-    returned.
-
-    @param view: The repository view object
-    @type view: L{repository.persistence.RepositoryView}
-    @param collection: The ContentCollection that will be shared
-    @type collection: ContentCollection
-    @param classesToInclude: Which classes to share
-    @type classesToInclude: A list of dotted class names
-    @param account: The WebDAV Account item to use
-    @type account: An item of kind WebDAVAccount
-    @return: A Share item, or None if no WebDAV account could be found.
-    """
-
-    if account is None:
-        # Find a sharing account
-        account = getDefaultAccount(view)
-        if account is None:
-            return None
-
-    share = Share(itsView=view, contents=collection)
-
-    if useCalDAV and publishType=='collection':
-        conduit = CalDAVConduit(itsParent=share, account=account,
-                                shareName=shareName)
-        format = CalDAVFormat(itsParent=share)
-    else:
-        conduit = WebDAVConduit(itsParent=share, account=account,
-                                shareName=shareName)
-        if publishType == 'freebusy':
-            format = FreeBusyFileFormat(itsParent=share)
-        else:
-            format = CloudXMLFormat(itsParent=share)
-
-    share.conduit = conduit
-    share.format = format
-
-
-    if classesToInclude is None:
-        share.filterClasses = []
-    else:
-        share.filterClasses = classesToInclude
-
-    share.displayName = displayName or collection.displayName
-    # indicates that the DetailView should show this share
-    fb = (publishType == 'freebusy')
-    share.hidden = fb
-    if fb:
-        share.mode = 'put'
-    
-    share.sharer = schema.ns("osaf.pim", view).currentContact.item
-    return share
 
 
 def _uniqueName(basename, existing):

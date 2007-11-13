@@ -15,12 +15,9 @@
 __parcel__ = "osaf.sharing"
 
 __all__ = [
-    'ICalendarFormat',
-    'CalDAVFormat',
-    'FreeBusyFileFormat',
 ]
 
-import formats, shares
+import utility, shares
 from osaf.pim import (ContentCollection, SmartCollection, Remindable,
                       EventStamp, CalendarEvent, TaskStamp, Note, has_stamp,
                       TriageEnum)
@@ -517,7 +514,7 @@ def _importOneVObject(vobj, filters, coerceTzinfo, promptForTimezone,
 
 
     # See if we have a corresponding item already
-    item = formats.findUID(view, uid)
+    item = utility.findUID(view, uid)
 
     if item is not None:
         if DEBUG: logger.debug("matched UID %s with %s", uid, item)
@@ -991,169 +988,12 @@ def updateFreebusyFromVObject(view, text, busyCollection, activity=None):
     
     return freebusystart, freebusyend, calname
 
-class ICalendarFormat(formats.ImportExportFormat):
-
-    def fileStyle(self):
-        return formats.STYLE_SINGLE
-
-    def extension(self, item):
-        return "ics"
-
-    def contentType(self, item):
-        return "text/calendar"
-
-    def acceptsItem(self, item):
-        return (has_stamp(item, EventStamp) or
-                has_stamp(item, TaskStamp) or
-                isinstance(item, shares.Share))
-
-    def importProcess(self, contentView, text, extension=None, item=None,
-                      activity=None, stats=None):
-        # the item parameter is so that a share item can be passed in for us
-        # to populate.
-
-        # An ICalendar file doesn't have any 'share' info, just the collection
-        # of events, etc.  Therefore, we want to actually populate the share's
-        # 'contents':
-
-        view = contentView # Use the passed-in view for creating items
-        filters = self.share.filterAttributes
-        monolithic = self.fileStyle() == formats.STYLE_SINGLE
-        coerceTzinfo = getattr(self, 'coerceTzinfo', None)
-
-        events, calname = itemsFromVObject(view, text, coerceTzinfo, filters,
-                                           monolithic, activity, stats,
-                                           monolithic)
-
-        def masterEventItem(obj):
-            if has_stamp(obj, EventStamp):
-                return EventStamp(obj).getMaster().itsItem
-            else:
-                return obj
-
-
-        if monolithic:
-            if calname is None:
-                calname = _(u"Imported Calendar")
-
-            if item is None:
-                item = SmartCollection(itsView=view)
-                shares.SharedItem(item).add()
-            elif isinstance(item, shares.Share):                        
-                if item.contents is None:
-                    item.contents = \
-                        SmartCollection(itsView=view)
-                    shares.SharedItem(item.contents).add()
-                item = item.contents
-
-            if not isinstance(item, ContentCollection):
-                print "Only a share or an item collection can be passed in"
-                #@@@MOR Raise something
-
-            if getattr(item, 'displayName', "") == "":
-                item.displayName = unicode(calname)
-
-            # finally, add each new event to the collection
-            for event in events:
-                item.add(masterEventItem(event))
-
-            return item
-
-        else:
-            if len(events) == 0:
-                logger.error("Got no events, icalendar: " + text)
-            # if fileStyle isn't single, item must be a collection
-            return masterEventItem(events[0])
-
-    def exportProcess(self, share, depth=0):
-        cal = itemsToVObject(self.itsView, share.contents,
-                             filters=self.share.filterAttributes)
-        if self.fileStyle() == formats.STYLE_SINGLE:
-            # don't add a METHOD to CalDAV serializations, because CalDAV
-            # forbids them, but do add one when serializing monolithic ics files
-            # because Outlook requires them (bug 7121)
-            cal.add('method').value="PUBLISH"
-        try:
-            cal.add('x-wr-calname').value = share.contents.displayName
-        except:
-            pass
-        return cal.serialize().encode('utf-8')
 
 def beginningOfWeek(view):
     midnightToday = datetime.datetime.combine(datetime.date.today(), 
                                      datetime.time(0, tzinfo=view.tzinfo.default))
     return midnightToday - midnightToday.weekday() * oneDay # Monday = 0
 
-
-class CalDAVFormat(ICalendarFormat):
-    """
-    Treat multiple events as different resources.
-    """
-
-    def fileStyle(self):
-        return formats.STYLE_DIRECTORY
-    
-    def acceptsItem(self, item):
-        return has_stamp(item, EventStamp)
-
-    def exportProcess(self, item, depth=0):
-        """
-        Item may be a Share or an individual Item, return None if Share.
-        """
-        if has_stamp(item, EventStamp):
-            cal = itemsToVObject(self.itsView, [item],
-                                 filters=self.share.filterAttributes)
-            return cal.serialize().encode('utf-8')
-
-    
-    
-class FreeBusyFileFormat(ICalendarFormat):
-    """Format for exporting/importing a monolithic freebusy file."""
-    def extension(self, item):
-        return "ifb"
-
-    def exportProcess(self, item, depth=0):
-        """
-        Share and depth are ignored, always export freebusy associated
-        with the all collection.
-        """
-        start = beginningOfWeek(self.itsView)
-        cal = itemsToFreeBusy(self.itsView, start,
-                              start + FREEBUSY_WEEKS_EXPORTED * 7 * oneDay,
-                              calname = self.itsParent.displayName)
-        return cal.serialize().encode('utf-8')
-
-    def importProcess(self, contentView, text, extension=None, item=None,
-                      activity=None, stats=None):
-        # the item parameter is so that a share item can be passed in for us
-        # to populate.
-
-        # An ICalendar file doesn't have any 'share' info, just the collection
-        # of events, etc.  Therefore, we want to actually populate the share's
-        # 'contents':
-
-        view = contentView # Use the passed-in view for creating items
-
-        if item is None:
-            item = SmartCollection(itsView=view)
-            shares.SharedItem(item).add()
-        elif isinstance(item, shares.Share):
-            if item.contents is None:
-                item.contents = \
-                    SmartCollection(itsView=view)
-                shares.SharedItem(item.contents).add()
-            item = item.contents
-
-        # something should be done with start and end, eventually
-        start, end, calname = updateFreebusyFromVObject(view, text, item, 
-                                                        activity)
-
-        if getattr(item, 'displayName', "") == "":
-            if calname is None:
-                calname = _(u"Imported Free/Busy Calendar")
-            item.displayName = unicode(calname)
-
-        return item
 
 class ICalendarImportError(Exception):
     pass

@@ -26,6 +26,7 @@ from repository.persistence.RepositoryError import \
 from repository.persistence.RepositoryView import otherViewWins
 
 
+
 logger = logging.getLogger(__name__)
 
 wxWindow_FindFocus = wx.Window_FindFocus
@@ -564,6 +565,13 @@ class wxApplication (wx.App):
         # sharing layer will populate the newItems collection with occurrences
         # and this method pulls them out and inspects them.
         self.processSharingQueue = sharing.processSharingQueue
+
+
+        # Register ourselves to be notified whenever there are unsubscribed
+        # collections:
+        from application.dialogs import RestoreShares
+        sharing.register(sharing.UNSUBSCRIBEDCOLLECTIONS,
+            RestoreShares.Show)
 
 
         # Fix for Bugs 3720, 3722, 5046, and 5650.  Sets the focus to

@@ -21,18 +21,21 @@ __all__ = [
     'NEWITEMS',
     'MODIFIEDITEMS',
     'NEWITEMSUNESTABLISHED',
+    'UNSUBSCRIBEDCOLLECTIONS',
 ]
 
 UPDATE = 1
 NEWITEMS = 2
 MODIFIEDITEMS = 3
 NEWITEMSUNESTABLISHED = 4
+UNSUBSCRIBEDCOLLECTIONS = 5
 
 registeredCallbacks = {
     UPDATE : { },
     NEWITEMS : { },
     MODIFIEDITEMS : { },
     NEWITEMSUNESTABLISHED : { },
+    UNSUBSCRIBEDCOLLECTIONS : { },
 }
 
 def register(event, func, *args):

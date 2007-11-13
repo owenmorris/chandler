@@ -433,28 +433,6 @@ class wxSidebar(wxTable):
         # don't pop up a dialog when running functional tests
         if prompt:
 
-            # Prompt for unpublish, and unpublish
-            for collection in contents.iterSelection():
-                try:
-                    share = sharing.getShare(collection)
-                    if sharing.isSharedByMe(share):
-                        dialog = wx.MessageDialog(wx.GetApp().mainFrame,
-                            _(u"Deleting the collection will also unpublish it from the server.  Proceed?"),
-                            _(u"Unpublish Confirmation"),
-                            wx.YES_NO | wx.ICON_INFORMATION)
-                        response = dialog.ShowModal()
-                        dialog.Destroy()
-                        if response == wx.ID_YES:
-                            sharing.unpublish(collection)
-                        else:
-                            return
-                except (sharing.CouldNotConnect, twisted.internet.error.TimeoutError):
-                    logger.exception("Connection error during unpublish")
-                    pass
-                except:
-                    logger.exception("Unknown error during unpublish")
-                    pass
-
             for collection in contents.iterSelection():
                 if len(collection) == 0:
                     continue
@@ -475,6 +453,29 @@ class wxSidebar(wxTable):
                                       style = wx.OK | wx.CANCEL,
                                       parent = wx.GetApp().mainFrame) != wx.OK:
                         return
+
+            # Prompt for unpublish, and unpublish
+            for collection in contents.iterSelection():
+                try:
+                    share = sharing.getShare(collection)
+                    if sharing.isSharedByMe(share):
+                        dialog = wx.MessageDialog(wx.GetApp().mainFrame,
+                            _(u"Do you also want to remove the collection from the server?"),
+                            _(u"Unpublish Confirmation"),
+                            wx.YES_NO | wx.ICON_INFORMATION)
+                        response = dialog.ShowModal()
+                        dialog.Destroy()
+                        if response == wx.ID_YES:
+                            sharing.unpublish(collection)
+                        else:
+                            sharing.CosmoAccount.ignoreCollection(collection)
+
+                except (sharing.CouldNotConnect, twisted.internet.error.TimeoutError):
+                    logger.exception("Connection error during unpublish")
+                    pass
+                except:
+                    logger.exception("Unknown error during unpublish")
+                    pass
 
         # save a list copy of the ranges because we're about to clear them.
         selectionRanges = list(reversed(contents.getSelectionRanges()))

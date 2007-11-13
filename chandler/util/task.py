@@ -18,7 +18,7 @@ from twisted.internet import reactor, defer
 import logging
 from i18n import ChandlerMessageFactory as _
 from repository.persistence.RepositoryError import MergeError
-from osaf import sharing
+from osaf import sharing, activity
 
 logger = logging.getLogger(__name__)
 
@@ -65,19 +65,18 @@ class Task(object):
             result = self.run()
             self._success(result)
         except Exception, e:
-            logger.exception("Task failed")
+            if not isinstance(e, activity.ActivityAborted):
+                logger.exception("Task failed")
             summary, extended = sharing.errors.formatException(e)
             self._error( (e, summary, extended) )
 
         if self.shutdownDeferred:
             self.shutdownDeferred.callback(None)
 
-        reactor.removeSystemEventTrigger(triggerID)
-
     def shutdownCallback(self):
         self.shutdownDeferred = defer.Deferred()
         self.cancelRequested = True
-        self.callInMainThread(self.shutdownInitiated, None, done=False)
+        self.shutdownInitiated()
         return self.shutdownDeferred
 
     def callInMainThread(self, f, arg, done=False):

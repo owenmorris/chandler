@@ -25,7 +25,6 @@ __all__ = [
     'getUrls',
     'getLabeledUrls',
     'getShare',
-    'getFreeBusyShare',
     'isOnline',
     'takeOnline',
     'takeOffline',
@@ -47,7 +46,10 @@ __all__ = [
     'code_to_triagestatus',
     'triagestatus_to_code',
     'mergeFunction',
-    'syncAll'
+    'syncAll',
+    'findUID',
+    'STYLE_SINGLE',
+    'STYLE_DIRECTORY',
 ]
 
 from application import schema, Globals
@@ -79,6 +81,7 @@ from dateutil.rrule import rrulestr
 import dateutil
 from vobject.icalendar import (DateOrDateTimeBehavior, MultiDateBehavior)
 from vobject.base import textLineToContentLine
+from util import indexes
 
 import osaf.pim.calendar.TimeZone as TimeZone
 
@@ -177,10 +180,7 @@ def getSyncableShares(rv, collection=None):
             share.established and
             share.contents is not None):
 
-            linkedShares = share.getLinkedShares()
-            leader = linkedShares[0]
-            if leader not in syncable:
-                syncable.append(leader)
+            syncable.append(share)
 
     return syncable
 
@@ -194,12 +194,6 @@ def getOldestVersion(rv):
             if hasattr(conduit, 'lastVersion'):
                 if conduit.lastVersion < oldest:
                     oldest = conduit.lastVersion
-            else:
-                marker = getattr(conduit, 'itemsMarker', None)
-                if marker is not None:
-                    markerVersion = marker.itsVersion
-                    if markerVersion < oldest:
-                        oldest = markerVersion
     return oldest
 
 
@@ -386,9 +380,7 @@ def deleteShare(share):
 
 
 def getUrls(share):
-    if share == schema.ns('osaf.sharing', share.itsView).prefs.freeBusyShare:
-        return [share.getLocation(privilege='freebusy')]
-    elif isSharedByMe(share):
+    if isSharedByMe(share):
         url = share.getLocation()
         readWriteUrl = share.getLocation(privilege='readwrite')
         readOnlyUrl = share.getLocation(privilege='readonly')
@@ -473,23 +465,6 @@ def isReadOnly(item):
 
 
 
-def getFreeBusyShare(collection):
-    """Return the free/busy Share item (if any) associated with a 
-    ContentCollection.
-
-    @param collection: an ContentCollection
-    @type collection: ContentCollection
-    @return: A Share item, or None
-    
-    """
-    caldavShare = schema.ns('osaf.sharing', collection.itsView).prefs.freeBusyShare
-    if caldavShare is not None:
-        return caldavShare
-    if pim.has_stamp(collection, shares.SharedItem):
-        collection = shares.SharedItem(collection)
-        if hasattr(collection, 'shares') and collection.shares:
-            return collection.shares.getByAlias('freebusy')
-    return None
 
 
 # Controls the online/offline state of the entire sharing layer:
@@ -582,21 +557,14 @@ def getExistingResources(account):
     existing = []
     parent   = handle.getResource(path)
 
-    fbparent = handle.getResource(path + 'freebusy/')
-    fbexists = handle.blockUntil(fbparent.exists)
-
     skipLen = len(path)
 
     resources = handle.blockUntil(parent.getAllChildren)
-    if fbexists:
-        resources = chain(resources, handle.blockUntil(fbparent.getAllChildren))
-    ignore = ('', 'freebusy', 'freebusy/hiddenEvents', 'hiddenEvents')
 
     for resource in resources:
         path = resource.path[skipLen:]
         path = path.strip(u"/")
-        if path not in ignore:
-            # path = urllib.unquote_plus(path).decode('utf-8')
+        if path:
             existing.append(path)
 
     # @@@ [grant] Localized sort?
@@ -1018,6 +986,21 @@ def checkTriageOnly(item):
     return (isinstance(item, pim.Note) and
             pim.EventStamp(item).isTriageOnlyModification() and
             pim.EventStamp(item).simpleAutoTriage() == item._triageStatus)
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+STYLE_SINGLE = 'single' # Share represented by monolithic file
+STYLE_DIRECTORY = 'directory' # Share is a directory where each item has
+                              # its own file
+
+
+def findUID(view, uid):
+    """
+    Return the master event whose icalUID matched uid, or None.
+    """
+    iCalendarItems = schema.ns("osaf.sharing", view).iCalendarItems
+    return indexes.valueLookup(iCalendarItems, 'icalUID',
+                                    pim.Note.icalUID.name, uid)
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 # Not used at the moment, but might be revived soon

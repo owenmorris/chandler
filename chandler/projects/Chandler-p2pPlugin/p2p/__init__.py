@@ -13,6 +13,8 @@
 #   limitations under the License.
 
 
+""" # Neutering this plugin until it's updated to work with EIM
+
 from datetime import timedelta
 from application import schema
 from i18n import MessageFactory
@@ -129,3 +131,5 @@ def installParcel(parcel, version=None):
                         run_at_startup=True)
 
     AllGroup.update(parcel, "all", name="All")
+    
+"""

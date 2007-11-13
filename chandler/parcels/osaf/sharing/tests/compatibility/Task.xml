@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<Task version='3' class='osaf.pim.tasks.Task' uuid='ee0dc68e-41ea-11db-ca3a-0016cbca6aed'>
-   <displayName>A vewwy vewwy important task</displayName>
-   <body mimetype='text/plain' encoding='utf-8'>SGVyZSBhcmUgc29tZSBmYXNjaW5hdGluZyB0YXNrIG5vdGVz</body>
-   <createdOn>2006-08-27 12:1:0.000000 US/Pacific</createdOn>
-   <triageStatus>later</triageStatus>
-   <triageStatusChanged>-1159945337.0</triageStatusChanged>
-</Task>

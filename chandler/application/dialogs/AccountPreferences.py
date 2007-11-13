@@ -36,6 +36,10 @@ from AccountPreferencesDialogs import MailTestDialog, \
                                       showOKDialog, \
                                       showConfigureDialog
 from osaf.framework import password
+from pkg_resources import iter_entry_points
+import logging
+logger = logging.getLogger(__name__)
+
 
 class AccountPanel(schema.Item):
     accountClass = schema.One(schema.Class)
@@ -1460,6 +1464,19 @@ class AccountPreferencesDialog(wx.Dialog):
             Mail._recalculateMeEmailAddresses(self.rv)
 
             Globals.mailService.refreshMailServiceCache()
+
+
+            # Look for handler classes registered for the account dialog
+            handlers = [ep.load() for ep in
+                iter_entry_points('chandler.account_dialog_handlers')]
+            for handler in handlers:
+                try:
+                    handler().onOk(self.rv)
+                except:
+                    logger.exception("Error calling account dialog handler")
+
+
+            # TODO: change the following code to use the above endpoint:
 
             # Initiate a sharing sync to pick up previously published
             # collections

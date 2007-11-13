@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from osaf.sharing import model, eim, RecordSet, translator, formats
+from osaf.sharing import model, eim, RecordSet, translator, utility
 from osaf.sharing.translator import toICalendarDuration, toICalendarDateTime
 from ICalendar import (makeNaiveteMatch, attributesUnderstood,
                        parametersUnderstood)
@@ -87,7 +87,7 @@ def UUIDFromICalUID(view, uid_to_uuid_map, uid):
     """
     uuid = uid_to_uuid_map.get(uid)
     if uuid is None:
-        item = formats.findUID(view, uid)
+        item = utility.findUID(view, uid)
         if item is None:
             try:
                 # See if uid is a valid repository UUID, if it is, and that UUID

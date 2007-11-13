@@ -1896,9 +1896,6 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
             # Owner's change gets applied to others if they haven't also
             # changed:
             self.share0.contents.displayName = "A"
-            # make a change to cause a PUT
-            self.share0.contents.add(item0)
-            item0.displayName = "changed"
             view0.commit(); stats = self.share0.sync(); view0.commit()
             view1.commit(); stats = self.share1.sync(); view1.commit()
             self.assertEquals(self.share1.displayName, "A")
@@ -1907,14 +1904,8 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
             # Owner's change does not get applied to others if they have also
             # changed:
             self.share0.contents.displayName = "B"
-            # make a change to cause a PUT
-            self.share0.contents.add(item0)
-            item0.displayName = "changed0"
             view0.commit(); stats = self.share0.sync(); view0.commit()
             self.share1.contents.displayName = "locally changed"
-            # make a change to cause a PUT
-            item1.body = "changed1"
-            item1 = view1.findUUID(item0.itsUUID)
             view1.commit(); stats = self.share1.sync(); view1.commit()
             self.assertEquals(self.share1.displayName, "B")
             self.assertEquals(self.share1.contents.displayName,
@@ -1929,8 +1920,6 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
             # name change:
             self.share1.sharer = me1
             self.share1.contents.displayName = "C"
-            # make a change to cause a PUT
-            item1.body = "changed2"
             view1.commit(); stats = self.share1.sync(); view1.commit()
             view0.commit(); stats = self.share0.sync(); view0.commit()
             self.assertEquals(self.share0.displayName, "C")

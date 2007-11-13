@@ -692,9 +692,6 @@ class Share(pim.ContentItem):
 
     filterAttributes = schema.Sequence(schema.Text, initialValue=[])
 
-    leads = schema.Sequence(initialValue=[])
-    follows = schema.One(inverse=leads)
-
     schema.addClouds(
         sharing = schema.Cloud(
             literal = [filterAttributes],
@@ -752,10 +749,6 @@ class Share(pim.ContentItem):
     def sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):
 
-        # @@@MOR: Refactor this and the conduits' sync( ) methods so that
-        # only the cancel/commit happens here, once the dual-fork stuff
-        # is removed.
-
         if(self.contents is not None and
             not pim.has_stamp(self.contents, SharedItem)):
             SharedItem(self.contents).add()
@@ -763,50 +756,32 @@ class Share(pim.ContentItem):
         self.lastAttempt = datetime.datetime.now(self.itsView.tzinfo.default)
 
         # Clear any previous error
-        for linked in self.getLinkedShares():
-            if hasattr(linked, 'error'):
-                del linked.error
-            if hasattr(linked, 'errorDetails'):
-                del linked.errorDetails
+        if hasattr(self, 'error'):
+            del self.error
+        if hasattr(self, 'errorDetails'):
+            del self.errorDetails
 
-        try:
-            # If someone else has modified a collection in the middle of our
-            # sync we'll get a TokenMismatch.  Try again a couple more times...
-            tries = 3
-            while True:
-                try:
-                    stats = self.conduit.sync(modeOverride=modeOverride,
-                        activity=activity, forceUpdate=forceUpdate,
-                        debug=debug)
-                    break
-                except errors.TokenMismatch:
-                    tries -= 1
-                    if tries == 0:
-                        raise
+        # If someone else has modified a collection in the middle of our
+        # sync we'll get a TokenMismatch.  Try again a couple more times...
+        tries = 3
+        while True:
+            try:
+                stats = self.conduit.sync(modeOverride=modeOverride,
+                    activity=activity, forceUpdate=forceUpdate,
+                    debug=debug)
+                break
+            except errors.TokenMismatch:
+                tries -= 1
+                if tries == 0:
+                    raise
 
-            # Not sure we need to keep the last stats around.  It's just more
-            # data to persist.  If it ends up being helpful we can put it back
-            # in:
+        # Not sure we need to keep the last stats around.  It's just more
+        # data to persist.  If it ends up being helpful we can put it back
+        # in:
 
-            # self.lastStats = stats
+        # self.lastStats = stats
 
-            self.lastSuccess = datetime.datetime.now(self.itsView.tzinfo.default)
-
-        except Exception, e:
-
-            logger.exception("Error syncing collection")
-
-            summary, extended = errors.formatException(e)
-
-            # At this point, our view has been cancelled.  Only 'established'
-            # Share items will still be alive here, and those are precisely
-            # the ones we do want to store error messages on:
-            if self.isLive():
-                for linked in self.getLinkedShares():
-                    linked.error = summary
-                    linked.errorDetails = extended
-
-            raise
+        self.lastSuccess = datetime.datetime.now(self.itsView.tzinfo.default)
 
         return stats
 
@@ -857,27 +832,6 @@ class Share(pim.ContentItem):
 
         return attributes
 
-    def getLinkedShares(self):
-
-        def getFollowers(share):
-            if hasattr(share, 'leads'):
-                for follower in share.leads:
-                    yield follower
-                    for subfollower in getFollowers(follower):
-                        yield subfollower
-
-        # Find the root leader
-        root = self
-        leader = getattr(root, 'follows', None)
-        while leader is not None:
-            root = leader
-            leader = getattr(root, 'follows', None)
-
-        shares = [root]
-        for follower in getFollowers(root):
-            shares.append(follower)
-
-        return shares
 
     def isAttributeModifiable(self, item, attribute):
 

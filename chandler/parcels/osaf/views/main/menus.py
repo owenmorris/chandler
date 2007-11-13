@@ -219,7 +219,7 @@ def makeMainMenus(parcel):
                                 helpString = _(u'Set auto-sync intervals')),
                             ]), # Menu SyncMenu
                     Menu.template('OfflineMenu',
-                        title = _(u'Suspend syncin&g'),
+                        title = _(u'Suspend Syncin&g'),
                         childBlocks = [
                             MenuItem.template('TakeOnlineOfflineItem',
                                 event = main.TakeOnlineOffline,
@@ -242,6 +242,10 @@ def makeMainMenus(parcel):
                                 title = _(u'&Shares'),
                                 helpString = _(u'Take shared collections offline or online')),
                             ]), # Menu OfflineMenu              
+                    MenuItem.template('SyncManagerItem',
+                        event = main.SyncManager,
+                        title = _(u'Sync Manager...'),
+                        helpString = _(u'Open the Sync Manager dialog')),
                     MenuItem.template('FileSeparator4',
                         menuItemKind = 'Separator'),
                     MenuItem.template('EnableTimezonesItem',

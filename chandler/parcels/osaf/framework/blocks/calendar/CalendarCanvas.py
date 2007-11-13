@@ -34,7 +34,7 @@ from osaf.pim import ContentCollection, has_stamp
 from osaf.usercollections import UserCollection
 from application.dialogs import RecurrenceDialog, Util, TimeZoneList
 
-from osaf.sharing import ChooseFormat, CalDAVFreeBusyConduit, FreeBusyAnnotation
+from osaf.sharing import ChooseFormat
 
 from osaf.framework.blocks import (
     ContainerBlocks, SplitterWindow, Styles, BoxContainer, BlockEvent,
@@ -1428,42 +1428,7 @@ class CalendarCanvasBlock(CalendarRangeBlock):
         
         super(CalendarCanvasBlock, self).setRange(date)
         
-        # disabled because freebusy isn't currently being used
-        if False:
-            number = 1 if self.dayMode else 7
-            
-            # get an extra day on either side of the displayed range, because
-            # timezone displayed could be earlier or later than UTC
-            fb_date = self.rangeStart.date() - timedelta(1)
-            dates = [fb_date + n * timedelta(1) for n in range(number + 2)]
-     
-            for col in self.getFreeBusyCollections():
-                annotation = FreeBusyAnnotation(col)
-                for date in dates:
-                    annotation.addDateNeeded(self.itsView, date)    
 
-    def getFreeBusyCollections(self):
-        """
-        Convenience method, returns any selected or overlaid collections
-        whose conduit is a CalDAVFreeBusyConduit.
-
-        """
-        hits = []
-        try:
-            collections = getattr(self.contents, 'collectionList',
-                                  [self.contents])
-        except AttributeError:
-            # sometimes self.contents hasn't been set yet. That's fine.
-            return hits
-        
-        for collection in collections:
-            shares = getattr(collection, 'shares', [])
-            for share in shares:
-                if isinstance(share.conduit, CalDAVFreeBusyConduit):
-                    hits.append(collection)
-                    break
-        
-        return hits
 
     def getContainingCollection(self, item, defaultCollection=None):
         """
