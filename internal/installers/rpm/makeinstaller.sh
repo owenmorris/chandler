@@ -35,9 +35,15 @@ if [ -d "$RPM_PATH/BUILD" ]; then
     mkdir $RPM_PATH/BUILD/OSAF/usr
     mkdir $RPM_PATH/BUILD/OSAF/usr/local
     cd $RPM_PATH/BUILD/OSAF/usr/local
-    echo "Creating build tree from distribution tarball"
-    tar xzf $DISTRIB_PATH/$DISTRIB_FILE.tar.gz
-    mv $DISTRIB_FILE chandler-$DISTRIB_VERSION
+    
+    echo "Creating build tree from distribution files"
+    if [ -f $DISTRIB_PATH/$DISTRIB_FILE.tar.gz ]; then
+        tar xzf $DISTRIB_PATH/$DISTRIB_FILE.tar.gz
+        mv $DISTRIB_FILE chandler-$DISTRIB_VERSION
+    else
+        cp -a $DISTRIB_PATH/$DISTRIB_FILE chandler-$DISTRIB_VERSION
+    fi
+    
     echo "Ensuring all files have a+r set"
     chmod -R a+r $RPM_PATH/BUILD/OSAF/usr/local/chandler-$DISTRIB_VERSION/
     cd $SPEC_PATH

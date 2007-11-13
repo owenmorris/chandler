@@ -25,9 +25,10 @@ Prefix: /usr/local
 AutoReqProv: no
 #Source0: chandler.tar.gz
 %description
-Chandler is a next-generation Personal Information Manager (PIM), 
-integrating calendar, email, contact management, task management, 
-notes, and instant messaging functions. 
+Chandler Desktop is an open source, standards-based personal information
+manager (PIM) built around small group collaboration and a core set of
+information management workflows modeled on Inbox usage patterns and
+David Allen's GTD methodology.
 #%install
 #cd $RPM_BUILD_ROOT
 #tar zxvf %{SOURCE0}
