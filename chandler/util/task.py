@@ -73,6 +73,8 @@ class Task(object):
         if self.shutdownDeferred:
             self.shutdownDeferred.callback(None)
 
+        reactor.removeSystemEventTrigger(triggerID)
+
     def shutdownCallback(self):
         self.shutdownDeferred = defer.Deferred()
         self.cancelRequested = True

@@ -80,7 +80,8 @@ class SharedItem(pim.Stamp):
 
     def addPeerState(self, state, peer):
         peerUuid = peer.itsUUID.str16()
-        if not hasattr(self, 'peerStates'):
+        item = self.itsItem
+        if not item.hasLocalAttributeValue(SharedItem.peerStates.name):
             self.peerStates = []
         if state not in self.peerStates:
             self.peerStates.append(state, peerUuid)
@@ -88,7 +89,8 @@ class SharedItem(pim.Stamp):
     def getPeerState(self, peer, create=True):
         peerUuid = peer.itsUUID.str16()
         state = None
-        if hasattr(self, 'peerStates'):
+        item = self.itsItem
+        if item.hasLocalAttributeValue(SharedItem.peerStates.name):
             state = self.peerStates.getByAlias(peerUuid)
         else:
             self.peerStates = []

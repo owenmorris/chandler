@@ -1128,6 +1128,18 @@ def RenderItem(repoView, item):
                         result += "<td>%s</td>\n" % clean(str(record))
                         result += "</tr>\n"
                         count += 1
+                    pending = state.pending
+                    result += "<tr class='headingsrow'><td><b>Pending Changes:</b></td></tr>\n"
+                    for record in sharing.sort_records(pending.inclusions):
+                        result += oddEvenRow(count)
+                        result += "<td>++ %s</td>\n" % clean(str(record))
+                        result += "</tr>\n"
+                        count += 1
+                    for record in sharing.sort_records(pending.exclusions):
+                        result += oddEvenRow(count)
+                        result += "<td>-- %s</td>\n" % clean(str(record))
+                        result += "</tr>\n"
+                        count += 1
                     result += "</table>\n"
 
 

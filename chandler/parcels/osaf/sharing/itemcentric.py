@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 from osaf import pim
-import eim, eimml, translator, shares, errors
+import eim, eimml, translator, shares, errors, utility, recordset_conduit
 from i18n import ChandlerMessageFactory as _
 import logging
 
@@ -54,7 +54,10 @@ def inbound(peer, text, filter=None, allowDeletion=False, debug=False):
 
     itemToReturn = None
 
-    for alias, rsExternal in inbound.items():
+    aliases = inbound.keys()
+    aliases.sort()
+    for alias in aliases:
+        rsExternal = inbound[alias]
 
         uuid = trans.getUUIDForAlias(alias)
         if uuid:
@@ -65,6 +68,7 @@ def inbound(peer, text, filter=None, allowDeletion=False, debug=False):
         if rsExternal is not None:
 
             if item is not None and not getattr(item, '_fake', False):
+
                 # Item already exists
                 if not pim.has_stamp(item, shares.SharedItem):
                     shares.SharedItem(item).add()
@@ -92,10 +96,19 @@ def inbound(peer, text, filter=None, allowDeletion=False, debug=False):
                 state = shares.State(itsView=rv, peer=peer)
                 rsInternal = eim.RecordSet()
 
+
             if state.peerRepoId and (peerRepoId != state.peerRepoId):
                 # This update is not from the peer repository we last saw.
                 # Treat the update is entirely new
                 state.clear()
+
+            if uuid is not None:
+                masterAlias, recurrenceID = utility.splitUUID(rv, alias)
+                if masterAlias != alias and not state.agreed:
+                    # This is a new inbound modification
+                    state.agreed += eim.RecordSet(
+                        recordset_conduit.getInheritRecords(
+                        rsExternal.inclusions, alias))
 
             state.peerRepoId = peerRepoId
 
@@ -129,6 +142,7 @@ def inbound(peer, text, filter=None, allowDeletion=False, debug=False):
                 if item is not None and item.isLive():
                     if not pim.has_stamp(item, shares.SharedItem):
                         shares.SharedItem(item).add()
+
                     shares.SharedItem(item).addPeerState(state, peer)
 
                     if itemToReturn is None:
