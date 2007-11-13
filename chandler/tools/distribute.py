@@ -39,7 +39,7 @@ def parseOptions():
         'tarball':   ('',   '--tarball', 'b', False, 'only create the tarball (or zip) distribution'),
         'dmg':       ('',   '--dmg',     'b', False, 'only create the OS X .dmg bundle'),
         'deb':       ('',   '--deb',     'b', False, 'only create the debian package'),
-        'rpm':       ('',   '--rpm',     'b', False, 'create the rpm package'),
+        'rpm':       ('',   '--rpm',     'b', False, 'only create the rpm package'),
         'exe':       ('',   '--exe',     'b', False, 'only create the windows .exe installer'),
         'tag':       ('-t', '--tag',     's', None,  'continuous build name/tag to add to version information')
         }
@@ -156,12 +156,14 @@ def buildDistributionList(options):
                 log('Platform is [%s] -- ignoring exe request' % options.platformName)
     else:
         if options.platformID == 'linux':
-            options.distribs = [ 'tarball', 'deb' ]
-        else:
-            if options.platformID == 'win':
-                options.distribs = [ 'tarball', 'exe' ]
+            if options.platformSubID == 'gutsy':
+                options.distribs = [ 'deb' ]
             else:
-                options.distribs = [ 'dmg' ]
+                options.distribs = [ 'tarball' ]
+        elif options.platformID == 'win':
+            options.distribs = [ 'tarball', 'exe' ]
+        else:
+            options.distribs = [ 'dmg' ]
 
 def buildDistribName(mode, options):
     if mode == 'release':
@@ -331,9 +333,10 @@ def buildDEB(mode, options):
 
     debPath   = os.path.join(options.buildDir, 'internal', 'installers', 'deb')
     debScript = os.path.join(debPath, 'makeinstaller.sh')
-    version   = '%s.%s' % (options.version_info['major'], options.version_info['minor'])
+    version   = options.version_info['version'].replace('-', '~')
 
-    cmd = [ debScript, debPath, options.buildDir, options.distribName, version, options.version_info['release'] ]
+    cmd = [debScript, debPath, options.buildDir, options.distribName, version,
+           mode]
 
     r = runCommand(cmd)
 
@@ -342,7 +345,13 @@ def buildDEB(mode, options):
     if r:
         raise DistributionError(str(r))
 
-    return '%s_i386.deb' % options.distribName
+    if mode == 'release':
+        m = '_'
+    else:
+        m = '_debug_'
+    
+    return 'Chandler_linux%(mode)s%(version)s-1_i386.deb' % {'mode': m,
+                                                             'version': version}
 
 
 def checkOptions(options):
