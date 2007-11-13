@@ -550,7 +550,7 @@ def publish(collection, account, classesToInclude=None,
     if not has_stamp(collection, SharedItem):
         SharedItem(collection).add()
 
-    conduit = WebDAVConduit(itsView=view, account=account)
+    conduit = WebDAVRecordSetConduit(itsView=view, account=account)
 
     # Interrogate the server associated with the account
 
