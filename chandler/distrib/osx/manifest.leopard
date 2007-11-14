@@ -10,24 +10,6 @@
 
 exclude=.svn,*.pyo,*.pyc
 
-## Grab the python modules 
-#src=chandler/release/Library/Frameworks/Python.framework/Versions/2.5/lib
-#dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.5/lib
-#glob=*
-#recursive=yes
-#python2.5
-
-## Grab python Framework file
-#src=chandler/release/Library/Frameworks/Python.framework/Versions/2.5
-#dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.5
-#Python
-
-## Grab python scripts
-#src=chandler/release/Library/Frameworks/Python.framework/Versions/2.5
-#dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.5
-#glob=rst*
-#bin
-
 # Grab wx and db libs
 src=chandler/release
 dest=Contents/Resources
@@ -37,6 +19,12 @@ src=chandler/release/db
 glob=*.la,*.dylib,db_*
 bin
 lib
+
+# Grab the local python site-packages
+src=chandler/release
+dest=Contents/Resources/release
+glob=*
+site-packages
 
 # Grab icu libs
 src=chandler/release/icu
@@ -70,6 +58,7 @@ src=chandler
 dest=Contents/Resources
 Chandler.py
 version.py
+site.py
 LICENSE.txt
 NOTICE.txt
 WingMacRelease.wpr
@@ -107,19 +96,4 @@ ChandlerApp
 src=chandler/release
 dest=Contents/Resources/release
 RunPython
-
-#src=chandler/release/Library/Frameworks/Python.framework
-#dest=Contents/Resources/Library/Frameworks/Python.framework
-#recursive=yes
-#Versions
-
-## create symlink of the Headers dir
-#dest=Contents/Resources/release/Library/Frameworks/Python.framework
-#link=Versions/Current/
-#Headers
-
-## create symlink of the Resources dir
-#dest=Contents/Resources/release/Library/Frameworks/Python.framework
-#link=Versions/Current/
-#Resources
 
