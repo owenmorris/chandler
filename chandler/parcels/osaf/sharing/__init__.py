@@ -17,7 +17,7 @@ import logging, urlparse, datetime, wx, os.path, sys
 
 from application import schema, dialogs, Globals
 from application.Parcel import Reference
-from application.Utility import getDesktopDir, CertificateVerificationError
+from application.Utility import getDesktopDir
 from osaf import pim, ChandlerException, startup
 from osaf.framework.password import Password, NoMasterPassword
 from osaf.framework.twisted import waitForDeferred
@@ -30,13 +30,12 @@ from chandlerdb.util.c import UUID
 from repository.persistence.RepositoryView import currentview
 from osaf.activity import *
 
-import zanshin, M2Crypto, twisted, re
+import twisted
 
 from shares import *
 from conduits import *
 from errors import *
 from utility import *
-from accounts import *
 from webdav_conduit import *
 from caldav_conduit import *
 from recordset_conduit import *
@@ -54,6 +53,7 @@ from viewpool import *
 from ics import *
 from ICalendar import *
 from stateless import *
+from accounts import *
 
 
 logger = logging.getLogger(__name__)
@@ -484,30 +484,8 @@ def stats2str(rv, stats):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 def publish(collection, account, classesToInclude=None,
-            attrsToExclude=None, displayName=None, activity=None,
-            overwrite=False):
-    """
-    Publish a collection, automatically determining which conduits
-    to use, and how many
-
-    @type collection: pim.ContentCollection
-    @param collection: The collection to publish
-    @type account: WebDAVAccount
-    @param account: The sharing (WebDAV) account to use
-    @type classesToInclude: list of str
-    @param classesToInclude: An optional list of dotted class names;
-                             if provided, then only items matching those
-                             classes will be shared
-    @type attrsToExclude: list of str
-    @param attrsToExclude: An optional list of attribute names to skip when
-                           publishing
-    @type displayName: unicode
-    @param displayName: An optional name to use for publishing; if not provided,
-                        the collection's displayName will be used as a starting
-                        point.  In either case, to avoid collisions with existing
-                        collections, '-1', '-2', etc., may be appended.
-    """
-
+            filters=None, displayName=None, activity=None,
+            overwrite=False, options=None):
 
     if not isOnline(collection.itsView):
         raise OfflineError(_(u"Could not perform request. Sharing is offline."))
@@ -519,7 +497,6 @@ def publish(collection, account, classesToInclude=None,
 
     if activity:
         activity.update(totalWork=totalWork)
-
 
     view = collection.itsView
 
@@ -534,204 +511,14 @@ def publish(collection, account, classesToInclude=None,
         share.create()
         share.put()
         share.sharer = pim_ns.currentContact.item
-        return [share]
+        return share
 
-    # If the account knows how to publish, delegate:
-    if hasattr(account, 'publish'):
-        shares = account.publish(collection, activity=activity,
-            filters=attrsToExclude, overwrite=overwrite)
-        for share in shares:
-            share.sharer = pim_ns.currentContact.item
-        return shares
+    share = account.publish(collection, displayName=displayName,
+        activity=activity, filters=filters, overwrite=overwrite,
+        options=options)
+    share.sharer = pim_ns.currentContact.item
 
-
-
-    # Stamp the collection
-    if not has_stamp(collection, SharedItem):
-        SharedItem(collection).add()
-
-    conduit = WebDAVRecordSetConduit(itsView=view, account=account)
-
-    # Interrogate the server associated with the account
-
-    location = account.getLocation()
-    if not location.endswith("/"):
-        location += "/"
-    handle = conduit._getServerHandle()
-    resource = handle.getResource(location)
-
-    logger.debug('Examining %s ...', location.encode('utf8', 'replace'))
-    exists = handle.blockUntil(resource.exists)
-    if not exists:
-        logger.debug("...doesn't exist")
-        raise NotFound(_(u"%(location)s does not exist.") %
-            {'location': location})
-
-    isCalendar = handle.blockUntil(resource.isCalendar)
-    logger.debug('...Calendar?  %s', isCalendar)
-    isCollection =  handle.blockUntil(resource.isCollection)
-    logger.debug('...Collection?  %s', isCollection)
-
-    response = handle.blockUntil(resource.options)
-    dav = response.headers.getHeader('DAV')
-    logger.debug('...DAV:  %s', dav)
-    allowed = response.headers.getHeader('Allow')
-    logger.debug('...Allow:  %s', allowed)
-    supportsTickets = handle.blockUntil(resource.supportsTickets)
-    logger.debug('...Tickets?:  %s', supportsTickets)
-
-    conduit.delete(True) # Clean up the temporary conduit
-
-
-    # Prepare the share objects
-
-    shares = []
-
-    try:
-
-        if isCalendar:
-            # We've been handed a calendar directly.  Just publish directly
-            # into this calendar collection rather than making a new one.
-            # Create a CalDAV share with empty sharename, doing a GET and PUT
-
-            share = Share(itsView=view, contents=collection)
-            conduit = CalDAVRecordSetConduit(itsParent=share,
-                account=account,
-                shareName=u"",
-                translator=SharingTranslator,
-                serializer=ICSSerializer)
-            share.conduit = conduit
-            if attrsToExclude:
-                conduit.filters = attrsToExclude
-
-            share.displayName = displayName or collection.displayName
-            share.sharer = pim_ns.currentContact.item
-
-            alias = 'main'
-            try:
-                SharedItem(collection).shares.append(share, alias)
-            except ValueError:
-                # There is already a 'main' share for this collection
-                SharedItem(collection).shares.append(share)
-
-            shares.append(share)
-
-            share.sync(activity=activity)
-
-        else:
-            # the collection should be published
-            # determine a share name
-            existing = getExistingResources(account)
-            displayName = displayName or collection.displayName
-
-            shareName = displayName
-            alias = 'main'
-
-            # See if there are any non-ascii characters, if so, just use UUID
-            try:
-                shareName.encode('ascii')
-                pattern = re.compile('[^A-Za-z0-9]')
-                shareName = re.sub(pattern, "_", shareName)
-            except UnicodeEncodeError:
-                shareName = unicode(collection.itsUUID)
-
-            shareName = _uniqueName(shareName, existing)
-
-            if ('calendar-access' in dav or 'MKCALENDAR' in allowed):
-                # We're speaking to a CalDAV server
-                sharing_ns = schema.ns('osaf.sharing', view)
-
-                share = Share(itsView=view, contents=collection)
-                conduit = CalDAVRecordSetConduit(itsParent=share,
-                    account=account,
-                    shareName=shareName,
-                    translator=SharingTranslator,
-                    serializer=ICSSerializer)
-                share.conduit = conduit
-                if attrsToExclude:
-                    conduit.filters = attrsToExclude
-
-                share.displayName = displayName or collection.displayName
-                share.sharer = pim_ns.currentContact.item
-
-
-                try:
-                    SharedItem(collection).shares.append(share, alias)
-                except ValueError:
-                    # There is already a 'main' share for this collection
-                    SharedItem(collection).shares.append(share)
-
-                shares.append(share)
-
-                if share.exists():
-                    raise SharingError(_(u"Collection already exists on server."))
-
-                share.create()
-                # bug 8128, this setDisplayName shouldn't be required, but
-                # cosmo isn't accepting setting displayname in MKCALENDAR
-                share.conduit.setDisplayName(displayName)
-
-                share.put(activity=activity)
-
-                # tickets after putting
-                if supportsTickets:
-                    share.conduit.createTickets()
-
-
-            elif dav is not None:
-
-                # TODO: Publish monolithic .ics file instead?
-
-                # We're speaking to a WebDAV server -- use EIMML
-
-                share = Share(itsView=view, contents=collection)
-                conduit = WebDAVRecordSetConduit(itsParent=share,
-                    shareName=shareName, account=account,
-                    translator=SharingTranslator,
-                    serializer=EIMMLSerializer)
-                share.conduit = conduit
-
-                # TODO: support filters on WebDAV + EIMML
-
-                try:
-                    SharedItem(collection).shares.append(share, alias)
-                except ValueError:
-                    # There is already a 'main' share for this collection
-                    SharedItem(collection).shares.append(share)
-
-                shares.append(share)
-
-                if share.exists():
-                    raise SharingError(_(u"Collection already exists on server."))
-
-                share.create()
-                share.put(activity=activity)
-
-                if supportsTickets:
-                    share.conduit.createTickets()
-
-
-    except (SharingError,
-            zanshin.error.Error,
-            M2Crypto.SSL.Checker.WrongHost,
-            CertificateVerificationError,
-            twisted.internet.error.TimeoutError), e:
-
-        # Clean up share objects
-        try:
-            for share in shares:
-                share.delete(True)
-        except:
-            pass # ignore stale shares
-
-        # Note: the following "raise e" line used to just read "raise".
-        # However, if the try block immediately preceeding this comment
-        # raises an exception, the "raise" following this comment was
-        # raising that *new* exception instead of the original exception
-        # that got us here, "e".
-        raise e
-
-    return shares
+    return share
 
 
 def destroyShare(share):
@@ -975,7 +762,6 @@ def subscribeCalDAV(view, url, inspection, activity=None, account=None,
     parentPath=None, shareName=None, ticket=None,
     username=None, password=None, filters=None):
 
-    # Append .chandler to the path
     parsedUrl = urlparse.urlsplit(url)
     path = parsedUrl.path
     if not path.endswith("/"):
@@ -1011,10 +797,9 @@ def subscribeCalDAV(view, url, inspection, activity=None, account=None,
     share.get(activity=activity)
     share.conduit.getTickets()
 
-    if caldav_atop_eim:
-        displayName = share.conduit.getCollectionName()
-        share.contents.displayName = displayName
-        share.displayName = displayName
+    displayName = share.conduit.getCollectionName()
+    share.contents.displayName = displayName
+    share.displayName = displayName
 
 
     try:
@@ -1073,10 +858,10 @@ def subscribeICS(view, url, inspection, activity=None,
 
     share = Share(itsView=view)
 
-    (scheme, useSSL, host, port, path, query, fragment, ticket, parentPath,
-        shareName) = splitUrl(url)
-
     if not account and not ticket and username:
+        (scheme, useSSL, host, port, path, query, fragment, ticket, parentPath,
+            shareName) = splitUrl(url)
+
         # Create a new account
         account = WebDAVAccount(itsView=view)
         account.displayName = url
@@ -1227,18 +1012,6 @@ def unsubscribe(collection):
 
 
 
-# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-# Internal methods
-
-
-
-def _uniqueName(basename, existing):
-    name = basename
-    counter = 1
-    while name in existing:
-        name = "%s-%d" % (basename, counter)
-        counter += 1
-    return name
 
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

@@ -87,7 +87,9 @@ class CosmoAccount(accounts.SharingAccount):
     requested = schema.Many(schema.Text, initialValue=set(),
         doc = 'UUIDs of unsubscribed collections the user wants to restore')
 
-    def publish(self, collection, activity=None, filters=None, overwrite=False):
+    def publish(self, collection, displayName=None, activity=None, filters=None,
+        overwrite=False, options=None):
+
         rv = self.itsView
 
         share = shares.Share(itsView=rv, contents=collection)
@@ -111,7 +113,7 @@ class CosmoAccount(accounts.SharingAccount):
 
         share.put(activity=activity)
 
-        return [share]
+        return share
 
 
     def getPublishedShares(self, callback=None, blocking=False):

@@ -147,7 +147,17 @@ class DAVConduitMixin(conduits.HTTPMixin):
 
     def destroy(self):
         if self.exists():
-            self._deleteItem(u"")
+            resource = self._resourceFromPath("")
+            logger.info("...removing from server: %s" % resource.path)
+            if resource != None:
+                try:
+                    deleteResp = self._getServerHandle().blockUntil(
+                        resource.delete)
+                except zanshin.webdav.ConnectionError, err:
+                    raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
+                except M2Crypto.BIO.BIOError, err:
+                    raise errors.CouldNotConnect(_(u"Unable to connect to server: %(error)s") % {'error': err})
+
 
     def _getContainerResource(self):
 

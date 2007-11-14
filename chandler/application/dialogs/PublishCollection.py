@@ -54,6 +54,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.modal = modal
         self.name = name
         self.account = account # use this account, overriding the default
+        self.options = { }
 
         self.mySizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -116,6 +117,8 @@ class PublishCollectionDialog(wx.Dialog):
 
         self.Bind(wx.EVT_BUTTON, self.OnPublish, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
+        self.Bind(wx.EVT_BUTTON, self.OnOptions,
+            id=wx.xrc.XRCID("BUTTON_OPTIONS"))
 
         collName = self.collection.displayName
 
@@ -152,6 +155,18 @@ class PublishCollectionDialog(wx.Dialog):
         self.CheckboxShareBcc.SetValue(False)
 
         self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
+
+        self.ShowOptions()
+
+
+    def ShowOptions(self):
+        self.options = { }
+        button = wx.xrc.XRCCTRL(self, "BUTTON_OPTIONS")
+        account = self.currentAccount
+        if account and hasattr(account, 'publishOptionsDialog'):
+            button.Enable(True)
+        else:
+            button.Enable(False)
 
 
     def ShowManagePanel(self):
@@ -224,6 +239,7 @@ class PublishCollectionDialog(wx.Dialog):
         accountIndex = self.accountsControl.GetSelection()
         account = self.accountsControl.GetClientData(accountIndex)
         self.currentAccount = account
+        self.ShowOptions()
 
 
     def OnErrorDetails(self, evt):
@@ -360,6 +376,12 @@ class PublishCollectionDialog(wx.Dialog):
     def OnPublish(self, evt):
         self.PublishCollection()
 
+    def OnOptions(self, evt):
+        account = self.currentAccount
+        if account and hasattr(account, 'publishOptionsDialog'):
+            account.publishOptionsDialog(self.options)
+
+
     def PublishCollection(self, overwrite=False):
         # Publish the collection
 
@@ -379,7 +401,7 @@ class PublishCollectionDialog(wx.Dialog):
         self._resize()
         wx.GetApp().Yield(True)
 
-        attrsToExclude = self._getAttributeFilterState()
+        filters = self._getAttributeFilterState()
 
         accountIndex = self.accountsControl.GetSelection()
         account = self.accountsControl.GetClientData(accountIndex)
@@ -387,12 +409,14 @@ class PublishCollectionDialog(wx.Dialog):
 
         class ShareTask(task.Task):
 
-            def __init__(task, view, account, collection, activity, overwrite):
+            def __init__(task, view, account, collection, activity, overwrite,
+                options):
                 super(ShareTask, task).__init__(view)
                 task.accountUUID = account.itsUUID
                 task.collectionUUID = collection.itsUUID
                 task.activity = activity
                 task.overwrite = overwrite
+                task.options = options
 
             def error(task, err):
                 self._shareError(err)
@@ -420,21 +444,21 @@ class PublishCollectionDialog(wx.Dialog):
                 if self.name:
                     displayName = self.name
 
-                shares = sharing.publish(collection, account,
-                                         attrsToExclude=attrsToExclude,
+                share = sharing.publish(collection, account,
+                                         filters=filters,
                                          displayName=displayName,
                                          activity=task.activity,
-                                         overwrite=task.overwrite)
+                                         overwrite=task.overwrite,
+                                         options=task.options)
 
-                shareUUIDs = [item.itsUUID for item in shares]
-                return shareUUIDs
+                return share.itsUUID
 
         # Run this in its own background thread
         self.view.commit()
         self.taskView = sharing.getView(self.view.repository)
         self.activity = Activity("Publish: %s" % self.collection.displayName)
         self.currentTask = ShareTask(self.taskView, account, self.collection,
-            self.activity, overwrite)
+            self.activity, overwrite, self.options)
         self.listener = Listener(activity=self.activity,
             callback=self._updateCallback)
         self.activity.started()
@@ -536,7 +560,7 @@ class PublishCollectionDialog(wx.Dialog):
 
         return False
 
-    def _finishedShare(self, shareUUIDs):
+    def _finishedShare(self, shareUUID):
 
         self.activity.completed()
         self.listener.unregister()
