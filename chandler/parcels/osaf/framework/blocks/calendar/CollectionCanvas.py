@@ -483,7 +483,11 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                          multipleSelection):
         hitBox = self._handleClick(unscrolledPosition, multipleSelection)
         # create a drag state for resize dragging
-        self._initiateDrag(hitBox, unscrolledPosition)
+        # self may get deleted if selecting a different collection changes
+        # the view from multi-week to something else, don't call methods
+        # on self if it's deleted...
+        if self:        
+            self._initiateDrag(hitBox, unscrolledPosition)
 
     def OnHover (self, x, y, dragResult):
         if not hasattr(self, 'lastHover'):
@@ -915,7 +919,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         pass
 
     def OnPaint(self, event):
-        dc = wx.PaintDC(self)
+        dc = wx.BufferedPaintDC(self)
 
         # Sometimes we get empty regions to paint,
         # like when you mouseover the scrollbar

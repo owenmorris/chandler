@@ -15,7 +15,7 @@
 import wx
 from i18n import ChandlerMessageFactory as _
 from PyICU import DateFormatSymbols, GregorianCalendar
-
+from CalendarUtility import getCalendarRange
 from datetime import date, timedelta
 from calendar import monthrange
 
@@ -37,7 +37,7 @@ CAL_HITTEST_DECMONTH = 5
 CAL_HITTEST_SURROUNDING_WEEK = 6
 
 CAL_HIGHLIGHT_WEEK         = 0x0008 # select an entire week at a time
-
+CAL_HIGHLIGHT_MULTI_WEEK   = 0x0010 # select multiple weeks
 if wx.Platform == "__WXMAC__":
     WIDTH_CORRECTION = 4
     Y_ADJUSTMENT_BIG = 7
@@ -660,20 +660,22 @@ class PyMiniCalendar(wx.PyControl):
                 x = columnStart + (self.widthCol - width) / 2
 
                 if highlightDate:
-                    # either highlight the selected week or the
-                    # selected day depending upon the style
-                    highlightWeek = (self.GetWindowStyle() &
-                                     CAL_HIGHLIGHT_WEEK) != 0
+                    # highlight the selected week, month or day depending on
+                    # the style
+                    style = self.GetWindowStyle()
+                    highlightWeek  = style & CAL_HIGHLIGHT_WEEK
+                    highlightMonth = style & CAL_HIGHLIGHT_MULTI_WEEK
+                    highlightDay = not highlightWeek and not highlightMonth
 
                     if (self.hoverDate == weekDate or
                         # only highlight days that fall in the current month
                         (weekDate.month == startDate.month and
                          # highlighting week and the week we are drawing matches
-                         ((highlightWeek and
-                           self.CompareWeeks(weekDate, self.selectedDate)) or 
+                         ((highlightWeek and self.InWeek(weekDate)) or 
                          # highlighting a single day
-                          (not highlightWeek and
-                           weekDate == self.selectedDate)))):
+                          (highlightDay and weekDate == self.selectedDate) or
+                         # highlighting month
+                          (highlightMonth and self.InMonth(weekDate))))):
 
                         startX = columnStart + 1
                         width = self.widthCol
@@ -779,43 +781,28 @@ class PyMiniCalendar(wx.PyControl):
         Unfortunately, firstDayOfWeek has sunday = 1, and weekday()
         has monday=0, so they're actually off by 2!
         """
-        dayAdjust = (self.firstDayOfWeek - 1) - (targetDate.weekday() + 1)
-        if dayAdjust > 0:
-            dayAdjust -= 7
-        elif dayAdjust == -7:
-            dayAdjust = 0
+        return getCalendarRange(targetDate, 'week', self.firstDayOfWeek)[0]
 
-        return targetDate + timedelta(days=dayAdjust)
-
-    def GetWeekOfMonth(self, dt):
+    def GetWeek(self, dt):
         """
-        there may be issues with monday/sunday first day of week
+        Get the row associated with the given date.
         """
-        week = self.FirstDayOfWeek(dt).weekday()
-        firstWeek = date(dt.year, dt.month, 1).weekday()
+        weekStart = self.FirstDayOfWeek(dt)
+        if weekStart.month != dt.month:
+            return 1
+        else:
+            return (weekStart.day - 2)/ 7 + 2
 
-        return week - firstWeek
+    def InWeek(self, dt):
+        start, end = getCalendarRange(self.selectedDate, 'week',
+                                      self.firstDayOfWeek)
+        return start <= dt < end
 
-
-    def GetWeek(self, targetDate, useRelative=True):
-        """
-        get the week (row, in range 1..WEEKS_TO_DISPLAY) for the given date
-        """
-        # week of the month
-        if useRelative:
-            return self.GetWeekOfMonth(targetDate)
-
-        # week of the year
-        targetDate = self.FirstDayOfWeek(targetDate)
-        year, week, day = targetDate.isocalendar()
-
-        return week
-
-    def CompareWeeks(self, date1, date2):
-
-        d1w1 = self.FirstDayOfWeek(date1).isocalendar()[:2]
-        d2w2 = self.FirstDayOfWeek(date2).isocalendar()[:2]
-        return d1w1 == d2w2
+    def InMonth(self, dt):
+        start, end = getCalendarRange(self.selectedDate, 'multiweek',
+                                      self.firstDayOfWeek)
+        return start <= dt < end
+        
 
     def IsDateInRange(self, date):
         """

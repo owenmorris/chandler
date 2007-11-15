@@ -22,6 +22,8 @@ from CalendarCanvas import (
     CalendarViewEvent
 )
 
+from MultiWeek import *
+
 from osaf.preferences import CalendarPrefs
 
 from AllDayCanvas import AllDayEventsCanvas
@@ -41,10 +43,15 @@ def installParcel(parcel, oldName=None):
     CalendarPrefs.update(parcel, "calendarPrefs")
 
     # events
-    for eventName in ('GoToNext','GoToPrev','GoToToday','GoToDate','GoToCalendarItem'):
+    for eventName in ('GoToNext','GoToPrev','GoToToday','GoToDate'):
         BlockEvent.template(eventName,
-                            dispatchToBlockName='MainCalendarControl'
+                            dispatchToBlockName='MiniCalendar'
                             ).install(parcel)
+
+    BlockEvent.template('GoToCalendarItem',
+                        dispatchToBlockName='MainCalendarControl'
+                        ).install(parcel)
+
 
     from CalendarCanvas import ColorChange
     ColorChange.update(parcel, "colorChange")

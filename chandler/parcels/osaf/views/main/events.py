@@ -300,14 +300,20 @@ def makeMainEvents(parcel):
     CalendarViewEvent.template('ViewAsDayCalendar',
                                viewTemplatePath = 'osaf.views.main.CalendarSummaryViewTemplate',
                                methodName = 'onViewEvent',
-                               dayMode = True,
+                               dayMode = 'day',
                                dispatchToBlockName = 'SidebarBranchPointBlock').install(parcel)
 
     CalendarViewEvent.template('ViewAsWeekCalendar',
                                viewTemplatePath = 'osaf.views.main.CalendarSummaryViewTemplate',
                                methodName = 'onViewEvent',
-                               dayMode = False,
+                               dayMode = 'week',
                                dispatchToBlockName = 'SidebarBranchPointBlock').install(parcel)
+
+    CalendarViewEvent.template('ViewAsMultiWeek',
+                       viewTemplatePath = 'osaf.views.main.MultiWeekViewTemplate',
+                       methodName = 'onViewEvent',
+                       dayMode = 'multiweek',
+                       dispatchToBlockName = 'SidebarBranchPointBlock').install(parcel)
 
     ViewEvent.template('ViewAsDashboard',
                        viewTemplatePath = 'Dashboard',

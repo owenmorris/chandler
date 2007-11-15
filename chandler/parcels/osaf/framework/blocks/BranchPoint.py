@@ -58,12 +58,14 @@ class wxBranchPointBlock(wxBoxContainer):
     the tree of blocks within it.
     """
     def wxSynchronizeWidget(self, hints=None):
+        self.Freeze()
         blockItem = self.blockItem
         if blockItem.isShown:
             if hints is None:
                 hints = {}
             blockItem.installTreeOfBlocks(hints)
         super(wxBranchPointBlock, self).wxSynchronizeWidget()
+        self.Thaw()
 
 from Styles import ColorStyle
 

@@ -97,10 +97,10 @@ class TimedEventsCanvas(CalendarCanvasBlock):
         pass # all notifications handled by container
 
     def activeViewChanged(self):
-        realRangeStart = self.miniCalendar.widget.getSelectedDate()
-        if self.rangeStart != realRangeStart:
-            self.postDateChanged(realRangeStart)
         if self.miniCalendar is not None:
+            realRangeStart = self.miniCalendar.widget.getSelectedDate()
+            if self.rangeStart != realRangeStart:
+                self.postDateChanged(realRangeStart)
             self.miniCalendar.activeViewChanged()
             self.miniCalendar.previewArea.activeViewChanged()
         
@@ -134,7 +134,7 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
             # window sizes.
             scrollY = (self.hourHeight * 6) / self.GetScrollPixelsPerUnit()[1]
         self.Scroll(0, scrollY)
-        
+
     def wxHandleChanges(self, changes):
         self.SetSize((self.blockItem.size.width, self.blockItem.size.height))
         self.setScroll()
@@ -145,36 +145,16 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         added = 0
         
         for op, event in changes:
-            # don't assume this is a live item, it may be remove of a stale item
-            if op in ('add', 'change'):
-                if Calendar.isDayEvent(event):
-                    op = 'remove' # If something becomes allDay, remove it
-                                  # from visibleEvents
-                    
+            change, op = self.handleOneChange(op, event, filterAllDay=True)
             if op == 'remove':
-                if event in self.visibleEvents:
-                    something_changed = True
-                    rebuild_canvas_items = True
-                    self.visibleEvents.remove(event)
-            else:
-                if not event in self.visibleEvents:
-                    something_changed = True
-                    if op == 'add':
-                        added += 1
-                    self.visibleEvents.append(event)
-
-                elif op == 'change':
-                    something_changed = True
-
-                elif op == 'add' and Calendar.isRecurring(event):
-                    # creating a new modification will add that occurrence
-                    # to the collection, so even though it's a change, it's
-                    # seen as an add, so in this case the add is really a change
-                    # bug 9648
-                    something_changed = True
-
+                rebuild_canvas_items = True
+            elif op != 'no-op':
                 self.MakeOneCanvasItem(event)
-
+            
+            if op == 'add':
+                added += 1
+            something_changed |= change
+            
 
         if something_changed:
             self.visibleEvents.sort()
@@ -815,7 +795,7 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
             newTime = newTime.replace(minute=roundTo(newTime.minute, 60),
                                       second=0, microsecond=0)
 
-            if self.blockItem.dayMode:
+            if self.blockItem.dayMode == 'day':
                 if newTime.date() != startDay.date():
                     # this could happen if the current time is, say 11:10PM
                     newTime = datetime.combine(startDay.date(), newTime.time())
@@ -1017,7 +997,7 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
             raise ValueError, "Must be visible on the calendar"
         
         delta = (datetime.date() - startDay.date())
-        x,width = self.getColumnForDay(delta.days)
+        x,width = self.getColumnForDay(delta.days % 7)
         y = int(self.hourHeight * (datetime.hour + datetime.minute/float(60)))
         return x,y,width
 
@@ -1139,7 +1119,7 @@ class TimedCanvasItem(CalendarCanvasItem):
             # calculated attributes
             endTime = startTime + event.duration
        
-        if self._calendarCanvas.blockItem.dayMode:
+        if self._calendarCanvas.blockItem.dayMode == 'day':
             # in day mode, canvasitems are drawn side-by-side
             maxDepth = self.GetMaxDepth()
             indentLevel = self.GetIndentLevel()

@@ -20,6 +20,7 @@ __parcel__ = "osaf.framework.blocks.calendar"
 
 import wx
 from wx import colheader
+from wx.lib.stattext import GenStaticText
 
 from osaf.pim import isDead, Stamp
 from repository.item.Monitors import Monitors
@@ -32,7 +33,7 @@ from osaf.pim.calendar import (Calendar, TimeZoneInfo, formatTime, DateTimeUtil,
                                shortTZ)
 from osaf.pim import ContentCollection, has_stamp
 from osaf.usercollections import UserCollection
-from application.dialogs import RecurrenceDialog, Util, TimeZoneList
+from application.dialogs import RecurrenceDialog, TimeZoneList
 
 from osaf.sharing import ChooseFormat
 
@@ -45,6 +46,7 @@ from osaf.framework.blocks.DrawingUtilities import (DrawWrappedText, Gradients,
                 DrawClippedText, color2rgb, rgb2color, vector)
 
 from osaf.framework.blocks.calendar import CollectionCanvas
+from CalendarUtility import GregorianCalendarInstance, getCalendarRange
 
 from colorsys import rgb_to_hsv, hsv_to_rgb
 
@@ -85,7 +87,8 @@ else:
 
 TRANSPARENCY_DASHES = [255, 255, 0, 0, 255, 255, 0, 0]
 
-GregorianCalendarInstance = GregorianCalendar()
+ONE_WEEK = timedelta(7)
+
 
 def nth(iterable, n):
     return list(islice(iterable, n, n+1))[0]
@@ -305,6 +308,11 @@ class CalendarSelection(schema.Annotation):
 
 zero_delta = timedelta(0)
 
+class CalendarMode(schema.Enumeration):
+    """Display mode names."""
+    values="day", "week", "multiweek"
+
+
 class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     """
     Base class for calendar items. Covers:
@@ -446,7 +454,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             not has_stamp(event, Calendar.EventStamp)):
             return
         isAnyTimeOrAllDay = Calendar.isDayEvent(event)
-        textOffset = self.textOffset        
+        textOffset = self.textOffset
         minHeightToShowTime = (styles.eventLabelMeasurements.height +
                                styles.eventTimeMeasurements.height +
                                3 * textOffset.y + TIME_BOTTOM_MARGIN - 1)
@@ -1151,7 +1159,7 @@ class CalendarRangeBlock(CollectionCanvas.CollectionBlock):
 
     rangeStart = schema.One(schema.DateTime)
     rangeIncrement = schema.One(schema.TimeDelta, initialValue=timedelta(days=7))
-    dayMode = schema.One(schema.Boolean,initialValue=False)
+    dayMode = schema.One(CalendarMode, defaultValue='week')
     calendarContainer = schema.One(schema.Item)
 
     #This is interesting. By Bug 3415 we want to reset the cal block's current
@@ -1195,7 +1203,15 @@ class CalendarRangeBlock(CollectionCanvas.CollectionBlock):
 
     @property
     def rangeEnd(self):
-        return self.rangeStart + self.rangeIncrement	
+        if not self.dayMode == 'multiweek':
+            return self.rangeStart + self.rangeIncrement
+        else:
+            end = self.rangeStart + ONE_WEEK
+            month = end.month
+            while end.month == month:
+                end += ONE_WEEK
+            return end
+            
 
     def __setup__(self):
         self.setRange(self.startOfToday(self.itsView))
@@ -1210,34 +1226,30 @@ class CalendarRangeBlock(CollectionCanvas.CollectionBlock):
         @param date: date to include
         @type date: datetime
         """
-        view = self.itsView
-        date = datetime.combine(date, time(tzinfo=view.tzinfo.floating))
-
-        if self.dayMode:
-            self.rangeStart = date
-        else:
-            calendar = GregorianCalendarInstance
-            calendar.setTimeZone(view.tzinfo.default.timezone)
-            calendar.setTime(date)
-            weekstartDayShift = (calendar.get(calendar.DAY_OF_WEEK) -
-                                 calendar.getFirstDayOfWeek()) % 7
-            delta = timedelta(weekstartDayShift)
-            self.rangeStart = date - delta
+        date = datetime.combine(date, time(tzinfo=self.itsView.tzinfo.floating))
+        self.selectedDate = date
+        self.rangeStart, ignore = getCalendarRange(date, self.dayMode)
 
     def incrementRange(self):
         """
         Increments the calendar's current range.
         """
-        self.rangeStart += self.rangeIncrement
+        if self.dayMode == 'multiweek':
+            self.setRange(self.rangeStart + 6 * ONE_WEEK)
+        else:
+            self.rangeStart += self.rangeIncrement
 
     def decrementRange(self):
         """
         Decrements the calendar's current range.
         """
-        self.rangeStart -= self.rangeIncrement
+        if self.dayMode == 'multiweek':
+            self.setRange(self.rangeStart - ONE_WEEK)
+        else:
+            self.rangeStart -= self.rangeIncrement
 
     def GetCurrentDateRange(self):
-        return (self.rangeStart,  self.rangeStart + self.rangeIncrement)
+        return (self.rangeStart, self.rangeEnd)
 
     @staticmethod
     def startOfToday(view):
@@ -1318,7 +1330,7 @@ class CalendarRangeBlock(CollectionCanvas.CollectionBlock):
 
     def onDayModeEvent(self, event):
         self.dayMode = event.arguments['dayMode']
-        if self.dayMode:
+        if self.dayMode == 'day':
             self.rangeIncrement = timedelta(days=1)
             newDay = event.arguments['newDay']
             if newDay is not None:
@@ -1520,7 +1532,11 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         # after the sidebar collection changes because the wider selection
         # system treats the selection of Occurrences (which aren't in the
         # collection) as selecting None, bug 9033
-        super(wxCalendarCanvas, self).OnSelectItem(item)
+        # self may get deleted if selecting a different collection changes
+        # the view from multi-week to something else, don't call methods
+        # on self if it's deleted...
+        if self:
+            super(wxCalendarCanvas, self).OnSelectItem(item)
 
 
     def OnEditItem(self, canvasItem):
@@ -1530,7 +1546,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         
         styles = self.blockItem.calendarContainer
         if canvasItem.timeHeight == 0:
-            canvasItem.SetTimeHeight(styles)        
+            canvasItem.SetTimeHeight(styles)
         
         position = self.CalcScrolledPosition(canvasItem.GetEditorPosition())
         size = canvasItem.GetMaxEditorSize()
@@ -1566,7 +1582,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         item.setTriageStatus('auto')
                 
     def GrabFocusHack(self):
-        if self.editor.IsShown():
+        if self.editor is not None and self.editor.IsShown():
             self.editor.SaveAndHide()
 
     def belongsOnCanvas(self, item):
@@ -1589,7 +1605,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         blockItem = self.blockItem
 
         # don't shade today in day mode
-        if blockItem.dayMode:
+        if blockItem.dayMode == 'day':
             return
 
         # next make sure today is in view
@@ -1602,7 +1618,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         drawInfo = styles.calendarControl.widget
 
         # rectangle goes from top to bottom, but the 
-        dayNum = (today - startDay).days
+        dayNum = (today - startDay).days % 7
         x = drawInfo.columnPositions[dayNum+1]
         y = 0
         (width, height) = (drawInfo.columnWidths[dayNum+1],
@@ -1717,7 +1733,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     def getDayFromPosition(self, position):
         """Determine the day from the given position, return a date."""
         startDay = self.blockItem.rangeStart.date()
-        if self.blockItem.dayMode:
+        if self.blockItem.dayMode == 'day':
             return startDay
         else:
             drawInfo = self.blockItem.calendarContainer.calendarControl.widget
@@ -1784,12 +1800,14 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         Returns position,width for the given zero-based day(s).
         """
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
-
-        if self.blockItem.dayMode:
+        dayStart = dayStart % 7
+        if self.blockItem.dayMode == 'day':
             return (drawInfo.columnPositions[1], drawInfo.middleWidth)
         else:
             if dayEnd is None:
                 dayEnd = dayStart
+            else:
+                dayEnd = dayEnd % 7
             return (drawInfo.columnPositions[dayStart + 1],
                     sum(drawInfo.columnWidths[dayStart + 1:dayEnd+2]))
 
@@ -1806,6 +1824,45 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         self.editor.SetInsertionPoint(0)
         self.editor.SetValue(key)
         self.editor.SetInsertionPointEnd()
+
+    def handleOneChange(self, op, event, filterAllDay=False, filterTimed=False):
+        """
+        Change self.visibleEvents based on op and event, return the tuple
+        (change_bool, final_op_string) where
+        - change_bool is whether this operation should cause a redraw
+        - final_op_string is what operation actually happened, after taking
+          into account filters and for recurrence
+        """
+        # don't assume this is a live item, it may be remove of a stale item
+        if op in ('add', 'change'):
+            allDay = Calendar.isDayEvent(event)
+            # If the item changes allDay-ness, remove it from visibleEvents                
+            if filterAllDay and allDay or filterTimed and not allDay:
+                op = 'remove'
+
+        if op == 'remove':
+            if event in self.visibleEvents:
+                self.visibleEvents.remove(event)
+                return True, op
+            else:
+                return False, 'no-op'
+        else:
+            if not event in self.visibleEvents:
+                self.visibleEvents.append(event)
+                return True, op
+
+            elif op == 'change':
+                return True, op
+
+            elif op == 'add' and Calendar.isRecurring(event):
+                # creating a new modification will add that occurrence
+                # to the collection, so even though it's a change, it's
+                # seen as an add, so in this case the add is really a change
+                # bug 9648
+                return True, 'change'
+            else:
+                # nothing to do
+                return False, 'no-op'
 
 
 class wxInPlaceEditor(AttributeEditors.wxEditText):
@@ -2008,7 +2065,7 @@ class wxCalendarContainer(ContainerBlocks.wxBoxContainer,
             if op == 'changed':
                 for widgie in self.calendarBlockWidgets():
                     editor = widgie.editor
-                    if editor.event is not None:
+                    if editor is not None and editor.event is not None:
                         if isDead(editor.event.itsItem):
                             # Our editor's item died and all we got is this
                             # lousy t-shirt!
@@ -2080,17 +2137,22 @@ class CalendarContainer(CalendarRangeBlock):
         # gradient cache
         self.brushes = Gradients()
 
+    def getWidget(self):
+        return wxCalendarContainer(
+            self.parentBlock.widget,
+            self.getWidgetID(),
+            wx.DefaultPosition,
+            wx.DefaultSize,
+            style=wxCalendarContainer.CalculateWXStyle(self)
+        )
 
     def instantiateWidget(self):
         self.InitializeStyles()
 
         super(CalendarContainer, self).instantiateWidget()     
         
-        w = wxCalendarContainer(self.parentBlock.widget,
-                           self.getWidgetID(),
-                           wx.DefaultPosition,
-                           wx.DefaultSize,
-                           style=wxCalendarContainer.CalculateWXStyle(self))
+        w = self.getWidget()
+        
         if self.bufferedDraw:
             w.SetExtraStyle (wx.WS_EX_BUFFERED_DRAW)
 
@@ -2180,8 +2242,6 @@ class CanvasSplitterWindow(SplitterWindow):
 
 
 class CalendarControl(CalendarRangeBlock):
-    dayMode = schema.One(schema.Boolean, initialValue=False)
-    daysPerView = schema.One(schema.Integer, initialValue=7) #ready to phase out?
     tzCharacterStyle = schema.One(Styles.CharacterStyle)
 
     selectedDate = schema.One(schema.DateTime,
@@ -2193,11 +2253,14 @@ class CalendarControl(CalendarRangeBlock):
         copying = schema.Cloud(byRef = [tzCharacterStyle])
     )
 
+    def getWidget(self):
+        return wxCalendarControl(self.parentBlock.widget, -1, 
+                                 tzCharacterStyle=self.tzCharacterStyle)
+        
+
     def instantiateWidget(self):
         super(CalendarControl, self).instantiateWidget()
-        w = wxCalendarControl(self.parentBlock.widget, -1, 
-                              tzCharacterStyle=self.tzCharacterStyle)
-        return w
+        return self.getWidget()
 
     def getWatchList(self):
         tzPrefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
@@ -2259,16 +2322,13 @@ class CalendarControl(CalendarRangeBlock):
     def initializeTree(self, hints):
         event = hints.get ("event", None)
         if event is not None:
-            if event.dayMode:
-                self.postDayMode(True, self.selectedDate)
-            else:
-                self.postDayMode(False)
+            self.postDayMode(event.dayMode, self.selectedDate)
             widget = getattr (self, "widget", None)
             if widget is not None:
                 widget.UpdateHeader()
 
     def onViewEventUpdateUI (self, event):
-        event.arguments ['Check'] = event.dayMode == self.dayMode
+        event.arguments['Check'] = event.dayMode == self.dayMode
 
     def onGoToCalendarItemEvent(self, event):
         """
@@ -2310,10 +2370,11 @@ class CalendarControl(CalendarRangeBlock):
         """
         We need to override CalendarRangeBlock's because the cal ctrl always
         has its range over an entire week, even if a specific day is
-        selected (and dayMode is true).
+        selected (and dayMode is 'day').
         """
-        assert self.daysPerView == 7, "daysPerView is a legacy variable, keep it at 7 plz"
-
+        if self.dayMode == 'multiweek':
+            return super(CalendarControl, self).setRange(date)
+        
         view = self.itsView
         date = datetime.combine(date, time(tzinfo=view.tzinfo.default))
 
@@ -2328,7 +2389,7 @@ class CalendarControl(CalendarRangeBlock):
 
         self.rangeStart = date - delta
         
-        if self.dayMode:
+        if self.dayMode == 'day':
             self.selectedDate = date.replace(tzinfo=view.tzinfo.floating)
         else:
             selectedDate = getattr(self, 'selectedDate', None)
@@ -2344,7 +2405,7 @@ class CalendarControl(CalendarRangeBlock):
                 while selectedDate < self.rangeStart:
                     selectedDate += self.rangeIncrement
 
-                rangeEnd = self.rangeStart + self.rangeIncrement
+                rangeEnd = self.rangeEnd
                 while selectedDate >= rangeEnd:
                     selectedDate -= self.rangeIncrement
                 
@@ -2355,10 +2416,16 @@ class CalendarControl(CalendarRangeBlock):
         Need to override block because what we really want to do is
         increment the selected date and reset the range.
         """
-        self.setRange(self.selectedDate + self.rangeIncrement)
+        if self.dayMode == 'multiweek':
+            self.setRange(self.rangeStart + 6 * ONE_WEEK)
+        else:
+            self.setRange(self.selectedDate + self.rangeIncrement)
 
     def decrementRange(self):
-        self.setRange(self.selectedDate - self.rangeIncrement)
+        if self.dayMode == 'multiweek':
+            self.setRange(self.rangeStart - ONE_WEEK)
+        else:
+            self.setRange(self.selectedDate - self.rangeIncrement)
 
     def onSelectItemsEvent(self, event):
         newSelection = event.arguments['items']
@@ -2418,11 +2485,13 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         sizer.Add(navigationRow, 0, wx.EXPAND)
         sizer.Add((5,5), 0, wx.EXPAND)
 
-        self.monthText = wx.StaticText(self, -1)
+        self.monthText = GenStaticText(self, -1, '')
         self.prevButton = CollectionCanvas.CanvasBitmapButton(self, "CalBackArrow")
         self.nextButton = CollectionCanvas.CanvasBitmapButton(self, "CalForwardArrow")
         self.Bind(wx.EVT_BUTTON, self.onGoToPrevEvent, self.prevButton)
         self.Bind(wx.EVT_BUTTON, self.onGoToNextEvent, self.nextButton)
+
+        self.monthText.Bind(wx.EVT_LEFT_DOWN, self.OnMonthClick)
 
         self.tzChoice = self.MakeTimezoneChoice(tzCharacterStyle)
         registerStringForId (self.tzChoice.GetId(), "TimezoneChoice")
@@ -2437,9 +2506,18 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         
         navigationRow.Add(self.tzChoice, 0)
         navigationRow.Add((1,1), 0)
-
         
-        # finally the last row, with the header
+        self.weekColumnHeader = None
+        self.setupHeader()
+        if self.weekColumnHeader is not None:
+            # finally the last row, with the header
+            sizer.Add(self.weekColumnHeader, 0, wx.EXPAND)
+        
+        self.SetSizer(sizer)
+        self.Layout()
+
+    def setupHeader(self):
+        
         weekColumnHeader = \
             self.weekColumnHeader = colheader.ColumnHeader(self)
         
@@ -2466,13 +2544,12 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             self.xOffset = width + 6
         
         # set up initial selection
-        weekColumnHeader.SetAttribute(colheader.CH_ATTR_VisibleSelection,
-                                      True)
-        sizer.Add(weekColumnHeader, 0, wx.EXPAND)
-        
-        self.SetSizer(sizer)
-        self.Layout()
-        
+        weekColumnHeader.SetAttribute(colheader.CH_ATTR_VisibleSelection, True)
+
+    def OnMonthClick(self, event):
+        if not self.blockItem.dayMode == 'multiweek':
+            self.blockItem.postEventByName("ViewAsMultiWeek", {})
+
     def __del__(self):
         unregisterStringForId ("TimezoneChoice")
 
@@ -2485,11 +2562,13 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.monthText.SetFont(styles.monthLabelFont)
         self.monthText.SetForegroundColour(styles.monthLabelColor)
         
-        self.weekColumnHeader.SetLabelBitmap(8, self.allDayCloseArrowImage)
+        if self.weekColumnHeader is not None:
+            self.weekColumnHeader.SetLabelBitmap(8, self.allDayCloseArrowImage)
+            # onetime measurements
+            self.scrollbarWidth = wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) + 1
+        else:
+            self.scrollbarWidth = 0
         self.UpdateHeader()
-
-        # onetime measurements
-        self.scrollbarWidth = wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) + 1
 
         tzPrefs = schema.ns('osaf.pim', self.blockItem.itsView).TimezonePrefs
         self.tzChoice.Show(tzPrefs.showUI)
@@ -2511,7 +2590,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         return tzChoice
         
     def UpdateHeader(self):
-        if self.blockItem.dayMode:
+        if self.blockItem.dayMode == 'day':
             # ugly back-calculation of the previously selected day
             # [Bug 5577]: Do the calculation using date(), or else
             # things go awry near daylight/standard transitions
@@ -2614,6 +2693,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.UpdateHeader()
 
         self.weekColumnHeader.Refresh()
+            
         self.Refresh()
         
     def OnDayColumnSelect(self, event):
@@ -2729,14 +2809,14 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         startDate = self.blockItem.rangeStart
         selectedDate = startDate + timedelta(days=day)
 
-        self.blockItem.postDayMode(True)
+        self.blockItem.postDayMode('day')
         self.blockItem.postDateChanged(selectedDate)
 
     def OnWeekSelect(self):
         """
         Callback when the 'week' button is clicked on column header.
         """
-        self.blockItem.postDayMode(False)
+        self.blockItem.postDayMode('week')
         self.blockItem.postDateChanged(self.blockItem.rangeStart)
 
     ########## used to be in wxCalendarContainer, then CalendarContainer.  lets try putting here...
@@ -2762,7 +2842,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         allDayWidths = self.size.width - self.scrollbarWidth - self.xOffset
 
         # the starting point for day widths - an integer, rounded down
-        baseDayWidth = allDayWidths / self.blockItem.daysPerView
+        baseDayWidth = allDayWidths / 7
 
         # due to rounding there may be up to 6 extra pixels to distribute
         leftover = allDayWidths - baseDayWidth*7
@@ -2797,14 +2877,12 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         assert self.columnPositions[-1]+self.columnWidths[-1] == \
                sum(self.columnWidths)
         
-
-    def _getColumns(self):
-        if self.blockItem.dayMode:
+    @property
+    def columns(self):
+        if self.blockItem.dayMode == 'day':
             return 1
         else:
-            return self.blockItem.daysPerView
-
-    columns = property(_getColumns)
+            return 7
 
 class VisibleHoursEvent(BlockEvent):
     """
@@ -2820,5 +2898,5 @@ class CalendarViewEvent (ViewEvent):
     A variation of ViewEvent for the calendar that allows the tree of blocks to
     be set to day or week view.
     """
-    dayMode = schema.One(schema.Boolean)
+    dayMode = schema.One(CalendarMode)
 

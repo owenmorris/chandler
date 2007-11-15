@@ -20,6 +20,7 @@ __parcel__ = "osaf.framework.blocks.calendar"
 
 import wx
 import minical
+import operator
 
 from application import schema
 
@@ -30,13 +31,13 @@ from osaf.framework.blocks import (
 from osaf import Preferences
 import osaf.pim as pim
 from CalendarCanvas import CalendarRangeBlock, CalendarNotificationHandler
-import osaf.pim.calendar.Calendar as Calendar
+from osaf.pim.calendar import DateTimeUtil, Calendar
 from osaf.pim import EventStamp, has_stamp, isDead
 from datetime import datetime, time, timedelta
 from i18n import ChandlerMessageFactory as _
 from application import styles
 
-from application.dialogs import RecurrenceDialog
+from application.dialogs import RecurrenceDialog, Util
 
 if wx.Platform == '__WXMAC__':
     PLATFORM_BORDER = wx.BORDER_NONE
@@ -45,6 +46,7 @@ else:
 
 zero_delta = timedelta(0)
 one_day = timedelta(1)
+one_week = timedelta(7)
 MAX_PREVIEW_ITEMS = 20
 
 class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
@@ -153,8 +155,11 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
         
         """
         style = PLATFORM_BORDER
-        if isMainCalendarVisible() and not self.blockItem.dayMode:
-            style |= minical.CAL_HIGHLIGHT_WEEK
+        if isMainCalendarVisible():
+            if self.blockItem.dayMode == 'week':
+                style |= minical.CAL_HIGHLIGHT_WEEK
+            if self.blockItem.dayMode == 'multiweek':
+                style |= minical.CAL_HIGHLIGHT_MULTI_WEEK
         if self.GetWindowStyle() != style:
             self.SetWindowStyle(style)
             return True
@@ -171,9 +176,8 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
         self.blockItem.postDateChanged(self.getSelectedDate())
 
     def getSelectedDate(self):
-        date = datetime.combine(self.GetDate(),
+        return datetime.combine(self.GetDate(),
                                 time(tzinfo=self.blockItem.itsView.tzinfo.floating))
-        return date
 
     def forceFreeBusyUpdate(self, event):
         self._recalcCount += 1
@@ -362,8 +366,6 @@ class MiniCalendar(CalendarRangeBlock):
     minicalendar is never unrendered.
     
     """
-    dayMode = schema.One(schema.Boolean, initialValue = False)
-    
     dashboardView = schema.Sequence(defaultValue=None)
     calendarView = schema.Sequence(defaultValue=None)
     
@@ -374,6 +376,63 @@ class MiniCalendar(CalendarRangeBlock):
     schema.addClouds(
         copying = schema.Cloud (byCloud = [previewArea])
     )
+
+    # annoying: right now have to forward this to the widget, but
+    # perhaps block dispatch could dispatch to the widget first, then
+    # the block?
+    
+    def getCalendarControl(self):
+        for name in ('MainCalendarControl', 'MainMultiWeekControl'):
+            block = self.findBlockByName(name)
+            if block is not None:
+                return block
+
+    def changeDate(self, newDate):
+        # need to set the widget first, since the preview block checks
+        # wxMiniCalendar's date and the preview area receives the block event 
+        # first
+        floating = tzinfo=self.itsView.tzinfo.floating
+        self.setRange(newDate)
+        self.widget.SetDate(newDate)
+        self.postDateChanged(datetime.combine(newDate, time(tzinfo=floating)))
+                             
+    def shiftRange(self, shift):
+        date = self.widget.GetDate()
+        if self.dayMode == 'multiweek':
+            newDate = date
+            while newDate.month == date.month:
+                newDate = shift(newDate, one_week)
+        else:
+            if self.dayMode == 'day' or not isMainCalendarVisible():
+                increment = one_day
+            else:
+                increment = one_week
+            newDate = shift(date, increment)
+        self.changeDate(newDate)
+
+    def onGoToNextEvent(self, event):
+        self.shiftRange(operator.add)
+
+    def onGoToPrevEvent(self, event):
+        self.shiftRange(operator.sub)
+
+    def onGoToTodayEvent(self, event):
+        self.changeDate(datetime.today())
+
+    def onGoToDateEvent(self, event):
+        newDate = event.arguments.get('DateTime')
+        dateString = event.arguments.get('DateString')
+        if newDate is None and dateString is None:
+            dateString = Util.promptUser(
+                _(u"Go to date"),
+                _(u"Enter a date in the form %(dateFormat)s") %
+                                   dict(dateFormat=DateTimeUtil.sampleDate))
+            if dateString is None:
+                return
+
+        if newDate is None:
+            newDate = DateTimeUtil.shortDateFormat.parse(self.itsView, dateString)
+        self.changeDate(newDate)
 
     def onTimeZoneChangeEvent(self, event):
         # timezone changes need to force a recalculation of freebusy information
@@ -597,7 +656,7 @@ class wxPreviewArea(CalendarNotificationHandler, wx.Panel):
             self.ExpandOrContract()
             return
         elif item is None:
-            return        
+            return
         self._avoidDrawing = True
         # Select the calendar filter
         self.blockItem.postEventByName ('ApplicationBarEvent', {})

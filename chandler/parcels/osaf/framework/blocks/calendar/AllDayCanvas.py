@@ -21,8 +21,8 @@ from application import schema
 from datetime import timedelta
 from CalendarCanvas import (
     CalendarCanvasItem, CalendarCanvasBlock, CalendarSelection,
-    wxCalendarCanvas, wxInPlaceEditor, GregorianCalendarInstance
-    )
+    wxCalendarCanvas, wxInPlaceEditor)
+from CalendarUtility import GregorianCalendarInstance
 from osaf.framework.blocks.Block import BaseWidget
 from CollectionCanvas import DragState
 from osaf.pim.calendar.TimeZone import TimeZoneInfo
@@ -159,34 +159,10 @@ class wxAllDayEventsCanvas(BaseWidget, wxCalendarCanvas):
         added = 0
         
         for op, event in changes:
-            # don't assume this is a live item, it may be remove of a stale item
-            if op in ('add', 'change'):
-                if not Calendar.isDayEvent(event):
-                    op = 'remove' # If something becomes allDay, remove it
-                                  # from visibleEvents
-                    
-            if op == 'remove':
-                if event in self.visibleEvents:
-                    something_changed = True
-                    rebuild_canvas_items = True
-                    self.visibleEvents.remove(event)
-            else:
-                if not event in self.visibleEvents:
-                    something_changed = True
-                    if op == 'add':
-                        added += 1
-                    self.visibleEvents.append(event)
-
-                elif op == 'change':
-                    something_changed = True
-
-                elif op == 'add' and Calendar.isRecurring(event):
-                    # creating a new modification will add that occurrence
-                    # to the collection, so even though it's a change, it's
-                    # seen as an add, so in this case the add is really a change
-                    # bug 9648
-                    something_changed = True
-
+            change, op = self.handleOneChange(op, event, filterTimed=True)
+            if op == 'add':
+                added += 1                
+            something_changed |= change
 
         if something_changed:
             self.RefreshCanvasItems(resort=True)
@@ -421,7 +397,7 @@ class wxAllDayEventsCanvas(BaseWidget, wxCalendarCanvas):
         self.size = self.GetSize()
 
         oldNumEventRows = self.numEventRows
-        if self.blockItem.dayMode:
+        if self.blockItem.dayMode  == 'day':
             # daymode, just stack all the events
             for row, event in enumerate(self.visibleEvents):
                 if not isDead(event.itsItem):

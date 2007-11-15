@@ -771,7 +771,12 @@ def makeMainMenus(parcel):
                                 event = main.ViewAsDayCalendar,
                                 title = _(u'&Day View'),
                                 menuItemKind = 'Check',
-                                helpString = _(u'Go to Calendar Day View'))
+                                helpString = _(u'Go to Calendar Day View')),
+                            MenuItem.template('ViewAsMultiWeekItem',
+                                event = main.ViewAsMultiWeek,
+                                title = _(u'&Multi Week View'),
+                                menuItemKind = 'Check',
+                                helpString = _(u'View as MultiWeek View')),
                         ]),
                     Menu.template('ViewConfigureWindow',
                         title = _(u'Sh&ow'),

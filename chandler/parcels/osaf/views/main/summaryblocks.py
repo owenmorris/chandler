@@ -562,8 +562,9 @@ class TaskColumnAttributeEditor(attributeEditors.IconAttributeEditor):
 
 def makeSummaryBlocks(parcel):
     from osaf.framework.blocks.calendar import (
-        CalendarContainer, CalendarControl, CanvasSplitterWindow,
-        AllDayEventsCanvas, TimedEventsCanvas
+        CalendarContainer, CalendarControl, MultiWeekControl,
+        CanvasSplitterWindow, AllDayEventsCanvas, TimedEventsCanvas,
+        MultiWeekContainer
         )
 
     from Dashboard import DashboardBlock
@@ -930,11 +931,60 @@ def makeSummaryBlocks(parcel):
         fontStyle = 'bold')
 
     # save the template because we'll need it for later
-    MainCalendarControlT = calendar.CalendarControl.template(
+    MainMultiWeekControlTemplate = MultiWeekControl.template(
+        'MainMultiWeekControl',
+        tzCharacterStyle = DefaultCharacterStyle,
+        dayMode = 'multiweek',
+        stretchFactor = 0)
+
+    MainMultiWeekControl = MainMultiWeekControlTemplate.install(parcel)
+
+    MultiWeekDetailBranchPointBlock = BranchPointBlock.template(
+        'MultiWeekDetailBranchPointBlock',
+        delegate = detailBranchPointDelegate,
+        ).install(parcel)
+
+    MultiWeekCalendarView = MultiWeekContainer.template(
+        'MultiWeekCalendarView',
+        calendarControl = MainMultiWeekControl,
+        monthLabelStyle = blocks.BigTextStyle,
+        eventLabelStyle = DefaultCharacterStyle,
+        eventTimeStyle = DefaultSmallBoldStyle,
+        legendStyle = DefaultCharacterStyle,
+        orientationEnum = 'Vertical',
+        dayMode = 'multiweek',
+        eventsForNamedLookup = [TimeZoneChange]).install(parcel)
+    
+    SplitterWindow.template('MultiWeekViewTemplate',
+        eventBoundary = True,
+        orientationEnum = 'Vertical',
+        splitPercentage = 0.65,
+        treeController = MainMultiWeekControl,
+        childBlocks = [
+            MultiWeekContainer.template('MultiWeekCalendarView',
+                childBlocks = [
+                    MainMultiWeekControlTemplate,
+                    calendar.MultiWeekCanvas.template('MultiWeekCanvas',
+                        calendarContainer = MultiWeekCalendarView,
+                        contextMenu = "ItemContextMenu",
+                        miniCalendar = main.MiniCalendar,
+                        dayMode = 'multiweek',
+                        activeView = True)
+                    ]),
+            MultiWeekDetailBranchPointBlock
+            ]).install(parcel)
+    
+    MultiWeekControl.update(
+        parcel, 'MainMultiWeekControl',
+        calendarContainer = MultiWeekCalendarView)
+                                
+
+    # save the template because we'll need it for later
+    MainCalendarControlT = CalendarControl.template(
         'MainCalendarControl',
         tzCharacterStyle = DefaultCharacterStyle,
         stretchFactor = 0)
-
+    
     MainCalendarControl = MainCalendarControlT.install(parcel)
 
     CalendarDetailBranchPointBlock = BranchPointBlock.template(
@@ -981,10 +1031,10 @@ def makeSummaryBlocks(parcel):
                                 activeView = True)
                             ]),
                     ]),
-            BranchPointBlock.template('CalendarDetailBranchPointBlock',
-                delegate = detailBranchPointDelegate)
+            CalendarDetailBranchPointBlock
             ]).install(parcel)
     
+
     CalendarControl.update(
         parcel, 'MainCalendarControl',
         calendarContainer = CalendarSummaryView)

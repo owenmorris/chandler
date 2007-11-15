@@ -440,7 +440,7 @@ def shortTZ(view, dt, tzinfo=None):
 
 
 class DateAndNoDateFormats(object):
-    __slots__ = 'date', 'nodate'
+    __slots__ = 'date', 'nodate', 'hour'
 
 FormatDictParent = {True:{}, False:{}}
 
@@ -453,7 +453,8 @@ def _setTimeZoneInSubformats(msgFormat, tz):
 
     msgFormat.setFormats(subformats)
 
-def formatTime(view, dt, tzinfo=None, noTZ=False, includeDate=False):
+def formatTime(view, dt, tzinfo=None, noTZ=False, includeDate=False,
+               justHour=False):
     if tzinfo is None:
         tzinfo = view.tzinfo.default
 
@@ -463,26 +464,35 @@ def formatTime(view, dt, tzinfo=None, noTZ=False, includeDate=False):
         dt = dt.replace(tzinfo=tzinfo)
     elif dt.tzinfo != tzinfo:
         useSameTimeZoneFormat = False
-
+        
+    formattable = PyICU.Formattable(dt, PyICU.Formattable.kIsDate)
     FormatDict = FormatDictParent[useSameTimeZoneFormat or noTZ]
     formats = FormatDict.get((dt.tzinfo, tzinfo))
     if formats is None:
         formats = DateAndNoDateFormats()
         if useSameTimeZoneFormat or noTZ:
             formats.date = PyICU.MessageFormat("{0,date,medium} {0,time,short}")
-            formats.nodate = PyICU.MessageFormat("{0,time,short}")
+            formats.nodate = PyICU.MessageFormat("{0,time,short}")        
         else:
             formats.date = PyICU.MessageFormat(
                                  "{0,date,medium} {0,time,short} {0,time,z}")
             formats.nodate = PyICU.MessageFormat("{0,time,short} {0,time,z}")
 
+        # this is cheating, there's got to be an API to expand short, but I
+        # don't know it.  Calling the format method does it, though.
+        formats.nodate.format([formattable], PyICU.FieldPosition())
+        short = formats.nodate.toPattern().split(',')[2]
+        localeHour = 'h' if short.find('h') >= 0 else 'H'
+        formats.hour = PyICU.MessageFormat("{0,time,%s}" % localeHour)
+
         _setTimeZoneInSubformats(formats.nodate, dt.tzinfo.timezone)
         _setTimeZoneInSubformats(formats.date, dt.tzinfo.timezone)
         FormatDict[(dt.tzinfo, tzinfo)] = formats
 
-    format = (formats.date if includeDate else formats.nodate)
-
-    formattable = PyICU.Formattable(dt, PyICU.Formattable.kIsDate)
+    if justHour:
+        format = formats.hour
+    else:
+        format = (formats.date if includeDate else formats.nodate)
 
     return unicode(format.format([formattable], PyICU.FieldPosition()))
 
