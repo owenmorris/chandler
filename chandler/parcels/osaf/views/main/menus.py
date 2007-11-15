@@ -368,7 +368,7 @@ def makeMainMenus(parcel):
                         event = main.ApplicationBarMail,
                         title = _(u'&Mail'),
                         menuItemKind = 'Check',
-                        helpString = _(u'View messsages')),
+                        helpString = _(u'View messages')),
                     MenuItem.template('ApplicationBarTaskMenu',
                         event = main.ApplicationBarTask,
                         title = _(u'&Tasks'),
