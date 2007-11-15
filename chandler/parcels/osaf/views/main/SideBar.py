@@ -28,7 +28,7 @@ from osaf.pim import (
     )
 
 from osaf.framework.prompts import promptYesNoCancel
-from application.dialogs import RecurrenceDialog
+from application.dialogs import RecurrenceDialog, UnpublishDialog
 
 from osaf import sharing, pim, search
 import twisted.internet.error
@@ -456,26 +456,11 @@ class wxSidebar(wxTable):
 
             # Prompt for unpublish, and unpublish
             for collection in contents.iterSelection():
-                try:
-                    share = sharing.getShare(collection)
-                    if sharing.isSharedByMe(share):
-                        dialog = wx.MessageDialog(wx.GetApp().mainFrame,
-                            _(u"Do you also want to remove the collection from the server?"),
-                            _(u"Unpublish Confirmation"),
-                            wx.YES_NO | wx.ICON_INFORMATION)
-                        response = dialog.ShowModal()
-                        dialog.Destroy()
-                        if response == wx.ID_YES:
-                            sharing.unpublish(collection)
-                        else:
-                            sharing.CosmoAccount.ignoreCollection(collection)
-
-                except (sharing.CouldNotConnect, twisted.internet.error.TimeoutError):
-                    logger.exception("Connection error during unpublish")
-                    pass
-                except:
-                    logger.exception("Unknown error during unpublish")
-                    pass
+                share = sharing.getShare(collection)
+                if sharing.isSharedByMe(share):
+                    if not UnpublishDialog.Show(share):
+                        # User cancelled out, don't delete locally
+                        return
 
         # save a list copy of the ranges because we're about to clear them.
         selectionRanges = list(reversed(contents.getSelectionRanges()))
