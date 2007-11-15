@@ -147,7 +147,7 @@ class ValidatorTool(LocalizationBase):
         exp = "%s %s -o %s %s" % (self.PYTHON, self.GETTEXT, self.OUTPUTFILE, dirs)
 
         if dirs != ".":
-            exp += " Chandler.py setup.py"
+            exp += " Chandler.py setup.py %s" % self.XRC_PYTHON
 
         return os.system(exp)
 
