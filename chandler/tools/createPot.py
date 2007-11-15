@@ -39,7 +39,7 @@ class TranslationTool(LocalizationBase):
         self.GETTEXT = "xgettext"
 
         try:
-            result = build_lib.runCommand("xgettext", timeout=5, logger=ignore)
+            build_lib.runCommand("xgettext", timeout=5, logger=ignore)
         except:
             self.raiseError("The xgettext utility is required to run createPot.py")
 

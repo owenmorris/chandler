@@ -78,7 +78,7 @@ class TranslationEggTool(LocalizationBase):
         self.POFILE = os.path.split(self.POFILEPATH)[-1]
 
         if self.OUTPUTDIR:
-             self.PLUGINDIR = os.path.join(self.OUTPUTDIR, self.PLUGINNAME)
+            self.PLUGINDIR = os.path.join(self.OUTPUTDIR, self.PLUGINNAME)
         else:
             self.PLUGINDIR = self.PLUGINNAME
 
@@ -178,7 +178,7 @@ class TranslationEggTool(LocalizationBase):
             copy_tree(self.IMGDIR, imgDir)
 
         except Exception, e:
-             self.raiseError("Unable to copy images from '%s': %s." % (self.IMGDIR, e))
+            self.raiseError("Unable to copy images from '%s': %s." % (self.IMGDIR, e))
 
 
     def copyHtml(self):
@@ -187,7 +187,7 @@ class TranslationEggTool(LocalizationBase):
         try:
             copy_tree(self.HTMLDIR, htmlDir)
         except Exception, e:
-             self.raiseError("Unable to copy html from '%s': %s." % (self.HTMLDIR, e))
+            self.raiseError("Unable to copy html from '%s': %s." % (self.HTMLDIR, e))
 
     def validatePOFile(self):
         try:
@@ -240,28 +240,35 @@ class TranslationEggTool(LocalizationBase):
             os.chdir(self.LOCALEDIR)
 
             if self.USE_MSGFMT_BINARY:
-                 # The msgfmt binary that ships as part of GNU gettext tools
-                 # is more robust then the Python version and includes
-                 # error checking capabilities.
-                 exp = "msgfmt -c --check-accelerators -o %s %s" % \
-                        (self.POFILE[:-2] + "mo", self.POFILE)
+                # The msgfmt binary that ships as part of GNU gettext tools
+                # is more robust then the Python version and includes
+                # error checking capabilities.
+                moFile = self.POFILE[:-2] + "mo"
+                exp = ["msgfmt", "-c", "--check-accelerators", "-o%s" % moFile,
+                       self.POFILE]
 
             else:
                 # The msgfmt gettext binary is not installed by default on
                 # Windows and OS X. The Python version of msgfmt is included
                 # however with Chandler.
                 msgfmt = os.path.join(self.CHANDLERHOME, "tools", "msgfmt.py")
-                exp = "%s %s %s" % (self.PYTHON,  msgfmt, self.POFILE)
+                exp = [self.PYTHON,  msgfmt, self.POFILE]
 
-            os.system(exp)
+            result = build_lib.runCommand(exp, timeout=60, logger=ignore)
             os.chdir(cwd)
 
+            if result != 0:
+                raise Exception(' '.join(exp) + ' failed with error code %d' % result)
+
         except Exception, e:
-             self.raiseError("Unable to create mo file from %s': %s." % (self.POFILEPATH, e))
+            self.raiseError("Unable to create mo file from %s': %s." % (self.POFILEPATH, e))
 
     def createEggInfoDir(self):
-        exp = "%s setup.py egg_info" % self.PYTHON
-        os.system(exp)
+        exp = [self.PYTHON, 'setup.py', 'egg_info']
+        result = build_lib.runCommand(exp, timeout=60, logger=ignore)
+
+        if result != 0:
+            self.raiseError(' '.join(exp) + ' failed with error code %d' % result)
 
         for item in os.listdir(os.getcwd()):
             if item.endswith(".egg-info"):
@@ -274,19 +281,23 @@ class TranslationEggTool(LocalizationBase):
 
 
     def putEggInDevelopMode(self):
-        exp = "%s setup.py develop" % self.PYTHON
-        os.system(exp)
+        exp = [self.PYTHON, "setup.py", "develop", "--install-dir=%s" % self.CHANDLERHOME]
+        result = build_lib.runCommand(exp, timeout=60, logger=ignore)
+        if result != 0:
+            self.raiseError(' '.join(exp) + ' failed with error code %d' % result)
 
     def packageEggForDistribution(self):
-        exp = "%s setup.py bdist_egg" % self.PYTHON
-        os.system(exp)
+        exp = [self.PYTHON, "setup.py", "bdist_egg"]
+        result = build_lib.runCommand(exp, timeout=60, logger=ignore)
+        if result != 0:
+            self.raiseError(' '.join(exp) + ' failed with error code %d' % result)
 
         distDir = os.path.join(os.getcwd(), "dist")
 
         for item in os.listdir(distDir):
             if item.endswith(".egg"):
-                 self.DISTNAME = item
-                 break
+                self.DISTNAME = item
+                break
 
         if not self.DISTNAME:
             self.raiseError("An Error occurred while building %s project.\n" \
@@ -409,10 +420,10 @@ setup(
         self.LOCALE = self.OPTIONS.Locale
 
         if self.OPTIONS.Directory:
-           self.OUTPUTDIR = self.findPath(self.OPTIONS.Directory)
+            self.OUTPUTDIR = self.findPath(self.OPTIONS.Directory)
 
-           if not self.OUTPUTDIR:
-               self.raiseError("The output directory specified '%s' is invalid." \
+            if not self.OUTPUTDIR:
+                self.raiseError("The output directory specified '%s' is invalid." \
                                % self.OPTIONS.Directory)
 
         if self.OPTIONS.DistEgg:
@@ -422,28 +433,28 @@ setup(
             self.USE_MSGFMT_BINARY = True
 
         if self.OPTIONS.ImageDir:
-           self.IMGDIR = self.findPath(self.OPTIONS.ImageDir)
+            self.IMGDIR = self.findPath(self.OPTIONS.ImageDir)
 
-           if not self.IMGDIR:
-               self.raiseError("The image directory specified '%s' is invalid." \
+            if not self.IMGDIR:
+                self.raiseError("The image directory specified '%s' is invalid." \
                                % self.OPTIONS.ImageDir)
 
         if self.OPTIONS.HtmlDir:
-           self.HTMLDIR = self.findPath(self.OPTIONS.HtmlDir)
+            self.HTMLDIR = self.findPath(self.OPTIONS.HtmlDir)
 
-           if not self.HTMLDIR:
-               self.raiseError("The html directory specified '%s' is invalid." \
+            if not self.HTMLDIR:
+                self.raiseError("The html directory specified '%s' is invalid." \
                                % self.OPTIONS.HtmlDir)
 
         if  self.OPTIONS.PoFile:
-           if not self.OPTIONS.PoFile.endswith(".po"):
-               self.raiseError("'%s' is not a valid po file it does not end with a '.po' extension." \
+            if not self.OPTIONS.PoFile.endswith(".po"):
+                self.raiseError("'%s' is not a valid po file it does not end with a '.po' extension." \
                                %self.OPTIONS.PoFile)
 
-           self.POFILEPATH = self.findPath(self.OPTIONS.PoFile)
+            self.POFILEPATH = self.findPath(self.OPTIONS.PoFile)
 
-           if not self.POFILEPATH:
-               self.raiseError("The po file path specified '%s' is invalid." \
+            if not self.POFILEPATH:
+                self.raiseError("The po file path specified '%s' is invalid." \
                                % self.OPTIONS.PoFile)
 
 
@@ -476,9 +487,9 @@ setup(
 
 
         else:
-             self.raiseError("Chandler (-c) or " \
-                             "a Project (-p) must be specified\nin order " \
-                             "to build a translation egg.")
+            self.raiseError("Chandler (-c) or " \
+                            "a Project (-p) must be specified\nin order " \
+                            "to build a translation egg.")
 
 
     def validateLocale(self):
@@ -507,13 +518,13 @@ setup(
     def removePluginDir(self):
         try:
             if self.CWD and not os.getcwd() == self.CWD:
-                 os.chdir(self.CWD)
+                os.chdir(self.CWD)
 
             if not self.PLUGINDIR_EXISTS and \
                     os.access(self.PLUGINDIR, os.F_OK):
                 remove_tree(self.PLUGINDIR)
         except:
-             pass
+            pass
 
 
 if __name__ == "__main__":
