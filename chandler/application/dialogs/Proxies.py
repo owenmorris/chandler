@@ -191,5 +191,8 @@ class ProxiesDialog(wx.Dialog):
         self._resize()
 
     def _resize(self):
-        self.panel.Layout()
-        self.sizer.Fit(self)
+        self.SetMinSize((-1,-1))
+        self.SetMaxSize((-1,-1))
+        self.SetClientSize(self.sizer.CalcMin())
+        self.SetMinSize(self.GetSize())
+        self.SetMaxSize(self.GetSize())
