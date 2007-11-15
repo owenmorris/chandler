@@ -13,9 +13,11 @@
 #   limitations under the License.
 
 
-import os, wx
+import logging, wx
 from osaf import sharing
 from i18n import ChandlerMessageFactory as _
+
+logger = logging.getLogger(__name__)
 
 def Show(share):
     win = UnpublishDialog(wx.GetApp().mainFrame, -1,
@@ -50,7 +52,7 @@ class UnpublishDialog(wx.Dialog):
 
         self.buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.CancelButton = wx.Button(self.panel, wx.ID_CANCEL)
-        self.RemoveButton = wx.Button(self.panel, wx.ID_OK, _(u"Remove"))
+        self.RemoveButton = wx.Button(self.panel, wx.ID_OK, _(u"&Remove"))
         self.DontButton = wx.Button(self.panel, -1, _(u"&Don't Remove"))
         self.RemoveButton.SetDefault()
         self.buttonSizer.Add(self.CancelButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
