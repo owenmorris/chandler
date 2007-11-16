@@ -48,7 +48,11 @@ def usage(code, msg=''):
 def add(id, str, fuzzy):
     "Add a non-fuzzy translation to the dictionary."
     global MESSAGES
-    if not fuzzy and str:
+
+    #XXX Unlike the unpatch msgfmt.py, entries that
+    #    are marked fuzzy will still be added to the
+    #    mo catalog.
+    if str:
         MESSAGES[id] = str
 
 
@@ -127,7 +131,20 @@ def make(filename, outfile):
             section = None
             fuzzy = 0
         # Record a fuzzy mark
-        if l[:2] == '#,' and l.find('fuzzy'):
+        #XXX There is a bug in the unpatched version
+        #    of msgfmt.py that is exposed when the
+        #    GNU xgettext utility is used to generate
+        #    the pot file. The find method for fuzzy
+        #    returns -1 if there is no match in the
+        #    string but msgfmt.py does:
+        #
+        #       "and l.find('fuzzy'):"
+        #
+        #    which is incorrect.
+        #    This value will only evaluate to False
+        #    if 'fuzzy' is in position 0.
+        #
+        if l[:2] == '#,' and l.find('fuzzy') != -1:
             fuzzy = 1
         # Skip comments
         if l[0] == '#':
