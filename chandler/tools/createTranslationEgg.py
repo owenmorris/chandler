@@ -281,7 +281,7 @@ class TranslationEggTool(LocalizationBase):
 
 
     def putEggInDevelopMode(self):
-        exp = [self.PYTHON, "setup.py", "develop", "--install-dir=%s" % self.CHANDLERHOME]
+        exp = [self.PYTHON, "setup.py", "develop", "-x", "--install-dir=%s" % self.CHANDLERHOME]
         result = build_lib.runCommand(exp, timeout=60, logger=ignore)
         if result != 0:
             self.raiseError(' '.join(exp) + ' failed with error code %d' % result)
