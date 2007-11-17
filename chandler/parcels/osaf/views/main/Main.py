@@ -1615,7 +1615,7 @@ class LuceneCommand(SearchCommand):
         return string
 
 # Regular expression for finding quick entry commands 
-quick_entry_commands_re = re.compile(r'/(?P<cmd>([A-z]+))')
+quick_entry_commands_re = re.compile(u'/(?P<cmd>(\S+))', re.UNICODE | re.LOCALE)
 
 # create a mapping from command names to QuickEntryCommand objects
 quick_entry_objects = {}

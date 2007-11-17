@@ -71,6 +71,7 @@ def run_commands(view, text, commands):
 
     """
     state = None
+
     for command in commands:
         if state is None:
             shared_state_class = command.state_class

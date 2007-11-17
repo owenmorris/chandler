@@ -74,17 +74,17 @@ class ItemState(QuickEntryState):
 	    self.handled_reminder = True
 
 #### finding contacts helpers ##################################################
-email_pattern = r'[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}'
-find_contact_re = re.compile(r'\s?((%s)\s?(,|;)?\s?)+\s?:' % email_pattern)
+email_pattern = u'[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}'
+find_contact_re = re.compile(u'\s?((%s)\s?(,|;)?\s?)+\s?:' % email_pattern, re.UNICODE | re.LOCALE)
 
-contacts_pattern = r"""
+contacts_pattern = u"""
     \s*                      # ignore whitespace
     (?P<contact> ([^,;\s]+)) # any intervening non-whitespace is the contact
     \s*                      # ignore whitespace
     (,|;)?                   # gobble contact separators
     \s*                      # ignore whitespace
     """
-many_contacts_re = re.compile(contacts_pattern, re.VERBOSE)
+many_contacts_re = re.compile(contacts_pattern, re.UNICODE | re.VERBOSE | re.LOCALE)
 
 def getAddress(view, match):
     """Get an EmailAddress from a many_contacts_re match."""
