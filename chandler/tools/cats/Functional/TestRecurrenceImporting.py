@@ -15,8 +15,9 @@
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import os, sys
+import wx
 from osaf import pim, sharing
-from datetime import date
+import datetime
 import osaf.framework.scripting as scripting
 import application.Globals as Globals
 
@@ -59,13 +60,20 @@ class TestRecurrenceImporting(ChandlerTestCase):
         scripting.User.emulate_sidebarClick(sidebar, 'TestRecurrence')    
         
         view = QAUITestAppLib.UITestView(self.logger)
-        view.GoToDate('05/01/2006')
+
+        # Need to format date the same way the detail view does
+        uiView = wx.GetApp().UIRepositoryView        
+        goto = datetime.date(2006, 5, 1)
+        value = datetime.datetime.combine(goto, datetime.time(0, tzinfo=uiView.tzinfo.default))
+        dateStr = pim.shortDateFormat.format(uiView, value)
         
-        event = QAUITestAppLib.GetOccurrence('Weekly Never End', date(2006, 5, 1))    
-        QAUITestAppLib.UITestItem(event, self.logger).SetAttr(recurrenceEnd="05/01/2006")
+        view.GoToDate(dateStr)
+        
+        event = QAUITestAppLib.GetOccurrence('Weekly Never End', goto)    
+        QAUITestAppLib.UITestItem(event, self.logger).SetAttr(recurrenceEnd=dateStr)
         
         # event has been deleted by changing recurrence, get a new one
-        event = QAUITestAppLib.GetOccurrence('Weekly Never End', date(2006, 5, 1))    
+        event = QAUITestAppLib.GetOccurrence('Weekly Never End', goto)    
         testItem = QAUITestAppLib.UITestItem(event, self.logger)
         testItem.SelectItem(catchException=True)
         
