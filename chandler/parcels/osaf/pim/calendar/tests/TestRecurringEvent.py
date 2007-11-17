@@ -18,7 +18,7 @@ Unit tests for recurring events
 """
 
 import unittest, os
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta, time, date
 import dateutil.rrule
 from util import testcase
 
@@ -370,7 +370,9 @@ class RecurringEventTest(testcase.SharedSandboxTestCase):
 
         #XXX: i18n this is an application managed description that will change
         #     depending on the locale the test is run under
-        self.assertEqual(self.event.getCustomDescription(), "Every 3 weeks until 8/15/05")
+        value = datetime.combine(date(2005, 8, 15), time(0, tzinfo=self.sandbox.itsView.tzinfo.default))
+        dateStr = shortDateTimeFormat.format(self.sandbox.itsView, value).split(' ')        
+        self.assertEqual(self.event.getCustomDescription(), "Every 3 weeks until %s" % dateStr[0])
 
         # changing the rule for the master, modifies should stay None
         self.assertEqual(self.event.modifies, None)
