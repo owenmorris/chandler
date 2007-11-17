@@ -16,11 +16,11 @@ import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 from application import schema
 from application.dialogs import RecurrenceDialog
-from osaf.pim import EventStamp
+from osaf.pim import EventStamp, shortDateFormat
 import osaf.framework.scripting as scripting
 import wx
 from i18n.tests import uw
-import datetime 
+import datetime
 
 class TestNewEvent(ChandlerTestCase):
     
@@ -33,8 +33,10 @@ class TestNewEvent(ChandlerTestCase):
             if daysUntilMonday == 6: daysUntilMonday = -1 #sunday is special case
             monday = today - datetime.timedelta(days=daysUntilMonday)
             incDay =  monday + datetime.timedelta(days=inc)
-            y, m, d = incDay.timetuple()[:3]
-            return '%s/%s/%s' % (m, d, y)
+            view = wx.GetApp().UIRepositoryView
+            value = datetime.datetime.combine(incDay, datetime.time(0, tzinfo=view.tzinfo.default))
+            dateStr = shortDateFormat.format(view, value)
+            return dateStr
         
         # resize the Chandler window to (1024,720): this test sort of crumble if the window is too small
         frame = wx.GetApp().mainFrame
