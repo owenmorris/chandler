@@ -1847,7 +1847,11 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
             try:
                 item = event.rruleset.rrules.first()
             except AttributeError:
-                assert False, "Hey - Setting 'ends' on an event without a recurrence rule?"
+                # This used to be an assert: "Hey - Setting 'ends' on an event without a recurrence rule?"
+                # however, we can get here when a new item has been selected in the DV while this
+                # editor has the focus. In this case, the right thing is to do nothing; it'll be hidden
+                # shortly.
+                return
 
         # If the user removed the string, remove the attribute.
         newValueString = valueString.replace('?','').strip()
