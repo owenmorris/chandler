@@ -97,6 +97,10 @@ def mergeFunction(code, item, attribute, value):
 
     if code == MergeError.DELETE:
         return True
+    if code == MergeError.ALIAS:
+        key, currentKey, alias = value
+        logger.warning("While merging attribute '%s' on %s, an alias conflict for key %s was detected: %s is set to the same alias: '%s'", attribute, item._repr_(), key, currentKey, alias)
+        return alias + '_duplicate'
 
     return value # Change from *this* view wins
 

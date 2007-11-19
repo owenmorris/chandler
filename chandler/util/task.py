@@ -96,13 +96,6 @@ class Task(object):
 
     def _success(self, result):
 
-        def mergeFunction(code, item, attribute, value):
-            if code == MergeError.ALIAS:
-                key, currentKey, alias = value
-                logger.warning("While merging attribute '%s' on %s, an alias conflict for key %s was detected: %s is set to the same alias: '%s'", attribute, item._repr_(), key, currentKey, alias)
-                return alias + '_duplicate'
-            raise NotImplementedError, (code, attribute, value)
-        
         if self.view is not None:
-            self.view.commit(mergeFunction)
+            self.view.commit(sharing.mergeFunction)
         self.callInMainThread(self.success, result, done=True)
