@@ -429,6 +429,7 @@ class WebDAVMonolithicRecordSetConduit(MonolithicRecordSetConduit,
 
         return stats
 
+
     def get(self):
         handle = self._getServerHandle()
 
@@ -460,16 +461,35 @@ class WebDAVMonolithicRecordSetConduit(MonolithicRecordSetConduit,
         etag = resp.headers.getHeader('ETag')
         if etag: # etag is a zanshin.http.ETag object
             self.etag = etag.tag
+
         return text
 
+
     def put(self, text):
-        # TODO: honor etags
-        resource = self._resourceFromPath("")
+        handle = self._getServerHandle()
+
+        path = self._getSharePath()
+        if path == "/":
+            path = ""
+        path = "/".join([path, self.shareName])
+
+        if self.etag:
+            extraHeaders = { 'If-Match' : self.etag }
+        else:
+            extraHeaders = { }
+
         start = time.time()
-        resp = self._getServerHandle().blockUntil(resource.put, text,
-            checkETag=False)
+        resp = handle.blockUntil(handle.put, path, text,
+            extraHeaders=extraHeaders)
         end = time.time()
         self.networkTime += (end - start)
-        if resource.etag is not None:
-            self.etag = resource.etag
+
+        if not (200 <= resp.status < 300):
+            raise errors.SharingError("%s (HTTP status %d)" % (resp.message,
+                resp.status),
+                details="Received [%s]" % resp.body)
+
+        etag = resp.headers.getHeader('ETag')
+        if etag: # etag is a zanshin.http.ETag object
+            self.etag = etag.tag
 

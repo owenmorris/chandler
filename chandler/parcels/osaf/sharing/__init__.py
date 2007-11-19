@@ -606,7 +606,7 @@ def subscribe(view, url, activity=None, username=None, password=None,
                 account.username = username
                 waitForDeferred(account.password.encryptPassword(password))
 
-            # update shareName if it's a subscollection in the account
+            # update shareName if it's a subcollection in the account
             if account.path.strip("/") != parentPath.strip("/"):
                 # account path: "a/b", parent path: "a/b/c", tail will be "c"
                 tail = parentPath.strip("/")[len(account.path.strip("/"))+1:]
@@ -858,10 +858,10 @@ def subscribeICS(view, url, inspection, activity=None,
 
     share = Share(itsView=view)
 
-    if not account and not ticket and username:
-        (scheme, useSSL, host, port, path, query, fragment, ticket, parentPath,
-            shareName) = splitUrl(url)
+    (scheme, useSSL, host, port, ignore, query, ignore, ignore, ignore,
+        ignore) = splitUrl(url)
 
+    if not account and not ticket and username:
         # Create a new account
         account = WebDAVAccount(itsView=view)
         account.displayName = url
@@ -894,13 +894,9 @@ def subscribeICS(view, url, inspection, activity=None,
         )
         if query:
             share.conduit.shareName += "?%s" % query
-        if ticket:
-            share.conduit.ticket = ticket
-        if username:
-            share.conduit.username = username
-        if password:
-            share.conduit.password = Password(itsParent=share.conduit)
-            waitForDeferred(share.conduit.password.encryptPassword(password))
+        # Not setting share.conduit.ticket here because we'll just include it
+        # in the URL during get/put
+
 
     share.mode = "both" if inspection['priv:write'] else "get"
     if filters:
