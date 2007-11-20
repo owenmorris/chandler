@@ -205,7 +205,7 @@ class DAVConduitMixin(conduits.HTTPMixin):
                     raise errors.NotFound(_(u"Path %(path)s not found.") % {'path': shareCollection.path})
 
                 if e.status == twisted.web.http.UNAUTHORIZED:
-                    raise errors.NotAllowed(_(u"Not authorized to get %(path)s.") % {'path': shareCollection.path})
+                    raise errors.NotAllowed(_(u"Not authorized to GET %(path)s.") % {'path': shareCollection.path})
 
                 raise errors.SharingError(_(u"Sharing Error: %(error)s.") % {'error': e})
 
