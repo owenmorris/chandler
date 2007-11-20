@@ -333,7 +333,7 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
             e.pem = peerX509.as_pem()
     
             acceptedErrList = trusted_until_shutdown_invalid_site_certs.get(e.pem)
-            err = messages.SSL_HOST_MISMATCH % {'expectedHost': e.expectedHost, 'actualHost': e.actualHost}
+            err = messages.SSL_HOST_MISMATCH % {'actualHost': e.actualHost}
             if acceptedErrList is not None and err in acceptedErrList:
                 if __debug__:
                     log.debug('Ignoring post connection error %s' % err)
