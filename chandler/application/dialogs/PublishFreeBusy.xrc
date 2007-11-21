@@ -72,7 +72,6 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxButton" name="wxID_CANCEL">
-              <label>Cancel</label>
             </object>
           </object>
         </object>
@@ -99,7 +98,6 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxButton" name="wxID_CANCEL">
-              <label>Cancel</label>
               <default>1</default>
             </object>
           </object>

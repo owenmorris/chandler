@@ -991,7 +991,6 @@
           <object class="sizeritem">
             <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
             <object class="wxButton" name="wxID_OK">
-              <label>OK</label>
               <default>1</default>
             </object>
           </object>
@@ -1001,7 +1000,6 @@
           <object class="sizeritem">
             <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
             <object class="wxButton" name="wxID_CANCEL">
-              <label>Cancel</label>
             </object>
           </object>
         </object>
