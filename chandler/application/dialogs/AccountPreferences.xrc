@@ -138,7 +138,7 @@
                 <object class="wxRadioButton" name="OUTGOING_SECURE_NO">
                   <value>1</value>
                   <style>wxRB_GROUP</style>
-                  <label>None</label>
+                  <label>No Security</label>
                 </object>
               </object>
               <object class="sizeritem">
@@ -423,7 +423,7 @@
                 <object class="wxRadioButton" name="INCOMING_SECURE_NO">
                   <value>1</value>
                   <style>wxRB_GROUP</style>
-                  <label>None</label>
+                  <label>No Security</label>
                 </object>
               </object>
               <object class="sizeritem">
