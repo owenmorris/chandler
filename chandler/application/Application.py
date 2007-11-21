@@ -1032,7 +1032,8 @@ class wxApplication (wx.App):
             # crashes app
             self.spawnNewChandler(self.CHANDLER_RESTART_ARGS)
 
-    def shutdown(self, repositoryCheck=True, repositoryCheckPoint=True):
+    def shutdown(self, repositoryCheck=True, repositoryCheckPoint=True,
+                 restarting=False):
         """
         Shuts down Chandler Services and the Repository.
 
@@ -1069,8 +1070,9 @@ class wxApplication (wx.App):
         # Optionally save a backup.chex so that automatic migration will work
         
         # Do not backup when running tests to save time; also prevents
-        # the dialog from stopping tests
-        if Globals.options.catch in ('tests', 'never'):
+        # the dialog from stopping tests.
+        # There's also no reason to export if we are restarting.
+        if Globals.options.catch in ('tests', 'never') or restarting:
             backup = False
         else:
             prefs = schema.ns("osaf.app",
@@ -1238,7 +1240,8 @@ class wxApplication (wx.App):
         # Shutdown the application service layers
         # and do not perform any repository
         # checking or checkpointing.
-        self.shutdown(repositoryCheck=False, repositoryCheckPoint=False)
+        self.shutdown(repositoryCheck=False, repositoryCheckPoint=False,
+                      restarting=True)
 
     def spawnNewChandler(self, argv):
         windows = os.name == 'nt'
