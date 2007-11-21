@@ -31,6 +31,7 @@ from AllDayCanvas import SparseMatrix
 
 from osaf.pim.calendar import formatTime, shortTZ
 from osaf.framework.blocks.DrawingUtilities import DrawClippedText
+from osaf.framework.blocks.Block import BaseWidget
 
 import math, bisect
 
@@ -164,7 +165,7 @@ class MultiWeekDay(object):
         self.bounds = None
         self.eventsAndBounds = None
 
-class wxMultiWeekCanvas(wxCalendarCanvas):
+class wxMultiWeekCanvas(BaseWidget, wxCalendarCanvas):
     """
     Ancestry:
         wxCollectionCanvas --> wxCalendarCanvas --> wxMultiWeekCanvas
