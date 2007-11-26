@@ -147,7 +147,7 @@ class SubscribeDialog(wx.Dialog):
         # Put this collection into "My items" if not checked:
         if not self.checkboxKeepOut.GetValue() or self.mine:
             logger.info(_(u'Moving collection into Dashboard...'))
-            schema.ns('osaf.pim', taskView.view).mine.addSource(collection)
+            schema.ns('osaf.pim', self.taskView).mine.addSource(collection)
 
         schema.ns("osaf.app", self.taskView).sidebarCollection.add(collection)
 
