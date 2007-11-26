@@ -377,12 +377,15 @@ class IMAPClient(base.AbstractDownloadClient):
         e = constants.CHANDLER_EVENTS_FOLDER
 
         status = {
-            #pos 0: The Unicode name of the folder on the IMAP Server
+            #pos 0: The Unicode name of the folder on the IMAP Server.
+            #       The values in m, t, and e are of type i18n.Message.
+            #       They need to be converted to Unicode to be saved in
+            #       the IMAPFolder.folderName attribute of type schema.Text.
             #pos 1: Boolean whether to folder exists on the server already
             #pos 2: Boolean whether the folder is currently subscribe to already
-            m: [m, False, False],
-            t: [t, False, False],
-            e: [e, False, False]
+            m: [unicode(m), False, False],
+            t: [unicode(t), False, False],
+            e: [unicode(e), False, False]
         }
 
         d = self.proto.list("", "INBOX")
