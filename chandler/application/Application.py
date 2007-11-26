@@ -1113,8 +1113,12 @@ class wxApplication (wx.App):
             displayInfoWhileProcessing (_(u"Checking repository..."),
                                         self.UIRepositoryView.check)
 
-        displayInfoWhileProcessing (_(u"Shutting down mail service..."),
-                                    Globals.mailService.shutdown)
+        if Globals.mailService is not None:
+            # Ensure that the Globals.mailService has been initialized before
+            # calling shutdown.
+            displayInfoWhileProcessing (_(u"Shutting down mail service..."),
+                                        Globals.mailService.shutdown)
+
 
         displayInfoWhileProcessing (_(u"Stopping wakeup service..."),
                                     Utility.stopWakeup)
