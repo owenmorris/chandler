@@ -238,15 +238,19 @@ class ChandlerIMAPFoldersDialog(ProgressDialog):
             return _(u"""\
 The following folders have been created in your account:
 
-Chandler Mail - Add messages to this folder to add them to your Mail Dashboard.
+%(ChandlerMailFolder)s - Add messages to this folder to add them to your Mail Dashboard.
 
-Chandler Tasks - Add messages to this folder to add them to your Tasks Dashboard.
+%(ChandlerTasksFolder)s - Add messages to this folder to add them to your Tasks Dashboard.
 
-Chandler Events - Add messages to this folder to add them to your Calendar Dashboard. Chandler will do its best to makes sense of any date and time information in the message.
+%(ChandlerEventsFolder)s - Add messages to this folder to add them to your Calendar Dashboard. Chandler will do its best to makes sense of any date and time information in the message.
 
 All messages added to Chandler folders will show up in your All Dashboard.
 
-Note: Chandler folders may take a while to appear in your email application.""")
+Note: Chandler folders may take a while to appear in your email application.""") % {
+   "ChandlerMailFolder": constants.CHANDLER_MAIL_FOLDER,
+   "ChandlerTasksFolder": constants.CHANDLER_TASKS_FOLDER,
+   "ChandlerEventsFolder": constants.CHANDLER_EVENTS_FOLDER,
+   }
 
         else:
             return _(u"You have already set up Chandler folders in this account. No new folders were created.")

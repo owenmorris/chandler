@@ -66,22 +66,24 @@ HOST_REQUIRED  = _(u"Auto-configure requires a server name.")
 
 # --- Yes No Dialog Messages ----- #
 CREATE_FOLDERS_TITLE = _(u"Configure Chandler Folders")
+
 CREATE_FOLDERS = _(u"""Chandler will attempt to create the following IMAP folders in your account on '%(host)s':
 
-    Chandler Events
-    Chandler Mail
-    Chander Tasks
+    %(ChandlerMailFolder)s
+    %(ChandlerTasksFolder)s
+    %(ChandlerEventsFolder)s
 
 If you have already set up Chandler folders in your account, no new folders will be created.
 
 Folders may take a while to show up in your email application.""")
 
+
 REMOVE_FOLDERS_TITLE = _(u"Remove Chandler Folders")
 REMOVE_FOLDERS = _(u"""Chandler will now attempt to remove the following IMAP folders on '%(host)s':
 
-    Chandler Mail
-    Chander Tasks
-    Chandler Events
+    %(ChandlerMailFolder)s
+    %(ChandlerTasksFolder)s
+    %(ChandlerEventsFolder)s
 
 Would you like to proceed?""")
 
@@ -1566,14 +1568,24 @@ class AccountPreferencesDialog(wx.Dialog):
 
         if create:
             config = showConfigureDialog(CREATE_FOLDERS_TITLE,
-                                  CREATE_FOLDERS % {'host': account.host},
+                                  CREATE_FOLDERS % {
+                                    "host": account.host,
+                                    "ChandlerMailFolder": constants.CHANDLER_MAIL_FOLDER,
+                                    "ChandlerTasksFolder": constants.CHANDLER_TASKS_FOLDER,
+                                    "ChandlerEventsFolder": constants.CHANDLER_EVENTS_FOLDER,
+                                   },
                                   self)
 
             if config:
                 ChandlerIMAPFoldersDialog(self, account, self.OnFolderCreation)
         else:
             yes = showYesNoDialog(REMOVE_FOLDERS_TITLE,
-                                  REMOVE_FOLDERS % {'host': account.host},
+                                  REMOVE_FOLDERS % {
+                                    "host": account.host,
+                                    "ChandlerMailFolder": constants.CHANDLER_MAIL_FOLDER,
+                                    "ChandlerTasksFolder": constants.CHANDLER_TASKS_FOLDER,
+                                    "ChandlerEventsFolder": constants.CHANDLER_EVENTS_FOLDER,
+                                   },
                                   self)
 
             if yes:

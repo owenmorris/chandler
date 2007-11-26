@@ -24,9 +24,13 @@ from i18n import ChandlerMessageFactory as _
 CHANDLER_USERAGENT = "Chandler (%s)" % version.version
 CHANDLER_HEADER_PREFIX = "X-Chandler-"
 
-CHANDLER_MAIL_FOLDER = _(u"Chandler Mail")
-CHANDLER_TASKS_FOLDER = _(u"Chandler Tasks")
-CHANDLER_EVENTS_FOLDER = _(u"Chandler Events")
+#XXX For 0.7.3 the Chandler IMAP Folders will not
+#    be localized since there are potential issues
+#    when switching languages. For information see
+#    bug 11430.
+CHANDLER_MAIL_FOLDER = u"Chandler Mail"
+CHANDLER_TASKS_FOLDER = u"Chandler Tasks"
+CHANDLER_EVENTS_FOLDER = u"Chandler Events"
 
 INVALID_EMAIL_ADDRESS = _(u"Email Address %(emailAddress)s is not valid.")
 
