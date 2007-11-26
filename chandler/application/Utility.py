@@ -21,6 +21,7 @@ import i18n, schema
 import M2Crypto.Rand as Rand, M2Crypto.threading as m2threading
 from optparse import OptionParser
 from configobj import ConfigObj
+from i18n import ChandlerSafeTranslationMessageFactory as _
 
 from chandlerdb.util.c import UUID, loadUUIDs, Default
 from repository.persistence.DBRepository import DBRepository
@@ -265,66 +266,120 @@ def getUserAgent():
 
 # short opt, long opt, type flag, default value, env var, help text
 COMMAND_LINE_OPTIONS = {
-    'parcelPath': ('-p', '--parcelPath', 's', None,  'PARCELPATH', 'Parcel search path'),
-    'pluginPath': (''  , '--pluginPath', 's', 'plugins',  None, 'Plugin search path, relative to CHANDLERHOME'),
-    'webserver':  ('-W', '--webserver',  'v', [], 'CHANDLERWEBSERVER', 'Activate the built-in webserver'),
-    'profileDir': ('-P', '--profileDir', 's', '',  'PROFILEDIR', 'location of the Chandler user profile directory (relative to CHANDLERHOME)'),
-    'testScripts':('-t', '--testScripts','b', False, None, 'run all test scripts'),
-    'scriptFile': ('-f', '--scriptFile', 's', None,  None, 'script file to execute after startup'),
-    'chandlerTests': ('', '--chandlerTests', 's', None, None, 'file:TestClass,file2:TestClass2 to be executed by new framework'),
-    'chandlerTestSuite': ('-T', '--chandlerTestSuite', 'b', False, None, 'run the functional test suite'),
-    'chandlerTestDebug': ('-D', '--chandlerTestDebug', 's', 0, None, '0=print only failures, 1=print pass and fail, 2=print pass & fail & check repository after each test'),
-    'recordedTest': ('', '--recordedTest', 's', None, None, 'run a recorded test from the recorded_scripts directory. Use "all" to run full suite.'),
-    'chandlerTestMask': ('-M', '--chandlerTestMask', 's', 3, None, '0=print all, 1=hide reports, 2=also hide actions, 3=also hide test names'),
-    'chandlerPerformanceTests': ('', '--chandlerPerformanceTests', 's', None, None, 'file:TestClass,file2:TestClass2 to be executed by performance new framework'),
-    'chandlerTestLogfile': ('', '--chandlerTestLogfile', 's', None, None, 'file for chandlerTests output'),
-    'continueTestsOnFailure': ('-F','--continueTestsOnFailure', 'b', False, None, 'Do not stop functional test suite on first failure'),
-    'catsProfile':('',   '--catsProfile','s', None,  None, 'file for hotshot profile of script execution'),
-    'catsPerfLog':('',   '--catsPerfLog','s', None,  None, 'file to output a performance number'),
-    'stderr':     ('-e', '--stderr',     'b', False, None, 'Echo error output to log file'),
-    'create':     ('-c', '--create',     'b', False, "CREATE", 'Force creation of a new repository'),
-    'ask':        ('',   '--ask',        'b', False, None, 'give repository options on startup'),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'parcelPath': ('-p', '--parcelPath', 's', None,  'PARCELPATH', _(u'Parcel search path')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'pluginPath': (''  , '--pluginPath', 's', 'plugins',  None, _(u'Plugin search path, relative to CHANDLERHOME')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'webserver':  ('-W', '--webserver',  'v', [], 'CHANDLERWEBSERVER', _(u'Activate the built-in webserver')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'profileDir': ('-P', '--profileDir', 's', '',  'PROFILEDIR', _(u'Location of the Chandler user profile directory (relative to CHANDLERHOME)')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'testScripts':('-t', '--testScripts','b', False, None, _(u'Run all test scripts')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'scriptFile': ('-f', '--scriptFile', 's', None,  None, _(u'Script file to execute after startup')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'chandlerTests': ('', '--chandlerTests', 's', None, None, _(u'file:TestClass,file2:TestClass2 to be executed by new framework')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'chandlerTestSuite': ('-T', '--chandlerTestSuite', 'b', False, None, _(u'Run the functional test suite')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'chandlerTestDebug': ('-D', '--chandlerTestDebug', 's', 0, None, _(u'0=Print Only Failures, 1=Print Pass And Fail, 2=Print Pass and Fail, Check Repository After Each Test')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'recordedTest': ('', '--recordedTest', 's', None, None, _(u'Run a recorded test from the recorded_scripts directory. Use "all" to run full suite.')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'chandlerTestMask': ('-M', '--chandlerTestMask', 's', 3, None, _(u'0=Print All, 1=Hide Reports, 2=Also Hide Actions, 3=Also Hide Test Names')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'chandlerPerformanceTests': ('', '--chandlerPerformanceTests', 's', None, None, _(u'file:TestClass,file2:TestClass2 to be executed by performance new framework')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'chandlerTestLogfile': ('', '--chandlerTestLogfile', 's', None, None, _(u'File for chandlerTests output')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'continueTestsOnFailure': ('-F','--continueTestsOnFailure', 'b', False, None, _(u'Do not stop functional test suite on first failure')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'catsProfile':('',   '--catsProfile','s', None,  None, _(u'File for hotshot profile of script execution')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'catsPerfLog':('',   '--catsPerfLog','s', None,  None, _(u'File to output a performance number')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'stderr':     ('-e', '--stderr',     'b', False, None, _(u'Echo error output to log file')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'create':     ('-c', '--create',     'b', False, "CREATE", _(u'Force creation of a new repository')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'ask':        ('',   '--ask',        'b', False, None, _(u'Give repository options on startup')),
     'ramdb':      ('-m', '--ramdb',      'b', False, None, ''),
-    'restore':    ('-r', '--restore',    's', None,  None, 'repository backup to restore from before repository open'),
-    'recover':    ('-R', '--recover',    'b', False, None, 'open repository with recovery'),
-    'forceplatform': ('', '--force-platform', 'b', False, None, 'open repository with recovery if platform of env does not match current platform'),
-    'reload':     ('',   '--reload',     's', None, None, 'reload a dump file, will clear repository first'),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'restore':    ('-r', '--restore',    's', None,  None, _(u'Repository backup to restore from before repository open')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'recover':    ('-R', '--recover',    'b', False, None, _(u'Open repository with recovery')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'forceplatform': ('', '--force-platform', 'b', False, None, _(u'Open repository with recovery if platform of env does not match current platform')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'reload':     ('',   '--reload',     's', None, None, _(u'Reload a .chex file, will clear repository first')),
     # --nocatch is deprecated and will be removed soon: use --catch=tests or --catch=never instead
     'nocatch':    ('-n', '--nocatch',    'b', False, 'CHANDLERNOCATCH', ''),
-    'catch':      ('',   '--catch',      's', 'normal', 'CHANDLERCATCH', '"normal" leaves outer and test exception handlers in place (the default); "tests" removes the outer one, and "never" removes both.'),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'catch':      ('',   '--catch',      's', 'normal', 'CHANDLERCATCH', _(u'The command "normal" leaves outer and test exception handlers in place (the default); "tests" removes the outer one, and "never" removes both.')),
     'wing':       ('-w', '--wing',       'b', False, None, ''),
     'komodo':     ('-k', '--komodo',     'b', False, None, ''),
-    'locale':     ('-l', '--locale',     's', None,  None, 'Set the default locale'),
-    'expand':      ('',   '--expand',      's', '0', None, 'Expands the length of localized strings by the percentage specified between 0 and 100'),
-    'encrypt':    ('-S', '--encrypt',    'b', False, None, 'Request prompt for password for repository encryption'),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'locale':     ('-l', '--locale',     's', None,  None, _(u'Set the default locale')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'expand':      ('',   '--expand',      's', '0', None, _(u'Expands the length of localized strings by the percentage specified between 0 and 100')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'encrypt':    ('-S', '--encrypt',    'b', False, None, _(u'Request prompt for password for repository encryption')),
     'nosplash':   ('-N', '--nosplash',   'b', False, 'CHANDLERNOSPLASH', ''),
-    'logging':    ('-L', '--logging',    's', 'logging.conf',  'CHANDLERLOGCONFIG', 'The logging config file'),
-    'verbose':    ('-v', '--verbose',    'b', False, None, 'Verbosity option (currently just for run_tests.py)'),
-    'quiet':      ('-q', '--quiet',      'b', False, None, 'Quiet option (currently just for run_tests.py)'),
-    'offline':    ('', '--offline',    'b', False, 'CHANDLEROFFLINE', 'Takes the Chandler Mail Service Offline'),
-    'verify':     ('-V', '--verify-assignments', 'b', False, None, 'Verify attribute assignments against schema'),
-    'debugOn':    ('-d', '--debugOn', 's', None,  None, 'Enter PDB upon this exception being raised'),
-    'appParcel':  ('-a', '--app-parcel', 's', "osaf.app",  None, 'Parcel that defines the core application'),
-    'nonexclusive':  ('', '--nonexclusive', 'b', False, 'CHANDLERNONEXCLUSIVEREPO', 'Enable non-exclusive repository access'),
-    'memorylog':  ('', '--memorylog', 's', None, None, 'Specify a buffer size (in MB) for in-memory transaction logs'),
-    'logdir':     ('', '--logdir', 's', None, None, 'Specify a directory for transaction logs (relative to the __repository__ directory'),
-    'datadir':    ('', '--datadir', 's', None, None, 'Specify a directory for database files (relative to the __repository__ directory'),
-    'repodir':    ('', '--repodir', 's', None, None, "Specify a home directory for the __repository__ directory (relative to the profile directory)"),
-    'nodeferdelete':   ('', '--nodeferdelete','b', False, None, 'do not defer item deletions in all views by default'),
-    'indexer':    ('-i', '--indexer',    's', '90', None, 'Run Lucene indexing in the background every 90s, in the foreground or none'),
-    'checkpoints': ('', '--checkpoints', 's', '10', None, 'Checkpoint the repository in the background every 10min, or none'),
-    'uuids':      ('-U', '--uuids',      's', None, None, 'use a file containing a bunch of pre-generated UUIDs'),
-    'undo':       ('',   '--undo',       's', None, None, 'undo -<n> versions or until version <n> or until <check> or <repair> pass or until <start> succeeds'),
-    'backup':     ('',   '--backup',     'b', False, None, 'backup repository before start'),
-    'backupDir':  ('',   '--backup-dir', 's', None, None, 'backup repository before start into dir'),
-    'repair':     ('',   '--repair',     'b', False, None, 'repair repository before start (currently repairs broken indices)'),
-    'resetIndex': ('',   '--reset-index','b', False, None, 're-create full-text index database and reset indexer to reindex from earliest version'),
-    'mvcc':       ('',   '--mvcc',       'b', True, 'MVCC', 'run repository multi version concurrency control'),
-    'nomvcc':     ('',   '--nomvcc',     'b', False, 'NOMVCC', 'run repository without multi version concurrency control'),
-    'prune':      ('',   '--prune',      's', '10000', None, 'number of items in a view to prune to after each commit'),
-    'version':    ('',   '--at',         's', None, None, 'version to open repository at'),
-    'timezone':   ('',   '--tz',         's', None, None, 'timezone to initialize repository with if creating a new repository'),
-    'prefs':      ('',   '--prefs',      's', 'chandler.prefs', None, 'path to prefs file that contains defaults for command line options, relative to profile directory'),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'logging':    ('-L', '--logging',    's', 'logging.conf',  'CHANDLERLOGCONFIG', _(u'The logging config file')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'verbose':    ('-v', '--verbose',    'b', False, None, _(u'Verbosity option (currently just for run_tests.py)')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'quiet':      ('-q', '--quiet',      'b', False, None, _(u'Quiet option (currently just for run_tests.py)')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'offline':    ('', '--offline',    'b', False, 'CHANDLEROFFLINE', _(u'Takes the Chandler mail service offline')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'verify':     ('-V', '--verify-assignments', 'b', False, None, _(u'Verify attribute assignments against schema')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'debugOn':    ('-d', '--debugOn', 's', None,  None, _(u'Enter PDB upon this exception being raised')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'appParcel':  ('-a', '--app-parcel', 's', "osaf.app",  None, _(u'Parcel that defines the core application')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'nonexclusive':  ('', '--nonexclusive', 'b', False, 'CHANDLERNONEXCLUSIVEREPO', _(u'Enable non-exclusive repository access')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'memorylog':  ('', '--memorylog', 's', None, None, _(u'Specify a buffer size (in MB) for in-memory transaction logs')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'logdir':     ('', '--logdir', 's', None, None, _(u'Specify a directory for transaction logs (relative to the __repository__ directory')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'datadir':    ('', '--datadir', 's', None, None, _(u'Specify a directory for database files (relative to the __repository__ directory')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'repodir':    ('', '--repodir', 's', None, None, _(u"Specify a home directory for the __repository__ directory (relative to the profile directory)")),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'nodeferdelete':   ('', '--nodeferdelete','b', False, None, _(u'Do not defer item deletions in all views by default')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'indexer':    ('-i', '--indexer',    's', '90', None, _(u'Run Lucene indexing in the background every 90s, in the foreground or none')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'checkpoints': ('', '--checkpoints', 's', '10', None, _(u'Checkpoint the repository in the background every 10min, or none')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'uuids':      ('-U', '--uuids',      's', None, None, _(u'Use a file containing a bunch of pre-generated UUIDs')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'undo':       ('',   '--undo',       's', None, None, _(u'Undo -<n> versions or until version <n> or until <check> or <repair> pass or until <start> succeeds')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'backup':     ('',   '--backup',     'b', False, None, _(u'Backup repository before start')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'backupDir':  ('',   '--backup-dir', 's', None, None, _(u'Backup repository before startup into directory')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'repair':     ('',   '--repair',     'b', False, None, _(u'Repair repository before start (currently repairs broken indices)')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'resetIndex': ('',   '--reset-index','b', False, None, _(u'Re-create full-text index database and reset indexer to reindex from earliest version')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'mvcc':       ('',   '--mvcc',       'b', True, 'MVCC', _(u'Run repository multi version concurrency control')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'nomvcc':     ('',   '--nomvcc',     'b', False, 'NOMVCC', _(u'Run repository without multi version concurrency control')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'prune':      ('',   '--prune',      's', '10000', None, _(u'Number of items in a view to prune to after each commit')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'version':    ('',   '--at',         's', None, None, _(u'Version to open repository at')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'timezone':   ('',   '--tz',         's', None, None, _(u'Timezone to initialize repository with if creating a new repository')),
+    # L10N: The description of a Chandler command line argument printed to the stdout / console
+    'prefs':      ('',   '--prefs',      's', 'chandler.prefs', None, _(u'Path to prefs file that contains defaults for command line options, relative to profile directory')),
 }
 
 def initDefaults(**kwds):

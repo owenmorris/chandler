@@ -595,8 +595,19 @@ class I18nManager(EggTranslations):
         """
 
         if not self._init:
-            from application import Globals
-            self.initialize(Globals.options.locale)
+            try:
+                from application import Globals
+                loc = Globals.options.locale
+            except (ImportError, AttributeError):
+                # If an Exception is raised importing
+                # Globals then Chandler has not
+                # been initialized so try to discover the
+                # locale from the OS by setting loc to None.
+                # This case occurs when displaying command
+                # line options to the console.
+                loc = None
+
+            self.initialize(loc)
 
         res = super(I18nManager, self).getText(project, name, msgid, *args)
 
