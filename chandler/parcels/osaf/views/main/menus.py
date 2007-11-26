@@ -244,7 +244,7 @@ def makeMainMenus(parcel):
                             ]), # Menu OfflineMenu              
                     MenuItem.template('SyncManagerItem',
                         event = main.SyncManager,
-                        title = _(u'Sync Manager...'),
+                        title = _(u'Sync &Manager...'),
                         helpString = _(u'Open the Sync Manager dialog')),
                     MenuItem.template('FileSeparator4',
                         menuItemKind = 'Separator'),
