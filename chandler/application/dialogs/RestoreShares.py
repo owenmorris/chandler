@@ -117,7 +117,7 @@ class UnsubscribedCollectionsDialog(wx.Dialog):
                         names.append(name)
 
                     cb = wx.CheckBox(self.panel, -1,
-                        _(u"All collections in %(account)s") %
+                        _(u"&All collections in %(account)s") %
                         { 'account' : account.displayName})
                     self.Bind(wx.EVT_CHECKBOX, self.OnAccountCheck,
                         id=cb.GetId())
@@ -152,11 +152,11 @@ class UnsubscribedCollectionsDialog(wx.Dialog):
             self.sizer.Add(self.noteLabel, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
             self.NoButton = wx.Button(self.panel, wx.ID_CANCEL,
-                _(u"Don't Sync"))
+                _(u"&Don't Sync"))
             self.LaterButton = wx.Button(self.panel, -1,
-                _(u"Sync Later"))
+                _(u"Sync &Later"))
             self.SyncButton = wx.Button(self.panel, wx.ID_OK,
-                _(u"Sync Now"))
+                _(u"&Sync Now"))
 
             self.Bind(wx.EVT_BUTTON, self.OnNo, id=wx.ID_CANCEL)
             self.Bind(wx.EVT_BUTTON, self.OnLater, id=self.LaterButton.GetId())
