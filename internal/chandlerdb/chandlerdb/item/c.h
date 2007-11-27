@@ -57,6 +57,8 @@ extern PyTypeObject *StaleItemAttributeError;
 extern PyTypeObject *ReadOnlyAttributeError;
 extern PyTypeObject *ChangeDuringCommitError;
 extern PyTypeObject *KindlessItemError;
+extern PyTypeObject *NoLocalValueForAttributeError;
+extern PyTypeObject *NoDescriptorForAttributeError;
 extern PyTypeObject *CView;
 
 extern PyObject *Nil;

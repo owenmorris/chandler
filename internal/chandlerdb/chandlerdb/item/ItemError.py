@@ -118,7 +118,7 @@ class IndirectAttributeError(AttributeError, ItemError):
 
 
 class NoValueForAttributeError(AttributeError, ItemError):
-    __doc__ = "%s (Kind: %s) has no value for '%s'"
+    __doc__ = "%s (%s) has no value for '%s'"
 
     def getAttribute(self):
         return self.args[1]
@@ -130,10 +130,20 @@ class NoValueForAttributeError(AttributeError, ItemError):
 
 
 class NoLocalValueForAttributeError(NoValueForAttributeError):
-    __doc__ = "%s (Kind: %s) has no local value for '%s'"
+    __doc__ = "%s (%s) has no local value for '%s'"
     
     def __str__(self):
         return self.__doc__ %(self.getItem()._repr_(),
+                              self.getItem()._kind,
+                              self.getAttribute())
+
+
+class NoDescriptorForAttributeError(AttributeError, ItemError):
+    __doc__ = "%s of %s (%s) has no descriptor for attribute '%s'"
+    
+    def __str__(self):
+        return self.__doc__ %(type(self.getItem()),
+                              self.getItem()._repr_(),
                               self.getItem()._kind,
                               self.getAttribute())
 

@@ -779,7 +779,10 @@ static PyObject *_t_item_getLocalAttributeValue(t_item *self, PyObject *name,
         return defaultValue;
     }
 
-    PyErr_SetObject(PyExc_AttributeError, name);
+    value = PyTuple_Pack(2, self, name);
+    PyErr_SetObject((PyObject *) NoLocalValueForAttributeError, value);
+    Py_DECREF(value);
+
     return NULL;
 }
 
@@ -956,7 +959,12 @@ t_attribute *_t_item_get_attr(t_item *self, PyObject *name)
 
             if (!descriptor)
             {
-                PyErr_SetObject(PyExc_AttributeError, name);
+                PyObject *tuple = PyTuple_Pack(2, self, name);
+
+                PyErr_SetObject((PyObject *) NoDescriptorForAttributeError,
+                                tuple);
+                Py_DECREF(tuple);
+
                 return NULL;
             }
 

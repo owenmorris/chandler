@@ -41,7 +41,8 @@ extern PyTypeObject *ItemRef;
 extern PyTypeObject *CValues;
 extern PyTypeObject *CLinkedMap;
 extern PyTypeObject *PersistentSequence;
-extern PyObject *PyExc_StaleItemError;
+extern PyTypeObject *StaleItemError;
+extern PyTypeObject *NoValueForAttributeError;
 extern PyObject *True_TUPLE, *Empty_TUPLE;
 extern PyObject *Empty;
 

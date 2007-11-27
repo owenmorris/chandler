@@ -28,7 +28,8 @@ PyTypeObject *ItemRef = NULL;
 PyTypeObject *CValues = NULL;
 PyTypeObject *CLinkedMap = NULL;
 PyTypeObject *PersistentSequence = NULL;
-PyObject *PyExc_StaleItemError = NULL;
+PyTypeObject *StaleItemError = NULL;
+PyTypeObject *NoValueForAttributeError = NULL;
 PyObject *True_TUPLE = NULL;
 PyObject *Empty_TUPLE = NULL;
 PyObject *Empty = NULL;
@@ -79,7 +80,8 @@ void initc(void)
 
     if (!(m = PyImport_ImportModule("chandlerdb.item.ItemError")))
         return;
-    PyExc_StaleItemError = PyObject_GetAttrString(m, "StaleItemError");
+    LOAD_TYPE(m, StaleItemError);
+    LOAD_TYPE(m, NoValueForAttributeError);
     Py_DECREF(m);
     
     if (!(m = PyImport_ImportModule("chandlerdb.item.c")))

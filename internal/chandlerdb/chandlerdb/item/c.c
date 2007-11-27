@@ -34,6 +34,8 @@ PyTypeObject *StaleItemAttributeError = NULL;
 PyTypeObject *ReadOnlyAttributeError = NULL;
 PyTypeObject *ChangeDuringCommitError = NULL;
 PyTypeObject *KindlessItemError = NULL;
+PyTypeObject *NoLocalValueForAttributeError = NULL;
+PyTypeObject *NoDescriptorForAttributeError = NULL;
 PyTypeObject *CView = NULL;
 PyObject *Nil = NULL;
 PyObject *Default = NULL;
@@ -184,6 +186,8 @@ void initc(void)
     LOAD_TYPE(m, ReadOnlyAttributeError);
     LOAD_TYPE(m, ChangeDuringCommitError);
     LOAD_TYPE(m, KindlessItemError);
+    LOAD_TYPE(m, NoLocalValueForAttributeError);
+    LOAD_TYPE(m, NoDescriptorForAttributeError);
     Py_DECREF(m);
 
     if (!(m = PyImport_ImportModule("chandlerdb.schema.c")))

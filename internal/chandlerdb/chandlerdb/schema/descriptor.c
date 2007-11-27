@@ -190,7 +190,7 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
     }
     else if (item->status & STALE)
     {
-        PyErr_SetObject(PyExc_StaleItemError, (PyObject *) item);
+        PyErr_SetObject((PyObject *) StaleItemError, (PyObject *) item);
         return NULL;
     }
     else
@@ -272,15 +272,26 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
                     Py_INCREF(value);
                 }
                 else
-                    PyErr_SetObject(PyExc_AttributeError, self->name);
-            }                    
+                {
+                    PyObject *tuple = PyTuple_Pack(2, item, self->name);
+
+                    PyErr_SetObject((PyObject *) NoValueForAttributeError,
+                                    tuple);
+                    Py_DECREF(tuple);
+                }
+            }
             else
                 value = PyObject_CallMethodObjArgs((PyObject *) item, getAttributeValue_NAME, self->name, attrDict, attr->attrID, NULL);
 
             return value;
         }
 
-        PyErr_SetObject(PyExc_AttributeError, self->name);
+        {
+            PyObject *tuple = PyTuple_Pack(2, item, self->name);
+
+            PyErr_SetObject((PyObject *) NoValueForAttributeError, tuple);
+            Py_DECREF(tuple);
+        }
         return NULL;
     }
 }
@@ -295,7 +306,7 @@ static int t_descriptor___set__(t_descriptor *self,
     }
     else if (item->status & STALE)
     {
-        PyErr_SetObject(PyExc_StaleItemError, (PyObject *) item);
+        PyErr_SetObject((PyObject *) StaleItemError, (PyObject *) item);
         return -1;
     }
     else if (value == NULL)
