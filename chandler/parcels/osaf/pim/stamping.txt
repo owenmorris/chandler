@@ -206,7 +206,7 @@ the annotated item is created.
 >>> StampWithInitialValue(item).fun
 Traceback (most recent call last):
 ...
-AttributeError: __builtin__.StampWithInitialValue.fun
+NoValueForAttributeError: ...__builtin__.StampWithInitialValue.fun...
 >>> StampWithInitialValue(item).add()
 >>> StampWithInitialValue(item).fun
 u'Go have some fun'
