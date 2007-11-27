@@ -1820,10 +1820,10 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         # Setting the insertion point seems to work when several keys are typed
         # before the edit widget is displayed, but perhaps there's a better
         # way to achieve this?
-
-        self.editor.SetInsertionPoint(0)
-        self.editor.SetValue(key)
-        self.editor.SetInsertionPointEnd()
+        if self.editor:
+            self.editor.SetInsertionPoint(0)
+            self.editor.SetValue(key)
+            self.editor.SetInsertionPointEnd()
 
     def handleOneChange(self, op, event, filterAllDay=False, filterTimed=False):
         """
