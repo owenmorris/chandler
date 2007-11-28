@@ -176,13 +176,9 @@ def buildDistribName(mode, options):
     return 'Chandler_%s_%s%s' % (options.platformID, modeStr, options.version_info['version'])
 
 def buildDistributionImage(mode, options):
-    if options.platformID == 'iosx':
+    if 'osx' in options.platformID:
         p = 'osx'
-
-        if options.platformSubID == 'leopard':
-            s = options.platformSubID
-        else:
-            s = p
+        s = options.platformID
     else:
         if options.platformID == 'linux':
             p = 'linux'
