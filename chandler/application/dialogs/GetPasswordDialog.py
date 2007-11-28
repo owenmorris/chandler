@@ -28,9 +28,9 @@ class GetPasswordDialog(wx.Dialog):
 
         pre = wx.PreDialog()
         if create:
-            title = _(u"Create repository password")
+            title = _(u"Create Repository Password")
         else:
-            title = _(u"Enter repository password")
+            title = _(u"Enter Repository Password")
 
         pre.Create(None, -1, title, wx.DefaultPosition, wx.DefaultSize,
                    wx.DEFAULT_DIALOG_STYLE)
