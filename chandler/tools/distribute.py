@@ -83,10 +83,10 @@ def buildPlatform(options):
         if sys.platform == 'darwin':
             if platform.machine() == 'i386':
                 options.platformName = 'Mac OS X (intel)'
-                options.platformID   = 'iosx'
+                options.platformID   = 'intel-osx'
             else:
                 options.platformName = 'Mac OS X (ppc)'
-                options.platformID   = 'osx'
+                options.platformID   = 'ppc-osx'
 
             release   = platform.release()
             version   = release.split('.')
@@ -94,6 +94,9 @@ def buildPlatform(options):
 
             if len(version) == 3:
                 options.platformSubID = platforms.get(version[0], version[0])
+
+            if options.platformSubID == 'leopard':
+                options.platformID += '-leopard'
 
         elif sys.platform == 'cygwin':
             options.platformName = 'Windows'
