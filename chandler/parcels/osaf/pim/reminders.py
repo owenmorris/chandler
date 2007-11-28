@@ -301,11 +301,19 @@ class Reminder(schema.Item):
         resultTuples = []
         
         for entry in pendingKind.iterItems():
+            thisTuple = tuple(getattr(entry, attr, None)
+                               for attr in ('when', 'item', 'reminder'))
             # Show everything except reminders in the trash, and
-            # reminders that have been snoozed into the future.
-            if (not entry.item in trash and
-                not (entry.snoozed and entry.when > when)):
-                resultTuples.append((entry.when, entry.item, entry.reminder))
+            # reminders that have been snoozed into the future. Also,
+            # don't return any "dead" items in the tuple, and check
+            # for missing attributes (bug 11415).
+            if (thisTuple[0] is not None and
+                not isDead(thisTuple[1]) and
+                not isDead(thisTuple[2]) and
+                not thisTuple[1] in trash and
+                not (entry.snoozed and thisTuple[0] > when)):
+
+                resultTuples.append(thisTuple)
                                 
         resultTuples.sort(key=lambda t: t[0])
         return resultTuples
