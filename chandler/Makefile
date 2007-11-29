@@ -24,7 +24,10 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
                 Chandler-p2pPlugin \
                 Chandler-gdataPlugin
 
-BUILD_LOCALES = Chandler.en
+BUILD_LOCALES = en \
+                fr \
+                fi \
+                sv
 
 ifeq ($(OS),Darwin)
     ifeq ($(shell arch),ppc)
@@ -265,20 +268,22 @@ $(addprefix install-, $(BUILD_PLUGINS)):
           --install-dir='$(PLUGIN_INST)' .
 
 $(addprefix develop-, $(BUILD_LOCALES)):
-	cd $(C_HOME)/localizations/$(subst develop-,,$@); \
-     $(RUN_PYTHON) setup.py egg_info develop \
-          --script-dir='$(CHANDLERHOME)' \
-          --install-dir='$(CHANDLERHOME)'
+	if [ -d "$(C_HOME)/localizations" ]; then \
+	    svn export http://svn.osafoundation.org/localizations/chandler/trunk/$(subst develop-,,$@) $(C_HOME)/localizations/$(subst develop-,,$@) ; \
+	fi
 
-$(addprefix develop-u-, $(BUILD_LOCALES)):
-	cd $(C_HOME)/localizations/$(subst develop-u-,,$@); \
-     $(RUN_PYTHON) setup.py egg_info develop -u \
-          --script-dir='$(CHANDLERHOME)' \
-          --install-dir='$(CHANDLERHOME)'
+$(addprefix create-, $(BUILD_LOCALES)):
+	if [ -d "$(C_HOME)/localizations/$(subst create-,,$@)" ]; then \
+	    $(RUN_PYTHON) tools/createTranslationEgg.py -c --dist \
+	                  -l $(subst create-,,$@) \
+                      -f $(C_HOME)/localizations/$(subst create-,,$@)/Chandler-$(subst create-,,$@).po \
+                      -d $(C_HOME)/localizations ; \
+	fi
 
 $(addprefix install-, $(BUILD_LOCALES)):
-	cd $(C_HOME)/localizations/$(subst install-,,$@); \
-     $(RUN_PYTHON) setup.py egg_info
+	if [ -f "$(C_HOME)/localizations/Chandler.$(subst install-,,$@)-1.0-$(PYTHON_VER).egg" ]; then \
+	    $(RUN_PYTHON) -m easy_install $(C_HOME)/localizations/Chandler.$(subst install-,,$@)-1.0-$(PYTHON_VER).egg ; \
+	fi
 
 chandler-locale-data:
 	$(RUN_PYTHON) setup.py egg_info
@@ -313,14 +318,20 @@ archives: $(ARCHIVES) $(ARCHIVES_INST)
 
 install-core: archives manifest_exe chandler-locale-data 
 
-plugins: $(addprefix develop-, $(BUILD_PLUGINS)) $(addprefix develop-, $(BUILD_LOCALES))
+develop-locales: $(addprefix develop-, $(BUILD_LOCALES))
+
+create-locales: $(addprefix create-, $(BUILD_LOCALES))
+
+install-locales: create-locales $(addprefix install-, $(BUILD_LOCALES))
+
+distrib-locales: create-locales
+
+plugins: $(addprefix develop-, $(BUILD_PLUGINS))
 
 no-plugins: $(addprefix develop-u-, $(BUILD_PLUGINS))
 
 distrib-plugins: $(addprefix develop-u-, $(BUILD_PLUGINS)) \
-                 $(addprefix install-, $(BUILD_PLUGINS)) \
-                 $(addprefix develop-u-, $(BUILD_LOCALES)) \
-                 $(addprefix install-, $(BUILD_LOCALES))
+                 $(addprefix install-, $(BUILD_PLUGINS))
 
 # On Ubuntu Feisty Fawn and Gutsy Gibbon users need to install some packages,
 # check that we have them:
