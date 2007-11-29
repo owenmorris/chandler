@@ -59,7 +59,7 @@ endif
 # When a version changes, the ARCHIVES lists below need to be updated.
 
 READLINE   = $(CHANDLERARCHIVES)/readline-$(SNAP)-5.2-$(BP)2.tar.gz
-PYTHON     = $(CHANDLERARCHIVES)/python-$(SNAP)-2.5.1-$(BP)8.tar.gz
+PYTHON     = $(CHANDLERARCHIVES)/python-$(SNAP)-2.5.1-$(BP)9.tar.gz
 SETUPTOOLS = $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6-$(BP)2.tar.gz
 ICU        = $(CHANDLERARCHIVES)/icu-$(SNAP)-3.6-$(BP)2.tar.gz
 OPENJDK    = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b21-$(BP)3.tar.gz
