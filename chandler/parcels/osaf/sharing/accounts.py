@@ -282,7 +282,7 @@ class WebDAVAccount(SharingAccount):
                         SharedItem(collection).shares.append(share)
 
                     if share.exists():
-                        raise SharingError(_(u"Collection already exists on server."))
+                        raise errors.SharingError(_(u"Collection already exists on server."))
 
                     share.create()
                     # bug 8128, this setDisplayName shouldn't be required, but
@@ -329,7 +329,7 @@ class WebDAVAccount(SharingAccount):
                         SharedItem(collection).shares.append(share)
 
                     if share.exists():
-                        raise SharingError(_(u"Collection already exists on server."))
+                        raise errors.SharingError(_(u"Collection already exists on server."))
 
                     share.create()
                     share.put(activity=activity)
