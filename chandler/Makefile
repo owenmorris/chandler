@@ -305,7 +305,7 @@ $(addprefix install-, $(BUILD_LOCALES)):
                   -l $(subst install-,,$@) \
                   -f '$(LOCALE_SRC)'$(subst install-,,$@)/Chandler-$(subst install-,,$@).po \
                   -d '$(LOCALE_SRC)'
-	cd $(LOCALE_SRC); $(RUN_PYTHON) -m easy_install -x $(LOCALE_INST) ./Chandler.$(subst install-,,$@)-1.0-py$(PYTHON_VER).egg
+	$(RUN_PYTHON) -m easy_install -x $(LOCALE_INST) '$(LOCALE_SRC)'Chandler.$(subst install-,,$@)-1.0-py$(PYTHON_VER).egg
 
 chandler-locale-data:
 	$(RUN_PYTHON) setup.py egg_info
