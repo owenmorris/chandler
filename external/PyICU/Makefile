@@ -24,6 +24,9 @@ ENV:=$(ENV) \
   PYICU_INCLUDES=`cygpath -am $(PREFIX)/include/icu` \
   PYICU_LFLAGS="/LIBPATH:"`cygpath -awp "$(PREFIX)/lib"`
 
+apply:
+	patch -Nup0 < patches-$(VERSION)-$(OS); echo ok
+
 else
 
 ifeq ($(ICU_BUILD),)
@@ -34,9 +37,11 @@ ENV=\
   PYICU_LFLAGS=-L$(PREFIX)/icu/lib
 endif
 
+apply:
+
 endif
 
-build: expand
+build: expand apply
 	cd $(SRC); \
 	$(ENV) $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                                   install --force
