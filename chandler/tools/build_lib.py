@@ -80,7 +80,7 @@ def setpgid_preexec_fn():
     os.setpgid(0, 0)
 
 
-def runCommand(cmd, env=None, timeout=-1, logger=log):
+def runCommand(cmd, env=None, timeout=-1, logger=log, ignorepreexec=False):
     """
     Execute the given command and log all output
 
@@ -127,10 +127,15 @@ def runCommand(cmd, env=None, timeout=-1, logger=log):
         else:
             output = tempfile.TemporaryFile()
 
-    if redirect:
-        p = killableprocess.Popen(cmd, env=env, stdin=subprocess.PIPE, stdout=output, stderr=subprocess.STDOUT, preexec_fn=setpgid_preexec_fn)
+    if ignorepreexec:
+        preexec_fn = None
     else:
-        p = killableprocess.Popen(cmd, env=env, stdin=subprocess.PIPE, preexec_fn=setpgid_preexec_fn)
+        preexec_fn = setpgid_preexec_fn
+
+    if redirect:
+        p = killableprocess.Popen(cmd, env=env, stdin=subprocess.PIPE, stdout=output, stderr=subprocess.STDOUT, preexec_fn=preexec_fn)
+    else:
+        p = killableprocess.Popen(cmd, env=env, stdin=subprocess.PIPE, preexec_fn=preexec_fn)
 
     try:
         if timeout == -1 and redirect:

@@ -36,7 +36,7 @@ def ignore(output):
     pass
 
 try:
-    build_lib.runCommand("msgfmt", timeout=5, logger=ignore)
+    build_lib.runCommand("msgfmt", timeout=5, logger=ignore, ignorepreexec=True)
     MSGFMT_INSTALLED = True
 except:
     MSGFMT_INSTALLED = False
@@ -254,7 +254,7 @@ class TranslationEggTool(LocalizationBase):
                 msgfmt = os.path.join(self.CHANDLERHOME, "tools", "msgfmt.py")
                 exp = [self.PYTHON,  msgfmt, self.POFILE]
 
-            result = build_lib.runCommand(exp, timeout=60, logger=ignore)
+            result = build_lib.runCommand(exp, timeout=60, logger=ignore, ignorepreexec=True)
             os.chdir(cwd)
 
             if result != 0:
@@ -265,7 +265,7 @@ class TranslationEggTool(LocalizationBase):
 
     def createEggInfoDir(self):
         exp = [self.PYTHON, 'setup.py', 'egg_info']
-        result = build_lib.runCommand(exp, timeout=60, logger=ignore)
+        result = build_lib.runCommand(exp, timeout=60, logger=ignore, ignorepreexec=True)
 
         if result != 0:
             self.raiseError(' '.join(exp) + ' failed with error code %d' % result)
@@ -282,13 +282,13 @@ class TranslationEggTool(LocalizationBase):
 
     def putEggInDevelopMode(self):
         exp = [self.PYTHON, "setup.py", "develop", "-x", "--install-dir=%s" % self.CHANDLERHOME]
-        result = build_lib.runCommand(exp, timeout=60, logger=ignore)
+        result = build_lib.runCommand(exp, timeout=60, logger=ignore, ignorepreexec=True)
         if result != 0:
             self.raiseError(' '.join(exp) + ' failed with error code %d' % result)
 
     def packageEggForDistribution(self):
         exp = [self.PYTHON, "setup.py", "bdist_egg"]
-        result = build_lib.runCommand(exp, timeout=60, logger=ignore)
+        result = build_lib.runCommand(exp, timeout=60, logger=ignore, ignorepreexec=True)
         if result != 0:
             self.raiseError(' '.join(exp) + ' failed with error code %d' % result)
 
