@@ -51,7 +51,7 @@ share
 src=chandler/release/lib
 dest=release/lib
 recursive=yes
-glob=*.py,*.pyd,*.so,*.security,libgcj.so.5
+glob=*.py,*.pyd,*.so,*.security
 python2.5/compiler
 python2.5/curses
 python2.5/distutils
