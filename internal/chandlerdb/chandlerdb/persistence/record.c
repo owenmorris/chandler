@@ -807,7 +807,7 @@ int _t_record_write(t_record *self, unsigned char *data, int len)
 {
     int i, count, size, offset = 0;
     unsigned long long i64;
-    unsigned long i32;
+    unsigned int i32;
     unsigned short i16;
     unsigned char i8;
 
@@ -985,7 +985,7 @@ int _t_record_write(t_record *self, unsigned char *data, int len)
             size = PyString_GET_SIZE(value);
             if (offset + size + 4 > len)
                 goto overflow;
-            *((unsigned long *) (data + offset)) = htonl(size + 1);
+            *((unsigned int *) (data + offset)) = htonl(size + 1);
             offset += 4;
             memcpy(data + offset, PyString_AS_STRING(value), size);
             offset += size;
@@ -995,7 +995,7 @@ int _t_record_write(t_record *self, unsigned char *data, int len)
             size = PyString_GET_SIZE(value);
             if (offset + size + 4 > len)
                 goto overflow;
-            *((unsigned long *) (data + offset)) = htonl(-(size + 1));
+            *((unsigned int *) (data + offset)) = htonl(-(size + 1));
             offset += 4;
             memcpy(data + offset, PyString_AS_STRING(value), size);
             offset += size;
@@ -1014,7 +1014,7 @@ int _t_record_write(t_record *self, unsigned char *data, int len)
                 if (offset + size + 5 > len)
                     goto overflow;
                 data[offset++] = R_STRING;
-                *((unsigned long *) (data + offset)) = htonl(size + 1);
+                *((unsigned int *) (data + offset)) = htonl(size + 1);
                 offset += 4;
                 memcpy(data + offset, PyString_AS_STRING(value), size);
                 offset += size;
@@ -1026,7 +1026,7 @@ int _t_record_write(t_record *self, unsigned char *data, int len)
             if (offset + size + 5 > len)
                 goto overflow;
             data[offset++] = R_STRING;
-            *((unsigned long *) (data + offset)) = htonl(-(size + 1));
+            *((unsigned int *) (data + offset)) = htonl(-(size + 1));
             offset += 4;
             memcpy(data + offset, PyString_AS_STRING(value), size);
             offset += size;
@@ -1040,7 +1040,7 @@ int _t_record_write(t_record *self, unsigned char *data, int len)
                                   PyString_GET_SIZE(value));
             else
                 i32 = PyInt_AS_LONG(value);
-            *((unsigned long *) (data + offset)) = htonl(i32);
+            *((unsigned int *) (data + offset)) = htonl(i32);
             offset += 4;
             break;
 
@@ -1048,7 +1048,7 @@ int _t_record_write(t_record *self, unsigned char *data, int len)
             if (offset + 4 > len)
                 goto overflow;
             i32 = PyInt_AS_LONG(value);
-            *((unsigned long *) (data + offset)) = htonl(i32);
+            *((unsigned int *) (data + offset)) = htonl(i32);
             offset += 4;
             break;
 
@@ -1081,11 +1081,11 @@ int _t_record_write(t_record *self, unsigned char *data, int len)
             if (offset + 8 > len)
                 goto overflow;
             i64 = PyLong_AsUnsignedLongLong(value);
-            i32 = (unsigned long) (i64 >> 32);
-            *((unsigned long *) (data + offset)) = htonl(i32);
+            i32 = (unsigned int) (i64 >> 32);
+            *((unsigned int *) (data + offset)) = htonl(i32);
             offset += 4;
-            i32 = (unsigned long) (i64 & 0xffffffff);
-            *((unsigned long *) (data + offset)) = htonl(i32);
+            i32 = (unsigned int) (i64 & 0xffffffff);
+            *((unsigned int *) (data + offset)) = htonl(i32);
             offset += 4;
             break;
 
@@ -1108,9 +1108,9 @@ int _t_record_write(t_record *self, unsigned char *data, int len)
                   goto overflow;
 
               i32 = record->size + c32 + 4;
-              *(unsigned long *) (data + offset) = htonl(i32);
+              *(unsigned int *) (data + offset) = htonl(i32);
               offset += 4;
-              *(unsigned long *) (data + offset) = htonl(c32);
+              *(unsigned int *) (data + offset) = htonl(c32);
               offset += 4;
 
               for (v = 0; v < count; v += 2) {
@@ -1189,7 +1189,7 @@ static int _t_record_read_string(t_record *self, int *offset, PyObject **v,
 
 static PyObject *_t_record_unpack(unsigned char *data, int len)
 {
-    int count = ntohl(*(unsigned long *) data);
+    int count = ntohl(*(unsigned int *) data);
     PyObject *vtypes = PyTuple_New(count);
     t_record *record;
     int i, offset = 4;
@@ -1222,7 +1222,7 @@ int _t_record_read(t_record *self, unsigned char *data, int len)
     int count = PyList_GET_SIZE(pairs);
     int i, offset = 0;
     long long i64;
-    long i32;
+    int i32;
     short i16;
     double d64;
 
@@ -1360,7 +1360,7 @@ int _t_record_read(t_record *self, unsigned char *data, int len)
                   r_string:
                     if (offset + 4 <= len)
                     {
-                        size = *(unsigned long *) (data + offset);
+                        size = *(unsigned int *) (data + offset);
                         size = ntohl(size);
                         offset += 4;
 
@@ -1410,7 +1410,7 @@ int _t_record_read(t_record *self, unsigned char *data, int len)
                   case R_INT:
                     if (offset + 4 <= len)
                     {
-                        i32 = *(unsigned long *) (data + offset);
+                        i32 = *(unsigned int *) (data + offset);
                         i32 = ntohl(i32);
                         offset += 4;
                         v = PyInt_FromLong(i32);
@@ -1464,10 +1464,10 @@ int _t_record_read(t_record *self, unsigned char *data, int len)
                   case R_LONG:
                     if (offset + 8 <= len)
                     {
-                        i32 = *(unsigned long *) (data + offset);
+                        i32 = *(unsigned int *) (data + offset);
                         offset += 4;
                         i64 = ((unsigned long long) ntohl(i32)) << 32;
-                        i32 = *(unsigned long *) (data + offset);
+                        i32 = *(unsigned int *) (data + offset);
                         offset += 4;
                         i64 |= ntohl(i32);
                         v = PyLong_FromLongLong(i64);
@@ -1500,7 +1500,7 @@ int _t_record_read(t_record *self, unsigned char *data, int len)
                   case R_RECORD:
                     if (offset + 4 <= len)
                     {
-                        size = *(unsigned long *) (data + offset);
+                        size = *(unsigned int *) (data + offset);
                         size = ntohl(size);
                         offset += 4;
 
@@ -1570,14 +1570,14 @@ int _t_record_read(t_record *self, unsigned char *data, int len)
                 break;
 
               case R_STRING << 16:
-                size = *(long *) PyString_AS_STRING(v);
+                size = *(int *) PyString_AS_STRING(v);
                 size = ntohl(size);
                 Py_CLEAR(v);
                 goto r_string_read;
 
               case R_HASH << 16:
               case R_INT << 16:
-                i32 = *(long *) PyString_AS_STRING(v);
+                i32 = *(int *) PyString_AS_STRING(v);
                 i32 = ntohl(i32);
                 Py_DECREF(v);
                 value = PyInt_FromLong(i32);
@@ -1591,9 +1591,9 @@ int _t_record_read(t_record *self, unsigned char *data, int len)
                 break;
 
               case R_LONG << 16:
-                i32 = *(unsigned long *) PyString_AS_STRING(v);
+                i32 = *(unsigned int *) PyString_AS_STRING(v);
                 i64 = ((unsigned long long) ntohl(i32)) << 32;
-                i32 = *(unsigned long *) (PyString_AS_STRING(v) + 4);
+                i32 = *(unsigned int *) (PyString_AS_STRING(v) + 4);
                 i64 |= i32;
                 Py_DECREF(v);
                 value = PyLong_FromLongLong(i64);
@@ -1611,7 +1611,7 @@ int _t_record_read(t_record *self, unsigned char *data, int len)
                 break;
 
               case R_RECORD << 16:
-                size = *(unsigned long *) (PyString_AS_STRING(v));
+                size = *(unsigned int *) (PyString_AS_STRING(v));
                 size = ntohl(size);
                 Py_CLEAR(v);
                 goto r_record;

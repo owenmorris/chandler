@@ -57,7 +57,7 @@ PyObject *PyExc_DBRunRecoveryError = NULL;
 PyObject *Empty_TUPLE = NULL;
 PyObject *None_PAIR = NULL;
 PyObject *Nil = NULL;
-long recordCount = 0;
+int recordCount = 0;
 
 PyObject *raiseDBError(int err)
 {

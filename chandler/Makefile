@@ -41,11 +41,15 @@ ifeq ($(OS),Darwin)
 endif
 
 ifeq ($(OS),Linux)
-    PLATFORM         = linux
+    PLATFORM = linux
+    ARCH = $(shell uname -m)
     DISTRIB_CODENAME = $(subst DISTRIB_CODENAME=,,$(shell cat /etc/lsb-release | grep DISTRIB_CODENAME))
 
     ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy),)
         PLATFORM := $(PLATFORM)/$(DISTRIB_CODENAME)
+    endif
+    ifeq ($(ARCH),x86_64)
+        PLATFORM := $(PLATFORM)/$(ARCH)
     endif
 endif
 
@@ -72,7 +76,7 @@ DOCUTILS   = $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)2.tar.gz
 ZOPE       = $(CHANDLERARCHIVES)/zope.interface-$(SNAP)-3.3.0b2-r71371-$(BP)4.tar.gz
 
 ifeq ($(OS),Linux)
-    READLINE     =
+    READLINE =
     ifeq ($(PLATFORM),linux/feisty)
         PYTHON     =
         ICU        =
@@ -82,6 +86,17 @@ ifeq ($(OS),Linux)
     endif
 
     ifeq ($(PLATFORM),linux/gutsy)
+        OPENSSL    =
+        PYTHON     =
+        ICU        =
+        CONFIGOBJ  =
+        DOCUTILS   =
+        SETUPTOOLS =
+        ZOPE       =
+    endif
+
+    ifeq ($(PLATFORM),linux/gutsy/x86_64)
+        OPENJDK    = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b23-$(BP)3.tar.gz
         OPENSSL    =
         PYTHON     =
         ICU        =
@@ -118,8 +133,8 @@ ARCHIVES = \
     $(OPENSSL) \
     $(OPENJDK) \
     $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-0.18.2-$(BP)2.tar.gz \
-    $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.6-81-$(BP)2.tar.gz \
-    $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.2.0-1-359-$(BP)2.tar.gz \
+    $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.8-87-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.2.0-2-367-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/twisted-$(SNAP)-r18795-$(BP)3.tar.gz \
     $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.6.1-r198-$(BP)2.tar.gz \
     $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)6.tar.gz \

@@ -31,8 +31,8 @@ PyTypeObject *SkipList = NULL;
 
 PyObject *Nil = NULL, *Default = NULL, *Empty = NULL;
 PyObject *Empty_TUPLE = NULL;
-long pointCount = 0, nodeCount = 0, skipListCount = 0;
-long linkCount = 0, linkedMapCount = 0;
+int pointCount = 0, nodeCount = 0, skipListCount = 0;
+int linkCount = 0, linkedMapCount = 0;
 
 static PyObject *isuuid(PyObject *self, PyObject *obj)
 {
@@ -55,12 +55,12 @@ static PyObject *hash(PyObject *self, PyObject *args)
 
 static PyObject *combine(PyObject *self, PyObject *args)
 {
-    unsigned long h0, h1;
+    unsigned int h0, h1;
 
-    if (!PyArg_ParseTuple(args, "ll", &h0, &h1))
+    if (!PyArg_ParseTuple(args, "ii", &h0, &h1))
         return 0;
 
-    return PyInt_FromLong(combine_longs(h0, h1));
+    return PyInt_FromLong(combine_ints(h0, h1));
 }
 
 static PyObject *loadUUIDs(PyObject *self, PyObject *arg)
@@ -219,6 +219,8 @@ static PyObject *getPlatformName(PyObject *self)
     return PyString_FromString("darwin-ppc");
 #elif defined(linux) && defined(__i386__)
     return PyString_FromString("linux-i386");
+#elif defined(linux) && defined(__x86_64__)
+    return PyString_FromString("linux-x86_64");
 #elif defined(WINDOWS) && defined(_M_IX86)
     return PyString_FromString("win32-i386");
 #else

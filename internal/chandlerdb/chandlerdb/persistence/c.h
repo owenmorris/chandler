@@ -51,7 +51,7 @@
 
 typedef struct {
     PyObject_HEAD
-    unsigned long status;
+    unsigned int status;
     PyObject *store;
 } t_repository;
 
@@ -138,7 +138,7 @@ extern PyObject *Empty_TUPLE;
 extern PyObject *None_PAIR;
 extern PyObject *Nil;
 
-extern long recordCount;
+extern int recordCount;
 
 PyObject *raiseDBError(int err);
 void PyDict_SetItemString_Int(PyObject *dict, char *key, int value);

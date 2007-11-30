@@ -20,7 +20,6 @@
 OS=$(shell uname)
 OS_VER=$(shell uname -r)
 OS_MAJOR_VER=$(firstword $(subst ., ,$(OS_VER)))
-ARCH=$(shell arch)
 
 ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
 OS=Cygwin
@@ -79,6 +78,7 @@ endif
 ifeq ($(OS),Darwin)
     PLATFORM=macosx
     SWIG=$(PREFIX)/bin/swig
+    ARCH=$(shell arch)
     ifeq ($(ARCH),i386)
         UPLOAD=builder@builds.osafoundation.org:/www/docs/external/maciosx
     else
@@ -124,6 +124,7 @@ endif
 
 ifeq ($(OS),Linux)
     PLATFORM=linux
+    ARCH=$(shell uname -m)
     DISTRIB_CODENAME=$(subst DISTRIB_CODENAME=,,$(shell cat /etc/lsb-release | grep DISTRIB_CODENAME))
     SWIG=$(PREFIX)/bin/swig
     UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
@@ -158,6 +159,9 @@ ifeq ($(OS),Linux)
     endif
     READLINE_BUILD=
     OPENJDK_BUILD=openjdk
+    ifeq ($(ARCH),x86_64)
+        UPLOAD:=$(UPLOAD)/$(ARCH)
+    endif
 endif
 
 ifeq ($(CHANDLERHOME),)

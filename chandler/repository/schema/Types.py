@@ -368,7 +368,7 @@ class Integer(Type):
         return offset+1, data[offset]
 
     def hashValue(self, value):
-        return _hash(pack('>l', value))
+        return _hash(pack('>i', value))
 
 
 class Long(Type):

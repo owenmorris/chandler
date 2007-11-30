@@ -169,11 +169,11 @@ class IndexContainer(FileContainer):
         if value is None:
             return 0
         else:
-            return unpack('>l', value)[0]
+            return unpack('>i', value)[0]
 
     def setIndexVersion(self, version):
 
-        self.put(VersionContainer.VERSION_KEY, pack('>l', version),
+        self.put(VersionContainer.VERSION_KEY, pack('>i', version),
                  self._blocks)
         
     def getDirectory(self):

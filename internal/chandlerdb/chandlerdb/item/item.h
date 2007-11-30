@@ -24,8 +24,8 @@
 
 
 #define Item_HEAD                   \
-    unsigned long status;           \
-    unsigned long version;          \
+    unsigned int status;            \
+    unsigned int version;           \
     PyObject *name;
 
 
@@ -47,7 +47,7 @@ typedef struct {
 typedef struct _t_item {
     PyObject_HEAD
     Item_HEAD
-    unsigned long lastAccess;
+    unsigned int lastAccess;
     t_itemref *ref;
     t_values *values;
     t_values *references;

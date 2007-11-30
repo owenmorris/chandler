@@ -64,15 +64,15 @@ static unsigned char hTable[] = {
      89, 129, 232,   1, 147, 123,  57, 122,
 };
 
-long hash_bytes(unsigned char *uuid, int len)
+int hash_bytes(unsigned char *uuid, int len)
 {
-    unsigned long hash = 0xdeadbeef;
+    unsigned int hash = 0xdeadbeef;
     int i = -1;
 
     while (++i < len) {
         unsigned char source = uuid[i];
         unsigned char byte = hTable[(unsigned char) ((hash & 0xff) ^ source)];
-        unsigned long newHash = byte;
+        unsigned int newHash = byte;
 
         hash >>= 8;
         byte = hTable[(unsigned char) ((hash & 0xff) ^ (source + 1))];
@@ -92,7 +92,7 @@ long hash_bytes(unsigned char *uuid, int len)
     return hash;
 }
 
-static unsigned char chew_long(unsigned long n)
+static unsigned char chew_int(unsigned int n)
 {
     unsigned char hash = hTable[0 ^ (n & 0xff)];
 
@@ -108,24 +108,24 @@ static unsigned char chew_long(unsigned long n)
     return hash;
 }
 
-static long hash_long(unsigned long n)
+static int hash_int(unsigned int n)
 {
-    unsigned long hash;
+    unsigned int hash;
 
-    hash = chew_long(n);
-    hash |= chew_long(++n) << 8;
-    hash |= chew_long(++n) << 16;
-    hash |= chew_long(++n) << 24;
+    hash = chew_int(n);
+    hash |= chew_int(++n) << 8;
+    hash |= chew_int(++n) << 16;
+    hash |= chew_int(++n) << 24;
 
-    return hash ? hash : hash_long(++n);
+    return hash ? hash : hash_int(++n);
 }
 
-long combine_longs(unsigned long h0, unsigned long h1)
+int combine_ints(unsigned int h0, unsigned int h1)
 {
-    unsigned long hash;
+    unsigned int hash;
 
-    while (!(hash = hash_long(h0 + h1)))
-        h0 = hash_long(h0);
+    while (!(hash = hash_int(h0 + h1)))
+        h0 = hash_int(h0);
 
     return hash;
 }
@@ -638,13 +638,13 @@ void format64_uuid(unsigned char *uuid, char *buf)
 {
     unsigned __int64 l;
 
-    l = ((unsigned __int64) ntohl(*(unsigned long *) uuid)) << 32 |
-        (unsigned __int64) (ntohl(*(unsigned long *) (uuid + 4)) &
+    l = ((unsigned __int64) ntohl(*(unsigned int *) uuid)) << 32 |
+        (unsigned __int64) (ntohl(*(unsigned int *) (uuid + 4)) &
                             0xffffffff);
     get64Bytes(uuid, buf, 0, l);
 
-    l = ((unsigned __int64) ntohl(*(unsigned long *) (uuid + 8))) << 32 |
-        (unsigned __int64) (ntohl(*(unsigned long *) (uuid + 12)) &
+    l = ((unsigned __int64) ntohl(*(unsigned int *) (uuid + 8))) << 32 |
+        (unsigned __int64) (ntohl(*(unsigned int *) (uuid + 12)) &
                             0xffffffff);
     get64Bytes(uuid, buf, 11, l);
 }

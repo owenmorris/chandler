@@ -69,7 +69,7 @@ extern _t_view_invokeMonitors_fn _t_view_invokeMonitors;
 extern _t_persistentvalue_init_fn _t_persistentvalue_init;
 extern PyUUID_Check_fn PyUUID_Check;
 extern C_countAccess_fn C_countAccess;
-extern long itemCount, indexCount;
+extern int itemCount, indexCount;
 
 extern CAttribute_invokeAfterChange_fn CAttribute_invokeAfterChange;
 

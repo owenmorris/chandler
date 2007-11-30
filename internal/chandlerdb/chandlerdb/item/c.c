@@ -41,7 +41,7 @@ PyObject *Nil = NULL;
 PyObject *Default = NULL;
 PyObject *True_TUPLE = NULL;
 PyObject *Empty_TUPLE = NULL;
-long itemCount = 0, indexCount = 0;
+int itemCount = 0, indexCount = 0;
 
 _t_view_invokeMonitors_fn _t_view_invokeMonitors;
 _t_persistentvalue_init_fn _t_persistentvalue_init;

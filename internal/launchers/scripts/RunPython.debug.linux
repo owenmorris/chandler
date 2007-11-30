@@ -26,7 +26,15 @@ else
     exit 1
 fi
 
-export LD_LIBRARY_PATH="$CHANDLERBIN"/debug/lib:"$CHANDLERBIN"/debug/db/lib:"$CHANDLERBIN"/debug/j2re-image/lib/i386:"$CHANDLERBIN"/debug/j2re-image/lib/i386/client
+if [ "`uname -m`" = "x86_64" ]; then
+    arch=amd64
+    vm=server
+else
+    arch=i386
+    vm=client
+fi
+
+export LD_LIBRARY_PATH="$CHANDLERBIN"/debug/lib:"$CHANDLERBIN"/debug/db/lib:"$CHANDLERBIN"/debug/j2re-image/lib/$arch:"$CHANDLERBIN"/debug/j2re-image/lib/$arch/$vm
 
 if [ -d "$CHANDLERBIN/debug/icu" ]; then
     export LD_LIBRARY_PATH="$CHANDLERBIN"/debug/icu/lib:$LD_LIBRARY_PATH

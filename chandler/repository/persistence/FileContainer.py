@@ -198,14 +198,14 @@ class File(object):
         if value is None:
             return False
         
-        zero, self.length, self.timeModified, uuid = unpack('>LLQ16s', value)
+        zero, self.length, self.timeModified, uuid = unpack('>IIQ16s', value)
         self._uuid = UUID(uuid)
 
         return True
 
     def modify(self, length, timeModified):
 
-        data = pack('>LLQ16s', 0L, length, timeModified, self.getKey()._uuid)
+        data = pack('>IIQ16s', 0L, length, timeModified, self.getKey()._uuid)
         self._container.put(self._key, data)
         
         self.length = length
@@ -258,7 +258,7 @@ class Block(object):
         super(Block, self).__init__()
 
         self._container = container
-        self._key = pack('>16sll', file.getKey()._uuid, 0L, 0L)
+        self._key = pack('>16sii', file.getKey()._uuid, 0L, 0L)
         self._data = None
         self._position = 0
         self._len = 0
@@ -274,7 +274,7 @@ class Block(object):
     def seek(self, position, write=False):
 
         position = int(position)
-        key = pack('>16sll', self._key[0:16], 0,
+        key = pack('>16sii', self._key[0:16], 0,
                    position >> self._container.BLOCK_SHIFT)
 
         if self._data is None or key != self._key:

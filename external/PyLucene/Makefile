@@ -1,7 +1,7 @@
 
-VERSION=2.2.0-1-$(SVNVER)
-SVNVER=359
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
+VERSION=2.2.0-2-$(SVNVER)
+SVNVER=367
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-$(VERSION)
 BUILD=$(SNAP)
@@ -23,7 +23,6 @@ JCC_ENV=
 ENV=
 
 ifeq ($(DEBUG),1)
-CFLAGS=-O0
 DEBUG_OPT=--debug
 endif
 
@@ -31,22 +30,28 @@ endif
 
 ifeq ($(OS),Linux)
 
+ifeq ($(ARCH),x86_64)
+NUM_FILES=2
+arch=amd64
+vm=server
+else
 NUM_FILES=1
+arch=i386
+vm=client
+endif
+
 JDK=$(BUILD_ROOT)/openjdk/j2sdk-image
 JRE=$(BUILD_ROOT)/openjdk/j2re-image
 ANT="$(BUILD_ROOT)/openjdk/apache-ant-1.7.0/bin/ant"
 JCC_ENV=\
   JCC_INCLUDES="$(JDK)/include:$(JDK)/include/linux" \
-  JCC_LFLAGS="-L$(JDK)/jre/lib/i386:-ljava"
+  JCC_LFLAGS="-L$(JDK)/jre/lib/$(arch):-ljava"
 ENV=\
-  LD_LIBRARY_PATH="$(JRE)/lib/i386:$(JRE)/lib/i386/client:$(LD_LIBRARY_PATH)" \
+  LD_LIBRARY_PATH="$(JRE)/lib/$(arch):$(JRE)/lib/$(arch)/$(vm):$(LD_LIBRARY_PATH)" \
   JAVA_HOME="$(JDK)"
 
 ifeq ($(DEBUG),1)
-CFLAGS=-O0 -fno-strict-aliasing
 DEBUG_OPT=--debug
-else
-CFLAGS=-fno-strict-aliasing
 endif
 
 endif
@@ -65,7 +70,8 @@ ENV=\
   JAVA_HOME=`cygpath -aw "$(JDK)"`
 
 ifeq ($(DEBUG),1)
-CFLAGS=/Od /DPy_DEBUG=1
+ENV:=$(ENV) \
+  CFLAGS=/Od /DPy_DEBUG=1
 DEBUG_OPT=--debug
 endif
 
@@ -86,14 +92,13 @@ clean:
 build: expand
 	rm -rf $(SRC)/jcc/build
 	rm -rf $(SRC)/build
-	cd $(SRC)/jcc; CFLAGS="$(CFLAGS)" $(JCC_ENV) \
+	cd $(SRC)/jcc; $(ENV) $(JCC_ENV) \
                        $(PYTHON) setup.py build $(DEBUG_OPT) install
 	$(ENV) $(MAKE) -C $(SRC) \
             PYTHON="$(PYTHON)" \
             ANT=$(ANT) \
             JCC="$(PYTHON) -m jcc" \
             NUM_FILES=$(NUM_FILES) \
-            CFLAGS="$(CFLAGS)" \
             DEBUG=$(DEBUG) \
           compile install
 

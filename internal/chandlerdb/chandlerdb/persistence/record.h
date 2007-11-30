@@ -39,7 +39,7 @@ enum {
     R_STRING,            /* str or utf-8 unicode, 0 <= len <= 1^31 - 1     */
     R_STRING_OR_NONE,
     R_HASH,              /* hash of str or utf-8 unicode                   */
-    R_INT,               /* 32 bit signed long int                         */
+    R_INT,               /* 32 bit signed int                              */
     R_SHORT,             /* 16 bit signed short int                        */
     R_BYTE,              /* 8 bit unsigned char                            */
     R_BOOLEAN,           /* 8 bit R_TRUE, R_FALSE or R_NONE                */

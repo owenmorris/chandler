@@ -1239,7 +1239,7 @@ static PyObject *t_ref_container_find_ref(t_ref_container *self, PyObject *args)
     PyObject *cursor, *uCol, *uKey, *dataTypes;
     int flags = 0, err;
     char keyBuffer[36], keyData[36];
-    unsigned long version;
+    unsigned int version;
     DBT key;
     t_data_dbt data;
     DBC *dbc;
@@ -1336,7 +1336,7 @@ static int _t_ref_container_historyKey(DB *secondary,
                                        DBT *result)
 {
     char *buffer = (char *) malloc(36);
-    unsigned long version = ~*(unsigned long *) ((char *) key->data + 32);
+    unsigned int version = ~*(unsigned int *) ((char *) key->data + 32);
 
     if (!buffer)
         return ENOMEM;
@@ -1491,7 +1491,7 @@ static int _t_item_container_versionKey(DB *secondary,
                                         DBT *result)
 {
     char *buffer = (char *) malloc(20);
-    unsigned long version = ~*(unsigned long *) ((char *) key->data + 16);
+    unsigned int version = ~*(unsigned int *) ((char *) key->data + 16);
 
     if (!buffer)
         return ENOMEM;
@@ -1517,7 +1517,7 @@ static PyObject *t_item_container_setItemStatus(t_item_container *self,
                                                 PyObject *args)
 {
     PyObject *txn, *uItem;
-    unsigned long version;
+    unsigned int version;
     unsigned int status;
 
     if (!PyArg_ParseTuple(args, "OkOi", &txn, &version, &uItem, &status))
@@ -1544,7 +1544,7 @@ static PyObject *t_item_container_setItemStatus(t_item_container *self,
         int err;
 
         memcpy(keyBuffer, PyString_AS_STRING(((t_uuid *) uItem)->uuid), 16);
-        *((unsigned long *) (&keyBuffer[16])) = htonl(~(unsigned long) version);
+        *((unsigned int *) (&keyBuffer[16])) = htonl(~(unsigned int) version);
 
         memset(&key, 0, sizeof(key));
         key.data = keyBuffer;
@@ -1615,7 +1615,7 @@ static PyObject *t_item_container_findItem(t_item_container *self,
                                            PyObject *args)
 {
     PyObject *view, *uuid, *dataTypes, *key, *record, *foundItem;
-    unsigned long version;
+    unsigned int version;
 
     if (!PyArg_ParseTuple(args, "OiOO", &view, &version, &uuid, &dataTypes))
         return NULL;
@@ -1792,7 +1792,7 @@ static PyObject *t_indexes_container_loadKey(t_indexes_container *self,
 {
     PyObject *view, *uIndex, *uKey, *record;
     PyObject *node = NULL, *key, *dataTypes;
-    unsigned long version;
+    unsigned int version;
 
     if (!PyArg_ParseTuple(args, "OOiO", &view, &uIndex, &version, &uKey))
         return NULL;

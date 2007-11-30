@@ -36,8 +36,8 @@ extern PyTypeObject *SkipList;
 extern PyObject *inList, *outList;
 extern PyObject *Nil, *Default, *Empty;
 extern PyObject *Empty_TUPLE;
-extern long pointCount, nodeCount, skipListCount;
-extern long linkCount, linkedMapCount;
+extern int pointCount, nodeCount, skipListCount;
+extern int linkCount, linkedMapCount;
 
 void PyDict_SetItemString_Int(PyObject *, char *, int);
 

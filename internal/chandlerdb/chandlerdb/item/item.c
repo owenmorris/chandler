@@ -1095,7 +1095,7 @@ static PyObject *t_item__fillItem(t_item *self, PyObject *args)
 {
     PyObject *name, *parent, *kind, *uuid, *view, *values, *references, *hooks;
     int status, update;
-    unsigned long version;
+    unsigned int version;
     PyObject *result;
     t_itemref *ref;
 
@@ -1779,7 +1779,7 @@ static PyObject *t_item__getVersion(t_item *self, void *data)
 
 static int t_item__setVersion(t_item *self, PyObject *value, void *data)
 {
-    unsigned long version;
+    unsigned int version;
 
     if (!value)
         version = 0;

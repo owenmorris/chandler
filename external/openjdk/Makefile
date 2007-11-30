@@ -1,6 +1,6 @@
 
-JDK_VERSION=7-ea-j2sdk-b21
-JRE_VERSION=7-ea-j2re-b21
+JDK_VERSION=7-ea-j2sdk-b$(OPENJDK_BN)
+JRE_VERSION=7-ea-j2re-b$(OPENJDK_BN)
 ANT_VERSION=1.7.0
 RELVER=$(JRE_VERSION)-$(BRANCH_REV_PREFIX)3
 OPENJDK=$(BUILD_ROOT)/openjdk
@@ -10,27 +10,35 @@ SRC=$(OPENJDK)/none
 
 include $(BUILD_ROOT)/Makefile.inc
 
+ifeq ($(ARCH),x86_64)
+OPENJDK_BN=23
+arch=64
+else
+OPENJDK_BN=21
+arch=
+endif
+
 TARBALL=openjdk-$(RELVER).tar.gz
 
-openjdk-$(JDK_VERSION)-$(OS).tar.bz2:
+openjdk-$(JDK_VERSION)-$(OS)$(arch).tar.bz2:
 	$(CURL) http://builds.osafoundation.org/external/$@
 
-openjdk-$(JRE_VERSION)-$(OS).tar.bz2:
+openjdk-$(JRE_VERSION)-$(OS)$(arch).tar.bz2:
 	$(CURL) http://builds.osafoundation.org/external/$@
 
 apache-ant-$(ANT_VERSION)-bin.tar.bz2:
 	$(CURL) http://builds.osafoundation.org/external/$@
 
 # we're using pre-built openjdk and ant binaries as "sources" at the moment
-sources: openjdk-$(JDK_VERSION)-$(OS).tar.bz2 \
-         openjdk-$(JRE_VERSION)-$(OS).tar.bz2 \
+sources: openjdk-$(JDK_VERSION)-$(OS)$(arch).tar.bz2 \
+         openjdk-$(JRE_VERSION)-$(OS)$(arch).tar.bz2 \
          apache-ant-$(ANT_VERSION)-bin.tar.bz2
 
-openjdk-$(JDK_VERSION)-expanded: openjdk-$(JDK_VERSION)-$(OS).tar.bz2
+openjdk-$(JDK_VERSION)-expanded: openjdk-$(JDK_VERSION)-$(OS)$(arch).tar.bz2
 	tar -xvjf $<
 	touch $@
 
-openjdk-$(JRE_VERSION)-expanded: openjdk-$(JRE_VERSION)-$(OS).tar.bz2
+openjdk-$(JRE_VERSION)-expanded: openjdk-$(JRE_VERSION)-$(OS)$(arch).tar.bz2
 	tar -xvjf $<
 	touch $@
 

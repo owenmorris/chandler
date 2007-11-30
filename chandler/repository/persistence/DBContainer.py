@@ -440,7 +440,7 @@ class RefContainer(DBContainer):
             else:
                 prevValue = None
                 while value is not None and value[0].startswith(key):
-                    version = ~unpack('>l', value[0][32:36])[0]
+                    version = ~unpack('>i', value[0][32:36])[0]
                     if version < toVersion:
                         if (prevValue is not None and
                             prevValue[0][16:32] == value[0][16:32]):
@@ -468,7 +468,7 @@ class RefContainer(DBContainer):
             value = cursor.set_range(key, flags, None)
 
             while value is not None and value[0].startswith(key):
-                keyVer = ~unpack('>l', value[0][32:36])[0]
+                keyVer = ~unpack('>i', value[0][32:36])[0]
                 if keyVer == version:
                     cursor.delete(flags)
                 value = cursor.next(flags, None)
@@ -514,7 +514,7 @@ class NamesContainer(DBContainer):
             else:
                 prevValue = None
                 while value is not None and value[0].startswith(key):
-                    version = ~unpack('>l', value[0][-4:])[0]
+                    version = ~unpack('>i', value[0][-4:])[0]
                     if version < toVersion:
                         if (prevValue is not None and
                             prevValue[0][16:20] == value[0][16:20]):
@@ -540,7 +540,7 @@ class NamesContainer(DBContainer):
             value = cursor.set_range(key, flags, None)
 
             while value is not None and value[0].startswith(key):
-                nameVer = ~unpack('>l', value[0][-4:])[0]
+                nameVer = ~unpack('>i', value[0][-4:])[0]
                 if nameVer == version:
                     cursor.delete(flags)
                 value = cursor.next(flags, None)
@@ -768,7 +768,7 @@ class IndexesContainer(DBContainer):
             else:
                 prevValue = None
                 while value is not None and value[0].startswith(key):
-                    version = ~unpack('>l', value[0][32:36])[0]
+                    version = ~unpack('>i', value[0][32:36])[0]
                     if version < toVersion:
                         if (prevValue is not None and
                             prevValue[0][16:32] == value[0][16:32]):
@@ -794,7 +794,7 @@ class IndexesContainer(DBContainer):
             value = cursor.set_range(key, flags, None)
 
             while value is not None and value[0].startswith(key):
-                keyVer = ~unpack('>l', value[0][32:36])[0]
+                keyVer = ~unpack('>i', value[0][32:36])[0]
                 if keyVer == version:
                     cursor.delete(flags)
                 value = cursor.next(flags, None)
@@ -1044,7 +1044,7 @@ class ItemContainer(DBContainer):
 
     def purgeItem(self, txn, counter, uuid, version):
 
-        self.delete(pack('>16sl', uuid._uuid, ~version), txn)
+        self.delete(pack('>16si', uuid._uuid, ~version), txn)
         if counter is not None:
             counter.itemCount += 1
 
@@ -1513,10 +1513,10 @@ class VersionContainer(DBContainer):
 
     FORMAT_VERSION = 0x00070a00
 
-    SCHEMA_KEY  = pack('>16sl', Repository.itsUUID._uuid, 0)
-    VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 1)
-    VIEW_KEY = pack('>16sl', Repository.itsUUID._uuid, 2)
-    MIN_VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 3)
+    SCHEMA_KEY  = pack('>16si', Repository.itsUUID._uuid, 0)
+    VERSION_KEY = pack('>16si', Repository.itsUUID._uuid, 1)
+    VIEW_KEY = pack('>16si', Repository.itsUUID._uuid, 2)
+    MIN_VERSION_KEY = pack('>16si', Repository.itsUUID._uuid, 3)
 
     VIEW_DATA_TYPES = (Record.INT,       # status
                        Record.SYMBOL,    # timezone
@@ -1542,7 +1542,7 @@ class VersionContainer(DBContainer):
 
         if kwds.get('create', False):
             self._db.put(VersionContainer.SCHEMA_KEY,
-                         pack('>16sll', UUID()._uuid,
+                         pack('>16sii', UUID()._uuid,
                               format_version, schema_version), txn)
         else:
             try:
@@ -1562,7 +1562,7 @@ class VersionContainer(DBContainer):
         if value is None:
             raise AssertionError, 'schema record is missing'
 
-        versionId, format, schema = unpack('>16sll', value)
+        versionId, format, schema = unpack('>16sii', value)
 
         return UUID(versionId), format, schema
         
@@ -1626,17 +1626,17 @@ class VersionContainer(DBContainer):
         if value is None:
             return 0
         else:
-            return unpack('>l', value)[0]
+            return unpack('>i', value)[0]
 
     def setVersion(self, version):
 
-        self._db.put(VersionContainer.VERSION_KEY, pack('>l', version),
+        self._db.put(VersionContainer.VERSION_KEY, pack('>i', version),
                      self.store.txn)
 
     def nextVersion(self):
 
         version = self.getVersion() + 1
-        self._db.put(VersionContainer.VERSION_KEY, pack('>l', version),
+        self._db.put(VersionContainer.VERSION_KEY, pack('>i', version),
                      self.store.txn)
 
         return version
@@ -1648,11 +1648,11 @@ class VersionContainer(DBContainer):
         if value is None:
             return 0
         else:
-            return unpack('>l', value)[0]
+            return unpack('>i', value)[0]
 
     def setMinVersion(self, version):
 
-        self._db.put(VersionContainer.MIN_VERSION_KEY, pack('>l', version),
+        self._db.put(VersionContainer.MIN_VERSION_KEY, pack('>i', version),
                      self.store.txn)
 
     def purgeViewData(self, txn, counter, toVersion):
@@ -1673,7 +1673,7 @@ class VersionContainer(DBContainer):
                     value = cursor.next(flags, None)
             else:
                 while value is not None and value[0].startswith(key):
-                    version = unpack('>l', value[0][20:24])[0]
+                    version = unpack('>i', value[0][20:24])[0]
                     if version < toVersion:
                         value = cursor.delete(flags)
                         counter.valueCount += 1
@@ -1688,7 +1688,7 @@ class CommitsContainer(DBContainer):
 
     def logCommit(self, view, version, commitCount):
 
-        key = pack('>l', version)
+        key = pack('>i', version)
         data = pack('>Qii', long(time() * 1000), len(view),
                     commitCount) + view.name
 
@@ -1696,7 +1696,7 @@ class CommitsContainer(DBContainer):
 
     def getCommit(self, version):
 
-        data = self.get(pack('>l', version))
+        data = self.get(pack('>i', version))
         if data is not None:
             return self._readCommit(data)
 
@@ -1704,7 +1704,7 @@ class CommitsContainer(DBContainer):
 
     def purgeCommit(self, version):
 
-        self.delete(pack('>l', version))
+        self.delete(pack('>i', version))
 
     def _readCommit(self, data):
 
@@ -1740,12 +1740,12 @@ class CommitsContainer(DBContainer):
                 _self.cursor = self.c.openCursor()
                 
                 try:
-                    value = _self.cursor.set_range(pack('>l', fromVersion),
+                    value = _self.cursor.set_range(pack('>i', fromVersion),
                                                    self.c.flags, None)
 
                     while value is not None:
                         key, data = value
-                        version, = unpack('>l', key)
+                        version, = unpack('>i', key)
                         if toVersion and version > toVersion:
                             break
 

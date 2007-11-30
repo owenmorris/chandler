@@ -660,7 +660,7 @@ static int t_view__setVersion(t_view *self, PyObject *version, void *data)
 
 static int t_view__set_version(t_view *self, PyObject *value, void *data)
 {
-    unsigned long version;
+    unsigned int version;
 
     if (PyInt_Check(value))
         version = PyInt_AS_LONG(value);
