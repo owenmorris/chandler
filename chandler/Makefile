@@ -12,6 +12,7 @@ OS_VER       = $(shell uname -r)
 OS_MAJOR_VER = $(firstword $(subst ., ,$(OS_VER)))
 PYTHON_VER   = 2.5
 BP           =
+LOCALE_VER   = trunk
 
 BUILD_PLUGINS = Chandler-HelloWorldPlugin \
                 Chandler-AmazonPlugin \
@@ -284,7 +285,7 @@ $(addprefix install-, $(BUILD_PLUGINS)):
 
 $(addprefix develop-, $(BUILD_LOCALES)):
 	if [ -d "$(C_HOME)/localizations" ]; then \
-	    svn export http://svn.osafoundation.org/localizations/chandler/trunk/$(subst develop-,,$@) $(C_HOME)/localizations/$(subst develop-,,$@) ; \
+	    svn export http://svn.osafoundation.org/localizations/chandler/$(LOCALE_VER)/$(subst develop-,,$@) $(C_HOME)/localizations/$(subst develop-,,$@) ; \
 	fi
 
 $(addprefix create-, $(BUILD_LOCALES)):
@@ -331,11 +332,11 @@ endif
 
 archives: $(ARCHIVES) $(ARCHIVES_INST)
 
-install-core: archives manifest_exe chandler-locale-data 
+install-core: archives manifest_exe chandler-locale-data
 
 develop-locales: $(addprefix develop-, $(BUILD_LOCALES))
 
-create-locales: $(addprefix create-, $(BUILD_LOCALES))
+create-locales: develop-locales $(addprefix create-, $(BUILD_LOCALES))
 
 install-locales: create-locales $(addprefix install-, $(BUILD_LOCALES))
 
