@@ -240,6 +240,7 @@ URL   = http://$(HOST)/external
 P_URL = $(URL)/$(PLATFORM)
 
 PLUGIN_INST = $(C_HOME)/plugins
+LOCALE_SRC  = $(C_HOME)/localizations/
 TOOLS       = $(C_HOME)/tools/
 
 #
@@ -249,6 +250,7 @@ TOOLS       = $(C_HOME)/tools/
 #
 ifeq ($(OS),Cygwin)
     PLUGIN_INST := $(shell cygpath -aw $(PLUGIN_INST))
+    LOCALE_SRC  := $(shell cygpath -aw $(LOCALE_SRC))\\
     TOOLS       := $(shell cygpath -aw $(TOOLS))\\
     SCRIPTS     := $(shell cygpath -wa $(SCRIPTS))\\
 endif
@@ -283,24 +285,15 @@ $(addprefix install-, $(BUILD_PLUGINS)):
           --script-dir='$(PLUGIN_INST)' \
           --install-dir='$(PLUGIN_INST)' .
 
-$(addprefix develop-, $(BUILD_LOCALES)):
-	if [ -d "$(C_HOME)/localizations" ]; then \
-	    rm -rf $(C_HOME)/localizations/$(subst develop-,,$@) ;\
-	    svn export http://svn.osafoundation.org/localizations/chandler/$(LOCALE_VER)/$(subst develop-,,$@) $(C_HOME)/localizations/$(subst develop-,,$@) ; \
-	fi
-
-$(addprefix create-, $(BUILD_LOCALES)):
-	if [ -d "$(C_HOME)/localizations/$(subst create-,,$@)" ]; then \
-	    $(RUN_PYTHON) tools/createTranslationEgg.py -c --dist \
-	                  -l $(subst create-,,$@) \
-                      -f $(C_HOME)/localizations/$(subst create-,,$@)/Chandler-$(subst create-,,$@).po \
-                      -d $(C_HOME)/localizations ; \
-	fi
-
 $(addprefix install-, $(BUILD_LOCALES)):
-	if [ -f "$(C_HOME)/localizations/Chandler.$(subst install-,,$@)-1.0-$(PYTHON_VER).egg" ]; then \
-	    $(RUN_PYTHON) -m easy_install $(C_HOME)/localizations/Chandler.$(subst install-,,$@)-1.0-$(PYTHON_VER).egg ; \
-	fi
+	rm -rf $(C_HOME)/localizations/$(subst install-,,$@)
+	svn export http://svn.osafoundation.org/localizations/chandler/$(LOCALE_VER)/$(subst install-,,$@) $(C_HOME)/localizations/$(subst install-,,$@)
+	$(RUN_PYTHON) tools/createTranslationEgg.py -c --dist \
+                  -l $(subst install-,,$@) \
+                  -f $(LOCALE_SRC)$(subst install-,,$@)/Chandler-$(subst install-,,$@).po \
+                  -d $(LOCALE_SRC)
+	#cd $(LOCALE_SRC); DISTUTILS_DEBUG=yes $(RUN_PYTHON) -m easy_install -v -x --install-dir=$(C_HOME)/$(SNAP)/site-packages \
+    #                                ./Chandler.$(subst install-,,$@)-1.0-$(PYTHON_VER).egg
 
 chandler-locale-data:
 	$(RUN_PYTHON) setup.py egg_info
@@ -333,15 +326,9 @@ endif
 
 archives: $(ARCHIVES) $(ARCHIVES_INST)
 
-install-core: archives manifest_exe chandler-locale-data
+install-core: archives manifest_exe chandler-locale-data install-locales
 
-develop-locales: $(addprefix develop-, $(BUILD_LOCALES))
-
-create-locales: develop-locales $(addprefix create-, $(BUILD_LOCALES))
-
-install-locales: create-locales $(addprefix install-, $(BUILD_LOCALES))
-
-distrib-locales: create-locales
+install-locales: $(addprefix install-, $(BUILD_LOCALES))
 
 plugins: $(addprefix develop-, $(BUILD_PLUGINS))
 
