@@ -289,14 +289,12 @@ $(addprefix install-, $(BUILD_PLUGINS)):
 ifeq ($(OS),Darwin)
     ifeq ($(OS_MAJOR_VER),9)
         LOCALE_INST = --install-dir=$(C_HOME)/$(SNAP)/site-packages
-    else
-        LOCALE_INST = 
     endif
 endif
 
 ifeq ($(OS),Linux)
     ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy),)
-        LOCALE_INST := --install-dir=$(C_HOME)/$(SNAP)/site-packages
+        LOCALE_INST = --install-dir=$(C_HOME)/$(SNAP)/site-packages
     endif
 endif
 
