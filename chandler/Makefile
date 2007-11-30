@@ -290,10 +290,10 @@ $(addprefix install-, $(BUILD_LOCALES)):
 	svn export http://svn.osafoundation.org/localizations/chandler/$(LOCALE_VER)/$(subst install-,,$@) $(C_HOME)/localizations/$(subst install-,,$@)
 	$(RUN_PYTHON) tools/createTranslationEgg.py -c --dist \
                   -l $(subst install-,,$@) \
-                  -f $(LOCALE_SRC)$(subst install-,,$@)/Chandler-$(subst install-,,$@).po \
-                  -d $(LOCALE_SRC)
-	#cd $(LOCALE_SRC); DISTUTILS_DEBUG=yes $(RUN_PYTHON) -m easy_install -v -x --install-dir=$(C_HOME)/$(SNAP)/site-packages \
-    #                                ./Chandler.$(subst install-,,$@)-1.0-$(PYTHON_VER).egg
+                  -f '$(LOCALE_SRC)'$(subst install-,,$@)/Chandler-$(subst install-,,$@).po \
+                  -d '$(LOCALE_SRC)'
+	cd $(LOCALE_SRC); $(RUN_PYTHON) -m easy_install -x --install-dir=$(C_HOME)/$(SNAP)/site-packages \
+                                    ./Chandler.$(subst install-,,$@)-1.0-py$(PYTHON_VER).egg
 
 chandler-locale-data:
 	$(RUN_PYTHON) setup.py egg_info
