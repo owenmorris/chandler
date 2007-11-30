@@ -13,6 +13,7 @@ OS_MAJOR_VER = $(firstword $(subst ., ,$(OS_VER)))
 PYTHON_VER   = 2.5
 BP           =
 LOCALE_VER   = trunk
+LOCALE_INST  = 
 
 BUILD_PLUGINS = Chandler-HelloWorldPlugin \
                 Chandler-AmazonPlugin \
@@ -42,8 +43,8 @@ ifeq ($(OS),Darwin)
 endif
 
 ifeq ($(OS),Linux)
-    PLATFORM = linux
-    ARCH = $(shell uname -m)
+    PLATFORM         = linux
+    ARCH             = $(shell uname -m)
     DISTRIB_CODENAME = $(subst DISTRIB_CODENAME=,,$(shell cat /etc/lsb-release | grep DISTRIB_CODENAME))
 
     ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy),)
@@ -285,6 +286,20 @@ $(addprefix install-, $(BUILD_PLUGINS)):
           --script-dir='$(PLUGIN_INST)' \
           --install-dir='$(PLUGIN_INST)' .
 
+ifeq ($(OS),Darwin)
+    ifeq ($(OS_MAJOR_VER),9)
+        LOCALE_INST = --install-dir=$(C_HOME)/$(SNAP)/site-packages
+    else
+        LOCALE_INST = 
+    endif
+endif
+
+ifeq ($(OS),Linux)
+    ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy),)
+        LOCALE_INST := --install-dir=$(C_HOME)/$(SNAP)/site-packages
+    endif
+endif
+
 $(addprefix install-, $(BUILD_LOCALES)):
 	rm -rf $(C_HOME)/localizations/$(subst install-,,$@)
 	svn export http://svn.osafoundation.org/localizations/chandler/$(LOCALE_VER)/$(subst install-,,$@) $(C_HOME)/localizations/$(subst install-,,$@)
@@ -292,8 +307,7 @@ $(addprefix install-, $(BUILD_LOCALES)):
                   -l $(subst install-,,$@) \
                   -f '$(LOCALE_SRC)'$(subst install-,,$@)/Chandler-$(subst install-,,$@).po \
                   -d '$(LOCALE_SRC)'
-	cd $(LOCALE_SRC); $(RUN_PYTHON) -m easy_install -x --install-dir=$(C_HOME)/$(SNAP)/site-packages \
-                                    ./Chandler.$(subst install-,,$@)-1.0-py$(PYTHON_VER).egg
+	cd $(LOCALE_SRC); $(RUN_PYTHON) -m easy_install -x $(LOCALE_INST) ./Chandler.$(subst install-,,$@)-1.0-py$(PYTHON_VER).egg
 
 chandler-locale-data:
 	$(RUN_PYTHON) setup.py egg_info
