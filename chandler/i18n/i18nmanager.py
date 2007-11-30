@@ -249,15 +249,26 @@ class I18nManager(EggTranslations):
         """
         assert(self._init, True)
 
+        locale = None
+
         if wxIsAvailable():
+            # Try to get the Locale from WxPython
             locale = I18nLocale(wx.LANGUAGE_DEFAULT, i18nMan=self).GetName()
 
-        else:
+        if locale is None or len(locale.strip()) == 0:
+            # Try to ge the Locale from PyICU
             locale = Locale.getDefault().getName()
 
-        if locale is None:
-            raise I18nException("Unable to retrieve default " \
-                                "System Locale")
+        if locale is None or len(locale.strip()) == 0:
+            # Try to get the Locale from a System environmental
+            # variable
+            locale = os.getenv("LANG")
+
+        if locale is None or len(locale.strip()) == 0:
+            # Try to get the Locale from a System environmental
+            # variable
+            locale = os.getenv("LANGUAGE")
+
         return locale
 
     def setLocaleSet(self, localeSet=None, fallback=True):
@@ -332,7 +343,19 @@ class I18nManager(EggTranslations):
         discover = localeSet is None
 
         if discover:
-            localeSet = self.discoverLocaleSet()
+            try:
+                localeSet = self.discoverLocaleSet()
+            except:
+                # Just in case an error is raised in the
+                # discovering of the localeSet, capture
+                # it here and keep the localeSet variable
+                # as None. This will result in the
+                # locale being set to "en" later in the
+                # code. In the discovery case Chandler
+                # should do everything possible to
+                # still load the application even
+                # if an error was raised.
+                pass
         else:
             assert(type(localeSet) == ListType or
                    type(localeSet) == UnicodeType or
@@ -342,10 +365,16 @@ class I18nManager(EggTranslations):
                 localeSet = ['en_US']
                 self._testing = True
 
+        # If the localeSet is Unicode or a String
+        # then wrap the value in a list
         if type(localeSet) != ListType:
-            # If the localeSet is Unicode or a String
-            # then wrap the value in a list
-            localeSet = [localeSet]
+            if localeSet is None or len(localeSet.strip()) == 0:
+                # The locale is empty so do not include it
+                # in the localeSet list. This will default
+                # the locale to 'en' later in the code.
+                localeSet = []
+            else:
+                localeSet = [localeSet]
 
         found = False
 
@@ -459,8 +488,8 @@ class I18nManager(EggTranslations):
             setWxLocale(stripCountryCode(primaryLocale), self)
 
         setPyICULocale(primaryLocale)
-        setPythonLocale(primaryLocale)
         setEnvironmentLocale(primaryLocale)
+        setPythonLocale()
 
     def getText(self, project, name, msgid, *args):
         """
@@ -1050,17 +1079,15 @@ def convertPyICULocale(iculocale):
 
     return langCode
 
-def setPythonLocale(lc):
+def setPythonLocale():
     """
-      Sets the Python locale object to
-      the value in lc.
-
-      @param locale: a c{str} locale
-      @type locale: ASCII c{str}
+       Set the Python locale to 'C'.
+       This ensures that the Python
+       env is portable across platforms
+       and locales.
     """
     try:
-        # Set the Python locale
-        locale.setlocale(locale.LC_ALL, lc)
+        locale.setlocale(locale.LC_ALL, 'C')
     except locale.Error:
        pass
 
