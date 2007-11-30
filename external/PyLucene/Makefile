@@ -70,8 +70,6 @@ ENV=\
   JAVA_HOME=`cygpath -aw "$(JDK)"`
 
 ifeq ($(DEBUG),1)
-ENV:=$(ENV) \
-  CFLAGS=/Od /DPy_DEBUG=1
 DEBUG_OPT=--debug
 endif
 
