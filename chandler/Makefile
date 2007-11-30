@@ -285,7 +285,7 @@ $(addprefix install-, $(BUILD_PLUGINS)):
 
 $(addprefix develop-, $(BUILD_LOCALES)):
 	if [ -d "$(C_HOME)/localizations" ]; then \
-	    rm -rf $(C_HOME)/localizations/$(subst develop-,,$@) \
+	    rm -rf $(C_HOME)/localizations/$(subst develop-,,$@) ;\
 	    svn export http://svn.osafoundation.org/localizations/chandler/$(LOCALE_VER)/$(subst develop-,,$@) $(C_HOME)/localizations/$(subst develop-,,$@) ; \
 	fi
 

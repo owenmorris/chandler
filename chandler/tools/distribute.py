@@ -135,7 +135,7 @@ def buildDistributionList(options):
                 log('Platform is [%s] -- ignoring tarball request' % options.platformName)
 
         if options.dmg:
-            if options.platformID == 'osx' or options.platformID == 'iosx':
+            if 'osx' in options.platformID:
                 options.distribs.append('dmg')
             else:
                 log('Platform is [%s] -- ignoring dmg request' % options.platformName)
@@ -212,7 +212,7 @@ def buildDistributionImage(mode, options):
     # distribDir locally to that .app dir so that handleManifest()
     # puts things in the right place.
 
-    if options.platformID == 'iosx' or options.platformID == 'osx':
+    if 'osx' in options.platformID:
         distribDir = os.path.join(options.distribDir, '%s.app' % options.distribName)
     else:
         distribDir = options.distribDir
