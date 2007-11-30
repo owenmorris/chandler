@@ -1,1 +1,0 @@
-README File for translation egg 'Chandler.en'
