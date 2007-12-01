@@ -54,7 +54,8 @@ def ProcessEvent (line, theClass, properties, attributes):
         else:
             windowName = ""
 
-    sentToWidget = nameToWidget (properties ["sentTo"])
+    sentTo = properties ["sentTo"]
+    sentToWidget = nameToWidget (sentTo)
 
     assert (isinstance (sentToWidget, wx.Window) or
             isinstance (sentToWidget, wx.Menu) or
@@ -86,7 +87,7 @@ def ProcessEvent (line, theClass, properties, attributes):
         position = attributes ["Position"]
         event = wx.grid.GridEvent (-1,
                                    eventType.evtType[0],
-                                   Block.findBlockByName (properties ["sentTo"]).widget,
+                                   Block.findBlockByName (sentTo).widget,
                                    row = attributes ["Row"],
                                    col = attributes ["Col"],
                                    x = position [0], y = position [1])
@@ -192,8 +193,8 @@ def ProcessEvent (line, theClass, properties, attributes):
                     assert lastWidgetValue.startswith (u"Welcome to Chandler 0.7.dev-r")
                 else:
                     assert value == lastWidgetValue,\
-                           'event %d -- widget\'s value, "%s" doesn\'t match the value when the script was recorded: "%s"'\
-                            % (eventNumber, value, lastWidgetValue)
+                           'event %d -- widget %s value, "%s" doesn\'t match the value when the script was recorded: "%s"'\
+                            % (eventNumber, sentTo, value, lastWidgetValue)
 
         # Keep track of the last widget. Use Id because widget can be deleted
 
@@ -222,7 +223,7 @@ def ProcessEvent (line, theClass, properties, attributes):
                         focusWindowName = ""
                     assert False, \
                            "event %d -- SetFocus failed; Focus is: %s; expecting: %s; sapplication.IsActive() is %s" \
-                           % (eventNumber, focusWindowName, properties ["sentTo"], str(application.IsActive()))
+                           % (eventNumber, focusWindowName, sentTo, str(application.IsActive()))
 
     else:
         if wx.Platform != "__WXMSW__" or eventType not in ignoreMSWEvents:
