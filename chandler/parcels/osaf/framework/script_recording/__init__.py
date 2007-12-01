@@ -100,11 +100,13 @@ ignoreValueCheckEventTypes = ("wx.EVT_SET_FOCUS",
                               "wx.EVT_TEXT_COPY",
                               "wx.EVT_TEXT_PASTE")
 
-# Scripts run at different times so these widgets values vary from run to run.
+# Scripts run at different times, and on machines in different time zones, so these widgets
+#values vary from run to run.
 ignoreValueCheckForWidgets = set (("EditCalendarStartDate",
                                    "EditCalendarEndDate",
                                    "EditCalendarStartTime",
-                                   "EditCalendarEndTime"))
+                                   "EditCalendarEndTime",
+                                   "EditTimeZone"))
 
 ignoreEventsToAssociatedBlocks = set (("RecordingMenuItem",
                                        "ScriptVerificationMenuItem"))

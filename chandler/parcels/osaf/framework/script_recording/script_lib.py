@@ -194,7 +194,7 @@ def ProcessEvent (line, theClass, properties, attributes):
                 else:
                     assert value == lastWidgetValue,\
                            'event %d -- widget %s value, "%s" doesn\'t match the value when the script was recorded: "%s"'\
-                            % (eventNumber, sentTo, value, lastWidgetValue)
+                            % (eventNumber, ProcessEvent.lastSentTo, value, lastWidgetValue)
 
         # Keep track of the last widget. Use Id because widget can be deleted
 
@@ -205,6 +205,7 @@ def ProcessEvent (line, theClass, properties, attributes):
             ProcessEvent.lastSentToWidget = None
         else:
             ProcessEvent.lastSentToWidget = sentToWidget
+            ProcessEvent.lastSentTo = sentTo
 
     processed = False
     if eventType is wx.EVT_SET_FOCUS:

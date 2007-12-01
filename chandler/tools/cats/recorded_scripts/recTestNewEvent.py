@@ -123,7 +123,7 @@ def run():
         (119, wx.FocusEvent, {'associatedBlock':'EditTimeZone', 'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'EditTimeZone'}, {}),
         (120, wx.MouseEvent, {'associatedBlock':'EditTimeZone', 'eventType':wx.EVT_LEFT_UP, 'sentTo':u'EditTimeZone'}, {'m_x':169, 'm_y':9}),
         (121, wx.MouseEvent, {'associatedBlock':'EditTimeZone', 'eventType':wx.EVT_LEFT_UP, 'sentTo':u'EditTimeZone'}, {'m_x':169, 'm_y':9}),
-        (122, wx.MouseEvent, {'associatedBlock':'EditRecurrence', 'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'EditRecurrence', 'recordedFocusWindow':u'EditTimeZone', 'recordedFocusWindowClass':osaf.framework.attributeEditors.AttributeEditors.AEChoice, 'lastWidgetValue':u'America/Los_Angeles'}, {'m_leftDown':True, 'm_x':68, 'm_y':8}),
+        (122, wx.MouseEvent, {'associatedBlock':'EditRecurrence', 'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'EditRecurrence', 'recordedFocusWindow':u'EditTimeZone', 'recordedFocusWindowClass':osaf.framework.attributeEditors.AttributeEditors.AEChoice}, {'m_leftDown':True, 'm_x':68, 'm_y':8}),
         (123, wx.FocusEvent, {'associatedBlock':'EditRecurrence', 'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'EditRecurrence'}, {}),
         (124, wx.MouseEvent, {'associatedBlock':'EditRecurrence', 'eventType':wx.EVT_LEFT_UP, 'sentTo':u'EditRecurrence'}, {'m_x':68, 'm_y':8}),
         (125, wx.CommandEvent, {'associatedBlock':'EditRecurrence', 'eventType':wx.EVT_CHOICE, 'sentTo':u'EditRecurrence', 'selectedItem':1, 'recordedFocusWindow':u'EditRecurrence', 'recordedFocusWindowClass':osaf.framework.attributeEditors.AttributeEditors.AEChoice, 'lastWidgetValue':u'Daily'}, {}),
