@@ -222,7 +222,7 @@ def ProcessEvent (line, theClass, properties, attributes):
                     else:
                         focusWindowName = ""
                     assert False, \
-                           "event %d -- SetFocus failed; Focus is: %s; expecting: %s; sapplication.IsActive() is %s" \
+                           "event %d -- SetFocus failed; Focus is: %s; expecting: %s; application.IsActive() is %s" \
                            % (eventNumber, focusWindowName, sentTo, str(application.IsActive()))
 
     else:
