@@ -135,7 +135,6 @@ class DeleteDialog(wx.Dialog):
         self.resources = resources
         self.view = view
         self.selectedCollection = selectedCollection
-        self.modal = modal
         self.itemsAndStates = itemsAndStates
         self.originalAction = originalAction
         
@@ -333,7 +332,7 @@ class DeleteDialog(wx.Dialog):
 
     def OnDone(self, evt=None):
         if self.rendered:
-            if self.modal:
+            if self.IsModal():
                 self.EndModal(False)
             self.Destroy()
 

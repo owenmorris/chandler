@@ -1411,6 +1411,7 @@ class AEBlock(BoxContainer):
         widget = editor.CreateControl(forEditing, editor.readOnly,
                                       self.parentBlock.widget,
                                       self.getWidgetID(), self, font)
+        widget.SetName (self.blockName + "AttributeEditor")
         widget.SetFont(font)
         # logger.warning("Instantiated a %s, forEditing = %s" % (widget, forEditing))
 

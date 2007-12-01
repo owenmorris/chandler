@@ -41,7 +41,7 @@ def get_test_modules(observe_exclusions=True):
                 test_module = __import__(filename)
             except:
                 logger.exception('Failed to import test module %s' % filename)
-            finally:
+            else:
                 # Check for platform exclusions
                 if observe_exclusions is True:
                     if (not hasattr(test_module, '_platform_exclusions_') or

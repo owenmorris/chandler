@@ -57,7 +57,6 @@ from itertools import islice, chain, izip, repeat
 from bisect import bisect
 import logging
 from application import styles as confstyles
-from application.Application import registerStringForId, unregisterStringForId
 
 from i18n import ChandlerMessageFactory as _
 
@@ -1926,8 +1925,17 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         self.SetValue('') 
 
     def SaveAndHide(self):
-        self.SaveItem()
-        self.HideAndResetFocus()
+        """
+        The way the calendar canvas handles focus (i.e. targets a bogus hidden
+        window) is a kludge -- and preliminay testing makes me think it's no longer
+        necessary. Then the way it manages focus changes to save results is error
+        prone since a KillFocus can occur when we are hidden. This causes obscure
+        bugs that wipe out the test you type in the calendar. This code should be
+        rewritten to be maintainable. -- DJA
+        """
+        if self.IsShown():
+            self.SaveItem()
+            self.HideAndResetFocus()
 
     def OnEnterPressed(self, event):
         """
@@ -2494,7 +2502,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.monthText.Bind(wx.EVT_LEFT_DOWN, self.OnMonthClick)
 
         self.tzChoice = self.MakeTimezoneChoice(tzCharacterStyle)
-        registerStringForId (self.tzChoice.GetId(), "TimezoneChoice")
 
         navigationRow.Add((5,5), 0)
         navigationRow.Add(self.prevButton, 0, wx.ALIGN_CENTER)
@@ -2550,10 +2557,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         if not self.blockItem.dayMode == 'multiweek':
             self.blockItem.postEventByName("ViewAsMultiWeek", {})
 
-    def __del__(self):
-        unregisterStringForId ("TimezoneChoice")
-
-
     def OnInit(self):
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.SetBackgroundColour(self.blockItem.parentBlock.bgColor)
@@ -2577,6 +2580,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
     def MakeTimezoneChoice(self, tzCharacterStyle):
         tzChoice = wx.Choice (self)
+        tzChoice.SetName ("TimezoneChoice")
         font = Styles.getFont(tzCharacterStyle)
         if font is not None:
             tzChoice.SetFont(font)

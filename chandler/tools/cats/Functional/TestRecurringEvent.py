@@ -144,7 +144,7 @@ class TestRecurringEvent(ChandlerTestCase):
                                   "timeZone":"America/Chicago"})
         
             
-       # Yearly Event Test
+        # Yearly Event Test
                                 
         # creation
         yearlyEvent = QAUITestAppLib.UITestItem("Event", self.logger)

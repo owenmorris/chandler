@@ -6,7 +6,8 @@
 [project attributes]
 debug.run-args = {loc('Chandler.py'): '--catch=never --stderr'}
 proj.directory-list = [{'dirloc': loc('.'),
-                        'excludes': (),
+                        'excludes': [u'release',
+                                     u'debug'],
                         'filter': '*',
                         'include_hidden': 0,
                         'recursive': 1,
@@ -20,12 +21,15 @@ proj.env-vars = {None: ('custom',
 proj.file-type = 'shared'
 proj.main-file = loc('Chandler.py')
 proj.pyexec = {None: ('custom',
-                      './debug/Library/Frameworks/Python.framework/Versions/'\
+                      '/System/Library/Frameworks/Python.framework/Versions/'\
                       'Current/Resources/Python.app/Contents/MacOS/Python')}
+proj.pypath = {None: ('custom',
+                      'debug/site-packages:.:parcels')}
 proj.shared-attribute-names = ['proj.shared-attribute-names',
                                'proj.file-type',
                                'proj.env-vars',
                                'proj.pyexec',
                                'debug.run-args',
                                'proj.main-file',
+                               'proj.pypath',
                                'proj.directory-list']

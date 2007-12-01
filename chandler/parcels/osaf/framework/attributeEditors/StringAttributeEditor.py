@@ -452,6 +452,7 @@ class StringAttributeEditor (BaseAttributeEditor):
                 autocompleter = wxAutoCompleter(acParent, self.control,
                                                 self.finishCompletion)
                 self.autocompleter = autocompleter
+                autocompleter.SetName (self.control.GetName() + "CompletionList")
                 #logger.debug("Presenting completion list on %s", debugName(self))
             #else:
                 #logger.debug("Updating completion list on %s", debugName(self))

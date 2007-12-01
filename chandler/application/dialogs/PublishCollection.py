@@ -51,7 +51,6 @@ class PublishCollectionDialog(wx.Dialog):
         self.resources = resources
         self.view = view
         self.collection = collection    # The collection to share
-        self.modal = modal
         self.name = name
         self.account = account # use this account, overriding the default
         self.options = { }
@@ -251,7 +250,7 @@ class PublishCollectionDialog(wx.Dialog):
         for share in sharing.SharedItem(self.collection).shares:
             self._saveAttributeFilterState(share)
 
-        if self.modal:
+        if self.IsModal():
             self.EndModal(False)
         self.Destroy()
 
@@ -600,12 +599,12 @@ class PublishCollectionDialog(wx.Dialog):
         self.activity.abortRequested = True
 
     def OnCancel(self, evt):
-        if self.modal:
+        if self.IsModal():
             self.EndModal(False)
         self.Destroy()
 
     def OnPublishDone(self, evt):
-        if self.modal:
+        if self.IsModal():
             self.EndModal(False)
         self.Destroy()
 
@@ -615,12 +614,12 @@ class PublishCollectionDialog(wx.Dialog):
             sharing.unpublish(self.collection)
         else:
             sharing.unsubscribe(self.collection)
-        if self.modal:
+        if self.IsModal():
             self.EndModal(False)
         self.Destroy()
 
     def OnSync(self, evt):
-        if self.modal:
+        if self.IsModal():
             self.EndModal(False)
         self.Destroy()
 

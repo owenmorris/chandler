@@ -19,7 +19,7 @@ Attribute Editors
 __parcel__ = "osaf.framework.attributeEditors"
 
 import wx
-from osaf.framework.blocks.Block import BaseWidget, wxRectangularChild
+from osaf.framework.blocks.Block import BaseWidget, wxRectangularChild, Block
 from DragAndDropTextCtrl import DragAndDropTextCtrl
 from BaseAttributeEditor import NotifyBlockToSaveValue
 import logging
@@ -77,6 +77,8 @@ class AETypeOverTextCtrl(wxRectangularChild):
 
         editControl = DragAndDropTextCtrl(self, -1, pos=position, size=size, 
                                           style=editStyle, *args, **keys)
+        blockName = Block.idToBlock[id].blockName
+        editControl.SetName (blockName + "AEEditControl")
         self.editControl = editControl
         editControl.Bind(wx.EVT_KILL_FOCUS, self.OnEditLoseFocus)
         editControl.Bind(wx.EVT_SET_FOCUS, self.OnEditGainFocus)
@@ -90,6 +92,7 @@ class AETypeOverTextCtrl(wxRectangularChild):
         style |= wx.ST_NO_AUTORESIZE
         staticControl = AEStaticText(self, -1, pos=position, size=staticSize,
                                      style=style, *args, **keys)
+        staticControl.SetName (blockName + "AEStaticControl")
         self.staticControl = staticControl
         staticControl.Bind(wx.EVT_LEFT_UP, self.OnStaticClick)
         self.Bind(wx.EVT_LEFT_UP, self.OnStaticClick)

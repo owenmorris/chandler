@@ -74,6 +74,7 @@ class CanvasBitmapButton(buttons.GenBitmapButton):
         pressedBitmap = app.GetImage(name + "MouseDown.png")
         self.SetBitmapSelected(pressedBitmap)
         self.SetBackgroundColour("white")
+        self.SetName (name)
         self.UpdateSize()
 
     def UpdateSize(self):
@@ -366,6 +367,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         # invisible window and send all focus (i.e. keyboard) events
         # through it.
         self._focusWindow = wx.Window(self, -1, size=wx.Size(0,0), style=wx.WANTS_CHARS)
+        self._focusWindow.SetName (self.blockItem.blockName + "FocusWindow")
         self._focusWindow.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
         self._focusWindow.Bind(wx.EVT_CHAR, self.OnChar)
         

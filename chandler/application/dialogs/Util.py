@@ -299,9 +299,10 @@ class promptUserDialog(wx.Dialog):
         if value is not None:
             if isPassword:
                 text = wx.TextCtrl(self, -1, value, wx.DefaultPosition, [500,-1],
-                 wx.TE_PASSWORD)
+                                   wx.TE_PASSWORD, name = "promptText")
             else:
-                text = wx.TextCtrl(self, -1, value, wx.DefaultPosition, [500,-1])
+                text = wx.TextCtrl(self, -1, value, wx.DefaultPosition, [500,-1],
+                                   name = "promptText")
             box.Add(text, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
         else:
             text = None

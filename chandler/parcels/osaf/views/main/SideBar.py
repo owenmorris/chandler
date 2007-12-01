@@ -1270,7 +1270,11 @@ class SidebarBlock(Table):
         event.arguments['Enable'] = selectedItem is not None and UserCollection (selectedItem).renameable
 
     def onRenameEvent (self, event):
-        self.widget.EnableCellEditControl()
+        grid = self.widget
+
+        # Enabling CellEditControl isn't possible unles the cell is visible
+        grid.MakeCellVisible (grid.GetGridCursorRow(), grid.GetGridCursorCol())
+        grid.EnableCellEditControl()
 
     def onToggleMineEvent(self, event):
 

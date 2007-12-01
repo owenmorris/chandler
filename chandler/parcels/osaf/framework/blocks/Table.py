@@ -159,6 +159,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.SetScrollLineY (self.GetDefaultRowSize())
         self.SetUseVisibleColHeaderSelection(True)
         self.SetUseColSortArrows(True)
+
         # wxSidebar is subclassed from wxTable and depends on the binding of
         # OnLoseFocus so it can override OnLoseFocus in wxTable
         self.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
@@ -168,6 +169,8 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.Bind(wxGrid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
         self.Bind(wxGrid.EVT_GRID_RANGE_SELECT, self.OnRangeSelect)
         self.Bind(wxGrid.EVT_GRID_LABEL_LEFT_CLICK, self.OnLabelLeftClicked)
+        self.Bind(wxGrid.EVT_GRID_EDITOR_HIDDEN, self.OnEditorHidden)
+        self.Bind(wxGrid.EVT_GRID_EDITOR_SHOWN, self.OnEditorShown)
 
         gridWindow = self.GetGridWindow()
         gridWindow.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -241,10 +244,10 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.wxSynchronizeWidget()
 
     def OnKeyDown(self, event):
-
-        # default grid behavior is to move to the "next" cell,
-        # whatever that may be. We want to edit instead.
-        if event.GetKeyCode() == wx.WXK_RETURN:
+        # default grid behavior is to move to the "next" cell, whatever
+        #that may be. If we're not editing We want to edit instead.
+        if (event.GetKeyCode() == wx.WXK_RETURN and
+            not hasattr(self, "editAttributeNamed")):
             defaultEditableAttribute = getattr(self.blockItem,
                                                'defaultEditableAttribute',
                                                None)
@@ -306,6 +309,14 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.SetTable (gridTable, True, selmode=wxGrid.Grid.SelectRows)
 
         self.EnableGridLines (self.blockItem.hasGridLines)
+        
+        blockName = self.blockItem.blockName
+
+        self.GetGridWindow().SetName (blockName + "GridWindow")
+        self.GetGridRowLabelWindow().SetName (blockName + "RowLabelWindow")
+        self.GetGridColLabelWindow().SetName (blockName + "ColLabelWindow")
+        self.GetGridCornerLabelWindow().SetName (blockName + "CornerLabelWindow")
+
 
     @WithoutSynchronizeWidget
     def OnRangeSelect(self, event):
@@ -629,6 +640,7 @@ class wxTable(DragAndDrop.DraggableWidget,
                 # now just do the selection update
                 self.SelectBlock (rowStart, 0, rowEnd, newColumns, True)
 
+            editAttributeNamed = getattr(self, "editAttributeNamed", None)
             self.EndBatch()
     
             # Update all displayed values
@@ -637,9 +649,7 @@ class wxTable(DragAndDrop.DraggableWidget,
             self.ProcessTableMessage (message)
             self.ForceRefresh () 
     
-            editAttributeNamed = getattr(self, "editAttributeNamed", None)
             if editAttributeNamed is not None:
-                del self.editAttributeNamed
                 self.EditAttribute(editAttributeNamed)
 
 
@@ -663,6 +673,9 @@ class wxTable(DragAndDrop.DraggableWidget,
             return
 
         self.SetGridCursor (cursorRow, colIndex)
+        
+        # Enabling CellEditControl is not possible unless the cell is visible
+        self.MakeCellVisible (cursorRow, colIndex)
         self.EnableCellEditControl()
 
     def GoToItem(self, item):
@@ -706,13 +719,33 @@ class wxTable(DragAndDrop.DraggableWidget,
             if -1 not in (topRow, bottomRow):
                 yield (topRow, bottomRow)
 
-
     def SelectedItems(self):
         """
         Return the list of selected items.
         """
         return self.blockItem.contents.iterSelection()
+    
+    def OnEditorShown (self, event):
+        row = event.GetRow()
+        column = event.GetCol()
 
+        assert getattr(self, 'editingCell', None) is None
+        if __debug__:
+            self.editingCell = (row, column)
+
+        item, attributeName = self.GetElementValue (row, column)
+        self.editAttributeNamed = attributeName
+
+    def OnEditorHidden (self, event):
+        # We can get a hide event when the editor is already hidden
+        if hasattr (self, "editAttributeNamed"):
+            # We'd better be editing the same cell we started with
+            assert self.editingCell == (event.GetRow(), event.GetCol())
+            
+            if __debug__:
+                del self.editingCell
+            del self.editAttributeNamed
+        
 class GridCellAttributeRenderer (wxGrid.PyGridCellRenderer):
     def __init__(self, type):
         super (GridCellAttributeRenderer, self).__init__ ()
@@ -737,6 +770,7 @@ class GridCellAttributeEditor (wxGrid.PyGridCellEditor):
           Create an edit control to edit the text
         """
         self.control = self.delegate.CreateControl(True, False, parent, id, None, None)
+        self.control.SetName (parent.GetParent().blockItem.blockName + "AttributeEditor")
         self.SetControl (self.control)
         if evtHandler:
             self.control.PushEventHandler (evtHandler)
@@ -748,9 +782,6 @@ class GridCellAttributeEditor (wxGrid.PyGridCellEditor):
         pass
 
     def BeginEdit (self, row,  column, grid):
-        assert getattr(self, 'editingCell', None) is None
-        if __debug__:
-            self.editingCell = (row, column)
         
         item, attributeName = grid.GetElementValue (row, column)
         assert not item.isDeleted()
@@ -762,34 +793,28 @@ class GridCellAttributeEditor (wxGrid.PyGridCellEditor):
         self.control.ActivateInPlace()
 
     def EndEdit (self, row, column, grid):
-        # We'd better be editing the same cell we started with
-        if not __debug__ or hasattr (self, "editingCell"):
-            assert self.editingCell == (row, column)
-            
-            value = self.delegate.GetControlValue (self.control)
-            item, attributeName = grid.GetElementValue (row, column)
-            assert not item.isDeleted()
-            item = RecurrenceDialog.getProxy(u'ui', item)
-    
-            if value == self.initialValue:
-                changed = False
-            # @@@ For now we do not want to allow users to blank out fields.  This should eventually be
-            #  replaced by proper editor validation.
-            elif value.strip() == '':
-                changed = False
+        value = self.delegate.GetControlValue (self.control)
+        item, attributeName = grid.GetElementValue (row, column)
+        assert not item.isDeleted()
+        item = RecurrenceDialog.getProxy(u'ui', item)
+
+        if value == self.initialValue:
+            changed = False
+        # @@@ For now we do not want to allow users to blank out fields.  This should eventually be
+        #  replaced by proper editor validation.
+        elif value.strip() == '':
+            changed = False
+        else:
+            changed = True
+            # set the value using the delegate's setter, if it has one.
+            try:
+                attributeSetter = self.delegate.SetAttributeValue
+            except AttributeError:
+                grid.SetElementValue (row, column, value)
             else:
-                changed = True
-                # set the value using the delegate's setter, if it has one.
-                try:
-                    attributeSetter = self.delegate.SetAttributeValue
-                except AttributeError:
-                    grid.SetElementValue (row, column, value)
-                else:
-                    attributeSetter (item, attributeName, value)
-            self.delegate.EndControlEdit (item, attributeName, self.control)
-            if __debug__:
-                del self.editingCell
-            return changed
+                attributeSetter (item, attributeName, value)
+        self.delegate.EndControlEdit (item, attributeName, self.control)
+        return changed
 
     def Reset (self):
         self.delegate.SetControlValue (self.control, self.initialValue)
@@ -879,7 +904,7 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
             
         editAttributeNamed = event.arguments.get ('editAttributeNamed')
         if editAttributeNamed is not None:
-            self.widget.EnableCellEditControl (False)
+            self.widget.DisableCellEditControl()
             self.widget.editAttributeNamed = editAttributeNamed
         wx.GetApp().needsUpdateUI = True
 

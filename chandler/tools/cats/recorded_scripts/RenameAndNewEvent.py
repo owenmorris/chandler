@@ -1,97 +1,180 @@
-import wx, osaf
-from osaf.framework.script_recording.script_lib import ProcessEvent, InitializeScript
-
+import wx, osaf, application
 def run():
-    InitializeScript ()
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_DOWN, 'sentTo':'Sidebar'}, {'m_leftDown':True, 'm_x':65, 'm_y':14})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':'Sidebar', 'newFocusWindow':-218, 'newFocusWindowClass':wx.Window}, {'m_x':65, 'm_y':14})    
-    ProcessEvent (wx.MouseEvent, {'associatedBlock':'SidebarContainer', 'eventType':wx.EVT_LEFT_DOWN, 'sentTo':'SidebarContainer'}, {'m_leftDown':True, 'm_x':81, 'm_y':171})
-    ProcessEvent (wx.MouseEvent, {'associatedBlock':'SidebarContainer', 'eventType':wx.EVT_LEFT_UP, 'sentTo':'SidebarContainer'}, {'m_x':80, 'm_y':338})
-    ProcessEvent (wx.CommandEvent, {'associatedBlock':'ApplicationBarEventButton', 'eventType':wx.EVT_MENU, 'sentTo':'ApplicationBar'}, {})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_DOWN, 'sentTo':'DashboardSummaryView'}, {'m_leftDown':True, 'm_x':261, 'm_y':25})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':'DashboardSummaryView'}, {'m_x':261, 'm_y':25})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_DCLICK, 'sentTo':'DashboardSummaryView'}, {'m_leftDown':True, 'm_x':261, 'm_y':25})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':'__FocusWindow__', 'selectionRange': (0,29), 'newFocusWindow':-299, 'newFocusWindowClass':osaf.framework.attributeEditors.AETypeOverTextCtrl.AENonTypeOverTextCtrl}, {'m_x':74, 'm_y':5})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'DashboardSummaryView', 'newFocusWindow':-224, 'newFocusWindowClass':wx.Window, 'lastWidgetValue':u'Play around with the Calendar'}, {'m_rawCode':16, 'm_keyCode':306, 'm_shiftDown':True, 'm_x':261, 'm_y':25, 'UnicodeKey':16})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'DashboardSummaryView'}, {'m_rawCode':84, 'm_keyCode':84, 'm_shiftDown':True, 'm_x':261, 'm_y':25, 'UnicodeKey':84})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'DashboardSummaryView'}, {'m_rawCode':84, 'm_keyCode':84, 'm_shiftDown':True, 'm_x':261, 'm_y':25, 'UnicodeKey':84})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'newFocusWindow':-299, 'newFocusWindowClass':osaf.framework.attributeEditors.AETypeOverTextCtrl.AENonTypeOverTextCtrl}, {'m_rawCode':16, 'm_keyCode':306, 'm_shiftDown':True, 'm_x':76, 'm_y':7, 'UnicodeKey':16})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Play around with the Calendar'}, {'m_rawCode':16, 'm_keyCode':306, 'm_shiftDown':True, 'm_x':76, 'm_y':7, 'UnicodeKey':16})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Play around with the Calendar'}, {'m_rawCode':16, 'm_keyCode':306, 'm_shiftDown':True, 'm_x':76, 'm_y':7, 'UnicodeKey':16})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Play around with the Calendar'}, {'m_rawCode':84, 'm_keyCode':84, 'm_shiftDown':True, 'm_x':76, 'm_y':7, 'UnicodeKey':84})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Play around with the Calendar'}, {'m_rawCode':84, 'm_keyCode':84, 'm_shiftDown':True, 'm_x':76, 'm_y':7, 'UnicodeKey':84})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'T'}, {'m_rawCode':69, 'm_keyCode':69, 'm_x':76, 'm_y':7, 'UnicodeKey':69})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'T'}, {'m_rawCode':101, 'm_keyCode':101, 'm_x':76, 'm_y':7, 'UnicodeKey':101})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Te'}, {'m_rawCode':83, 'm_keyCode':83, 'm_x':76, 'm_y':7, 'UnicodeKey':83})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Te'}, {'m_rawCode':115, 'm_keyCode':115, 'm_x':76, 'm_y':7, 'UnicodeKey':115})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Tes'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':76, 'm_y':7, 'UnicodeKey':84})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Tes'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':76, 'm_y':7, 'UnicodeKey':116})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Test'}, {'m_rawCode':49, 'm_keyCode':49, 'm_x':76, 'm_y':7, 'UnicodeKey':49})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Test'}, {'m_rawCode':49, 'm_keyCode':49, 'm_x':76, 'm_y':7, 'UnicodeKey':49})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_DOWN, 'sentTo':'Sidebar', 'lastWidgetValue':u'Test1'}, {'m_leftDown':True, 'm_x':118, 'm_y':157})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':'Sidebar', 'newFocusWindow':-224, 'newFocusWindowClass':wx.Window}, {'m_x':118, 'm_y':157})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_DCLICK, 'sentTo':'Sidebar'}, {'m_leftDown':True, 'm_x':118, 'm_y':157})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':'Sidebar', 'newFocusWindow':-310, 'newFocusWindowClass':wx.Window}, {'m_x':118, 'm_y':157})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'newFocusWindow':-314, 'newFocusWindowClass':osaf.framework.attributeEditors.AETypeOverTextCtrl.AENonTypeOverTextCtrl}, {'m_rawCode':16, 'm_keyCode':306, 'm_shiftDown':True, 'm_x':96, 'm_y':25, 'UnicodeKey':16})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Untitled'}, {'m_rawCode':84, 'm_keyCode':84, 'm_shiftDown':True, 'm_x':96, 'm_y':25, 'UnicodeKey':84})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Untitled'}, {'m_rawCode':84, 'm_keyCode':84, 'm_shiftDown':True, 'm_x':96, 'm_y':25, 'UnicodeKey':84})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'T'}, {'m_rawCode':69, 'm_keyCode':69, 'm_x':96, 'm_y':25, 'UnicodeKey':69})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'T'}, {'m_rawCode':101, 'm_keyCode':101, 'm_x':96, 'm_y':25, 'UnicodeKey':101})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Te'}, {'m_rawCode':83, 'm_keyCode':83, 'm_x':96, 'm_y':25, 'UnicodeKey':83})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Te'}, {'m_rawCode':115, 'm_keyCode':115, 'm_x':96, 'm_y':25, 'UnicodeKey':115})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Tes'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':96, 'm_y':25, 'UnicodeKey':84})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Tes'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':96, 'm_y':25, 'UnicodeKey':116})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Test'}, {'m_rawCode':50, 'm_keyCode':50, 'm_x':96, 'm_y':25, 'UnicodeKey':50})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Test'}, {'m_rawCode':50, 'm_keyCode':50, 'm_x':96, 'm_y':25, 'UnicodeKey':50})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Test2'}, {'m_rawCode':9, 'm_keyCode':9, 'm_x':96, 'm_y':25, 'UnicodeKey':9})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_DOWN, 'sentTo':'TimedEvents', 'newFocusWindow':-219, 'newFocusWindowClass':wx.Window, 'lastWidgetValue':u'Test2'}, {'m_leftDown':True, 'm_x':261, 'm_y':139})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':'TimedEvents'}, {'m_x':261, 'm_y':139})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_DCLICK, 'sentTo':'TimedEvents', 'newFocusWindow':-310, 'newFocusWindowClass':wx.Window}, {'m_leftDown':True, 'm_x':261, 'm_y':139})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':'TimedEvents'}, {'m_x':261, 'm_y':139})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_DOWN, 'sentTo':'TimedEvents', 'newFocusWindow':-311, 'newFocusWindowClass':osaf.framework.blocks.calendar.CalendarCanvas.wxInPlaceEditor}, {'m_leftDown':True, 'm_x':268, 'm_y':147})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':'TimedEvents', 'newFocusWindow':-310, 'newFocusWindowClass':wx.Window}, {'m_x':268, 'm_y':147})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_DCLICK, 'sentTo':'TimedEvents'}, {'m_leftDown':True, 'm_x':268, 'm_y':147})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':'TimedEvents'}, {'m_x':268, 'm_y':147})
-    ProcessEvent (wx.MouseEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_LEFT_DOWN, 'sentTo':'NotesBlock', 'newFocusWindow':-311, 'newFocusWindowClass':osaf.framework.blocks.calendar.CalendarCanvas.wxInPlaceEditor}, {'m_leftDown':True, 'm_x':48, 'm_y':23})
-    ProcessEvent (wx.MouseEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_LEFT_UP, 'sentTo':'NotesBlock', 'selectionRange': (0,0), 'newFocusWindow':'NotesBlock', 'newFocusWindowClass':osaf.framework.attributeEditors.AETypeOverTextCtrl.AENonTypeOverTextCtrl, 'lastWidgetValue':u''}, {'m_x':48, 'm_y':23})
-    ProcessEvent (wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_KEY_DOWN, 'sentTo':'NotesBlock', 'lastWidgetValue':u''}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':50, 'm_y':25, 'UnicodeKey':84})
-    ProcessEvent (wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_CHAR, 'sentTo':'NotesBlock', 'lastWidgetValue':u''}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':50, 'm_y':25, 'UnicodeKey':116})
-    ProcessEvent (wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_KEY_DOWN, 'sentTo':'NotesBlock', 'lastWidgetValue':u't'}, {'m_rawCode':69, 'm_keyCode':69, 'm_x':50, 'm_y':25, 'UnicodeKey':69})
-    ProcessEvent (wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_CHAR, 'sentTo':'NotesBlock', 'lastWidgetValue':u't'}, {'m_rawCode':101, 'm_keyCode':101, 'm_x':50, 'm_y':25, 'UnicodeKey':101})
-    ProcessEvent (wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_KEY_DOWN, 'sentTo':'NotesBlock', 'lastWidgetValue':u'te'}, {'m_rawCode':83, 'm_keyCode':83, 'm_x':50, 'm_y':25, 'UnicodeKey':83})
-    ProcessEvent (wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_CHAR, 'sentTo':'NotesBlock', 'lastWidgetValue':u'te'}, {'m_rawCode':115, 'm_keyCode':115, 'm_x':50, 'm_y':25, 'UnicodeKey':115})
-    ProcessEvent (wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_KEY_DOWN, 'sentTo':'NotesBlock', 'lastWidgetValue':u'tes'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':50, 'm_y':25, 'UnicodeKey':84})
-    ProcessEvent (wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_CHAR, 'sentTo':'NotesBlock', 'lastWidgetValue':u'tes'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':50, 'm_y':25, 'UnicodeKey':116})
-    ProcessEvent (wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_KEY_DOWN, 'sentTo':'NotesBlock', 'lastWidgetValue':u'test'}, {'m_rawCode':51, 'm_keyCode':51, 'm_x':50, 'm_y':25, 'UnicodeKey':51})
-    ProcessEvent (wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_CHAR, 'sentTo':'NotesBlock', 'lastWidgetValue':u'test'}, {'m_rawCode':51, 'm_keyCode':51, 'm_x':50, 'm_y':25, 'UnicodeKey':51})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_DOWN, 'sentTo':'TimedEvents', 'lastWidgetValue':u'test3'}, {'m_leftDown':True, 'm_x':298, 'm_y':178})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':'TimedEvents'}, {'m_x':298, 'm_y':178})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_DCLICK, 'sentTo':'TimedEvents', 'newFocusWindow':-310, 'newFocusWindowClass':wx.Window}, {'m_leftDown':True, 'm_x':298, 'm_y':178})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':'__FocusWindow__', 'selectionRange': (0,9), 'newFocusWindow':-311, 'newFocusWindowClass':osaf.framework.blocks.calendar.CalendarCanvas.wxInPlaceEditor}, {'m_x':40, 'm_y':23})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'New Event'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':40, 'm_y':23, 'UnicodeKey':84})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'New Event'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':40, 'm_y':23, 'UnicodeKey':116})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u't'}, {'m_rawCode':69, 'm_keyCode':69, 'm_x':40, 'm_y':23, 'UnicodeKey':69})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u't'}, {'m_rawCode':101, 'm_keyCode':101, 'm_x':40, 'm_y':23, 'UnicodeKey':101})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'te'}, {'m_rawCode':83, 'm_keyCode':83, 'm_x':40, 'm_y':23, 'UnicodeKey':83})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'te'}, {'m_rawCode':115, 'm_keyCode':115, 'm_x':40, 'm_y':23, 'UnicodeKey':115})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'tes'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':40, 'm_y':23, 'UnicodeKey':84})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'tes'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':40, 'm_y':23, 'UnicodeKey':116})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'test'}, {'m_rawCode':52, 'm_keyCode':52, 'm_x':40, 'm_y':23, 'UnicodeKey':52})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'test'}, {'m_rawCode':52, 'm_keyCode':52, 'm_x':40, 'm_y':23, 'UnicodeKey':52})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_DOWN, 'sentTo':'TimedEvents', 'lastWidgetValue':u'test4'}, {'m_leftDown':True, 'm_x':302, 'm_y':101})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':'TimedEvents', 'newFocusWindow':-310, 'newFocusWindowClass':wx.Window}, {'m_x':302, 'm_y':101})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_DCLICK, 'sentTo':'TimedEvents'}, {'m_leftDown':True, 'm_x':302, 'm_y':101})
-    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':'__FocusWindow__', 'selectionRange': (0,9), 'newFocusWindow':-311, 'newFocusWindowClass':osaf.framework.blocks.calendar.CalendarCanvas.wxInPlaceEditor}, {'m_x':44, 'm_y':9})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'New Event'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':44, 'm_y':9, 'UnicodeKey':84})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'New Event'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':44, 'm_y':9, 'UnicodeKey':116})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u't'}, {'m_rawCode':69, 'm_keyCode':69, 'm_x':44, 'm_y':9, 'UnicodeKey':69})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u't'}, {'m_rawCode':101, 'm_keyCode':101, 'm_x':44, 'm_y':9, 'UnicodeKey':101})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'te'}, {'m_rawCode':83, 'm_keyCode':83, 'm_x':44, 'm_y':9, 'UnicodeKey':83})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'te'}, {'m_rawCode':115, 'm_keyCode':115, 'm_x':44, 'm_y':9, 'UnicodeKey':115})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'tes'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':44, 'm_y':9, 'UnicodeKey':84})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'tes'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':44, 'm_y':9, 'UnicodeKey':116})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'test'}, {'m_rawCode':53, 'm_keyCode':53, 'm_x':44, 'm_y':9, 'UnicodeKey':53})
-    ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'test'}, {'m_rawCode':53, 'm_keyCode':53, 'm_x':44, 'm_y':9, 'UnicodeKey':53})
-    ProcessEvent (wx.MouseEvent, {'associatedBlock':'EditAllDay', 'eventType':wx.EVT_LEFT_DOWN, 'sentTo':'EditAllDay', 'lastWidgetValue':u'test5'}, {'m_leftDown':True, 'm_x':10, 'm_y':14})
-    ProcessEvent (wx.MouseEvent, {'associatedBlock':'EditAllDay', 'eventType':wx.EVT_LEFT_UP, 'sentTo':'EditAllDay', 'newFocusWindow':'EditAllDay', 'newFocusWindowClass':osaf.framework.attributeEditors.AttributeEditors.AECheckBox, 'lastWidgetValue':False}, {'m_x':10, 'm_y':14})
-    ProcessEvent (wx.CommandEvent, {'associatedBlock':'EditAllDay', 'eventType':wx.EVT_CHECKBOX, 'sentTo':'EditAllDay', 'lastWidgetValue':True}, {})
+    wx.GetApp().RunRecordedScript ([
+        (0, wx.MouseEvent, {'associatedBlock':'ApplicationBar', 'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'ApplicationBar'}, {'m_leftDown':True, 'm_x':285, 'm_y':21}),
+        (1, wx.MouseEvent, {'associatedBlock':'ApplicationBar', 'eventType':wx.EVT_LEFT_UP, 'sentTo':u'ApplicationBar'}, {'m_x':285, 'm_y':21}),
+        (2, wx.CommandEvent, {'associatedBlock':'ApplicationBarNewButton', 'eventType':wx.EVT_MENU, 'sentTo':u'ApplicationBar'}, {}),
+        (3, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'HeadlineBlockAEEditControl'}, {}),
+        (4, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'HeadlineBlockAEEditControl', 'lastWidgetValue':u'Untitled'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':152, 'm_y':120, 'UnicodeKey':13}),
+        (5, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'HeadlineBlockAEEditControl', 'recordedFocusWindow':u'HeadlineBlockAEEditControl', 'recordedFocusWindowClass':osaf.framework.attributeEditors.DragAndDropTextCtrl.DragAndDropTextCtrl, 'lastWidgetValue':u'Untitled'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':152, 'm_y':120, 'UnicodeKey':13}),
+        (6, wx.CommandEvent, {'eventType':wx.EVT_TEXT_ENTER, 'sentTo':u'HeadlineBlockAEEditControl'}, {}),
+        (7, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'HeadlineBlockAEEditControl'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':152, 'm_y':120, 'UnicodeKey':13}),
+        (8, wx.FocusEvent, {'associatedBlock':'EditReminderType', 'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'EditReminderType'}, {}),
+        (9, wx.MouseEvent, {'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'DashboardSummaryViewGridWindow', 'recordedFocusWindow':u'EditReminderType', 'recordedFocusWindowClass':osaf.framework.attributeEditors.AttributeEditors.AEChoice, 'lastWidgetValue':u'None'}, {'m_leftDown':True, 'm_x':210, 'm_y':30}),
+        (10, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'DashboardSummaryViewGridWindow'}, {}),
+        (11, wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':u'DashboardSummaryViewGridWindow'}, {'m_x':210, 'm_y':30}),
+        (12, wx.MouseEvent, {'eventType':wx.EVT_LEFT_DCLICK, 'sentTo':u'DashboardSummaryViewGridWindow', 'recordedFocusWindow':u'DashboardSummaryViewGridWindow', 'recordedFocusWindowClass':wx.Window}, {'m_leftDown':True, 'm_x':210, 'm_y':30}),
+        (13, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'DashboardSummaryViewAttributeEditor'}, {}),
+        (14, wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':u'DashboardSummaryViewAttributeEditor', 'selectionRange': (0,8), 'lastWidgetValue':u'Untitled'}, {'m_x':34, 'm_y':10}),
+        (15, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'DashboardSummaryViewAttributeEditor', 'lastWidgetValue':u'Untitled'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':36, 'm_y':12, 'UnicodeKey':84}),
+        (16, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'DashboardSummaryViewAttributeEditor', 'recordedFocusWindow':u'DashboardSummaryViewAttributeEditor', 'recordedFocusWindowClass':osaf.framework.attributeEditors.AETypeOverTextCtrl.AENonTypeOverTextCtrl, 'lastWidgetValue':u'Untitled'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':36, 'm_y':12, 'UnicodeKey':116}),
+        (17, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'DashboardSummaryViewAttributeEditor'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':36, 'm_y':12, 'UnicodeKey':84}),
+        (18, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'DashboardSummaryViewAttributeEditor', 'lastWidgetValue':u't'}, {'m_rawCode':69, 'm_keyCode':69, 'm_x':36, 'm_y':12, 'UnicodeKey':69}),
+        (19, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'DashboardSummaryViewAttributeEditor', 'lastWidgetValue':u't'}, {'m_rawCode':101, 'm_keyCode':101, 'm_x':36, 'm_y':12, 'UnicodeKey':101}),
+        (20, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'DashboardSummaryViewAttributeEditor'}, {'m_rawCode':69, 'm_keyCode':69, 'm_x':36, 'm_y':12, 'UnicodeKey':69}),
+        (21, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'DashboardSummaryViewAttributeEditor', 'lastWidgetValue':u'te'}, {'m_rawCode':83, 'm_keyCode':83, 'm_x':36, 'm_y':12, 'UnicodeKey':83}),
+        (22, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'DashboardSummaryViewAttributeEditor', 'lastWidgetValue':u'te'}, {'m_rawCode':115, 'm_keyCode':115, 'm_x':36, 'm_y':12, 'UnicodeKey':115}),
+        (23, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'DashboardSummaryViewAttributeEditor', 'lastWidgetValue':u'tes'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':36, 'm_y':12, 'UnicodeKey':84}),
+        (24, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'DashboardSummaryViewAttributeEditor', 'lastWidgetValue':u'tes'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':36, 'm_y':12, 'UnicodeKey':116}),
+        (25, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'DashboardSummaryViewAttributeEditor'}, {'m_rawCode':83, 'm_keyCode':83, 'm_x':36, 'm_y':12, 'UnicodeKey':83}),
+        (26, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'DashboardSummaryViewAttributeEditor'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':36, 'm_y':12, 'UnicodeKey':84}),
+        (27, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'DashboardSummaryViewAttributeEditor', 'lastWidgetValue':u'test'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':36, 'm_y':12, 'UnicodeKey':13}),
+        (28, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'DashboardSummaryViewGridWindow'}, {}),
+        (29, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'DashboardSummaryViewGridWindow'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':210, 'm_y':30, 'UnicodeKey':13}),
+        (30, wx.CommandEvent, {'associatedBlock':'NewCollectionItem', 'eventType':wx.EVT_MENU, 'sentTo':u'MainViewRoot'}, {}),
+        (31, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'SidebarAttributeEditor'}, {}),
+        (32, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'SidebarAttributeEditor', 'lastWidgetValue':u'Untitled'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':133, 'm_y':-181, 'UnicodeKey':84}),
+        (33, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'SidebarAttributeEditor', 'recordedFocusWindow':u'SidebarAttributeEditor', 'recordedFocusWindowClass':osaf.framework.attributeEditors.AETypeOverTextCtrl.AENonTypeOverTextCtrl, 'lastWidgetValue':u'Untitled'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':133, 'm_y':-181, 'UnicodeKey':116}),
+        (34, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'SidebarAttributeEditor'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':133, 'm_y':-181, 'UnicodeKey':84}),
+        (35, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'SidebarAttributeEditor', 'lastWidgetValue':u't'}, {'m_rawCode':69, 'm_keyCode':69, 'm_x':133, 'm_y':-181, 'UnicodeKey':69}),
+        (36, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'SidebarAttributeEditor', 'lastWidgetValue':u't'}, {'m_rawCode':101, 'm_keyCode':101, 'm_x':133, 'm_y':-181, 'UnicodeKey':101}),
+        (37, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'SidebarAttributeEditor'}, {'m_rawCode':69, 'm_keyCode':69, 'm_x':133, 'm_y':-181, 'UnicodeKey':69}),
+        (38, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'SidebarAttributeEditor', 'lastWidgetValue':u'te'}, {'m_rawCode':83, 'm_keyCode':83, 'm_x':133, 'm_y':-181, 'UnicodeKey':83}),
+        (39, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'SidebarAttributeEditor', 'lastWidgetValue':u'te'}, {'m_rawCode':115, 'm_keyCode':115, 'm_x':133, 'm_y':-181, 'UnicodeKey':115}),
+        (40, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'SidebarAttributeEditor', 'lastWidgetValue':u'tes'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':133, 'm_y':-181, 'UnicodeKey':84}),
+        (41, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'SidebarAttributeEditor', 'lastWidgetValue':u'tes'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':133, 'm_y':-181, 'UnicodeKey':116}),
+        (42, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'SidebarAttributeEditor'}, {'m_rawCode':83, 'm_keyCode':83, 'm_x':133, 'm_y':-181, 'UnicodeKey':83}),
+        (43, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'SidebarAttributeEditor'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':133, 'm_y':-181, 'UnicodeKey':84}),
+        (44, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'SidebarAttributeEditor', 'lastWidgetValue':u'test'}, {'m_rawCode':49, 'm_keyCode':49, 'm_x':133, 'm_y':-181, 'UnicodeKey':49}),
+        (45, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'SidebarAttributeEditor', 'lastWidgetValue':u'test'}, {'m_rawCode':49, 'm_keyCode':49, 'm_x':133, 'm_y':-181, 'UnicodeKey':49}),
+        (46, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'SidebarAttributeEditor'}, {'m_rawCode':49, 'm_keyCode':49, 'm_x':133, 'm_y':-181, 'UnicodeKey':49}),
+        (47, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'SidebarAttributeEditor', 'lastWidgetValue':u'test1'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':133, 'm_y':-181, 'UnicodeKey':13}),
+        (48, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'SidebarGridWindow'}, {}),
+        (49, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'SidebarGridWindow'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':155, 'm_y':-49, 'UnicodeKey':13}),
+        (50, wx.MouseEvent, {'associatedBlock':'ApplicationBar', 'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'ApplicationBar', 'recordedFocusWindow':u'SidebarGridWindow', 'recordedFocusWindowClass':wx.Window}, {'m_leftDown':True, 'm_x':180, 'm_y':35}),
+        (51, wx.MouseEvent, {'associatedBlock':'ApplicationBar', 'eventType':wx.EVT_LEFT_UP, 'sentTo':u'ApplicationBar'}, {'m_x':180, 'm_y':35}),
+        (52, wx.CommandEvent, {'associatedBlock':'ApplicationBarEventButton', 'eventType':wx.EVT_MENU, 'sentTo':u'ApplicationBar'}, {}),
+        (53, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'TimedEventsFocusWindow'}, {}),
+        (54, wx.MouseEvent, {'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'TimedEvents', 'recordedFocusWindow':u'TimedEventsFocusWindow', 'recordedFocusWindowClass':wx.Window}, {'m_leftDown':True, 'm_x':325, 'm_y':151}),
+        (55, wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':u'TimedEvents'}, {'m_x':325, 'm_y':151}),
+        (56, wx.MouseEvent, {'eventType':wx.EVT_LEFT_DCLICK, 'sentTo':u'TimedEvents'}, {'m_leftDown':True, 'm_x':325, 'm_y':151}),
+        (57, wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':u'TimedEvents'}, {'m_x':325, 'm_y':151}),
+        (58, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'TimedEventsInPlaceEditor'}, {}),
+        (59, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'TimedEventsInPlaceEditor', 'lastWidgetValue':u'New Event'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':16, 'm_y':-19, 'UnicodeKey':84}),
+        (60, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'TimedEventsInPlaceEditor', 'recordedFocusWindow':u'TimedEventsInPlaceEditor', 'recordedFocusWindowClass':osaf.framework.blocks.calendar.CalendarCanvas.wxInPlaceEditor, 'lastWidgetValue':u'New Event'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':16, 'm_y':-19, 'UnicodeKey':116}),
+        (61, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'TimedEventsInPlaceEditor', 'lastWidgetValue':u't'}, {'m_rawCode':69, 'm_keyCode':69, 'm_x':16, 'm_y':-19, 'UnicodeKey':69}),
+        (62, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'TimedEventsInPlaceEditor', 'lastWidgetValue':u't'}, {'m_rawCode':101, 'm_keyCode':101, 'm_x':16, 'm_y':-19, 'UnicodeKey':101}),
+        (63, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'TimedEventsInPlaceEditor'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':16, 'm_y':-19, 'UnicodeKey':84}),
+        (64, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'TimedEventsInPlaceEditor'}, {'m_rawCode':69, 'm_keyCode':69, 'm_x':16, 'm_y':-19, 'UnicodeKey':69}),
+        (65, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'TimedEventsInPlaceEditor', 'lastWidgetValue':u'te'}, {'m_rawCode':83, 'm_keyCode':83, 'm_x':16, 'm_y':-19, 'UnicodeKey':83}),
+        (66, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'TimedEventsInPlaceEditor', 'lastWidgetValue':u'te'}, {'m_rawCode':115, 'm_keyCode':115, 'm_x':16, 'm_y':-19, 'UnicodeKey':115}),
+        (67, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'TimedEventsInPlaceEditor', 'lastWidgetValue':u'tes'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':16, 'm_y':-19, 'UnicodeKey':84}),
+        (68, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'TimedEventsInPlaceEditor', 'lastWidgetValue':u'tes'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':16, 'm_y':-19, 'UnicodeKey':116}),
+        (69, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'TimedEventsInPlaceEditor'}, {'m_rawCode':83, 'm_keyCode':83, 'm_x':16, 'm_y':-19, 'UnicodeKey':83}),
+        (70, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'TimedEventsInPlaceEditor'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':16, 'm_y':-19, 'UnicodeKey':84}),
+        (71, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'TimedEventsInPlaceEditor', 'lastWidgetValue':u'test'}, {'m_rawCode':50, 'm_keyCode':50, 'm_x':16, 'm_y':-19, 'UnicodeKey':50}),
+        (72, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'TimedEventsInPlaceEditor', 'lastWidgetValue':u'test'}, {'m_rawCode':50, 'm_keyCode':50, 'm_x':16, 'm_y':-19, 'UnicodeKey':50}),
+        (73, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'TimedEventsInPlaceEditor'}, {'m_rawCode':50, 'm_keyCode':50, 'm_x':16, 'm_y':-19, 'UnicodeKey':50}),
+        (74, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'TimedEventsInPlaceEditor', 'lastWidgetValue':u'test2'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':16, 'm_y':-19, 'UnicodeKey':13}),
+        (75, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'TimedEventsInPlaceEditor', 'lastWidgetValue':u'test2\n'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':16, 'm_y':-19, 'UnicodeKey':13}),
+        (76, wx.CommandEvent, {'eventType':wx.EVT_TEXT_ENTER, 'sentTo':u'TimedEventsInPlaceEditor'}, {}),
+        (77, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'TimedEventsFocusWindow'}, {}),
+        (78, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'TimedEventsFocusWindow'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':325, 'm_y':421, 'UnicodeKey':13}),
+        (79, wx.MouseEvent, {'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'HeadlineBlockAEStaticControl', 'recordedFocusWindow':u'TimedEventsFocusWindow', 'recordedFocusWindowClass':wx.Window}, {'m_leftDown':True, 'm_x':32, 'm_y':15}),
+        (80, wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':u'HeadlineBlockAEStaticControl', 'lastWidgetValue':u'test2'}, {'m_x':32, 'm_y':15}),
+        (81, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'HeadlineBlockAEEditControl'}, {}),
+        (82, wx.MouseEvent, {'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'HeadlineBlockAEEditControl', 'recordedFocusWindow':u'HeadlineBlockAEEditControl', 'recordedFocusWindowClass':osaf.framework.attributeEditors.DragAndDropTextCtrl.DragAndDropTextCtrl, 'lastWidgetValue':u'test2'}, {'m_leftDown':True, 'm_x':30, 'm_y':13}),
+        (83, wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':u'HeadlineBlockAEEditControl', 'selectionRange': (4,4), 'lastWidgetValue':u'test2'}, {'m_x':30, 'm_y':13}),
+        (84, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'HeadlineBlockAEEditControl', 'lastWidgetValue':u'test2'}, {'m_rawCode':17, 'm_controlDown':True, 'm_keyCode':308, 'm_x':53, 'm_y':15, 'UnicodeKey':17}),
+        (85, wx.CommandEvent, {'associatedBlock':'SelectAllItem', 'eventType':wx.EVT_MENU, 'sentTo':u'MainViewRoot', 'lastWidgetValue':u'test2'}, {}),
+        (86, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'HeadlineBlockAEEditControl'}, {'m_rawCode':65, 'm_controlDown':True, 'm_keyCode':65, 'm_x':55, 'm_y':15, 'UnicodeKey':65}),
+        (87, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'HeadlineBlockAEEditControl'}, {'m_rawCode':17, 'm_keyCode':308, 'm_x':55, 'm_y':15, 'UnicodeKey':17}),
+        (88, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'HeadlineBlockAEEditControl', 'lastWidgetValue':u'test2'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':55, 'm_y':15, 'UnicodeKey':84}),
+        (89, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'HeadlineBlockAEEditControl', 'lastWidgetValue':u'test2'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':55, 'm_y':15, 'UnicodeKey':116}),
+        (90, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'HeadlineBlockAEEditControl', 'lastWidgetValue':u't'}, {'m_rawCode':69, 'm_keyCode':69, 'm_x':55, 'm_y':15, 'UnicodeKey':69}),
+        (91, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'HeadlineBlockAEEditControl', 'lastWidgetValue':u't'}, {'m_rawCode':101, 'm_keyCode':101, 'm_x':55, 'm_y':15, 'UnicodeKey':101}),
+        (92, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'HeadlineBlockAEEditControl'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':55, 'm_y':15, 'UnicodeKey':84}),
+        (93, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'HeadlineBlockAEEditControl'}, {'m_rawCode':69, 'm_keyCode':69, 'm_x':55, 'm_y':15, 'UnicodeKey':69}),
+        (94, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'HeadlineBlockAEEditControl', 'lastWidgetValue':u'te'}, {'m_rawCode':83, 'm_keyCode':83, 'm_x':55, 'm_y':15, 'UnicodeKey':83}),
+        (95, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'HeadlineBlockAEEditControl', 'lastWidgetValue':u'te'}, {'m_rawCode':115, 'm_keyCode':115, 'm_x':55, 'm_y':15, 'UnicodeKey':115}),
+        (96, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'HeadlineBlockAEEditControl', 'lastWidgetValue':u'tes'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':55, 'm_y':15, 'UnicodeKey':84}),
+        (97, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'HeadlineBlockAEEditControl', 'lastWidgetValue':u'tes'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':55, 'm_y':15, 'UnicodeKey':116}),
+        (98, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'HeadlineBlockAEEditControl'}, {'m_rawCode':83, 'm_keyCode':83, 'm_x':55, 'm_y':15, 'UnicodeKey':83}),
+        (99, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'HeadlineBlockAEEditControl'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':55, 'm_y':15, 'UnicodeKey':84}),
+        (100, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'HeadlineBlockAEEditControl', 'lastWidgetValue':u'test'}, {'m_rawCode':51, 'm_keyCode':51, 'm_x':55, 'm_y':15, 'UnicodeKey':51}),
+        (101, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'HeadlineBlockAEEditControl', 'lastWidgetValue':u'test'}, {'m_rawCode':51, 'm_keyCode':51, 'm_x':55, 'm_y':15, 'UnicodeKey':51}),
+        (102, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'HeadlineBlockAEEditControl'}, {'m_rawCode':51, 'm_keyCode':51, 'm_x':55, 'm_y':15, 'UnicodeKey':51}),
+        (103, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'HeadlineBlockAEEditControl', 'lastWidgetValue':u'test3'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':55, 'm_y':15, 'UnicodeKey':13}),
+        (104, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'HeadlineBlockAEEditControl', 'lastWidgetValue':u'test3'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':55, 'm_y':15, 'UnicodeKey':13}),
+        (105, wx.CommandEvent, {'eventType':wx.EVT_TEXT_ENTER, 'sentTo':u'HeadlineBlockAEEditControl'}, {}),
+        (106, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'HeadlineBlockAEEditControl'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':55, 'm_y':15, 'UnicodeKey':13}),
+        (107, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'CalendarLocationAEEditControl'}, {}),
+        (108, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'CalendarLocationAEEditControl', 'lastWidgetValue':u'location'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':20, 'm_y':245, 'UnicodeKey':84}),
+        (109, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'CalendarLocationAEEditControl', 'recordedFocusWindow':u'CalendarLocationAEEditControl', 'recordedFocusWindowClass':osaf.framework.attributeEditors.DragAndDropTextCtrl.DragAndDropTextCtrl, 'lastWidgetValue':u'location'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':20, 'm_y':245, 'UnicodeKey':116}),
+        (110, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'CalendarLocationAEEditControl', 'lastWidgetValue':u't'}, {'m_rawCode':69, 'm_keyCode':69, 'm_x':20, 'm_y':245, 'UnicodeKey':69}),
+        (111, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'CalendarLocationAEEditControl', 'lastWidgetValue':u't'}, {'m_rawCode':101, 'm_keyCode':101, 'm_x':20, 'm_y':245, 'UnicodeKey':101}),
+        (112, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'CalendarLocationAEEditControl'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':20, 'm_y':245, 'UnicodeKey':84}),
+        (113, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'CalendarLocationAEEditControl'}, {'m_rawCode':69, 'm_keyCode':69, 'm_x':20, 'm_y':245, 'UnicodeKey':69}),
+        (114, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'CalendarLocationAEEditControl', 'lastWidgetValue':u'te'}, {'m_rawCode':83, 'm_keyCode':83, 'm_x':20, 'm_y':245, 'UnicodeKey':83}),
+        (115, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'CalendarLocationAEEditControl', 'lastWidgetValue':u'te'}, {'m_rawCode':115, 'm_keyCode':115, 'm_x':20, 'm_y':245, 'UnicodeKey':115}),
+        (116, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'CalendarLocationAEEditControl', 'lastWidgetValue':u'tes'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':20, 'm_y':245, 'UnicodeKey':84}),
+        (117, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'CalendarLocationAEEditControl', 'lastWidgetValue':u'tes'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':20, 'm_y':245, 'UnicodeKey':116}),
+        (118, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'CalendarLocationAEEditControl'}, {'m_rawCode':83, 'm_keyCode':83, 'm_x':20, 'm_y':245, 'UnicodeKey':83}),
+        (119, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'CalendarLocationAEEditControl'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':20, 'm_y':245, 'UnicodeKey':84}),
+        (120, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'CalendarLocationAEEditControl', 'lastWidgetValue':u'test'}, {'m_rawCode':52, 'm_keyCode':52, 'm_x':20, 'm_y':245, 'UnicodeKey':52}),
+        (121, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'CalendarLocationAEEditControl', 'lastWidgetValue':u'test'}, {'m_rawCode':52, 'm_keyCode':52, 'm_x':20, 'm_y':245, 'UnicodeKey':52}),
+        (122, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'CalendarLocationAEEditControl'}, {'m_rawCode':52, 'm_keyCode':52, 'm_x':20, 'm_y':245, 'UnicodeKey':52}),
+        (123, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'CalendarLocationAEEditControl', 'lastWidgetValue':u'test4'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':20, 'm_y':245, 'UnicodeKey':13}),
+        (124, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'CalendarLocationAEEditControl', 'lastWidgetValue':u'test4'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':20, 'm_y':245, 'UnicodeKey':13}),
+        (125, wx.CommandEvent, {'eventType':wx.EVT_TEXT_ENTER, 'sentTo':u'CalendarLocationAEEditControl'}, {}),
+        (126, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'CalendarLocationAEEditControl'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':20, 'm_y':245, 'UnicodeKey':13}),
+        (127, wx.FocusEvent, {'associatedBlock':'EditAllDay', 'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'EditAllDay'}, {}),
+        (128, wx.MouseEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'NotesBlock', 'recordedFocusWindow':u'EditAllDay', 'recordedFocusWindowClass':osaf.framework.attributeEditors.AttributeEditors.AECheckBox, 'lastWidgetValue':False}, {'m_leftDown':True, 'm_x':24, 'm_y':40}),
+        (129, wx.FocusEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'NotesBlock'}, {}),
+        (130, wx.MouseEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_LEFT_UP, 'sentTo':u'NotesBlock', 'selectionRange': (0,0), 'lastWidgetValue':u''}, {'m_x':24, 'm_y':40}),
+        (131, wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'NotesBlock', 'lastWidgetValue':u''}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':26, 'm_y':42, 'UnicodeKey':84}),
+        (132, wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_CHAR, 'sentTo':u'NotesBlock', 'recordedFocusWindow':u'NotesBlock', 'recordedFocusWindowClass':osaf.framework.attributeEditors.AETypeOverTextCtrl.AENonTypeOverTextCtrl, 'lastWidgetValue':u''}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':26, 'm_y':42, 'UnicodeKey':116}),
+        (133, wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'NotesBlock', 'lastWidgetValue':u't'}, {'m_rawCode':69, 'm_keyCode':69, 'm_x':26, 'm_y':42, 'UnicodeKey':69}),
+        (134, wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_CHAR, 'sentTo':u'NotesBlock', 'lastWidgetValue':u't'}, {'m_rawCode':101, 'm_keyCode':101, 'm_x':26, 'm_y':42, 'UnicodeKey':101}),
+        (135, wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_KEY_UP, 'sentTo':u'NotesBlock'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':26, 'm_y':42, 'UnicodeKey':84}),
+        (136, wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_KEY_UP, 'sentTo':u'NotesBlock'}, {'m_rawCode':69, 'm_keyCode':69, 'm_x':26, 'm_y':42, 'UnicodeKey':69}),
+        (137, wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'NotesBlock', 'lastWidgetValue':u'te'}, {'m_rawCode':83, 'm_keyCode':83, 'm_x':26, 'm_y':42, 'UnicodeKey':83}),
+        (138, wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_CHAR, 'sentTo':u'NotesBlock', 'lastWidgetValue':u'te'}, {'m_rawCode':115, 'm_keyCode':115, 'm_x':26, 'm_y':42, 'UnicodeKey':115}),
+        (139, wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'NotesBlock', 'lastWidgetValue':u'tes'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':26, 'm_y':42, 'UnicodeKey':84}),
+        (140, wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_CHAR, 'sentTo':u'NotesBlock', 'lastWidgetValue':u'tes'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':26, 'm_y':42, 'UnicodeKey':116}),
+        (141, wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_KEY_UP, 'sentTo':u'NotesBlock'}, {'m_rawCode':83, 'm_keyCode':83, 'm_x':26, 'm_y':42, 'UnicodeKey':83}),
+        (142, wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_KEY_UP, 'sentTo':u'NotesBlock'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':26, 'm_y':42, 'UnicodeKey':84}),
+        (143, wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'NotesBlock', 'lastWidgetValue':u'test'}, {'m_rawCode':53, 'm_keyCode':53, 'm_x':26, 'm_y':42, 'UnicodeKey':53}),
+        (144, wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_CHAR, 'sentTo':u'NotesBlock', 'lastWidgetValue':u'test'}, {'m_rawCode':53, 'm_keyCode':53, 'm_x':26, 'm_y':42, 'UnicodeKey':53}),
+        (145, wx.KeyEvent, {'associatedBlock':'NotesBlock', 'eventType':wx.EVT_KEY_UP, 'sentTo':u'NotesBlock'}, {'m_rawCode':53, 'm_keyCode':53, 'm_x':26, 'm_y':42, 'UnicodeKey':53}),
+        (146, wx.MouseEvent, {'associatedBlock':'EditAllDay', 'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'EditAllDay', 'lastWidgetValue':u'test5'}, {'m_leftDown':True, 'm_x':4, 'm_y':8}),
+        (147, wx.FocusEvent, {'associatedBlock':'EditAllDay', 'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'EditAllDay'}, {}),
+        (148, wx.MouseEvent, {'associatedBlock':'EditAllDay', 'eventType':wx.EVT_LEFT_UP, 'sentTo':u'EditAllDay', 'lastWidgetValue':False}, {'m_x':4, 'm_y':8}),
+        (149, wx.CommandEvent, {'associatedBlock':'EditAllDay', 'eventType':wx.EVT_CHECKBOX, 'sentTo':u'EditAllDay', 'recordedFocusWindow':u'EditAllDay', 'recordedFocusWindowClass':osaf.framework.attributeEditors.AttributeEditors.AECheckBox, 'lastWidgetValue':True}, {}),
+        (150, wx.MouseEvent, {'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'AllDayEvents', 'lastWidgetValue':True}, {'m_leftDown':True, 'm_x':329, 'm_y':14}),
+        (151, wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':u'AllDayEvents'}, {'m_x':329, 'm_y':14}),
+        (152, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'AllDayEventsFocusWindow'}, {}),
+        (153, wx.MouseEvent, {'eventType':wx.EVT_LEFT_DCLICK, 'sentTo':u'AllDayEvents', 'recordedFocusWindow':u'AllDayEventsFocusWindow', 'recordedFocusWindowClass':wx.Window}, {'m_leftDown':True, 'm_x':329, 'm_y':14}),
+        (154, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'AllDayEventsInPlaceEditor'}, {}),
+        (155, wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':u'AllDayEventsInPlaceEditor', 'selectionRange': (0,6), 'lastWidgetValue':u'test3'}, {'m_x':20, 'm_y':10}),
+        (156, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'AllDayEventsInPlaceEditor', 'lastWidgetValue':u'test3'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':20, 'm_y':10, 'UnicodeKey':84}),
+        (157, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'AllDayEventsInPlaceEditor', 'recordedFocusWindow':u'AllDayEventsInPlaceEditor', 'recordedFocusWindowClass':osaf.framework.blocks.calendar.CalendarCanvas.wxInPlaceEditor, 'lastWidgetValue':u'test3'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':20, 'm_y':10, 'UnicodeKey':116}),
+        (158, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'AllDayEventsInPlaceEditor', 'lastWidgetValue':u't'}, {'m_rawCode':69, 'm_keyCode':69, 'm_x':20, 'm_y':10, 'UnicodeKey':69}),
+        (159, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'AllDayEventsInPlaceEditor', 'lastWidgetValue':u't'}, {'m_rawCode':101, 'm_keyCode':101, 'm_x':20, 'm_y':10, 'UnicodeKey':101}),
+        (160, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'AllDayEventsInPlaceEditor'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':20, 'm_y':10, 'UnicodeKey':84}),
+        (161, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'AllDayEventsInPlaceEditor'}, {'m_rawCode':69, 'm_keyCode':69, 'm_x':20, 'm_y':10, 'UnicodeKey':69}),
+        (162, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'AllDayEventsInPlaceEditor', 'lastWidgetValue':u'te'}, {'m_rawCode':83, 'm_keyCode':83, 'm_x':20, 'm_y':10, 'UnicodeKey':83}),
+        (163, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'AllDayEventsInPlaceEditor', 'lastWidgetValue':u'te'}, {'m_rawCode':115, 'm_keyCode':115, 'm_x':20, 'm_y':10, 'UnicodeKey':115}),
+        (164, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'AllDayEventsInPlaceEditor', 'lastWidgetValue':u'tes'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':20, 'm_y':10, 'UnicodeKey':84}),
+        (165, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'AllDayEventsInPlaceEditor', 'lastWidgetValue':u'tes'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':20, 'm_y':10, 'UnicodeKey':116}),
+        (166, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'AllDayEventsInPlaceEditor'}, {'m_rawCode':83, 'm_keyCode':83, 'm_x':20, 'm_y':10, 'UnicodeKey':83}),
+        (167, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'AllDayEventsInPlaceEditor'}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':20, 'm_y':10, 'UnicodeKey':84}),
+        (168, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'AllDayEventsInPlaceEditor', 'lastWidgetValue':u'test'}, {'m_rawCode':54, 'm_keyCode':54, 'm_x':20, 'm_y':10, 'UnicodeKey':54}),
+        (169, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'AllDayEventsInPlaceEditor', 'lastWidgetValue':u'test'}, {'m_rawCode':54, 'm_keyCode':54, 'm_x':20, 'm_y':10, 'UnicodeKey':54}),
+        (170, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'AllDayEventsInPlaceEditor'}, {'m_rawCode':54, 'm_keyCode':54, 'm_x':20, 'm_y':10, 'UnicodeKey':54}),
+        (171, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'AllDayEventsInPlaceEditor', 'lastWidgetValue':u'test6'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':20, 'm_y':10, 'UnicodeKey':13}),
+        (172, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'AllDayEventsInPlaceEditor', 'lastWidgetValue':u'test6'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':20, 'm_y':10, 'UnicodeKey':13}),
+        (173, wx.CommandEvent, {'eventType':wx.EVT_TEXT_ENTER, 'sentTo':u'AllDayEventsInPlaceEditor'}, {}),
+        (174, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'AllDayEventsFocusWindow'}, {}),
+        (175, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'AllDayEventsFocusWindow'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':329, 'm_y':14, 'UnicodeKey':13}),
+    ])

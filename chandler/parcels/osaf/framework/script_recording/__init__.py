@@ -18,7 +18,6 @@ from application import schema
 from osaf.framework.blocks import Block, BlockEvent, Table
 from osaf.framework.blocks.MenusAndToolbars import Menu, MenuItem, ToolBarItem
 from i18n import ChandlerMessageFactory as _
-from application.Application import idToString
 from osaf.views.detail import DetailSynchronizedAttributeEditorBlock
 from osaf.framework.script_recording.Scripts import ScriptsMenu, runScript
 from tools.cats.framework import run_recorded
@@ -48,32 +47,79 @@ wxEventClasseInfo = {wx.CommandEvent: {"attributes": ()},
                                                   "m_shiftDown",
                                                   "m_x",
                                                   "m_y",
-                                                  "UnicodeKey")} }
+                                                  "UnicodeKey")},
+                     wx.ClipboardTextEvent: {"attributes": ()},
+                     wx.FocusEvent: {"attributes": ()},
+                     wx._core.PyCommandEvent: {"attributes": ()}}
 
 wxEventTypes = ("wx.EVT_MENU",
                 "wx.EVT_KEY_DOWN",
+                "wx.EVT_KEY_UP",
                 "wx.EVT_LEFT_DOWN",
                 "wx.EVT_LEFT_UP",
                 "wx.EVT_RIGHT_DOWN",
                 "wx.EVT_LEFT_DCLICK",
                 "wx.EVT_RIGHT_DCLICK",
                 "wx.EVT_CHAR",
+                "wx.EVT_TEXT_ENTER",
                 "wx.EVT_CHOICE",
-                "wx.grid.EVT_GRID_LABEL_LEFT_CLICK",
+                "wx.EVT_TEXT_CUT",
+                "wx.EVT_TEXT_COPY",
+                "wx.EVT_TEXT_PASTE",
                 "wx.EVT_SCROLLWIN_LINEUP",
                 "wx.EVT_SCROLLWIN_LINEDOWN",
                 "wx.EVT_SCROLLWIN_PAGEUP",
                 "wx.EVT_SCROLLWIN_PAGEDOWN",
                 "wx.EVT_SCROLLWIN_THUMBTRACK",
                 "wx.EVT_SCROLLWIN_THUMBRELEASE",
-
                 "wx.EVT_ACTIVATE",
                 "wx.EVT_SET_FOCUS",
                 "wx.EVT_BUTTON",
-                "wx.EVT_CHECKBOX")
+                "wx.EVT_CHECKBOX",
+                "wx.EVT_LISTBOX",
+                "wx.EVT_RADIOBUTTON")
 
-ignoreBlocks = set (("RecordingMenuItem",
-                     "ScriptVerificationMenuItem"))
+checkFocusEventTypes = ("wx.EVT_LEFT_DOWN",
+                        "wx.EVT_RIGHT_DOWN",
+                        "wx.EVT_LEFT_DCLICK",
+                        "wx.EVT_CHAR",
+                        "wx.EVT_TEXT_ENTER",
+                        "wx.EVT_CHOICE",
+                        "wx.EVT_TEXT_CUT",
+                        "wx.EVT_TEXT_COPY",
+                        "wx.EVT_TEXT_PASTE",
+                        "wx.EVT_BUTTON",
+                        "wx.EVT_CHECKBOX")
+
+# These event types work differently on the different platform so validation isn't relable.
+ignoreValueCheckEventTypes = ("wx.EVT_SET_FOCUS",
+                              "wx.EVT_TEXT_ENTER",
+                              "wx.EVT_KEY_UP",
+                              "wx.EVT_LEFT_UP",
+                              "wx.EVT_TEXT_CUT",
+                              "wx.EVT_TEXT_COPY",
+                              "wx.EVT_TEXT_PASTE")
+
+# Scripts run at different times so these widgets values vary from run to run.
+ignoreValueCheckForWidgets = set (("EditCalendarStartDate",
+                                   "EditCalendarEndDate",
+                                   "EditCalendarStartTime",
+                                   "EditCalendarEndTime"))
+
+ignoreEventsToAssociatedBlocks = set (("RecordingMenuItem",
+                                       "ScriptVerificationMenuItem"))
+
+# Add human readable comments about what the script is doing by recording these events in a comment
+commentTheseEventTypes = set (("wx.EVT_CHAR",
+                               "wx.EVT_MENU",
+                               "wx.EVT_LEFT_DOWN",
+                               "wx.EVT_LEFT_DCLICK",                               
+                               "wx.EVT_CHOICE",
+                               "wx.EVT_BUTTON",
+                               "wx.EVT_CHECKBOX",
+                               "wx.EVT_LISTBOX",
+                               "wx.EVT_RADIOBUTTON",
+                               "wx.EVT_TEXT_CUT", "wx.EVT_TEXT_COPY", "wx.EVT_TEXT_PASTE"))
 
 wxEventTypeReverseMapping = {}
 
@@ -121,17 +167,31 @@ class Controller (Block.Block):
     """
     verifyScripts = schema.One(schema.Boolean, initialValue=True)
     
+    def valueToString (self, value):
+        theType = type (value)
+        if theType is str:
+            return "'" + value.encode('string_escape') + "'"
+        elif theType is unicode:
+            return "u'" + value.encode('unicode_escape').replace ("'", "\\'") + "'"
+        elif theType is bool or theType is int:
+            return str(value)
+        else:
+            return value
+
     def onToggleRecordingEvent (self, event):
         theApp = wx.GetApp()
 
         if self.FilterEvent not in theApp.filterEventCallables:
-            self.script = "import wx, osaf" + os.linesep
-            self.script += "from " + __name__ + ".script_lib import ProcessEvent, InitializeScript" + os.linesep + os.linesep
-            self.script += "def run():" + os.linesep
-            self.script += "    InitializeScript ()" + os.linesep
+            self.commands = ""
+            self.comments = ""
+            self.typingSequence = None
 
             if hasattr (self, "lastFocus"):
                 del self.lastFocus
+                
+            self.lineNumber = 0
+            self.lastOffset = len(self.commands)
+            self.lastEventWasSetFocus = False
 
             theApp.filterEventCallables.add (self.FilterEvent)
             theApp.SetCallFilterEvent()
@@ -140,27 +200,49 @@ class Controller (Block.Block):
             theApp.SetCallFilterEvent (False)
 
             dialog = wx.FileDialog (None,
-                                    message = _(u"Untitled"),
+                                    message = _(u"Save Script"),
                                     defaultDir = run_recorded.recorded_scripts_dir, 
                                     defaultFile = u"",
                                     wildcard = u"*.py",
                                     style = wx.SAVE|wx.CHANGE_DIR)
     
             if dialog.ShowModal () == wx.ID_OK:
-                #Change the working directory so the next time you save a script
-                # you will be where you saved the last one.
+                # Finish the script
+                if self.typingSequence is not None:
+                    self.comments += "        Type %s (%d)%c" % \
+                        (self.valueToString (self.typingSequence),
+                         self.startTypingLineNumber,
+                         os.linesep)
+
+                # Change the working directory so the next time you save a script
+                #you will be where you saved the last one.
                 path = dialog.GetPath()
                 
-                #Save the script
+                # Save the script
                 (root, ext) = os.path.splitext (path)
                 if len (ext) == 0:
                     path += ".py"
                 theFile = file (path, 'wb')
+                self.script = "import wx, osaf, application" + os.linesep
+                self.script += "def run():" + os.linesep
+
+                if len (self.comments) > 0:
+                    self.script += '    """' + os.linesep
+                    self.script += self.comments
+                    self.script += '    """' + os.linesep + os.linesep
+
+                self.script += "    wx.GetApp().RunRecordedScript ([" + os.linesep
+
+                if len (self.commands) > 0:
+                    self.script += self.commands
+                self.script += "    ])" + os.linesep
+
                 theFile.write (self.script)
                 theFile.close()
-                
                 # dealocate memory used for script
-                self.script = ""
+                del self.script
+                del self.comments
+                del self.commands
             dialog.Destroy()
 
     def onToggleRecordingEventUpdateUI (self, event):
@@ -199,43 +281,74 @@ class Controller (Block.Block):
     def FilterEvent (self, event):
         def widgetToName (widget):
             """
-            Given a widget, returns the blockName if the widget is associated
-            with a block, otherwise it returns the ID of the window. We can
-            use this information when playing back commands to find the
-            correct window.
+            Given a widget, returns a name that can be used to find the
+            same widget during playback.
             """
-            block = getattr (widget, "blockItem", None)
-            if block is None:
-                if widget is wx.GetApp().mainFrame:
-                    # special case for the MainFramee window
-                    name = "MainFrame"
-                else:
-                    if widget == wx.Window_FindFocus():
-                        name = "__FocusWindow__"
-                    else:
-                        id = widget.GetId()
-                        name = idToString.get (id, None)
-                        if name is None:
-                            # negative ids vary from run to run. So you need to change the
-                            # creation of this widget to register it's id using Application's
-                            # newIdForString
-                            assert id > 0
-                            name = id                            
+            if isinstance (widget, wx.Window):
+                return widget.GetName()
+            elif widget is None:
+                return "__none__"
             else:
-                # We have an associated block, so use it's name
-                name = block.blockName
-            return name
+                return "__block__" + widget.blockItem.blockName
     
-        def valueToString (value):
-            theType = type (value)
-            if theType is str:
-                return "'" + value.encode('string_escape') + "'"
-            elif theType is unicode:
-                return "u'" + value.encode('unicode_escape') + "'"
-            elif theType is bool or theType is int:
-                return str(value)
-            else:
-                return value
+        def writeComment ():
+            if eventType in commentTheseEventTypes:
+                if eventType == "wx.EVT_CHAR":
+                    if self.typingSequence is None:
+                        self.typingSequence = unicode (unichr (event.UnicodeKey))
+                        self.startTypingLineNumber = self.lineNumber
+                    else:
+                        self.typingSequence += unichr (event.UnicodeKey)
+                else:
+                    if self.typingSequence is not None:
+                        self.comments += "        Type %s (%d)%c" % \
+                            (self.valueToString (self.typingSequence),
+                             self.startTypingLineNumber,
+                             os.linesep)
+                        self.typingSequence = None
+                    
+                    if eventType == "wx.EVT_MENU":
+                        widget = associatedBlock.widget
+                        if isinstance (widget, wx.MenuItem):
+                            # Find the menu name using wx.Widgets menu APIs that are carefully
+                            #optimized for maximum pain and inefficiency. Blocks eliminate the
+                            #wxWidgets non-orthoganality, but they are going away so do it the hard way.
+                            menuName = widget.GetLabel()
+                            menu = widget.GetMenu()
+                            while True:                                            
+                                widget = menu
+                                menu = widget.GetParent()
+                                if menu is not None:
+                                    for item in menu.GetMenuItems():
+                                        if item.IsSubMenu() and item.GetSubMenu() is widget:
+                                            menuName = menu.GetLabelText (item.GetId()) + " > " + menuName
+                                            break
+                                    else:
+                                        assert False, "Didn't find expected sub menu in menu item"
+                                else:
+                                    break
+                            
+                            menuBar = widget.GetMenuBar()
+                            for index in xrange (menuBar.GetMenuCount()):
+                                if menuBar.GetMenu (index) is widget:
+                                    menuName = menuBar.GetLabelTop (index) + " > " + menuName
+                                    break
+                            else:
+                                assert False, "Didn't find expected menu in menuBar"
+
+                            self.comments += "        Choose menu '%s' (%d)%c" % \
+                                (menuName, self.lineNumber, os.linesep)
+                        elif isinstance (widget, wx.ToolBarTool):
+                            toolBar = widget.GetToolBar()
+                            toolIndex = toolBar.GetToolPos (widget.GetId())
+
+                            self.comments += "        Choose toolbar button '%s' (%d)%c" % \
+                                (widget.GetLabel(), self.lineNumber, os.linesep)
+                
+                    elif eventType == "wx.EVT_LEFT_DOWN":
+                        self.comments += "        Left Mouse Down in " + sentToName + os.linesep
+                    elif eventType == "wx.EVT_LEFT_DCLICK":
+                        self.comments += "        Left Mouse Double Click in " + sentToName + os.linesep
 
         if event.__class__ in wxEventClasseInfo:
             eventType = wxEventTypeReverseMapping.get (event.GetEventType(), None)
@@ -246,50 +359,53 @@ class Controller (Block.Block):
                 if not getattr (sentToWidget, "widgetIsBeingDeleted", False):
                     # Find the name of the block that the event was sent to
                     # Translate events in wx.Grid's GridWindow to wx.Grid
-                    widgetParent = sentToWidget.GetParent()
-                    parentBlockItem = getattr (widgetParent, "blockItem", None)
-
-                    if (parentBlockItem is not None and
-                        (isinstance (parentBlockItem, Table) or
-                         isinstance (parentBlockItem, DetailSynchronizedAttributeEditorBlock) or
-                         isinstance (parentBlockItem, ToolBarItem))):
-                        sentToName = parentBlockItem.blockName
-                    else:
-                        sentToName = widgetToName (sentToWidget)
+                    sentToName = widgetToName (sentToWidget)
                     
-                    if type (sentToName) is str:
-                        # Save dictionary of properties of the event
-                        values = []
-                        associatedBlock = Block.Block.idToBlock.get (event.GetId(), None)
-                        if associatedBlock is not None:
-                            associatedBlock = associatedBlock.blockName
-                            values.append ("'associatedBlock':'" + associatedBlock + "'")
+                    # Save dictionary of properties of the event
+                    values = []
+                    associatedBlock = Block.Block.idToBlock.get (event.GetId(), None)
+                    if associatedBlock is not None:
+                        associatedBlockName = associatedBlock.blockName
+                        values.append ("'associatedBlock':" + self.valueToString (associatedBlockName))
+                    else:
+                        associatedBlockName = ""
 
-                        # Don't record the stop recording event
-                        if associatedBlock not in ignoreBlocks:
-                            values.append ("'eventType':" + eventType)
-                            values.append ("'sentTo':" + valueToString (sentToName))
+                    # Don't record the stop recording event
+                    if associatedBlockName not in ignoreEventsToAssociatedBlocks:
+                        values.append ("'eventType':" + eventType)
+                        values.append ("'sentTo':" + self.valueToString (sentToName))
 
-                            # Track selection of choice controls so we can set them on playback
-                            if eventType == "wx.EVT_CHOICE":
-                                values.append ("'selectedItem':" + valueToString (sentToWidget.GetSelection()))
+                        # Track selection of choice controls so we can set them on playback
+                        if (eventType == "wx.EVT_CHOICE" or eventType == "wx.EVT_LISTBOX"):
+                            values.append ("'selectedItem':" + self.valueToString (sentToWidget.GetSelection()))
 
-                            # Use mouse up events in text controls to set selection during playback
-                            if (eventType == 'wx.EVT_LEFT_UP' and isinstance (sentToWidget, wx.TextCtrl)):
-                                (start, end) = sentToWidget.GetSelection()
-                                values.append ("'selectionRange': (" +
-                                               valueToString (start) + "," +
-                                               valueToString (end) + ')')
+                        # Keep track of the clipboard on paste events
+                        elif eventType == "wx.EVT_TEXT_PASTE":
+                            data = wx.TextDataObject()
+                            if wx.TheClipboard.Open():
+                                if wx.TheClipboard.GetData (data):
+                                    values.append ("'clipboard':" + self.valueToString (data.GetText()))
+                                wx.TheClipboard.Close()
 
-                            focusWindow = wx.Window_FindFocus()
-                            
-                            if wx.Platform != "__WXMAC__":
-                                # On platforms other than mac the focus window is a wx.TextCtrl
-                                # whose parent is the wx.SearchCtrl
-                                parentWidget = focusWindow.GetParent()
-                                if isinstance (parentWidget, wx.SearchCtrl):
-                                    focusWindow = parentWidget
+                        # Use mouse up events in text controls to set selection during playback
+                        if (eventType == 'wx.EVT_LEFT_UP' and isinstance (sentToWidget, wx.TextCtrl)):
+                            (start, end) = sentToWidget.GetSelection()
+                            values.append ("'selectionRange': (" +
+                                           self.valueToString (start) + "," +
+                                           self.valueToString (end) + ')')
 
+                        focusWindow = wx.Window_FindFocus()
+                        
+                        if wx.Platform != "__WXMAC__":
+                            # On platforms other than mac the focus window is a wx.TextCtrl
+                            # whose parent is the wx.SearchCtrl
+                            parentWidget = focusWindow.GetParent()
+                            if isinstance (parentWidget, wx.SearchCtrl):
+                                focusWindow = parentWidget
+
+                        # Record the focus for verification on playback only for certain
+                        # types of events
+                        if (eventType in checkFocusEventTypes):
                             if not hasattr (self, "lastFocus"):
                                 self.lastFocus = focusWindow
                             if self.lastFocus != focusWindow:
@@ -297,43 +413,64 @@ class Controller (Block.Block):
                                 # Keep track of the focus window changes
                                 self.lastFocus = focusWindow
                                 
-                                # The newFocusWindow is either a blockName or a tupe of class, id
-                                newFocusWindow = widgetToName (focusWindow)
-                                if newFocusWindow == "__FocusWindow__" or type (newFocusWindow) is int:
-                                    values.append ("'newFocusWindow':" + str(focusWindow.GetId()))
-                                else:
-                                    values.append ("'newFocusWindow':" + valueToString (newFocusWindow))
-                                values.append ("'newFocusWindowClass':" + getClassName (focusWindow.__class__))
+                                values.append ("'recordedFocusWindow':" + self.valueToString (widgetToName(focusWindow)))
+                                values.append ("'recordedFocusWindowClass':" + getClassName (focusWindow.__class__))
 
-                            #  Record the state of the last widget so we can check that the state is the same
-                            # afer the event is played back
-                            lastSentToWidget = getattr (self, "lastSentToWidget", None)
-                            if lastSentToWidget is not None and not isinstance (lastSentToWidget, wx._core._wxPyDeadObject):
-                                method = getattr (lastSentToWidget, "GetValue", None)
-                                if method is not None:
-                                    values.append ("'lastWidgetValue':" + valueToString (method()))
-                                
-                            # Keep track of the last widget so we can record the change in Value and
-                            # verify it during playbeck.
-                            self.lastSentToWidget = sentToWidget
- 
-                            properties = "{" + ", ".join (values) + "}"
+                        #  Record the state of the last widget so we can check that the state is the same
+                        # afer the event is played back. Don't record if
+                        # - we don't have a valid lastSentToWidget.
+                        # - we've got a command key since playing back command key events doesn't update
+                        #   the widget's value.
+                        # - we have a type or widget in our ignore list.
+                        lastSentToWidget = getattr (self, "lastSentToWidget", None)
+                        if (lastSentToWidget is not None and
+                            not isinstance (lastSentToWidget, wx._core._wxPyDeadObject)):
+                            method = getattr (lastSentToWidget, "GetValue", None)
+                            if (method is not None and
+                                not (eventType == "wx.EVT_CHAR" and event.m_controlDown) and
+                                not eventType in ignoreValueCheckEventTypes and
+                                not lastSentToWidget.GetName() in ignoreValueCheckForWidgets):
+                                    values.append ("'lastWidgetValue':" + self.valueToString (method()))
 
-                            values = []
-                            classInfo = wxEventClasseInfo [event.__class__]
-                            for (attribute, defaultValue) in zip (classInfo["attributes"], classInfo["defaultValues"]):
-                                value = getattr (event, attribute)
-                                if value != defaultValue:
-                                    values.append ("'%s':%s" % (attribute, valueToString (value)))
-                            attributes = "{" + ", ".join (values) + "}"
 
-                            self.script += ("    ProcessEvent (%s, %s, %s)%s" % (classInfo ["className"],
-                                                                                 properties ,
-                                                                                 attributes,
-                                                                                 os.linesep))
-                    # Comment in for testing
+                        # Keep track of the last widget so we can record the change in Value and
+                        # verify it during playbeck.
+                        self.lastSentToWidget = sentToWidget
+
+                        properties = "{" + ", ".join (values) + "}"
+
+                        values = []
+                        classInfo = wxEventClasseInfo [event.__class__]
+                        for (attribute, defaultValue) in zip (classInfo["attributes"], classInfo["defaultValues"]):
+                            value = getattr (event, attribute)
+                            if value != defaultValue:
+                                values.append ("'%s':%s" % (attribute, self.valueToString (value)))
+                        attributes = "{" + ", ".join (values) + "}"
+
+                        # We only record the last SetFocus event in a sequence of SetFocus events
+                        # to avoid sending focus to items that no longer exist.
+                        thisEventIsSetFocus = eventType == "wx.EVT_SET_FOCUS"
+
+                        if self.lastEventWasSetFocus and thisEventIsSetFocus:
+                            self.commands = self.commands [:self.lastOffset]
+                            self.lineNumber -= 1
+                        else:
+                            self.lastOffset = len(self.commands)
+                        self.lastEventWasSetFocus = thisEventIsSetFocus
+
+                        self.commands += ("        (%s, %s, %s, %s),%s" % (self.lineNumber,
+                                                                           classInfo ["className"],
+                                                                           properties ,
+                                                                           attributes,
+                                                                           os.linesep))
+                        writeComment()
+                        self.lineNumber += 1
+                        
+                    #Comment in for testing
                     #else:
                         #print "unnamed block with id", sentToName, sentToWidget
+        #else:
+            #print event
 
 def installParcel(parcel, old_version=None):
     main = schema.ns('osaf.views.main', parcel.itsView)

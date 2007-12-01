@@ -45,7 +45,6 @@ class SubscribeDialog(wx.Dialog):
 
         self.view = view
         self.resources = resources
-        self.modal = modal
         self.name = name
         self.mine = mine
         self.publisher = publisher
@@ -176,7 +175,7 @@ class SubscribeDialog(wx.Dialog):
         self.activity.completed()
         self.listener.unregister()
 
-        if self.modal:
+        if self.IsModal():
             self.EndModal(True)
         self.Destroy()
 
@@ -356,7 +355,7 @@ class SubscribeDialog(wx.Dialog):
         if self.subscribing:
             self.activity.abortRequested = True
         else:
-            if self.modal:
+            if self.IsModal():
                 self.EndModal(False)
             self.Destroy()
 

@@ -82,7 +82,6 @@ class TurnOnTimezonesDialog(wx.Dialog):
 
         self.resources = resources
         self.view      = view
-        self.modal     = modal
         self.state     = state
         
         self.changedTimeZone = None
@@ -154,7 +153,7 @@ class TurnOnTimezonesDialog(wx.Dialog):
     def End(self, event=None, ret=False):
         global dialogShowing
         dialogShowing = False        
-        if self.modal:
+        if self.IsModal():
             self.EndModal(ret)
         self.Destroy()
         

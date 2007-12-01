@@ -557,7 +557,6 @@ class AccountPreferencesDialog(wx.Dialog):
         }
         self.resources = resources
         self.rv = rv
-        self.modal = modal
 
         # outerSizer will have two children to manage: on top is innerSizer,
         # and below that is the okCancelSizer
@@ -1447,7 +1446,7 @@ class AccountPreferencesDialog(wx.Dialog):
             self.__ApplyChanges()
             self.__ApplyDeletions()
 
-            if self.modal:
+            if self.IsModal():
                 self.EndModal(True)
 
             self.rv.commit()
@@ -1548,7 +1547,7 @@ class AccountPreferencesDialog(wx.Dialog):
     def OnCancel(self, evt):
         self.__ApplyCancellations()
         self.rv.commit()
-        if self.modal:
+        if self.IsModal():
             self.EndModal(False)
         self.Destroy()
 

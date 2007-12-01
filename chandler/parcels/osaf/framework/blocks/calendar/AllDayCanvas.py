@@ -118,7 +118,7 @@ class AllDayEventsCanvas(CalendarCanvasBlock):
 
     def instantiateWidget(self):
         super(AllDayEventsCanvas, self).instantiateWidget()
-        return wxAllDayEventsCanvas(self.parentBlock.widget)
+        return wxAllDayEventsCanvas(self.parentBlock.widget, name = self.blockName)
         
     def onItemNotification(self, notificationType, data):
         pass # all notifications handled by container
@@ -131,6 +131,7 @@ class wxAllDayEventsCanvas(BaseWidget, wxCalendarCanvas):
         super (wxAllDayEventsCanvas, self).__init__ (*arguments, **keywords)
         self.editor = wxInPlaceEditor(self, defocusCallback=self.SetPanelFocus,
                                       allowMultiLine=False)
+        self.editor.SetName (keywords ['name'] + "InPlaceEditor")
         self.autoExpandMode = True #though we start at collapsed height
         self.numEventRows = 0
 

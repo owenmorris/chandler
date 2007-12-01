@@ -266,6 +266,7 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
     def OnInit(self):
         super (wxTimedEventsCanvas, self).OnInit()
         self.editor = wxInPlaceEditor(self, defocusCallback=self.SetPanelFocus)
+        self.editor.SetName(self.blockItem.blockName + "InPlaceEditor")
 
         self.SetWindowGeometry()
         styles = self.blockItem.calendarContainer

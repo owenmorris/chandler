@@ -73,29 +73,6 @@ def mixinAClass (self, myMixinClassImportPath):
             _classesByName [newClassName] = theClass
         self.__class__ = theClass
 
-# If you pass -1 for a widget's id during creation you'll get a unique id, which might differ
-# from run to run. This makes it impossible to find widgets, not associated with blocks, from
-# one run to the next during recorded script playback. So instead, if you use a widget, not
-# associated with a block, that you want to be scriptable you should use getIdForString
-# ("SomeUniqueString") instead of -1. Debugging code will catch non unique strings.
-#
-# You should also call deleteIdForString in the destructor of your widget.
-
-idToString = {}
-stringToId = {}
-
-def registerStringForId (id, string):
-    # Strings must be unique
-    assert not stringToId.has_key (string)
-    idToString [id] = string
-    stringToId [string] = id
-    
-
-def unregisterStringForId (name):
-    del idToString [stringToId [name]]
-    del stringToId [name]
-    
-
 class MainThreadCallbackEvent(wx.PyEvent):
     def __init__(self, target, *args, **kwds):
         super (MainThreadCallbackEvent, self).__init__()
@@ -483,9 +460,10 @@ class wxApplication (wx.App):
         self.mainFrame = wxMainFrame(None,
                                      -1,
                                      mainViewRoot.windowTitle,
-                                     pos=(mainViewRoot.position.x, mainViewRoot.position.y),
-                                     size=(mainViewRoot.size.width, mainViewRoot.size.height),
-                                     style=wx.DEFAULT_FRAME_STYLE)
+                                     pos =( mainViewRoot.position.x, mainViewRoot.position.y),
+                                     size =( mainViewRoot.size.width, mainViewRoot.size.height),
+                                     style = wx.DEFAULT_FRAME_STYLE,
+                                     name = mainViewRoot.blockName)
 
         # mainViewRoot needs to refer to its frame and the mainFrame needs to
         # refert to the mainViewRoot
@@ -1394,6 +1372,26 @@ Do you want to start Chandler with a fresh data repository?""") %{'origOperating
         response = dialog.ShowModal()
         dialog.Destroy()
         return response == wx.ID_YES
+
+    def RunRecordedScript (self, events):
+        from osaf.framework.script_recording.script_lib import InitializeScript
+        self.events = events
+        self.eventsIndex = 0
+        InitializeScript()
+        if len (events) > 0:
+            self.SetPlaybackEventPending (True)
+            while self.PlaybackEventPending():
+                self.ProcessPlaybackEvent()
+
+            
+    def ProcessPlaybackEvent (self):
+        from osaf.framework.script_recording.script_lib import ProcessEvent
+        eventsIndex = self.eventsIndex
+        self.eventsIndex = eventsIndex + 1
+        ProcessEvent (*self.events [eventsIndex])
+        if self.eventsIndex >= len (self.events):
+            self.SetPlaybackEventPending (False)
+            self.events = [] # Release storage of events
 
 
 class TransportWrapper (object):

@@ -14,42 +14,48 @@
 
 import wx
 from osaf.framework.blocks.Block import Block
-from application.Application import stringToId
 from osaf.framework.attributeEditors.AETypeOverTextCtrl import AETypeOverTextCtrl
 from application import schema
 
-def ProcessEvent (theClass, properties, attributes):
-    def NameToWidget (name):
-        """
-        Given a name, returns the corresponding widget.
-        """
-        sentTo = None
-        if type (name) is str:
-            if name == "MainFrame":
-                sentTo = application.mainFrame
-            elif name == "__FocusWindow__":
-                sentTo = wx.Window_FindFocus()
-            else:
-                sentTo = Block.findBlockByName (name)
-                if sentTo is not None:
-                    sentTo = sentTo.widget
-                    if isinstance (sentTo, wx.grid.Grid):
-                        sentTo = sentTo.GetGridWindow()
-                    elif isinstance (sentTo, AETypeOverTextCtrl):
-                          firstChild = sentTo.GetChildren()[0]
-                          if isinstance (firstChild, wx.TextCtrl):
-                              sentTo = firstChild
-                else:
-                    sentTo = wx.FindWindowById (stringToId [name])
+# On Windows a key down and char event will also generate an enter and key up so we need to avoid
+# processing those otherwise we'll get duplicate events
+ignoreMSWEvents = set ((wx.EVT_TEXT_ENTER,
+                        wx.EVT_KEY_UP))
+
+def ProcessEvent (line, theClass, properties, attributes):
+    
+    def nameToWidget (name):
+        if name == "__none__":
+            return None
+        elif name.startswith ("__block__"):
+            block = Block.findBlockByName (name [len ("__block__"):])
+            return block.widget
         else:
-            assert type (name) is int
-            sentTo = wx.FindWindowById (name)
-        return sentTo
+            return wx.FindWindowByName (name)        
 
     application = wx.GetApp()
-
-    sentToWidget = NameToWidget (properties ["sentTo"])
+    eventNumber = application.eventsIndex - 1
     
+    if wx.Platform == "__WXMAC__":
+        window = wx.Window_FindFocus()
+        if isinstance (window, wx.Window):
+            windowName = window.GetName()
+        else:
+            windowName = ""
+
+    application.ProcessIdle()
+    application.Yield (True)
+    application.mainFrame.Update()
+
+    if wx.Platform == "__WXMAC__":
+        window = wx.Window_FindFocus()
+        if isinstance (window, wx.Window):
+            windowName = window.GetName()
+        else:
+            windowName = ""
+
+    sentToWidget = nameToWidget (properties ["sentTo"])
+
     assert (isinstance (sentToWidget, wx.Window) or
             isinstance (sentToWidget, wx.Menu) or
             isinstance (sentToWidget, wx.MenuItem) or
@@ -88,27 +94,27 @@ def ProcessEvent (theClass, properties, attributes):
     event.SetEventObject (sentToWidget)
     event.SetEventType (eventType.evtType[0])
 
-    # Use the associated window if present to set the Id of the event
+    # Use the associated block if present to set the Id of the event
     associatedBlock = properties.get ("associatedBlock", None)
     if associatedBlock is not None:
-        event.SetId (Block.findBlockByName (associatedBlock).widget.GetId())
+        id = Block.findBlockByName (associatedBlock).widget.GetId()
+    else:
+        id = sentToWidget.GetId()
+    event.SetId (id)
 
-    newFocusWindow = properties.get ("newFocusWindow", None)
-    if newFocusWindow != None:
-        ProcessEvent.newFocusWindow = newFocusWindow
-        ProcessEvent.newFocusWindowClass = properties["newFocusWindowClass"]
-            
     # Special case clicks on checkboxes to toggle the widget's value
-    # And special case wx,Choice to set the selection. Both of these
+    # And special case wx.Choice to set the selection. Both of these
     # are necessary before the event is processed so the GetValue
     # validation passes
     if eventType is wx.EVT_CHECKBOX:
         sentToWidget.SetValue (not sentToWidget.GetValue())
 
     # andSpecial case wx,Choice to set the selection
-    elif eventType is wx.EVT_CHOICE:
-        sentToWidget.SetSelection (properties ["selectedItem"])
-
+    elif eventType is wx.EVT_CHOICE or eventType is wx.EVT_LISTBOX:
+        selectedItem = properties ["selectedItem"]
+        event.SetInt (selectedItem)
+        sentToWidget.SetSelection (selectedItem)
+    
     # A bug in wxWidgets on Windows stores the wrong value for m_rawCode in wx.EVT_CHAR
     # Since the correct valus is stored in wx.EVT_KEY_DOWN and wx.EVT_KEY_DOWN
     # precedes wx.EVT_KEY_DOWN, we'll cache it for the next wx.EVT_KEY_DOWN
@@ -120,16 +126,20 @@ def ProcessEvent (theClass, properties, attributes):
 
     # Verify script if necessary
     if schema.ns('osaf.framework.script_recording', application.UIRepositoryView).RecordingController.verifyScripts:
+        lastSentToWidget = ProcessEvent.lastSentToWidget
+
         # Make sure the menu or button is enabled
         if eventType is wx.EVT_MENU:
             updateUIEvent = wx.UpdateUIEvent (event.GetId())
             updateUIEvent.SetEventObject (sentToWidget)
             sentToWidget.ProcessEvent (updateUIEvent)
-            assert updateUIEvent.GetEnabled() is True, "You're sending a command to a disable menu"
+            assert updateUIEvent.GetEnabled() is True,\
+                   "event %d -- You're sending a command to a disable menu" % eventNumber
             
         # Check to makee sure we're focused to the right window
-        newFocusWindow = ProcessEvent.newFocusWindow
-        if newFocusWindow is not None:
+        recordedFocusWindow = properties.get ("recordedFocusWindow", None)
+        if recordedFocusWindow is not None:
+            recordedFocusWindowClass = properties["recordedFocusWindowClass"]
             focusWindow = wx.Window_FindFocus()
             
             if wx.Platform != "__WXMAC__" and focusWindow is not None:
@@ -142,7 +152,7 @@ def ProcessEvent (theClass, properties, attributes):
 
             # Rarely, a block has more than one widget associated with it, e.g. a toolBarItem
             # with a wx.SearchCtrl. If we get the widget associated with out block, we'll always
-            # get the same widget in the case is case of multiple widgets per block.s
+            # get the same widget in the case of multiple widgets per blocks.
             if hasattr (focusWindow, "blockItem"):
                 focusWindow = focusWindow.blockItem.widget
 
@@ -152,79 +162,127 @@ def ProcessEvent (theClass, properties, attributes):
             # don't verify the focus in those cases.
             #
             # On Linux events sent to toolbar cause the focus window to become None
-            if not ( (wx.Platform == "__WXMAC__" and issubclass (ProcessEvent.newFocusWindowClass, wx.CheckBox)) or
-                     (wx.Platform == "__WXGTK__" and isinstance (sentToWidget, wx.ToolBar)) ):
-                if type (newFocusWindow) is str:
-                    assert focusWindow is NameToWidget (newFocusWindow), "An unexpected window has the focus"
+            #
+            # Also, when lastSentToWidget is None the focus window may not be accurate.
+
+            if not ( (wx.Platform == "__WXMAC__" and issubclass (recordedFocusWindowClass, wx.CheckBox)) or
+                     (wx.Platform == "__WXGTK__" and isinstance (sentToWidget, wx.ToolBar)) or
+                     lastSentToWidget is None):
+                if focusWindow is None:
+                    focusWindowName = "None"
                 else:
-                    assert isinstance (focusWindow, ProcessEvent.newFocusWindowClass), (
-                           "The focus window, " + str(focusWindow) +
-                           ", is not class " + str (ProcessEvent.newFocusWindowClass) +
-                           ". Parent window is " +  str (focusWindow.GetParent()) )
-                    if newFocusWindow > 0:
-                        assert focusWindow.GetId() == newFocusWindow, "Focus window has unexpected id"
-                    else:
-                        assert focusWindow.GetId() < 0, "Focus window has unexpected id"
-    
+                    focusWindowName = focusWindow.GetName()
+                assert focusWindow is nameToWidget (recordedFocusWindow),\
+                       "event %d -- Focus is: %s; expecting: %s" % (eventNumber, focusWindowName, recordedFocusWindow)
+
         # Check to make sure last event caused expected change
 
-        lastSentToWidget = ProcessEvent.lastSentToWidget
         if lastSentToWidget is not None and not isinstance (lastSentToWidget, wx._core._wxPyDeadObject):
             GetValueMethod = getattr (lastSentToWidget, "GetValue", None)
         else:
             GetValueMethod = None
 
-        assert properties.has_key ("lastWidgetValue") == (GetValueMethod is not None), "widget's value existance doesn't match existance when the script was recorded"
-
         if GetValueMethod is not None:
-            value = GetValueMethod()
-            lastWidgetValue = properties ["lastWidgetValue"]
-            # Special hackery for string that varies depending on Chandler build
-            if type (value) is unicode and value.startswith (u"Welcome to Chandler 0.7.dev-r"):
-                assert lastWidgetValue.startswith (u"Welcome to Chandler 0.7.dev-r")
-            else:
-                 assert value == lastWidgetValue, (
-                        "widget's value, \"" + str(value) +
-                        "\", doesn't match the value when the script was recorded: \"" + str (lastWidgetValue) + '"' )
+            lastWidgetValue = properties.get ("lastWidgetValue", None)
+            if lastWidgetValue is not None:
+                value = GetValueMethod()
+
+                # Special hackery for string that varies depending on Chandler build
+                if type (value) is unicode and value.startswith (u"Welcome to Chandler 0.7.dev-r"):
+                    assert lastWidgetValue.startswith (u"Welcome to Chandler 0.7.dev-r")
+                else:
+                    assert value == lastWidgetValue,\
+                           'event %d -- widget\'s value, "%s" doesn\'t match the value when the script was recorded: "%s"'\
+                            % (eventNumber, value, lastWidgetValue)
 
         # Keep track of the last widget. Use Id because widget can be deleted
-        ProcessEvent.lastSentToWidget = sentToWidget
 
-    if not sentToWidget.ProcessEvent (event):
-        if (eventType is wx.EVT_KEY_DOWN and
-            event.m_keyCode in set ((wx.WXK_ESCAPE, wx.WXK_TAB, wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER))):
-            # Special case key downs that end edits in the grid
-            gridWindow = sentToWidget.GetParent()
-            if (gridWindow is not None and
-                isinstance (gridWindow.GetParent(), wx.grid.Grid)):
-                event.SetEventObject (gridWindow)
-                gridWindow.ProcessEvent (event)
+        # Return characters with wx.EVT_CHAR events cause problems with verification so we won't verify
+        # this case. I think that the reason verification is a problem her is because our emulation of
+        # these events is slighty from different from the way they are handled by the OS when we record the script.
+        if attributes.get ("UnicodeKey", 0) == 13 and (eventType is wx.EVT_CHAR or eventType is wx.EVT_KEY_DOWN):
+            ProcessEvent.lastSentToWidget = None
+        else:
+            ProcessEvent.lastSentToWidget = sentToWidget
 
-        elif eventType is wx.EVT_CHAR:
-            # Make sure the selection is valid
-            if __debug__:
-                GetSelectionMethod = getattr (sentToWidget, "GetSelection", None)
-                if GetSelectionMethod is not None:
-                    (start, end) = GetSelectionMethod()
-                    assert start >= 0 and end >= 0 and start <= end
-
-            # Try EmulateKeyPress
-            EmulateKeyPress = getattr(sentToWidget, 'EmulateKeyPress', None)
-            if EmulateKeyPress is not None:
-                # A bug in wxWidgets on Windows stores the wrong value for m_rawCode in wx.EVT_CHAR
-                # Since the correct valus is stored in wx.EVT_KEY_DOWN and wx.EVT_KEY_DOWN
-                # precedes wx.EVT_KEY_DOWN, we'll cache it for the next wx.EVT_KEY_DOWN
-                event.m_rawCode = ProcessEvent.last_rawCode
-                EmulateKeyPress (event)
-
-        # Left down changes the focus
-        elif eventType is wx.EVT_LEFT_DOWN:
+    processed = False
+    if eventType is wx.EVT_SET_FOCUS:
+        if wx.Window_FindFocus() is not sentToWidget:
+            # Setting your focus to the window that has the focus causes the
+            #  window to lose focus on Windows
             sentToWidget.SetFocus()
+            # On Linux we occasionally need to Yield for the Focus to be properly set
+            if wx.Window_FindFocus() is not sentToWidget:
+                application.Yield (True)
+                focusWindow = wx.Window.FindFocus()
+                if focusWindow is not sentToWidget:
+                    if isinstance (focusWindow, wx.Window):
+                        focusWindowName = window.GetName()
+                    else:
+                        focusWindowName = ""
+                    assert False, \
+                           "event %d -- SetFocus failed; Focus is: %s; expecting: %s; sapplication.IsActive() is %s" \
+                           % (eventNumber, focusWindowName, properties ["sentTo"], str(application.IsActive()))
 
+    else:
+        if wx.Platform != "__WXMSW__" or eventType not in ignoreMSWEvents:
+            # On windows we ignore certain events that are generated as a side effect of other events
+            if not sentToWidget.ProcessEvent (event):
+                processed = True
+                if (eventType is wx.EVT_KEY_DOWN and
+                    event.m_keyCode in set ((wx.WXK_ESCAPE, wx.WXK_TAB, wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER))):
+                    # Special case key downs that end edits in the grid
+                    gridWindow = sentToWidget.GetParent()
+                    if (gridWindow is not None and
+                        isinstance (gridWindow.GetParent(), wx.grid.Grid)):
+                        event.SetEventObject (gridWindow)
+                        gridWindow.ProcessEvent (event)
+        
+                elif eventType is wx.EVT_CHAR and not event.m_controlDown:
+                    # Make sure the selection is valid
+                    if __debug__:
+                        GetSelectionMethod = getattr (sentToWidget, "GetSelection", None)
+                        if GetSelectionMethod is not None:
+                            (start, end) = GetSelectionMethod()
+                            assert start >= 0 and end >= 0 and start <= end
+        
+                    # Try EmulateKeyPress
+                    EmulateKeyPress = getattr(sentToWidget, 'EmulateKeyPress', None)
+                    if EmulateKeyPress is not None:
+                        # On Linx if we call EmulateKeyPress with a return character in a
+                        # single line textCtrl it will insert a return character.
+                        UnicodeKey = event.UnicodeKey
+        
+                        if (UnicodeKey != 13 or sentToWidget.IsMultiLine()):
+                            # A bug in wxWidgets on Windows stores the wrong value for m_rawCode in wx.EVT_CHAR
+                            # Since the correct valus is stored in wx.EVT_KEY_DOWN and wx.EVT_KEY_DOWN
+                            # precedes wx.EVT_KEY_DOWN, we'll cache it for the next wx.EVT_KEY_DOWN
+                            event.m_rawCode = ProcessEvent.last_rawCode
+                            # Also on Linux we need to translate returns to line feeds.
+                            if wx.Platform == "__WXGTK__" and UnicodeKey == 13:
+                                event.UnicodeKey = 10
+            
+                            EmulateKeyPress (event)
+                elif eventType is wx.EVT_TEXT_PASTE:
+                    contents = properties.get ("clipboard", None)
+                    if contents is not None:
+                        assert wx.TheClipboard.Open(), "event %d -- The clipboard can't be opened" % eventNumber
+                        wx.TheClipboard.SetData (wx.TextDataObject (contents))
+                        wx.TheClipboard.Close()
+                        sentToWidget.Paste ()
+                        
     selectionRange = properties.get ("selectionRange", None)
     if selectionRange is not None:
+        
         (start, end) = selectionRange
         sentToWidget.SetSelection (start, end)
+        
+    window = wx.Window_FindFocus()
+    if isinstance (window, wx.Window):
+        windowName = window.GetName()
+    else:
+        windowName = ""
+
 
     # On windows when we propagate notifications while editing a text control
     # it will end up calling wxSynchronizeWidget in wxTable, which will end the
@@ -232,8 +290,6 @@ def ProcessEvent (theClass, properties, attributes):
     if not isinstance (sentToWidget, wx.TextCtrl):
         application.propagateAsynchronousNotifications()
 
-    application.Yield (True)
-    
     # Since scrips don't actually move the cursor and cause wxMouseCaptureLostEvents
     # to be generated we'll periodically release the capture from all the windows.
     # Alternatively, it might be better to record and playback wxMouseCaptureLostEvents.
@@ -243,7 +299,6 @@ def ProcessEvent (theClass, properties, attributes):
             capturedWindow.ReleaseMouse()
         else:
             break
-    
+
 def InitializeScript ():
     ProcessEvent.lastSentToWidget = None
-    ProcessEvent.newFocusWindow = None
