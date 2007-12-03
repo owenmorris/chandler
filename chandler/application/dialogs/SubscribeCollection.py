@@ -189,7 +189,7 @@ class SubscribeDialog(wx.Dialog):
         sharing.releaseView(self.taskView)
 
         if isinstance(err, ActivityAborted):
-            if self.modal:
+            if self.IsModal():
                 self.EndModal(False)
             self.Destroy()
             return

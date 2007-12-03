@@ -90,12 +90,7 @@ class Task(object):
             wx.GetApp().PostAsyncEvent(mainCallback, arg)
 
     def _error(self, arg):
-        if self.view is not None:
-            self.view.cancel()
         self.callInMainThread(self.error, arg, done=True)
 
     def _success(self, result):
-
-        if self.view is not None:
-            self.view.commit(sharing.mergeFunction)
         self.callInMainThread(self.success, result, done=True)

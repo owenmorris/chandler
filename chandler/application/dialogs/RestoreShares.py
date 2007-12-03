@@ -135,6 +135,7 @@ class UnsubscribedCollectionsDialog(wx.Dialog):
                         firstAccountName = account.displayName
 
 
+
         self.buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
 
         if len(self.checkBoxes) == 0:
@@ -180,6 +181,11 @@ class UnsubscribedCollectionsDialog(wx.Dialog):
 
         self.sizer.Add(self.buttonSizer, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
+        for cb in self.checkBoxes:
+            # Check account-wide checkbox by default
+            cb.SetValue(True)
+            self.OnAccountCheck(None, control=cb)
+
         self._resize()
         self.CenterOnParent()
 
@@ -189,8 +195,11 @@ class UnsubscribedCollectionsDialog(wx.Dialog):
         self.UpdateSyncButton()
 
 
-    def OnAccountCheck(self, evt):
-        checkbox = evt.GetEventObject()
+    def OnAccountCheck(self, evt, control=None):
+        if control is None:
+            checkbox = evt.GetEventObject()
+        else:
+            checkbox = control
         index = self.checkBoxes.index(checkbox)
         if checkbox.GetValue():
             for i in range(len(self.checkListBoxes[index].GetItems())):
@@ -303,11 +312,13 @@ class UnsubscribedCollectionsDialog(wx.Dialog):
 
             def error(task, err):
                 if restoreDialog:
+                    sharing.releaseView(self.taskView)
                     self.restoring = False
                     self._restoreError(err)
 
             def success(task, result):
                 if restoreDialog:
+                    sharing.releaseView(self.taskView)
                     self.restoring = False
                     self._restoreSuccess(result)
 
