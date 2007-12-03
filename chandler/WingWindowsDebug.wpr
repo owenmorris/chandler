@@ -6,10 +6,12 @@
 [project attributes]
 debug.run-args = {loc('Chandler.py'): '--catch=never --stderr'}
 proj.directory-list = [{'dirloc': loc('.'),
+                        'excludes': [u'debug',
+                                     u'release'],
                         'filter': 'All Source Files',
-                        'include_hidden': 0,
+                        'include_hidden': False,
                         'recursive': 1,
-                        'watch_for_changes': 1}]
+                        'watch_for_changes': True}]
 proj.env-vars = {None: ('custom',
                         ['PATH=debug/bin;debug/j2re-image/bin;debug/j2re-ima'\
                          'ge/bin/client']),

@@ -6,7 +6,8 @@
 [project attributes]
 debug.run-args = {loc('Chandler.py'): '--catch=never --stderr'}
 proj.directory-list = [{'dirloc': loc('.'),
-                        'excludes': (),
+                        'excludes': [u'debug',
+                                     u'release'],
                         'filter': '*',
                         'include_hidden': 0,
                         'recursive': 1,
