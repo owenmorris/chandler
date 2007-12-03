@@ -211,7 +211,7 @@ class Controller (Block.Block):
             if dialog.ShowModal () == wx.ID_OK:
                 # Finish the script
                 if self.typingSequence is not None:
-                    self.comments += "        Type %s (%d)%c" % \
+                    self.comments += "        Type %s (%d)%s" % \
                         (self.valueToString (self.typingSequence),
                          self.startTypingLineNumber,
                          os.linesep)
@@ -303,7 +303,7 @@ class Controller (Block.Block):
                         self.typingSequence += unichr (event.UnicodeKey)
                 else:
                     if self.typingSequence is not None:
-                        self.comments += "        Type %s (%d)%c" % \
+                        self.comments += "        Type %s (%d)%s" % \
                             (self.valueToString (self.typingSequence),
                              self.startTypingLineNumber,
                              os.linesep)
@@ -338,13 +338,13 @@ class Controller (Block.Block):
                             else:
                                 assert False, "Didn't find expected menu in menuBar"
 
-                            self.comments += "        Choose menu '%s' (%d)%c" % \
+                            self.comments += "        Choose menu '%s' (%d)%s" % \
                                 (menuName, self.lineNumber, os.linesep)
                         elif isinstance (widget, wx.ToolBarTool):
                             toolBar = widget.GetToolBar()
                             toolIndex = toolBar.GetToolPos (widget.GetId())
 
-                            self.comments += "        Choose toolbar button '%s' (%d)%c" % \
+                            self.comments += "        Choose toolbar button '%s' (%d)%s" % \
                                 (widget.GetLabel(), self.lineNumber, os.linesep)
                 
                     elif eventType == "wx.EVT_LEFT_DOWN":
