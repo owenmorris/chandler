@@ -239,6 +239,27 @@ class Indexed(object):
         self._indexes[indexName] = index
         return index
 
+    def rebuildIndex(self, name, subIndexes=True):
+        """
+        Rebuild an index on this collection.
+
+        If the constraints on an index change without the index noticing, as
+        for example, when a locale change causes a sorted index to go out of
+        order, this method allows the index to be rebuilt. It iterates the
+        entire collection, avoiding existing indexes and rebuilds the named
+        index anew. By default, sub-indexes of the index are rebuilt as well.
+
+        @param name: the name of the index to be rebuilt
+        @param subIndexes: rebuild sub-indexes of the index as well, C{True}
+                           by default
+        @return: the new index object
+        """
+
+        item, attrName = self.itsOwner
+        index = self.getIndex(name)
+
+        return self._rebuildIndex(None, index, item, attrName, name, subIndexes)
+
     def setRanges(self, indexName, ranges):
 
         self.getIndex(indexName).setRanges(ranges)
@@ -743,8 +764,9 @@ class Indexed(object):
 
     def _rebuildIndex(self, logger, index, item, attribute, name,
                       subIndexes=True):
-        
-        logger.warning("Rebuilding index '%s' installed on value '%s' of type %s in attribute '%s' on %s", name, self, type(self), attribute, item._repr_())
+
+        if logger is not None:
+            logger.warning("Rebuilding index '%s' installed on value '%s' of type %s in attribute '%s' on %s", name, self, type(self), attribute, item._repr_())
 
         view = item.itsView
         kwds = index.getInitKeywords()
