@@ -300,7 +300,7 @@ endif
 
 $(addprefix install-, $(BUILD_LOCALES)):
 	rm -rf $(C_HOME)/localizations/$(subst install-,,$@)
-	svn export http://svn.osafoundation.org/localizations/chandler/$(LOCALE_VER)/$(subst install-,,$@) $(C_HOME)/localizations/$(subst install-,,$@)
+	svn export http://svn.osafoundation.org/localizations/chandler/$(LOCALE_VER)/$(subst install-,,$@) localizations/$(subst install-,,$@)
 	$(RUN_PYTHON) tools/createTranslationEgg.py -c --dist \
                   -l $(subst install-,,$@) \
                   -f '$(LOCALE_SRC)'$(subst install-,,$@)/Chandler-$(subst install-,,$@).po \
