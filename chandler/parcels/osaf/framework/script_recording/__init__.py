@@ -348,7 +348,7 @@ class Controller (Block.Block):
                                 (widget.GetLabel(), self.lineNumber, os.linesep)
                 
                     elif eventType == "wx.EVT_LEFT_DOWN":
-                        self.comments += "        Left Mouse Down in " + sentToName + os.linesep
+                        self.comments += "        Left Mouse Down in %s (%d)%s" % (sentToName, self.lineNumber, os.linesep)
                     elif eventType == "wx.EVT_LEFT_DCLICK":
                         self.comments += "        Left Mouse Double Click in " + sentToName + os.linesep
 
@@ -398,13 +398,6 @@ class Controller (Block.Block):
 
                         focusWindow = wx.Window_FindFocus()
                         
-                        if wx.Platform != "__WXMAC__":
-                            # On platforms other than mac the focus window is a wx.TextCtrl
-                            # whose parent is the wx.SearchCtrl
-                            parentWidget = focusWindow.GetParent()
-                            if isinstance (parentWidget, wx.SearchCtrl):
-                                focusWindow = parentWidget
-
                         # Record the focus for verification on playback only for certain
                         # types of events
                         if (eventType in checkFocusEventTypes):
