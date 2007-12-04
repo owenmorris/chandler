@@ -24,7 +24,6 @@ from lucene import \
 initVM(CLASSPATH, maxstack='2m')
 
 from chandlerdb.util.c import UUID
-from chandlerdb.persistence.c import DBLockDeadlockError, DBInvalidArgError
 
 from repository.persistence.FileContainer import FileContainer, RepositoryError
 from repository.persistence.DBContainer import VersionContainer

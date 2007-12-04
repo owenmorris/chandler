@@ -356,7 +356,11 @@ class RepositoryThread(threading.Thread):
     def run(self):
 
         from lucene import getVMEnv
-        getVMEnv().attachCurrentThread()
+        env = getVMEnv()
+        if env is not None:
+            env.attachCurrentThread()
+        self._vmEnv = env
+
         super(RepositoryThread, self).run()
 
 
