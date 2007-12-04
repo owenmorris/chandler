@@ -336,6 +336,12 @@ class wxApplication (wx.App):
         self.ignoreSynchronizeWidget = True
         self.focus = None
 
+        # Check the Mac platform, will stop the program if not compatible
+        if not checkMacPlatform():
+            wx.MessageBox(_(u'This version of Chandler runs on a different operating system. Please download the correct installer from the OSAF website.'),
+                          _(u'Quitting Chandler'))
+            return False
+
         wx.InitAllImageHandlers()
 
         # Disable automatic calling of UpdateUIEvents. We will call them
@@ -347,9 +353,6 @@ class wxApplication (wx.App):
         Globals.wxApplication = self
         self.updateUIInOnIdle = True
         
-        # Check the platform, will stop the program if not compatible
-        checkPlatform()
-
         # Initialize PARCELPATH and sys.path
         parcelPath = Utility.initParcelEnv(options, Globals.chandlerDirectory)
         pluginEnv, pluginEggs = Utility.initPluginEnv(options,
@@ -1555,23 +1558,15 @@ class StartupSplash(wx.Frame):
         wx.GetApp().Yield(True)
 
 
-def checkPlatform():
+def checkMacPlatform():
     """
-    Check that the platforms you're running and the one the code has been compiled for match.
-    If they don't, the program stops with sys.exit().
+    Check that we're not running the wrong Mac binaries for the Mac hardware
     """
-    try:
-        from version import platform # This is the compiled platform name
-    except ImportError:
-        # If the platform is not specified in version.py, you're running a dev version from
-        # code. In that case, we suppose you know what you're doing so 
-        # the test will pass and you're on your own...
-        platform = Utility.getPlatformName()
-    if Utility.getPlatformName() != platform:
-        # Prompt the user that we're going to exit
-        wx.MessageBox(_(u'This version of Chandler runs on a different operating system. Please download the correct installer from the OSAF website.'),
-                      _(u'Quitting Chandler'))
-        # Stop the program. Somewhat unclean but since nothing can be done safely
-        # or even should be done (could crash anytime), the best is to just exit when
-        # we still can...
-        sys.exit(1)
+
+    if sys.platform == 'darwin':
+        from platform import processor, machine
+        if processor() == 'i386' and machine() == 'Power Macintosh':
+            # running under Rosetta, not supported
+            return False
+
+    return True
