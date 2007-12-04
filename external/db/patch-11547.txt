@@ -1,0 +1,32 @@
+*** db/db_meta.c	2007-05-18 03:17:41.000000000 +1000
+--- db/db_meta.c	2007-11-16 11:11:03.000000000 +1100
+***************
+*** 715,722 ****
+  	if ((ret = __db_lget(dbc,
+  	    LCK_ALWAYS, pgno, DB_LOCK_WRITE, 0, &metalock)) != 0)
+  		goto err;
+! 	if ((ret = __memp_fget(mpf, &pgno, dbc->txn,
+! 	    DB_MPOOL_DIRTY, &meta)) != 0)
+  		goto err;
+  
+  	if (last_pgnop != NULL)
+--- 716,722 ----
+  	if ((ret = __db_lget(dbc,
+  	    LCK_ALWAYS, pgno, DB_LOCK_WRITE, 0, &metalock)) != 0)
+  		goto err;
+! 	if ((ret = __memp_fget(mpf, &pgno, dbc->txn, 0, &meta)) != 0)
+  		goto err;
+  
+  	if (last_pgnop != NULL)
+***************
+*** 749,754 ****
+--- 749,757 ----
+  	} while (pgno != PGNO_INVALID);
+  	nelems = (u_int32_t)(lp - list);
+  
++ 	if ((ret = __memp_dirty(mpf, &meta, dbc->txn, dbc->priority, 0)) != 0)
++ 		goto err;
++ 
+  	/* Log the current state of the free list */
+  	if (DBC_LOGGING(dbc)) {
+  		ddbt.data = list;
