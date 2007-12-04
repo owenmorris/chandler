@@ -327,12 +327,7 @@ class ToolBarItem(BaseItem):
             control = wxQuickEntry (self.parentBlock.widget,
                                     self.getWidgetID(),
                                     style = wx.TE_PROCESS_ENTER)
-            # On platforms other than macintosh the text control is a child of the wxSearchCtrl.
-            if wx.Platform == '__WXMAC__':
-                textCtrl = control
-            else:
-                textCtrl = control.GetChildren() [0]
-            textCtrl.SetName (self.blockName)
+            control.SetName (self.blockName)
             # Apparently on Macintosh the selection starts out random, which causes it to crash
             # when setting text because it trys to delete characters that don't exist
             control.SetSelection (0, 0)
