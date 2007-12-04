@@ -133,39 +133,41 @@ def dump(rv, filename, uuids=None, serializer=PickleSerializer,
     # XXX before we got here, so the caller should be prepared to handle that.
     output = os.fdopen(os.open(filename, flags, 0600), 'wb')
     try:
-        dump = serializer.dumper(output)
+        try:
+            dump = serializer.dumper(output)
 
-        if activity:
-            count = len(aliases)
-            activity.update(msg=_(u"Exporting %(total)d records") % {'total':count}, totalWork=count)
+            if activity:
+                count = len(aliases)
+                activity.update(msg=_(u"Exporting %(total)d records") % {'total':count}, totalWork=count)
 
-        i = 0
-        for alias in aliases:
-            uuid = trans.getUUIDForAlias(alias)
-            item = rv.findUUID(uuid)
-            for record in trans.exportItem(item):
+            i = 0
+            for alias in aliases:
+                uuid = trans.getUUIDForAlias(alias)
+                item = rv.findUUID(uuid)
+                for record in trans.exportItem(item):
+                    dump(record)
+                i += 1
+                if activity:
+                    activity.update(msg=_(u"Exported %(number)d of %(total)d items") % \
+                                    {'number':i, 'total':count}, work=1)
+
+            if activity:
+                activity.update(totalWork=None) # we don't know upcoming total work
+
+            for record in trans.finishExport():
+                if activity:
+                    count += 1
+                    activity.update(msg=_(u"Exporting additional record"))
+
                 dump(record)
-            i += 1
-            if activity:
-                activity.update(msg=_(u"Exported %(number)d of %(total)d items") % \
-                                {'number':i, 'total':count}, work=1)
 
-        if activity:
-            activity.update(totalWork=None) # we don't know upcoming total work
-
-        for record in trans.finishExport():
-            if activity:
-                count += 1
-                activity.update(msg=_(u"Exporting additional record"))
-
-            dump(record)
-
-        dump(None)
-        del dump
-    except ActivityAborted:
+            dump(None)
+            del dump
+        finally:
+            output.close()
+    except:
+        logger.exception("Error during export")
         os.remove(filename)
-    finally:
-        output.close()
 
     if activity:
         activity.update(msg=_(u"Exported %(total)d records") % {'total':count})
