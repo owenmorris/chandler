@@ -54,11 +54,16 @@ class LocalizationBase(object):
             self.CHANDLERHOME = getCommand(['cygpath', '-a', self.CHANDLERHOME])
             self.CHANDLERBIN  = getCommand(['cygpath', '-a', self.CHANDLERBIN])
 
+        if isWindows:
+            pyScript = 'RunPython.bat'
+        else:
+            pyScript = 'RunPython'
+
         try:
-            if "release" in os.listdir(self.CHANDLERBIN):
+            if "release" in os.listdir(self.CHANDLERBIN) and os.path.exists(os.path.join(self.CHANDLERBIN, "release", pyScript)):
                 self.BINROOT = os.path.join(self.CHANDLERBIN, "release")
 
-            elif "debug" in os.listdir(self.CHANDLERBIN):
+            elif "debug" in os.listdir(self.CHANDLERBIN) and os.path.exists(os.path.join(self.CHANDLERBIN, "debug", pyScript)):
                 self.BINROOT = os.path.join(self.CHANDLERBIN, "debug")
 
             else:
@@ -66,10 +71,7 @@ class LocalizationBase(object):
         except:
             self.raiseError("CHANDLERBIN is invalid '%s'." % self.CHANDLERBIN)
 
-        if isWindows:
-            self.PYTHON = os.path.join(self.BINROOT, "RunPython.bat")
-        else:
-            self.PYTHON = os.path.join(self.BINROOT, "RunPython")
+        self.PYTHON = os.path.join(self.BINROOT, pyScript)
 
     def checkPOFile(self, poFileName):
         try:
