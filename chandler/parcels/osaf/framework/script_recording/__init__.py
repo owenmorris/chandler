@@ -411,8 +411,11 @@ class Controller (Block.Block):
                                 # Keep track of the focus window changes
                                 self.lastFocus = focusWindow
                                 
-                                values.append ("'recordedFocusWindow':" + self.valueToString (widgetToName(focusWindow)))
-                                values.append ("'recordedFocusWindowClass':" + getClassName (focusWindow.__class__))
+                                # Don't verify focus changes when they are GenButtons, which some platforms
+                                # can't set the focus to.
+                                if not isinstance (sentToWidget, GenButton):
+                                    values.append ("'recordedFocusWindow':" + self.valueToString (widgetToName(focusWindow)))
+                                    values.append ("'recordedFocusWindowClass':" + getClassName (focusWindow.__class__))
 
                         #  Record the state of the last widget so we can check that the state is the same
                         # afer the event is played back. Don't record if
