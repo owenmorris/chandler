@@ -21,6 +21,7 @@ from i18n import ChandlerMessageFactory as _
 from osaf.views.detail import DetailSynchronizedAttributeEditorBlock
 from osaf.framework.script_recording.Scripts import ScriptsMenu, runScript
 from tools.cats.framework import run_recorded
+from wx.lib.buttons import GenButton
 from i18n import ChandlerMessageFactory as _
 
 wxEventClasseInfo = {wx.CommandEvent: {"attributes": ()},
@@ -357,8 +358,10 @@ class Controller (Block.Block):
             if eventType is not None:
                 sentToWidget = event.GetEventObject()
 
-                # Ignore events on widgets that are being deleted
-                if not getattr (sentToWidget, "widgetIsBeingDeleted", False):
+                # Ignore events on widgets that are being deleted. Also ignore focus events on
+                # generic buttons since not all platforms can set the focus to them.
+                if (not getattr (sentToWidget, "widgetIsBeingDeleted", False) and
+                   not (eventType == "wx.EVT_SET_FOCUS" and isinstance (sentToWidget, GenButton))):
                     # Find the name of the block that the event was sent to
                     # Translate events in wx.Grid's GridWindow to wx.Grid
                     sentToName = widgetToName (sentToWidget)
