@@ -322,13 +322,15 @@ class wxApplication (wx.App):
 
         self.startenv = os.environ.copy()
 
+        # add plugin eggs and l10n eggs to working_set
+        # collect plugin eggs
+        pluginEnv, pluginEggs = Utility.initPluginEnv(options,
+                                                      options.pluginPath)
+
         # The initI18n can't be initialized until after the App
         # object has been created since initialization creates a
         # wx.Locale object which requires a path that requires
         # GetTraits, which is a method on the App object.
-        #
-        # Eventually when we get Python egg based localization
-        # implemented, this constraint may change
         Utility.initI18n(options)
 
         util.timing.begin("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
@@ -355,8 +357,6 @@ class wxApplication (wx.App):
         
         # Initialize PARCELPATH and sys.path
         parcelPath = Utility.initParcelEnv(options, Globals.chandlerDirectory)
-        pluginEnv, pluginEggs = Utility.initPluginEnv(options,
-                                                      options.pluginPath)
 
         # If a magic metakey is down, run the startup options box; it'll
         # modify options as necessary.

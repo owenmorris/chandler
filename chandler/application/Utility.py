@@ -848,6 +848,9 @@ def initParcelEnv(options, chandlerDirectory):
     return parcelPath
 
 
+# add plugin eggs and l10n eggs to working_set
+# collect plugin eggs
+
 def initPluginEnv(options, path):
 
     from pkg_resources import working_set, Environment
@@ -863,7 +866,7 @@ def initPluginEnv(options, path):
         pluginPrefs = None
     
     plugin_env = Environment(path)
-    eggs = []
+    plugin_eggs = []
 
     # remove uninstalled plugins from prefs
     if pluginPrefs is not None:
@@ -872,17 +875,18 @@ def initPluginEnv(options, path):
                 del prefs['plugins'][project_name]
         prefs.write()
 
-    # add active plugins to working set
+    # add active plugins and l10n eggs to working set
     for project_name in sorted(plugin_env):
-        if pluginPrefs is not None:
-            if pluginPrefs.get(project_name) == 'inactive':
-                continue
         for egg in plugin_env[project_name]:
-            working_set.add(egg)
-            eggs.append(egg)
+            if egg.has_metadata('resources.ini'):
+                working_set.add(egg)            # possible l10n egg
+            elif (pluginPrefs is None or
+                  pluginPrefs.get(project_name) != 'inactive'):
+                working_set.add(egg)            # possible plugin egg
+                plugin_eggs.append(egg)
             break
 
-    return plugin_env, eggs
+    return plugin_env, plugin_eggs
 
 
 def initParcels(options, view, path, namespaces=None):
