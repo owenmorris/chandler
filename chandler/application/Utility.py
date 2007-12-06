@@ -17,7 +17,7 @@ Application utilities.
 """
 
 import os, sys, logging, logging.config, logging.handlers, string, glob
-import i18n, schema
+import i18n, schema, itertools
 import M2Crypto.Rand as Rand, M2Crypto.threading as m2threading
 from optparse import OptionParser
 from configobj import ConfigObj
@@ -265,7 +265,7 @@ def getUserAgent():
 # short opt, long opt, type flag, default value, env var, help text
 COMMAND_LINE_OPTIONS = {
     'parcelPath': ('-p', '--parcelPath', 's', None,  'PARCELPATH', 'Parcel search path'),
-    'pluginPath': (''  , '--pluginPath', 's', 'plugins',  None, 'Plugin search path, relative to CHANDLERHOME'),
+    'pluginPath': (''  , '--pluginPath', 's', 'plugins',  None, 'Plugin search path, relative to CHANDLERHOME and PROFILEDIR'),
     'webserver':  ('-W', '--webserver',  'v', [], 'CHANDLERWEBSERVER', 'Activate the built-in webserver'),
     'profileDir': ('-P', '--profileDir', 's', '',  'PROFILEDIR', 'location of the Chandler user profile directory (relative to CHANDLERHOME)'),
     'testScripts':('-t', '--testScripts','b', False, None, 'run all test scripts'),
@@ -462,11 +462,23 @@ def initOptions(**kwds):
                     value = prefs[name]
                 setattr(options, name, value)
 
-    # Resolve pluginPath relative to chandlerDirectory
     chandlerDirectory = locateChandlerDirectory()
-    options.pluginPath = [os.path.join(chandlerDirectory, path)
-                          for path in options.pluginPath.split(os.pathsep)]
-        
+
+    # Resolve pluginPath relative to chandlerDirectory and profileDir
+    # This means that relative paths in options.pluginPath get expanded
+    # twice into options.pluginPath, once relative to chandlerDirectory and
+    # once relative to profileDir, in this order, removing duplicates.
+    pluginPath = [os.path.expanduser(path)
+                  for path in options.pluginPath.split(os.pathsep)]
+    options.pluginPath = []
+    for path in itertools.chain((os.path.join(chandlerDirectory, path)
+                                 for path in pluginPath),
+                                (os.path.join(options.profileDir, path)
+                                 for path in pluginPath)):
+        path = os.path.abspath(os.path.normpath(path))
+        if path not in options.pluginPath:
+            options.pluginPath.append(path)
+
     # Store up the remaining args
     options.args = args
 
@@ -501,6 +513,8 @@ def initProfileDir(options):
         options.profileDir = os.path.expanduser(profileDir)
     elif not os.path.isdir(options.profileDir):
         createProfileDir(options.profileDir)
+        
+    options.profileDir = os.path.normpath(options.profileDir)
 
 
 def loadPrefs(options):

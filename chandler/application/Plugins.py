@@ -80,17 +80,45 @@ class PluginMenu(Menu):
 
         if archive is not None:
             options = Globals.options
-            pluginsDir = options.pluginPath[0]
-            if not os.path.exists(pluginsDir):
-                os.makedirs(pluginsDir)
+
+            # find writable path on options.pluginPath
+            # it is assumed that, unless the user changed the defaults,
+            # that pluginPath contains at least a path relative to CHANDLERHOME
+            # and another relative to the user's PROFILEDIR, in that order,
+            # so that plugins are installed in a shared directory (when
+            # CHANDLERHOME is shared) by default.
+
+            for pluginsDir in options.pluginPath:
+                try:
+                    if not os.path.exists(pluginsDir):
+                        os.makedirs(pluginsDir)
+                except OSError:
+                    continue
+                if os.access(pluginsDir, os.W_OK):
+                    break
+            else:
+                raise ValueError, ('no writable path in pluginPath',
+                                   options.pluginPath)
 
             try:
                 from setuptools.command.easy_install import main
                 from distutils.log import _global_log
-
+                from util.string_utils import nocase_replace
+                
                 # patch distutils' logger with logging's
                 # distutils logging levels happen to be one tenth of logging's
+                # Also ensure that we don't write full profileDir to log,
+                # which would be a security issue.
                 def log(level, msg, args):
+                    if msg:
+                        if wx.Platform == '__WXMSW__':
+                            msg = nocase_replace(msg,
+                                                 Globals.options.profileDir,
+                                                '$PROFILEDIR')
+                        else:
+                            msg = msg.replace(Globals.options.profileDir,
+                                              '$PROFILEDIR')
+                            
                     logger.log(level * 10, msg, *args)
 
                 _log = _global_log._log
