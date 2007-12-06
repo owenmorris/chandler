@@ -25,7 +25,7 @@ static int t_itemref_clear(t_itemref *self);
 static int t_itemref_traverse(t_itemref *self, visitproc visit, void *arg);
 static PyObject *t_itemref_new(PyTypeObject *type,
                                PyObject *args, PyObject *kwds);
-static int t_itemref_hash(t_itemref *self);
+static long t_itemref_hash(t_itemref *self);
 static PyObject *t_itemref_repr(t_itemref *self);
 static int t_itemref_cmp(t_itemref *self, t_itemref *other);
 static PyObject *t_itemref_richcmp(t_itemref *self, t_itemref *other, int opid);
@@ -240,7 +240,7 @@ static PyObject *t_itemref_new(PyTypeObject *type,
     return (PyObject *) _t_itemref_new(uuid, (t_view *) view, NULL);
 }
 
-static int t_itemref_hash(t_itemref *self)
+static long t_itemref_hash(t_itemref *self)
 {
     return ((t_uuid *) self->uuid)->hash;
 }

@@ -104,7 +104,7 @@ long long_hash_bytes(unsigned char *uuid, int len)
     while (++i < len) {
         unsigned char source = uuid[i];
         unsigned char byte = hTable[(unsigned char) ((hash & 0xff) ^ source)];
-        unsigned int newHash = byte;
+        unsigned long newHash = byte;
 
         hash >>= 8;
         byte = hTable[(unsigned char) ((hash & 0xff) ^ (source + 1))];
@@ -202,7 +202,7 @@ static int hash_int(unsigned int n)
 
 static long hash_long(unsigned long n)
 {
-    unsigned int hash;
+    unsigned long hash;
 
     hash = chew_long(n);
     hash |= chew_long(++n) << 8;
@@ -231,7 +231,7 @@ int combine_ints(unsigned int h0, unsigned int h1)
 
 long combine_longs(unsigned long h0, unsigned long h1)
 {
-    unsigned int hash;
+    unsigned long hash;
 
     while (!(hash = hash_long(h0 + h1)))
         h0 = hash_long(h0);
