@@ -200,7 +200,7 @@ def ProcessEvent (line, theClass, properties, attributes):
                 focusWindow = wx.Window.FindFocus()
                 if focusWindow is not sentToWidget:
                     if isinstance (focusWindow, wx.Window):
-                        focusWindowName = window.GetName()
+                        focusWindowName = focusWindow.GetName()
                     else:
                         focusWindowName = ""
                     assert False, \
