@@ -152,28 +152,13 @@ class wxMainFrame (wxBlockFrameWindow):
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
         if wx.Platform == "__WXMSW__":
-            # From the wxWidgets documentation:
-            # wxToolBar95: Note that this toolbar paints tools to reflect system-wide colours.
-            # If you use more than 16 colours in your tool bitmaps, you may wish to suppress
-            # this behaviour, otherwise system colours in your bitmaps will inadvertently be
-            # mapped to system colours. To do this, set the msw.remap system option before
-            # creating the toolbar:
-
-            # wxSystemOptions::SetOption(wxT("msw.remap"), 0);
-
-            # If you wish to use 32-bit images (which include an alpha channel for
-            # transparency) use:
-
-            #   wxSystemOptions::SetOption(wxT("msw.remap"), 2);
-
-            # then colour remapping is switched off, and a transparent background used. But
-            # only use this option under Windows XP with true colour:
-
-            #   (wxTheApp->GetComCtl32Version() >= 600 && ::wxDisplayDepth() >= 32)
-            #
-            # Unfortunately, for some XP machines msw.remap of 2 doesn't work, even
-            # when wx.GetApp().GetComCtl32Version() >= 600 and wx.DisplayDepth() >= 32
-            wx.SystemOptions.SetOptionInt ("msw.remap", 0)
+            # if we're running on a Themed XP, and the display depth
+            # gives us enough bits to play with, then this mode gives
+            # us better looking toolbar icons, otherwise stick to the
+            # default behavior.
+            if wx.GetApp().GetComCtl32Version() >= 600 and wx.DisplayDepth() >= 32:
+                wx.SystemOptions.SetOptionInt("msw.remap", 2)
+            
 
         if wx.Platform == '__WXMAC__':
             # Fix for Bug 4156: On the Mac, when the app activates,

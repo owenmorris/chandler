@@ -103,7 +103,7 @@ class StringAttributeEditor (BaseAttributeEditor):
         # We'll draw the sample or prefix in gray (unless it's part of the
         # selection, in which case we'll leave it white)
         if not isInSelection and (isSample or prefix is not None):
-            oldForeground = wx.Colour(dc.GetTextForeground())
+            oldForeground = dc.GetTextForeground()
             dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
 
         haveText = len(theText) > 0
