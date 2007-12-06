@@ -1,5 +1,5 @@
---- PyICU-0.8-91/setup.py	2007-11-26 18:37:07.891649000 -0800
-+++ PyICU-0.8-91-patched/setup.py	2007-11-29 23:08:35.768360000 -0800
+--- PyICU-0.8-92/setup.py	2007-11-26 18:37:07.891649000 -0800
++++ PyICU-0.8-92-patched/setup.py	2007-11-29 23:08:35.768360000 -0800
 @@ -70,4 +70,5 @@
                               libraries=_libraries,
                               define_macros=[('PYICU_VER', '"%s"' %(VERSION))])
