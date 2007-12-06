@@ -92,7 +92,57 @@ int hash_bytes(unsigned char *uuid, int len)
     return hash;
 }
 
-static unsigned char chew_int(unsigned int n)
+long long_hash_bytes(unsigned char *uuid, int len)
+{
+#ifdef __LP64__
+    unsigned long hash = 0xb01dfacedeadbeef;
+#else
+    unsigned long hash = 0xdeadbeef;
+#endif
+    int i = -1;
+
+    while (++i < len) {
+        unsigned char source = uuid[i];
+        unsigned char byte = hTable[(unsigned char) ((hash & 0xff) ^ source)];
+        unsigned int newHash = byte;
+
+        hash >>= 8;
+        byte = hTable[(unsigned char) ((hash & 0xff) ^ (source + 1))];
+        newHash = (newHash << 8) | byte;
+
+        hash >>= 8;
+        byte = hTable[(unsigned char) ((hash & 0xff) ^ (source + 2))];
+        newHash = (newHash << 8) | byte;
+
+        hash >>= 8;
+        byte = hTable[(unsigned char) ((hash & 0xff) ^ (source + 3))];
+        newHash = (newHash << 8) | byte;
+
+#ifdef __LP64__
+        hash >>= 8;
+        byte = hTable[(unsigned char) ((hash & 0xff) ^ (source + 4))];
+        newHash = (newHash << 8) | byte;
+
+        hash >>= 8;
+        byte = hTable[(unsigned char) ((hash & 0xff) ^ (source + 5))];
+        newHash = (newHash << 8) | byte;
+
+        hash >>= 8;
+        byte = hTable[(unsigned char) ((hash & 0xff) ^ (source + 6))];
+        newHash = (newHash << 8) | byte;
+
+        hash >>= 8;
+        byte = hTable[(unsigned char) ((hash & 0xff) ^ (source + 7))];
+        newHash = (newHash << 8) | byte;
+#endif
+
+        hash = newHash;
+    }
+
+    return hash;
+}
+
+static unsigned int chew_int(unsigned int n)
 {
     unsigned char hash = hTable[0 ^ (n & 0xff)];
 
@@ -105,7 +155,37 @@ static unsigned char chew_int(unsigned int n)
     n >>= 8;
     hash = hTable[hash ^ (n & 0xff)];
 
-    return hash;
+    return (unsigned int) hash;
+}
+
+static unsigned long chew_long(unsigned long n)
+{
+    unsigned char hash = hTable[0 ^ (n & 0xff)];
+
+    n >>= 8;
+    hash = hTable[hash ^ (n & 0xff)];
+
+    n >>= 8;
+    hash = hTable[hash ^ (n & 0xff)];
+
+    n >>= 8;
+    hash = hTable[hash ^ (n & 0xff)];
+
+#ifdef __LP64__
+    n >>= 8;
+    hash = hTable[hash ^ (n & 0xff)];
+
+    n >>= 8;
+    hash = hTable[hash ^ (n & 0xff)];
+
+    n >>= 8;
+    hash = hTable[hash ^ (n & 0xff)];
+
+    n >>= 8;
+    hash = hTable[hash ^ (n & 0xff)];
+#endif
+
+    return (unsigned long) hash;
 }
 
 static int hash_int(unsigned int n)
@@ -120,12 +200,41 @@ static int hash_int(unsigned int n)
     return hash ? hash : hash_int(++n);
 }
 
+static long hash_long(unsigned long n)
+{
+    unsigned int hash;
+
+    hash = chew_long(n);
+    hash |= chew_long(++n) << 8;
+    hash |= chew_long(++n) << 16;
+    hash |= chew_long(++n) << 24;
+
+#ifdef __LP64__
+    hash |= chew_long(++n) << 32;
+    hash |= chew_long(++n) << 40;
+    hash |= chew_long(++n) << 48;
+    hash |= chew_long(++n) << 56;
+#endif
+
+    return hash ? hash : hash_long(++n);
+}
+
 int combine_ints(unsigned int h0, unsigned int h1)
 {
     unsigned int hash;
 
     while (!(hash = hash_int(h0 + h1)))
         h0 = hash_int(h0);
+
+    return hash;
+}
+
+long combine_longs(unsigned long h0, unsigned long h1)
+{
+    unsigned int hash;
+
+    while (!(hash = hash_long(h0 + h1)))
+        h0 = hash_long(h0);
 
     return hash;
 }

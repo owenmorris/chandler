@@ -49,7 +49,10 @@ static PyObject *hash(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "s#", &data, &len))
         return 0;
-
+    
+    /* int hash, these hashes are persisted and should be the same
+     * regardless of sizeof(long)
+     */
     return PyInt_FromLong(hash_bytes(data, len));
 }
 
@@ -231,7 +234,7 @@ static PyObject *getPlatformName(PyObject *self)
 static PyMethodDef c_funcs[] = {
     { "isuuid", (PyCFunction) isuuid, METH_O, "isinstance(UUID)" },
     { "_hash", (PyCFunction) hash, METH_VARARGS, "hash bytes" },
-    { "_combine", (PyCFunction) combine, METH_VARARGS, "combine two hashes" },
+    { "_combine", (PyCFunction) combine, METH_VARARGS, "combine two int hashes" },
     { "loadUUIDs", (PyCFunction) loadUUIDs, METH_O,
       "use a list of pre-generated UUIDs, for debugging" },
     { "saveUUIDs", (PyCFunction) saveUUIDs, METH_O,

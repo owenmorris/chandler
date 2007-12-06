@@ -103,7 +103,10 @@ static int t_hashtuple_contains(PyObject *self, PyObject *arg)
     }
     else
         return 0;
-
+    
+    /* these hashes are persisted and need to be the same on 32- and 64-bit
+     * architectures, using 32-bit int hash function
+     */
     hash = hash_bytes((unsigned char *) data, len);
     Py_XDECREF(string);
 

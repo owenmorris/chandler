@@ -20,12 +20,13 @@
 typedef struct {
     PyObject_HEAD
     PyObject *uuid;
-    int hash;
+    long hash;
 } t_uuid;
 
 typedef int (*PyUUID_Check_fn)(PyObject *obj);
 /* steals reference to obj */
 typedef PyObject *(*PyUUID_Make16_fn)(PyObject *obj);
 typedef int (*_hash_bytes_fn)(char *obj, int len);
+typedef long (*_long_hash_bytes_fn)(char *obj, int len);
 
 #endif /* _UUID_H */

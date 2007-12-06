@@ -23,7 +23,7 @@
 static void t_uuid_dealloc(t_uuid *self);
 static PyObject *t_uuid_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 static int t_uuid_init(t_uuid *self, PyObject *args, PyObject *kwds);
-static int t_uuid_hash(t_uuid *self);
+static long t_uuid_hash(t_uuid *self);
 static PyObject *t_uuid_str(t_uuid *self);
 static PyObject *t_uuid_repr(t_uuid *self);
 static int t_uuid_cmp(t_uuid *o1, t_uuid *o2);
@@ -42,7 +42,11 @@ PyObject *inList, *outList = NULL;
 
 static PyMemberDef t_uuid_members[] = {
     { "_uuid", T_OBJECT, offsetof(t_uuid, uuid), READONLY, "UUID bytes" },
+#ifdef __LP64__
+    { "_hash", T_LONG, offsetof(t_uuid, hash), READONLY, "UUID hash" },
+#else
     { "_hash", T_INT, offsetof(t_uuid, hash), READONLY, "UUID hash" },
+#endif
     { NULL, 0, 0, 0, NULL }
 };
 
@@ -192,12 +196,12 @@ static int t_uuid_init(t_uuid *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
-    self->hash = hash_bytes(uuid, 16);
+    self->hash = long_hash_bytes(uuid, 16);
 
     return 0;
 }
 
-static int t_uuid_hash(t_uuid *self)
+static long t_uuid_hash(t_uuid *self)
 {
     return self->hash;
 }
@@ -309,7 +313,8 @@ PyObject *PyUUID_Make16(PyObject *str16)
     
     /* steals reference */
     uuid->uuid = str16;
-    uuid->hash = hash_bytes((unsigned char *) PyString_AS_STRING(str16), 16);
+    uuid->hash = long_hash_bytes((unsigned char *) PyString_AS_STRING(str16),
+                                 16);
 
     return (PyObject *) uuid;
 }
