@@ -135,7 +135,7 @@ ARCHIVES = \
     $(OPENSSL) \
     $(OPENJDK) \
     $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-0.18.2-$(BP)2.tar.gz \
-    $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.8-87-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.8-91-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.2.0-2-367-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/twisted-$(SNAP)-r18795-$(BP)3.tar.gz \
     $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.6.1-r198-$(BP)2.tar.gz \
