@@ -163,7 +163,7 @@ class RecordSetConduit(conduits.BaseConduit):
         remotelyUnmodified = set() # Aliases of unmodified (removed) occurrences
         locallyAdded = set( ) # The aliases of locally added items
         localItems = set() # The aliases of all items we're to process
-        
+
         triageFilter = eim.Filter(None, "Filter out triage and read")
         triageFilter += model.triageFilter
         triageFilter += model.readFilter
@@ -275,7 +275,7 @@ class RecordSetConduit(conduits.BaseConduit):
                         state = self.getState(alias)
                         state.pendingRemoval = False
                         updateConflicts(state, uuid)
-                            
+
                     masterAlias = getMasterAlias(alias)
                     if masterAlias != alias:
                         if getOneRecord(rs, EventRecord) is not None:
@@ -338,11 +338,11 @@ class RecordSetConduit(conduits.BaseConduit):
                                 exclusions
                             )
                             remotelyUnmodified.add(alias)
-                            
+
                         else:
                             doLog("Ignoring unmodification, no state for alias: %s", alias)
                             del inbound[alias]
-                            
+
                     # Since this item was remotely removed, all pending
                     # changes should go away.
                     if self.hasState(alias):
@@ -447,7 +447,7 @@ class RecordSetConduit(conduits.BaseConduit):
             i += 1
             _callback(msg="Generated %d of %d recordset(s)" % (i, localCount),
                 work=1)
-            
+
         def changeAgreedForNewInboundMod(modAlias):
             if not rsNewBase.has_key(modAlias):
                 return eim.RecordSet()
@@ -458,19 +458,19 @@ class RecordSetConduit(conduits.BaseConduit):
         # handle special triage status changes for recurring events
         triageFixes = self.getResolvableTriageConflicts(inbound, localItems,
                                                     remotelyRemoved, translator)
-        
+
         dontSend = set()
-        
+
         for modAlias, winner in triageFixes.iteritems():
             if winner == 'inbound':
                 doLog("Inbound triage status wins for %s, removing local "
                       "triage status changes" % modAlias)
-                
+
                 # change what's sent
                 if modAlias in justTriageChanged or modAlias not in localItems:
                     # The only changes were triage changes, don't send anything
-                    # for this modification.  
-                    # 
+                    # for this modification.
+                    #
                     # If the item didn't exist locally, during the merge step
                     # it needs to have its rsInternal set to state.agreed, or
                     # the inbound changes merged with the forced agreed triage
@@ -485,7 +485,7 @@ class RecordSetConduit(conduits.BaseConduit):
                 # change what's applied
                 forceChange = True
                 triageInheritDiff = getTriageDiff(modAlias, eim.Inherit)
-                
+
                 if inbound.get(modAlias) is not None:
                     inbound_triage = getOneRecord(inbound[modAlias],
                                                   ItemRecord, 'triage')
@@ -498,7 +498,7 @@ class RecordSetConduit(conduits.BaseConduit):
                     # record, it should be unmodified
                     remotelyUnmodified.add(modAlias)
                     forceChange = False
-                    
+
                 # make sure Inherit (LATER) to Inherit (DONE) changes aren't
                 # seen as NoChange by resetting the agreed state to None
                 if forceChange:
@@ -517,7 +517,7 @@ class RecordSetConduit(conduits.BaseConduit):
                         # removed from toSend, preventing the local triageStatus
                         # from propagating to the server
                         triageOnlyMods.remove(modAlias)
-                        
+
                         rsLocal = rsNewBase.get(modAlias)
                         if rsLocal is not None:
                             if not ((eim.RecordSet() + filtered) - rsLocal):
@@ -641,7 +641,7 @@ class RecordSetConduit(conduits.BaseConduit):
         # sent us inbound removals for these modifications directly.
         orphanAliases = set()
         masters = {} # masters -> set of modifications
-        
+
         for alias in toSend:
             masterAlias = getMasterAlias(alias)
             if masterAlias != alias:
@@ -655,7 +655,7 @@ class RecordSetConduit(conduits.BaseConduit):
                     # the master was changed remotely, the modification was
                     # changed locally but may never have existed on the server
                     masters.setdefault(masterAlias, set()).add(alias)
-                
+
         for master, modifications in masters.iteritems():
             # See if the inbound master change is supposed to cause the local
             # modification to be removed
@@ -808,10 +808,11 @@ class RecordSetConduit(conduits.BaseConduit):
                         pim.setTriageStatus(item, newTriageStatus,
                             popToNow=established)
                         if item.hasLocalAttributeValue('inheritTo'):
-                            logger.info("Moved recurrence series %s to NOW",
-                                alias)
+                            logger.info("Moved recurrence series %s to NOW; %s",
+                                alias, rs)
                         else:
-                            logger.info("Moved single item %s to NOW", alias)
+                            logger.info("Moved single item %s to NOW; %s",
+                                alias, rs)
 
                     # Per bug 8809:
                     # Set "read" state to True if this is an initial subscribe
@@ -820,8 +821,9 @@ class RecordSetConduit(conduits.BaseConduit):
                     # syncs.  Also, make sure we apply this to the master item:
                     item_to_change = getattr(item, 'inheritFrom', item)
                     item_to_change.read = not established
-                    logger.info("Marking item %s: %s" % (
-                        ("read" if item_to_change.read else "unread"), uuid))
+                    logger.info("Marking item %s: %s; %s" % (
+                        ("read" if item_to_change.read else "unread"), uuid,
+                        rs))
 
                 if alias in remotelyAdded:
                     receiveStats['added'].add(alias)
@@ -1033,7 +1035,7 @@ class RecordSetConduit(conduits.BaseConduit):
         Calculate triage status changes for each inbound master if its
         lastPastOccurrence has changed and for each inbound modifications whose
         triage status has changed.
-        
+
         Return a dict of {alias : winner} pairs, where winner is 'inbound' or
         'local'.
         """
@@ -1042,12 +1044,12 @@ class RecordSetConduit(conduits.BaseConduit):
         resolution = {}
         master_to_mods = {}
         local_master_to_mods = {}
-        
+
         for alias in localItems:
             masterAlias = getMasterAlias(alias)
             if masterAlias != alias and masterAlias not in remotelyRemoved:
                 local_master_to_mods.setdefault(masterAlias, set()).add(alias)
-        
+
         for alias in inbound:
             masterAlias = getMasterAlias(alias)
             if masterAlias in remotelyRemoved:
@@ -1065,7 +1067,7 @@ class RecordSetConduit(conduits.BaseConduit):
                     mod_aliases = master_to_mods.setdefault(masterAlias, set())
                     local_aliases = local_master_to_mods.get(masterAlias, set())
                     mod_aliases.update(local_aliases)
-        
+
         # look at inbound changes to modifications
         for masterAlias, modifications in master_to_mods.iteritems():
             if not self.hasState(masterAlias):
@@ -1080,18 +1082,18 @@ class RecordSetConduit(conduits.BaseConduit):
                  eventRecord.rdate in emptyValues)):
                 # the old agreed state wasn't recurring
                 continue
-            
+
             deleted = []
             inboundLast = getLastPastOccurrence(view, inbound.get(masterAlias))
             agreedLast  = getLastPastOccurrence(view, masterAgreed)
-            
+
             if inboundLast is None:
                 inboundLast = agreedLast
-                
+
             for modAlias in modifications:
                 if modAlias in remotelyRemoved:
                     continue
-                
+
                 # find the previously agreed triage status, the new
                 # remote implied triage status, and the local triage status
                 modState = self.share.states.getByAlias(modAlias)
@@ -1102,22 +1104,22 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 agreedTS, agreedTSFieldValue = \
                     calculateTriageStatus(view, modAlias, modAgreed, agreedLast)
-                
+
                 if agreedTS != TriageEnum.later:
                     # Changes relative to DONE or changed relative to NOW
                     # can be handled normally
                     continue
-                
+
                 inboundTS, inboundTSFieldValue = \
                     calculateTriageStatus(view, modAlias, inbound.get(modAlias),
                                           inboundLast)
-                
+
                 if (inboundTS == TriageEnum.later and
                     inboundTSFieldValue == agreedTSFieldValue):
                     # The common case of no inbound changes to triage,
                     # no conflict so nothing to do
                     continue
-                
+
                 localUUID = translator.getUUIDForAlias(modAlias)
                 if localUUID:
                     localTS = view.findUUID(localUUID)._triageStatus
@@ -1137,9 +1139,9 @@ class RecordSetConduit(conduits.BaseConduit):
                     resolution[modAlias] = 'local'
                 else:
                     resolution[modAlias] = 'inbound'
-        
+
         return resolution
-    
+
 
     def getState(self, alias):
         state = self.share.states.getByAlias(alias)
@@ -1651,7 +1653,7 @@ def getOneRecord(recordset, record_type, field=None):
     """
     Return the given record_type, or a field within it, or None if the record
     isn't in the given recordset.
-    
+
     """
     if recordset is None:
         return None
@@ -1669,10 +1671,10 @@ def calculateTriageStatus(view, modificationAlias, modificationRecordSet,
     Return a modification's explicit triage status, or, if it's Inherit,
     calculate its triage status based on the event's recurrenceID and
     lastPastOccurrence.
-    
+
     """
     triage_string = getOneRecord(modificationRecordSet, ItemRecord, 'triage')
-        
+
     if triage_string and triage_string not in emptyValues:
         code, timestamp, auto = triage_string.split()
         return code_to_triagestatus[code], triage_string
@@ -1688,13 +1690,13 @@ def triageStatusFromDateComparison(view, modificationAlias, lastPast):
     else:
         masterAlias, recurrenceID = splitUUID(view, modificationAlias)
         return TriageEnum.later if lastPast < recurrenceID else TriageEnum.done
-    
+
 
 def getLastPastOccurrence(view, masterRecordSet):
     """
     Return the agreed lastPastOccurrence for a masterRecordSet if there is one,
     or return None.
-    
+
     """
     lastPast = getOneRecord(masterRecordSet, EventRecord, 'lastPastOccurrence')
     # lastPast may be empty string, that's the default after reload
@@ -1707,13 +1709,13 @@ def findRecurrenceConflicts(view, master_alias, diff, localModAliases):
     Examine diff for changes to recurrence rules, compare to locally changed
     modifications, return a list of conflicting modifications (the list may be
     empty).
-    
+
     If diff is None, it's treated as a deletion of the master, so all
     local modifications are automatically in conflict
     """
     if diff is None:
         return localModAliases
-    
+
     event_record = getOneRecord(diff, EventRecord)
     if event_record is None:
         if len([r for r in diff.exclusions if isinstance(r, EventRecord)]) > 0:
@@ -1723,18 +1725,18 @@ def findRecurrenceConflicts(view, master_alias, diff, localModAliases):
             return []
 
     rrule  = event_record.rrule
-    
+
     # are there any recurrence changes?
     r = event_record
     if eim.NoChange == rrule == r.exdate == r.rdate == r.dtstart:
         return []
-            
+
     master = view.findUUID(master_alias)
     if event_record.dtstart == eim.NoChange:
         start = pim.EventStamp(master).effectiveStartTime
     else:
         start = fromICalendarDateTime(view, event_record.dtstart)[0]
-        
+
     if master is None:
         assert "no master found"
         return []
@@ -1748,7 +1750,7 @@ def findRecurrenceConflicts(view, master_alias, diff, localModAliases):
     split_aliases = ((splitUUID(view, a)[1], a) for a in localModAliases)
 
     master_rruleset = pim.EventStamp(master).rruleset.createDateUtilFromRule(start)
-    
+
     if rrule is eim.NoChange:
         du_rruleset = master_rruleset
         if not getattr(du_rruleset, '_rrule', None):
@@ -1777,7 +1779,7 @@ def findRecurrenceConflicts(view, master_alias, diff, localModAliases):
                                             True)[0]
 
         setattr(du_rruleset, '_' + date_value, date_values[date_value])
-        
+
     if not rrule and date_values['rdate']:
         # no rrule and there are RDATEs, add dtstart as an RDATE
         du_rruleset.rdate(start)
@@ -1786,11 +1788,11 @@ def findRecurrenceConflicts(view, master_alias, diff, localModAliases):
         # no positive recurrence fields, recurrence removed, all modifications
         # are conflicts
         return localModAliases
-        
+
     for dt, alias in split_aliases:
         if dt not in du_rruleset:
             conflicts.append(alias)
-    
+
     return conflicts
 
 def getInheritRecords(records, alias):
@@ -1818,11 +1820,11 @@ recurrenceFields = (EventRecord.exdate, EventRecord.exrule,
                     EventRecord.rdate, EventRecord.rrule)
 
 def getEmptyRecurrenceDiff(alias):
-    """    
+    """
     Cosmo sends EventRecords with None for their recurrence fields,
     unfortunately we can't use the standard converter code to handle this case,
     since we only want to fix modification records.
-    
+
     """
     args = [eim.NoChange] * len(EventRecord.__fields__)
     args[0] = alias
