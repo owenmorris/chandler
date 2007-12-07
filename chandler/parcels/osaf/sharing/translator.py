@@ -581,7 +581,13 @@ class SharingTranslator(eim.Translator):
 
             if record.triage != "" and record.triage not in emptyValues:
                 code, timestamp, auto = record.triage.split(" ")
-                item._triageStatus = code_to_triagestatus[code]
+
+                try:
+                    item._triageStatus = code_to_triagestatus[code]
+                except KeyError:
+                    # assume NOW if illegal code (bug 11606)
+                    item._triageStatus = code_to_triagestatus["100"]
+
                 item._triageStatusChanged = float(timestamp)
                 if getattr(item, 'inheritFrom', False):
                     # When import_event happens after import_item on recurring

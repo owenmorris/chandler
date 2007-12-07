@@ -799,4 +799,32 @@ for event status, and empty string to NoChange for triage are working::
     'PT0S'
 
 
+
+
+
+
+Verify that invalid triage codes are converted to "NOW"::
+
+    >>> t.startImport()
+
+    >>> item_rec = sharing.model.ItemRecord(
+    ...              uuid='a9b019a4-d995-11db-f269-0016cbca6aea',
+    ...              title='Bogus triage',
+    ...              triage='-1 0 1',
+    ...              createdOn=Decimal("1164803131"),
+    ...              hasBeenSent=0,
+    ...              needsReply=0,
+    ...              read=0,
+    ... )
+    >>> rs = sharing.Diff([item_rec])
+    >>> t.importRecords(rs)
+    >>> t.finishImport()
+    >>> item = rv.findUUID('a9b019a4-d995-11db-f269-0016cbca6aea')
+    >>> item.triageStatus
+    TriageEnum.now
+
+
+
+
+
 BackupOnQuitPrefsRecord type tests are in TestDumpReload.py
