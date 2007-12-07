@@ -1513,7 +1513,7 @@ def runPerfTests(options, tests=None):
                         log('gtime not found, skipping startup performance tests')
                         log('NOTE: gtime is not part of OS X, you need to compile one' + \
                             'yourself (get source from http://directory.fsf.org/time.html)' + \
-                            'or get it from darwinports project.')
+                            'or get it from darwinports project; install it as /usr/local/bin/gtime.')
                 else:
                     t = '/usr/bin/time'
 
