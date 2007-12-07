@@ -384,7 +384,7 @@ class AutoDiscoveryDialog(ProgressDialog):
                  {'hostName': self.hostname}
 
     def getSuccessText(self, statusValue):
-        return _(u"\tThe following settings were found:\n\n\tType: %(protocol)s\n\tPort: %(port)s\n\tSecurity: %(security)s\n") % \
+        return _(u"\tThe following settings were found:\n\n\tProtocol: %(protocol)s\n\tPort: %(port)s\n\tSecurity: %(security)s\n") % \
                     {"protocol": self.discoveredAccount.accountProtocol,
                      "port": self.discoveredAccount.port,
                      "security": self.discoveredAccount.connectionSecurity}
