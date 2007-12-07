@@ -13,7 +13,6 @@ OS_MAJOR_VER = $(firstword $(subst ., ,$(OS_VER)))
 PYTHON_VER   = 2.5
 BP           =
 LOCALE_VER   = trunk
-LOCALE_INST  = 
 
 BUILD_PLUGINS = Chandler-HelloWorldPlugin \
                 Chandler-AmazonPlugin \
@@ -286,26 +285,15 @@ $(addprefix install-, $(BUILD_PLUGINS)):
           --script-dir='$(PLUGIN_INST)' \
           --install-dir='$(PLUGIN_INST)' .
 
-ifeq ($(OS),Darwin)
-    ifeq ($(OS_MAJOR_VER),9)
-        LOCALE_INST = --install-dir=$(C_BIN)/$(SNAP)/site-packages
-    endif
-endif
-
-ifeq ($(OS),Linux)
-    ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy),)
-        LOCALE_INST = --install-dir=$(C_BIN)/$(SNAP)/site-packages
-    endif
-endif
-
 $(addprefix install-, $(BUILD_LOCALES)):
+	mkdir -p '$(PLUGIN_INST)'
 	rm -rf $(C_HOME)/localizations/$(subst install-,,$@)
 	svn export http://svn.osafoundation.org/localizations/chandler/$(LOCALE_VER)/$(subst install-,,$@) localizations/$(subst install-,,$@)
 	$(RUN_PYTHON) tools/createTranslationEgg.py -c --dist \
                   -l $(subst install-,,$@) \
                   -f '$(LOCALE_SRC)'$(subst install-,,$@)/Chandler-$(subst install-,,$@).po \
                   -d '$(LOCALE_SRC)'
-	$(RUN_PYTHON) -m easy_install -x $(LOCALE_INST) '$(LOCALE_SRC)'Chandler.$(subst install-,,$@)-1.0-py$(PYTHON_VER).egg
+	$(RUN_PYTHON) -m easy_install -x -m --install-dir='$(PLUGIN_INST)' '$(LOCALE_SRC)'Chandler.$(subst install-,,$@)-1.0-py$(PYTHON_VER).egg
 
 chandler-locale-data:
 	$(RUN_PYTHON) setup.py egg_info
@@ -442,6 +430,7 @@ distclean:
 	rm -rf $(C_BIN)/$(SNAP)
 	rm -f  $(PLUGIN_INST)/*.egg-link
 	rm -f  $(PLUGIN_INST)/*.pth
+	rm -f  $(PLUGIN_INST)/*.egg
 	rm -rf $(C_HOME)/*-py$(PYTHON_VER).egg
 
 clean: distclean
