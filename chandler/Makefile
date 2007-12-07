@@ -430,7 +430,7 @@ distclean:
 	rm -rf $(C_BIN)/$(SNAP)
 	rm -f  $(PLUGIN_INST)/*.egg-link
 	rm -f  $(PLUGIN_INST)/*.pth
-	rm -f  $(PLUGIN_INST)/*.egg
+	rm -rf $(PLUGIN_INST)/*.egg
 	rm -rf $(C_HOME)/*-py$(PYTHON_VER).egg
 
 clean: distclean
