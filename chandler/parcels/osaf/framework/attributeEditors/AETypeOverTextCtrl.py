@@ -152,7 +152,10 @@ class AETypeOverTextCtrl(wxRectangularChild):
     def OnEditGainFocus(self, event):
         self._swapControls(self.editControl)
         event.Skip()
-
+        if "wxMac" in wx.PlatformInfo:
+            if self._showingSample():
+                wx.CallAfter(self.editControl.SelectAll)
+            
     def OnEditLoseFocus(self, event):
         NotifyBlockToSaveValue(self)
         # don't access the widget if it's not safe (quitting)
