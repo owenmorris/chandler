@@ -17,7 +17,7 @@ from osaf import pim
 from osaf.pim import mail
 from osaf.sharing import (
     eim, model, shares, utility, accounts, conduits, cosmo, webdav_conduit,
-    recordset_conduit, eimml, ootb, MailMessageRecord
+    recordset_conduit, eimml, ootb, MailMessageRecord, NoteRecord
 )
 from utility import (splitUUID, fromICalendarDateTime, getDateUtilRRuleSet,
     code_to_triagestatus, triagestatus_to_code, getMasterAlias)
@@ -411,7 +411,12 @@ class SharingTranslator(eim.Translator):
 
 
 
-    ignoreFields = { MailMessageRecord : ("fromAddress", ) }
+    ignoreFields = {
+        MailMessageRecord :
+            ("fromAddress", "headers", "messageId", "inReplyTo", "references"),
+        NoteRecord :
+            ("icalExtra", ),
+    }
 
     def isMajorChange(self, diff):
         # Does this diff warrant moving to NOW and marking as Unread?
