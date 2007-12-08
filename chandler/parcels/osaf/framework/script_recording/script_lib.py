@@ -60,7 +60,8 @@ def ProcessEvent (line, theClass, properties, attributes):
     assert (isinstance (sentToWidget, wx.Window) or
             isinstance (sentToWidget, wx.Menu) or
             isinstance (sentToWidget, wx.MenuItem) or
-            isinstance (sentToWidget, wx.ToolBarTool), "sentToWidget is", sentToWidget)
+            isinstance (sentToWidget, wx.ToolBarTool), \
+            "event %d -- Unexpected type of widget: sentTo is %s; sendToWidget is %s" % (eventNumber, sentTo, str(sentToWidget)))
     
     if isinstance (sentToWidget, wx.ToolBarTool):
         assert sentToWidget.IsControl()
@@ -95,7 +96,9 @@ def ProcessEvent (line, theClass, properties, attributes):
     if associatedBlock is not None:
         id = Block.findBlockByName (associatedBlock).widget.GetId()
     else:
-        id = sentToWidget.GetId()
+        GetIdMethod = getattr (sentToWidget, "GetId", None)
+        assert GetIdMethod is not None, "event %d -- Unexpected widget, doesn't have GetId: sentTo is %s; sendToWidget is %s" % (eventNumber, sentTo, str(sentToWidget))
+        id = GetIdMethod()
     event.SetId (id)
 
     # Special case clicks on checkboxes to toggle the widget's value
