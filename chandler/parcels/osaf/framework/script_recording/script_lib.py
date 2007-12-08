@@ -60,7 +60,7 @@ def ProcessEvent (line, theClass, properties, attributes):
     assert (isinstance (sentToWidget, wx.Window) or
             isinstance (sentToWidget, wx.Menu) or
             isinstance (sentToWidget, wx.MenuItem) or
-            isinstance (sentToWidget, wx.ToolBarTool))
+            isinstance (sentToWidget, wx.ToolBarTool), "sentToWidget is", sentToWidget)
     
     if isinstance (sentToWidget, wx.ToolBarTool):
         assert sentToWidget.IsControl()
