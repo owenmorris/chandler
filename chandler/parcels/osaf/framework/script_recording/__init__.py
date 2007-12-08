@@ -395,6 +395,14 @@ class Controller (Block.Block):
                         # Use mouse up events in text controls to set selection during playback
                         if (eventType == 'wx.EVT_LEFT_UP' and isinstance (sentToWidget, wx.TextCtrl)):
                             (start, end) = sentToWidget.GetSelection()
+                            # On windows GetValue uses "\n" for end of lines, but the widget stores
+                            # "\n\r" for end of lines and SetSelection uses offsets that include
+                            # the extra "\r" characters
+                            if wx.Platform == "__WXMSW__":
+                                value = sentToWidget.GetValue()
+                                value = value.replace ('\n', '\n\r')
+                                start = start - value.count ('\n', 0, start)
+                                end = end - value.count ('\n',0, end)
                             values.append ("'selectionRange': (" +
                                            self.valueToString (start) + "," +
                                            self.valueToString (end) + ')')

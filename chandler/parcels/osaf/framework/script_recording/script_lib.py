@@ -256,8 +256,15 @@ def ProcessEvent (line, theClass, properties, attributes):
                         
     selectionRange = properties.get ("selectionRange", None)
     if selectionRange is not None:
-        
         (start, end) = selectionRange
+        # On windows GetValue uses "\n" for end of lines, but the widget stores
+        # "\n\r" for end of lines and SetSelection uses offsets that include
+        # the extra "\r" characters
+        if wx.Platform == "__WXMSW__":
+            value = sentToWidget.GetValue()
+            start = start + value.count ('\n', 0, start)
+            end = end + value.count ('\n', 0, end)
+
         sentToWidget.SetSelection (start, end)
         
     window = wx.Window_FindFocus()
