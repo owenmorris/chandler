@@ -64,7 +64,7 @@ def run_test_by_name(name, test_modules=test_modules):
 
     if not test_modules.has_key(name):
         logger.info('Test dictionary does not have test named %s' % name)
-        return False
+        return True
     
     # Run any dependencies
     if hasattr(test_modules[name], '_depends_' ):
