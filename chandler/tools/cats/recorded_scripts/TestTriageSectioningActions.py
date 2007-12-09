@@ -1,6 +1,6 @@
 import wx, osaf, application
 
-_platform_exclusions_ = ("mac")
+_platform_exclusions_ = ("darwin")
 
 def run():
     """
