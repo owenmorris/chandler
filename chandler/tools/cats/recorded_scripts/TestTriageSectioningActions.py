@@ -1,4 +1,7 @@
 import wx, osaf, application
+
+_platform_exclusions_ = ("mac")
+
 def run():
     """
         Choose menu 'Collection > New' (0)

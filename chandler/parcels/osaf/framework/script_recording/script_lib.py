@@ -177,8 +177,8 @@ def ProcessEvent (line, theClass, properties, attributes):
                     assert lastWidgetValue.startswith (u"Welcome to Chandler 0.7.dev-r")
                 else:
                     assert value == lastWidgetValue,\
-                           'event %d -- widget %s value, "%s" doesn\'t match the value when the script was recorded: "%s"'\
-                            % (eventNumber, ProcessEvent.lastSentTo, value, lastWidgetValue)
+                           'event %d -- widget %s value, "%s" doesn\'t match the value when the script was recorded: "%s"; application.IsActive() is %s'\
+                            % (eventNumber, ProcessEvent.lastSentTo, value, lastWidgetValue, str(application.IsActive()))
 
         # Keep track of the last widget. Use Id because widget can be deleted
 
@@ -253,9 +253,11 @@ def ProcessEvent (line, theClass, properties, attributes):
                     contents = properties.get ("clipboard", None)
                     if contents is not None:
                         assert wx.TheClipboard.Open(), "event %d -- The clipboard can't be opened" % eventNumber
-                        wx.TheClipboard.SetData (wx.TextDataObject (contents))
+                        assert wx.TheClipboard.SetData (wx.TextDataObject (contents)), "event %d -- Clipboard SetData failed" % eventNumber
                         wx.TheClipboard.Close()
                         sentToWidget.Paste ()
+                        value = sentToWidget.GetValue()
+                        assert value == contents, 'event %d -- Pasted "%s". After paste widget has value: "%s"' % (eventNumber, contents, value)
                         
     selectionRange = properties.get ("selectionRange", None)
     if selectionRange is not None:
