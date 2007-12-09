@@ -63,7 +63,7 @@ def run_test_by_name(name, test_modules=test_modules):
     logger.info('Starting Test:: %s' % name)
 
     if not test_modules.has_key(name):
-        logger.error('Test dictionary does not have test named %s' % name)
+        logger.info('Test dictionary does not have test named %s' % name)
         return False
     
     # Run any dependencies
