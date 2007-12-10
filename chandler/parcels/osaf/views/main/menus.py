@@ -834,6 +834,11 @@ def makeMainMenus(parcel):
                         # L10N: Keyboard shortcut to open the Chandler FAQ in
                         #       a web browser.
                         accel = _(u'Ctrl+?')),
+                     MenuItem.template('SubscribeUserMenuItem',
+                        event = globalBlocks.SubscribeUser,
+                        title = _(u'S&ubscribe to the Chandler user list'),
+                        helpString =
+                             _(u'Subscribe to the Chandler user mailinglist to discuss Chandler and get help')),
                      MenuItem.template('FileBugMenuItem',
                         event = globalBlocks.FileBug,
                         title = _(u'Report a &Bug'),

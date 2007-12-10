@@ -465,6 +465,11 @@ class MainView(View):
             'http://chandlerproject.org/guide'
         )
 
+    def onSubscribeUserEvent(self, event):
+        self.openURLOrDialog(
+            'http://lists.osafoundation.org/mailman/listinfo/chandler-users/'
+        )
+
     def onFileBugEvent(self, event):
         self.openURLOrDialog(
             'http://chandlerproject.org/reportabug'
