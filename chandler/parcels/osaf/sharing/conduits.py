@@ -140,15 +140,9 @@ class HTTPMixin(BaseConduit):
             (host, port, sharePath, username, password, useSSL) = \
             self._getSettings()
 
-            # The certstore parcel ends up doing a refresh( ) in the
-            # middle of an SSL sync operation, which pollutes the sharing
-            # view.  To work around this, pass the main view to certstore,
-            # by way of zanshin.
-            sslView = self.itsView.repository.views[0] # main repo view
-
             self.serverHandle = WebDAV.ChandlerServerHandle(host, port=port,
                 username=username, password=password, useSSL=useSSL,
-                repositoryView=sslView)
+                repositoryView=self.itsView)
 
         return self.serverHandle
 
