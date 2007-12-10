@@ -85,8 +85,9 @@ class CopyableStyleTextCtrl(wx.lib.expando.ExpandoTextCtrl, DragAndDrop.TextClip
         """
         Convert "&" to "&amp;" and "<" to "&lt;"
         """
-        for pattern in (REPLACEMENTS):
-            text = text.replace(pattern[0], pattern[1])
+        if text is not None:
+            for pattern in (REPLACEMENTS):
+                text = text.replace(pattern[0], pattern[1])
         return text
 
     def UnescapeText(self):
