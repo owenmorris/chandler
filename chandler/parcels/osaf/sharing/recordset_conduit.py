@@ -387,11 +387,21 @@ class RecordSetConduit(conduits.BaseConduit):
         triageOnlyMods = set()
         for changedUuid in locallyChangedUuids:
             item = rv.findUUID(changedUuid)
+
             master = getattr(item, 'inheritFrom', None)
             if master is not None:
+
+                # If the master has a pendingRemoval, skip the series
+                masterAlias = translator.getAliasForItem(master)
+                if self.hasState(masterAlias):
+                    masterState = self.getState(masterAlias)
+                    if masterState.pendingRemoval:
+                        continue
+
                 # treat masters as changed if their modifications changed, so
                 # lastPastOccurrence can be changed
-                localItems.add(translator.getAliasForItem(master))
+                localItems.add(masterAlias)
+
             alias = translator.getAliasForItem(item)
 
             # modifications that have been changed purely by
@@ -404,6 +414,9 @@ class RecordSetConduit(conduits.BaseConduit):
             if not self.hasState(alias):
                 # a new, locally created item
                 locallyAdded.add(alias)
+            else:
+                if self.getState(alias).pendingRemoval:
+                    continue
 
             doLog("Locally modified item: %s / alias: %s", item.itsUUID, alias)
             localItems.add(alias)
