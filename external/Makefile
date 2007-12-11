@@ -33,7 +33,6 @@ SYSTEMS=db \
         dateutil \
         m2crypto \
         zanshin \
-	$(GETTEXT_BUILD) \
         eggtranslations \
         pylint \
         parsedatetime \
