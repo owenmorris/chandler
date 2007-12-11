@@ -70,7 +70,6 @@ exclusions = {#tests to exclude on specific platfoms only
     
     'all':[ #tests to exclude on all platforms       
         ("TestDates","TestDates"), #Chandler not handling daylightsavings bug#5038
-        ("TestEditModeOnEnter","TestEditModeOnEnter"), #Chandler bug 5744
         ("TestVisibleHours","TestVisibleHours"), # bug 8969
         ]
 }
