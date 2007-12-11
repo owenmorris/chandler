@@ -557,6 +557,18 @@ class wxApplication (wx.App):
             sharing.getAutoSyncInterval(self.UIRepositoryView) is not None):
             sharing.scheduleNow(self.UIRepositoryView)
 
+        # Show "tip of the day"
+        if Globals.options.catch not in ('tests', 'never'):
+            def showTip():
+                prefs = schema.ns("osaf.app",
+                                  self.UIRepositoryView).prefs
+                if prefs.showTip:
+                    tp = wx.CreateFileTipProvider('application/tips.txt',
+                                                  prefs.tipIndex)
+                    prefs.showTip = wx.ShowTip(self.mainFrame, tp)
+                    prefs.tipIndex = tp.GetCurrentTip()
+            wx.CallAfter(showTip)
+
         util.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 
         self.initialized = True

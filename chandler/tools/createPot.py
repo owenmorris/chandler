@@ -32,6 +32,7 @@ class TranslationTool(LocalizationBase):
     XRC_FILES = []
     XRC_PYTHON = None
     CONFIG = ["."]
+    MISC_FILES = ["application/tips.txt"]
 
     def __init__(self):
         super(TranslationTool, self).__init__()
@@ -114,10 +115,10 @@ class TranslationTool(LocalizationBase):
     def setLibraryPath(self):
         platform = self.getPlatform()
         if platform == "Mac":
-             os.environ["DYLD_LIBRARY_PATH"] = os.path.join(self.BINROOT, "lib")
+            os.environ["DYLD_LIBRARY_PATH"] = os.path.join(self.BINROOT, "lib")
 
         elif platform == "Linux":
-             os.environ["LD_LIBRARY_PATH"] = os.path.join(self.BINROOT, "lib")
+            os.environ["LD_LIBRARY_PATH"] = os.path.join(self.BINROOT, "lib")
 
 
     def setWXRC(self):
@@ -154,13 +155,13 @@ class TranslationTool(LocalizationBase):
     def getText(self):
         dirs = " ".join(self.CONFIG)
 
-        files = " ".join(self.getPythonFiles())
+        files = self.getPythonFiles()
 
         if dirs != ".":
-            files = "Chandler.py setup.py %s %s" % (self.XRC_PYTHON, files)
-
-        exp = "%s --msgid-bugs-address=bkirsch@osafoundation.org --from-code=utf-8 --no-wrap --add-comments=L10N: -L Python -o %s %s" % (self.GETTEXT, os.path.join(self.CWD, self.OUTPUTFILE), files)
-
+            files = ["Chandler.py", "setup.py", self.XRC_PYTHON] + files + \
+                    self.MISC_FILES
+        
+        exp = "%s --msgid-bugs-address=bkirsch@osafoundation.org --from-code=utf-8 --no-wrap --add-comments=L10N: -L Python -o %s %s" % (self.GETTEXT, os.path.join(self.CWD, self.OUTPUTFILE), " ".join(files))
 
         return os.system(exp)
 

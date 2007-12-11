@@ -30,6 +30,18 @@ class ApplicationPrefs(preferences.Preferences):
         doc = 'Should we backup (export collections and settings) on quit to automate migration?'
     )
 
+    showTip = schema.One(
+        schema.Boolean,
+        initialValue=True,
+        doc = 'Should we show tip of the day on launch?'
+    )
+
+    tipIndex = schema.One(
+        schema.Integer,
+        initialValue=0,
+        doc = 'Index of tip of the day to show.'
+    )
+
 
 def installParcel(parcel, oldVersion=None):
 

@@ -317,6 +317,11 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
         self.assertFalse(hasattr(backupPrefs, 'backupOnQuit'))
         backupPrefs.backupOnQuit = True
 
+        # tip of the day prefs
+        self.assertTrue(backupPrefs.showTip)
+        self.assertEqual(backupPrefs.tipIndex, 0)
+        backupPrefs.tipIndex = 1
+
         # Ensure sidebar is loaded in view1
         sidebar1 = schema.ns("osaf.app", view1).sidebarCollection
 
@@ -540,6 +545,10 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             backupPrefs1 = schema.ns("osaf.app",
                                      view1).prefs
             self.assertTrue(backupPrefs1.backupOnQuit)
+            
+            # tip of the day prefs
+            self.assertTrue(backupPrefs1.showTip)
+            self.assertEqual(backupPrefs1.tipIndex, 1)
             
         finally:
             os.remove(filename)

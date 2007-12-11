@@ -2848,6 +2848,9 @@ class DumpTranslator(SharingTranslator):
         elif backup == 2:
             prefs.backupOnQuit = False
 
+        prefs.showTip = bool(record.showTip)
+        prefs.tipIndex = record.tipIndex
+
     # Called from finishExport()
     def export_application_prefs(self):
         prefs = schema.ns("osaf.app", self.rv).prefs
@@ -2861,7 +2864,9 @@ class DumpTranslator(SharingTranslator):
             backup = 2
 
         yield model.ApplicationPrefsRecord(1 if prefs.isOnline else 0,
-                                           backup)
+                                           backup,
+                                           1 if prefs.showTip else 0,
+                                           prefs.tipIndex)
 
     @model.SharePrefsRecord.importer
     def import_share_prefs(self, record):
