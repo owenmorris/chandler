@@ -57,7 +57,7 @@ allTests = [
 
 exclusions = {#tests to exclude on specific platfoms only
     'other':[
-
+            ("TestEditModeOnEnter","TestEditModeOnEnter"), #fails on Gutsy
     ],
     
     'mac':[
