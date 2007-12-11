@@ -166,6 +166,7 @@ class ConflictVScrolledArea(ScrolledPanel):
                 # L10N: The <emphasis> and </emphasis> tags are used in the Conflict Resolution dialog
                 # to make the text in between the tags bold.
                 fmt = _(u"%(conflictNumber)3d. %(user)s removed this item from the <emphasis>collection</emphasis>")
+                c.value = ""
             elif c.change.exclusions:
                 # stamp changed on an item where stamp was removed on the server
                 if "sharing.model.MailMessageRecord" in c.value:
