@@ -2994,22 +2994,22 @@ class TriageStatusReminder(RelativeReminder):
     def itemChanged(self, item):
         if self.nextPoll is not None:
             event = EventStamp(item)
-            possibleNewNextPoll = None
+            possibleNewNextEvent = None
             if event.rruleset is None:
                 # an ordinary event ... see if we need to reschedule
-                possibleNewNextPoll = event.effectiveStartTime
+                possibleNewNextEvent = event
             elif event.occurrenceFor is None:
                 # a master
                 occurrence = event.getNextOccurrence(after=self.prevPoll)
                 if occurrence is not None:
-                    possibleNewNextPoll = occurrence.effectiveStartTime
+                    possibleNewNextEvent = occurrence
                 
-            if (possibleNewNextPoll is not None and
-                possibleNewNextPoll >= self.prevPoll and
-                possibleNewNextPoll < self.nextPoll):
-                
-                self.nextPoll = possibleNewNextPoll
-                
+            if possibleNewNextEvent is not None:
+                for attr in ('effectiveStartTime', 'effectiveEndTime'):
+                    time = getattr(possibleNewNextEvent, attr)
+                    if self.prevPoll < time < self.nextPoll:
+                        self.nextPoll = time
+                        break
 
     
     def updatePending(self, when=None):
@@ -3018,16 +3018,13 @@ class TriageStatusReminder(RelativeReminder):
         if when is None:
             when = datetime.now(view.tzinfo.default)
             
-        # getKeysInRange() isn't quite what we want, because
-        # it cares about events overlapping range, whereas we
-        # only want events whose effectiveStartTime lies within
-        # range
-
         def yieldEvents(start, end):
+            # Yield events overlapping this range, both regular and occurrences.
             pimNs = schema.ns("osaf.pim", view)
             useTZ = pimNs.TimezonePrefs.showUI
             
             startIndex = 'effectiveStart'
+            endIndex = 'effectiveEnd'
             recurEndIndex ='recurrenceEnd'
 
             allEvents = EventStamp.getCollection(view)
@@ -3038,19 +3035,21 @@ class TriageStatusReminder(RelativeReminder):
                 start = start.replace(tzinfo=None)
                 end = end.replace(tzinfo=None)
             
-            def cmpStart(key):
-                testVal = EventStamp._getEffectiveStartTime(key, view)
+            # Find the first event that ends at or after the start of our range
+            def cmpEnd(key):
+                testVal = EventStamp._getEffectiveEndTime(key, view)
                 if testVal is None:
                     return -1 # interpret None as negative infinity
                 # note that we're NOT using >=, if we did, we'd include all day
                 # events starting at the beginning of the next week
                 return cmp(testVal, searchStart)
 
-            firstKey = allEvents.findInIndex(startIndex, 'first', cmpStart)
-            for key, item in allEvents.iterindexitems(startIndex, firstKey):
+            firstKey = allEvents.findInIndex(endIndex, 'first', cmpEnd)
+            for key, item in allEvents.iterindexitems(endIndex, firstKey):
                 event = EventStamp(item)
                 if event.rruleset is None:
-                    if useTZ or start <= event.effectiveStartTime.replace(tzinfo=None) <= end:
+                    if useTZ or (start <= event.effectiveEndTime.replace(tzinfo=None) and 
+                                 event.effectiveStartTime.replace(tzinfo=None) <= end):
                         yield event
 
             masterEvents = pimNs.masterEvents
@@ -3062,7 +3061,8 @@ class TriageStatusReminder(RelativeReminder):
                 
                 for event in master._generateRule(after=searchStart,
                                                   before=searchEnd):
-                    if useTZ or start <= event.effectiveStartTime.replace(tzinfo=None) <= end:
+                    if useTZ or (start <= event.effectiveEndTime.replace(tzinfo=None) and 
+                                 event.effectiveStartTime.replace(tzinfo=None) <= end):
                         yield event
 
         if self.nextPoll is not None:
@@ -3074,17 +3074,34 @@ class TriageStatusReminder(RelativeReminder):
         oneHourHence = when + self.QUERY_INTERVAL
         nextPoll = oneHourHence
         
+        # We'll autotriage to 'now' any events that already started.
+        # Bug 7894: We'll autotriage to 'done' any events as they pass, if:
+        # - the event is not also a task, or anytime, or attime, and
+        # - the user hasn't manually triaged it.
+        # If we do autotriage to 'done', we pin the item in place.
+        from osaf.pim import TaskStamp
         for event in yieldEvents(start, oneHourHence):
-            effectiveStart = event.effectiveStartTime
-            
-            if effectiveStart <= when:
-                if self.prevPoll is not None and effectiveStart >= self.prevPoll:
-                    event.changeThis()
-                    event.itsItem.setTriageStatus(TriageEnum.now,
-                                                  when=effectiveStart)
-                    event.getFirstFutureLater()
-            elif effectiveStart < nextPoll:
-                nextPoll = effectiveStart
+            if ((not event.itsItem.doAutoTriageOnDateChange) or
+                event.anyTime or (event.duration == 0)
+                 or has_stamp(event.itsItem, TaskStamp)):
+                # just do 'now' based on start
+                statesToDo = (('effectiveStartTime', TriageEnum.now, False),)
+            else:
+                # Do both (but do end first so that we only triage
+                # an old event once)
+                statesToDo = (('effectiveEndTime', TriageEnum.done, True), 
+                              ('effectiveStartTime', TriageEnum.now, False))
+            for attr, newStatus, pin in statesToDo:
+                effectiveTime = getattr(event, attr)
+                if effectiveTime <= when:
+                    if self.prevPoll is not None and effectiveTime >= self.prevPoll:
+                        event.changeThis()
+                        event.itsItem.setTriageStatus(newStatus, pin=pin,
+                                                      when=effectiveTime)
+                        event.getFirstFutureLater()
+                        break                    
+                elif effectiveTime < nextPoll:
+                    nextPoll = effectiveTime
                 
         self.nextPoll = nextPoll
         self.prevPoll = when

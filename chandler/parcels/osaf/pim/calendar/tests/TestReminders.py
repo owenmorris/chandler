@@ -20,6 +20,9 @@ from osaf.pim.calendar.Recurrence import *
 import osaf.pim.tests.TestDomainModel as TestDomainModel
 import repository.item
 from datetime import datetime, timedelta, time
+import logging
+
+logger = logging.getLogger(__name__)
 
 class AbsoluteReminderTestCase(TestDomainModel.DomainModelTestCase):
     def setUp(self):
@@ -643,10 +646,10 @@ class TriageStatusReminderTestCase(TestDomainModel.DomainModelTestCase):
         # Expire all the pending entries ...
         self.tsReminder.updatePending(fifthStart + timedelta(days=7))
         
-        # ... make sure the triage status got set to now
+        # ... make sure the triage status got set to done
         event = fifth
         while event is not None:
-            self.failUnlessEqual(event.itsItem.triageStatus, TriageEnum.now)
+            self.failUnlessEqual(event.itsItem.triageStatus, TriageEnum.done)
             event = event.getNextOccurrence()
 
         # ... and make sure the reminder got deleted
