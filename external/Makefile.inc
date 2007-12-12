@@ -73,7 +73,6 @@ ifeq ($(OS),Cygwin)
     CONFIGOBJ_BUILD=configobj
     DOCUTILS_BUILD=docutils
     ZOPE_BUILD=zope
-    GETTEXT_BUILD=gettext
 endif
 
 ifeq ($(OS),Darwin)
@@ -121,7 +120,6 @@ ifeq ($(OS),Darwin)
     CONFIGOBJ_BUILD=configobj
     DOCUTILS_BUILD=docutils
     ZOPE_BUILD=zope
-    GETTEXT_BUILD=gettext
 endif
 
 ifeq ($(OS),Linux)
@@ -160,7 +158,6 @@ ifeq ($(OS),Linux)
         ZOPE_BUILD=zope
     endif
     READLINE_BUILD=
-    GETTEXT_BUILD=
     OPENJDK_BUILD=openjdk
     ifeq ($(ARCH),x86_64)
         UPLOAD:=$(UPLOAD)/$(ARCH)
