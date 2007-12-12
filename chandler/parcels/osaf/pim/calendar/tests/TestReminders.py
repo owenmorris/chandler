@@ -20,9 +20,6 @@ from osaf.pim.calendar.Recurrence import *
 import osaf.pim.tests.TestDomainModel as TestDomainModel
 import repository.item
 from datetime import datetime, timedelta, time
-import logging
-
-logger = logging.getLogger(__name__)
 
 class AbsoluteReminderTestCase(TestDomainModel.DomainModelTestCase):
     def setUp(self):
