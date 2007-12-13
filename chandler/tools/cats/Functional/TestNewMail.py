@@ -37,6 +37,7 @@ class TestNewMail(ChandlerTestCase):
         ap.ToggleValue("authentication", True) # turn on the authentication checkbox
         ap.TypeValue("port", '587')
         ap.TypeValue("email", pEMAIL)
+        ap.TypeValue("name", pNAME)
         ap.TypeValue('username', 'demo1')
         ap.TypeValue('password', 'ad3leib5')
 

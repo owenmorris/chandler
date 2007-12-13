@@ -160,8 +160,8 @@ def IncomingDeleteHandler(item, values, data):
     return True
 
 def OutgoingSaveHandler(item, fields, values):
-    newAddressString = values['OUTGOING_FROM']
-    newFullName = ""
+    newAddressString = values['OUTGOING_EMAIL_ADDRESS']
+    newFullName =  values['OUTGOING_FULL_NAME']
 
 
     item.fromAddress = Mail.EmailAddress.getEmailAddress(item.itsView,
@@ -382,10 +382,14 @@ class AccountPreferencesDialog(wx.Dialog):
                         "required" : True,
                         "default": _(u"New Outgoing Mail Account"),
                     },
-                    "OUTGOING_FROM" : {
+                    "OUTGOING_EMAIL_ADDRESS" : {
                         "attr" : "emailAddress",
                         "type" : "string",
                         "killFocusCallback": self.OnFocusLostOutgoingEmail,
+                    },
+                    "OUTGOING_FULL_NAME" : {
+                        "attr" : "fullName",
+                        "type" : "string",
                     },
                     "OUTGOING_SERVER" : {
                         "attr" : "host",
@@ -1534,6 +1538,7 @@ class AccountPreferencesDialog(wx.Dialog):
             elif item.accountType == "OUTGOING":
                 buf.append("security: %s" % item.connectionSecurity)
                 buf.append("useAuth: %s" % item.useAuth)
+                buf.append("name: %s" % getattr(item, "fullName", ""))
                 buf.append("email: %s" % getattr(item, "emailAddress", ""))
 
                 if item == currentOutgoing:
@@ -1542,7 +1547,6 @@ class AccountPreferencesDialog(wx.Dialog):
             buf.append("\n")
 
         print (u"\n".join(buf)).encode("utf-8")
-
 
     def OnCancel(self, evt):
         self.__ApplyCancellations()

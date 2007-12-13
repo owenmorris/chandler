@@ -1411,13 +1411,13 @@ class UITestItem(object):
 
 class UITestAccounts:
     fieldMap = {
-        'OUTGOING': {'displayName': 3, 'email': 5, 'host': 7,
-                 'username': 18, 'password': 20, 'security': 12,
-                 'port':11, 'authentication': 16},
+        'OUTGOING': {'displayName': 3, 'email': 5, 'name': 7,
+                  'host': 9, 'username': 20, 'password': 22, 'security': 14,
+                 'port':13, 'authentication': 18},
 
        'INCOMING': {'displayName': 3, 'email': 5,
                  'name': 7, 'host': 9, 'username': 11,
-                 'protocol': 17, 'password': 13, 
+                 'protocol': 17, 'password': 13,
                  'security': 24, 'port': 23, },
 
         'SHARING_DAV':{'displayName': 3, 'host':5, 'path': 7,

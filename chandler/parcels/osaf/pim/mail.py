@@ -1027,7 +1027,7 @@ class IncomingAccount(AccountBase):
 
         def fset(self, value):
             if getattr(self, "replyToAddress", None) is not None:
-                oldAddress = self.replyToAddress.oldAddress
+                oldAddress = self.replyToAddress.emailAddress
             else:
                 oldAddress = u''
             self.replyToAddress = \
@@ -1071,8 +1071,31 @@ class OutgoingAccount(AccountBase):
             return None
 
         def fset(self, value):
-            self.fromAddress = EmailAddress.getEmailAddress(self.itsView, value) or \
-                               EmailAddress(itsView=self.itsView)
+            if getattr(self, "fromAddress", None) is not None:
+                oldFullName = self.fromAddress.fullName
+            else:
+                oldFullName = u''
+            self.fromAddress = \
+                EmailAddress.getEmailAddress(self.itsView, value, oldFullName) or \
+                EmailAddress(itsView=self.itsView)
+
+        return property(fget, fset)
+
+    @apply
+    def fullName():
+        def fget(self):
+            if getattr(self, "fromAddress", None) is not None:
+                return self.fromAddress.fullName
+            return None
+
+        def fset(self, value):
+            if getattr(self, "fromAddress", None) is not None:
+                oldAddress = self.fromAddress.emailAddress
+            else:
+                oldAddress = u''
+            self.fromAddress = \
+                EmailAddress.getEmailAddress(self.itsView, oldAddress, value) or \
+                EmailAddress(itsView=self.itsView)
 
         return property(fget, fset)
 
