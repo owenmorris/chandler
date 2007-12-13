@@ -1,6 +1,6 @@
 
 VERSION=2.2.0-2-$(SVNVER)
-SVNVER=370
+SVNVER=371
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-$(VERSION)
@@ -85,7 +85,8 @@ expand: PyLucene-$(VERSION)-expanded
 sources: expand
 
 clean:
-	rm -rf PyLucene-$(VERSION) PyLucene-$(VERSION)-expanded
+	rm -rf $(SRC)/jcc/build
+	rm -rf $(SRC)/build
 	find $(PREFIX) -name '*lucene*' | xargs rm -rf
 
 build: expand
