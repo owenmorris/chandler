@@ -1,0 +1,21 @@
+--- readline-5.2/support/shobj-conf	2006-04-11 06:15:43.000000000 -0700
++++ readline-5.2-patched/support/shobj-conf	2007-12-12 14:36:36.000000000 -0800
+@@ -137,17 +137,17 @@
+ 		SHOBJ_LDFLAGS='-shared'
+ 
+ 		SHLIB_XLDFLAGS='-R$(libdir)'
+ 		SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)$(SHLIB_MINOR)'
+ 	fi
+ 	;;
+ 
+ # Darwin/MacOS X
+-darwin8*)
++darwin[8-9]*)
+ 	SHOBJ_STATUS=supported
+ 	SHLIB_STATUS=supported
+ 	
+ 	SHOBJ_CFLAGS='-fno-common'
+ 
+ 	SHOBJ_LD='MACOSX_DEPLOYMENT_TARGET=10.3 ${CC}'
+ 
+ 	SHLIB_LIBVERSION='$(SHLIB_MAJOR)$(SHLIB_MINOR).$(SHLIB_LIBSUFF)'

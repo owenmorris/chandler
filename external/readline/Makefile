@@ -11,13 +11,16 @@ ifeq ($(OS),Darwin)
 
 BUILD=build_$(SNAP)
 
-$(SRC)/$(BUILD)/Makefile: expand
+$(SRC)/$(BUILD)/Makefile: expand apply
 	mkdir -p $(SRC)/$(BUILD)
 	cd $(SRC)/$(BUILD); ../configure --prefix=$(PREFIX)
 
 build: $(SRC)/$(BUILD)/Makefile
 	$(MAKE) -C $(SRC)/$(BUILD)
 	$(MAKE) -C $(SRC)/$(BUILD) install
+
+apply: patches-$(VERSION)-$(OS)
+	patch -Nup0 < $< ; echo ok
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:
@@ -27,8 +30,7 @@ endif
 
 binaries:
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(READLINE)/$(TARBALL) $(SNAP)/lib/libreadline*.dylib \
-            --exclude '*.a'
+        tar -cvzf $(READLINE)/$(TARBALL) $(SNAP)/lib/libreadline*.dylib
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
