@@ -489,7 +489,20 @@ class I18nManager(EggTranslations):
 
         setPyICULocale(primaryLocale)
         setEnvironmentLocale(primaryLocale)
-        setPythonLocale()
+
+        from application import Utility
+
+        if Utility.getPlatformID() == "osx-ppc" and \
+           Utility.getOSName() in ('10.3-Panther', '10.4-Tiger'):
+            # On OS X PPC the LC_NUMERIC values will
+            # localize unless the Python locale is
+            # set to 'C'. Localized numeric values ie.
+            # 1234,23 for a float in the 'FR' locale
+            # create data exchange issues and needs to
+            # be avoided at all costs.
+            setPythonLocale('C')
+        else:
+            setPythonLocale(primaryLocale)
 
     def getText(self, project, name, msgid, *args):
         """
@@ -1079,15 +1092,12 @@ def convertPyICULocale(iculocale):
 
     return langCode
 
-def setPythonLocale():
+def setPythonLocale(lc):
     """
-       Set the Python locale to 'C'.
-       This ensures that the Python
-       env is portable across platforms
-       and locales.
+       Set the Python locale to lc variable.
     """
     try:
-        locale.setlocale(locale.LC_ALL, 'C')
+        locale.setlocale(locale.LC_ALL, lc)
     except locale.Error:
        pass
 
