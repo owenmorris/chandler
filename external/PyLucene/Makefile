@@ -85,8 +85,7 @@ expand: PyLucene-$(VERSION)-expanded
 sources: expand
 
 clean:
-	rm -rf $(SRC)/jcc/build
-	$(ENV) $(MAKE) -C $(SRC) ANT=$(ANT) clean
+	rm -rf PyLucene-$(VERSION) PyLucene-$(VERSION)-expanded
 	find $(PREFIX) -name '*lucene*' | xargs rm -rf
 
 build: expand
