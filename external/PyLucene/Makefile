@@ -87,6 +87,7 @@ sources: expand
 clean:
 	rm -rf $(SRC)/jcc/build
 	$(ENV) $(MAKE) -C $(SRC) ANT=$(ANT) clean
+	find $(PREFIX) -name '*lucene*' | xargs rm -rf
 
 build: expand
 	rm -rf $(SRC)/jcc/build
