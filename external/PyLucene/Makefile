@@ -1,10 +1,11 @@
 
 VERSION=2.2.0-2-$(SVNVER)
-SVNVER=367
+SVNVER=370
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-$(VERSION)
 BUILD=$(SNAP)
+EGG=$(notdir $(shell cd $(BUILD_ROOT); find $(SNAP)/$(SITE) -name 'lucene-*-py$(PYTHON_VER)-*.egg'))
 TARBALL=PyLucene-$(SNAP)-$(RELVER).tar.gz
 MANIFEST=$(SNAP)/$(SITE)/lucene
 
@@ -110,7 +111,10 @@ test:
           test
 
 $(TARBALL):
-	tar -C $(BUILD_ROOT) -cvzf $(TARBALL) $(MANIFEST)
+	echo "./$(EGG)" > $(BUILD_ROOT)/$(SNAP)/$(SITE)/lucene.pth
+	tar -C $(BUILD_ROOT) -cvzf $(PYLUCENE)/$(TARBALL) \
+                             $(SNAP)/$(SITE)/$(EGG) \
+                             $(SNAP)/$(SITE)/lucene.pth
 
 binaries: $(TARBALL)
 
