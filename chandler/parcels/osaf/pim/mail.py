@@ -1827,6 +1827,10 @@ class MailStamp(stamping.Stamp):
             #   sectionTriageStatus is set to NOW
             triageArg = "auto"
 
+
+        log.info("Mail Service popping item '%s (%s)' to NOW" % \
+                (self.itsItem.displayName.encode("utf-8"), self.itsItem.itsUUID))
+
         setTriageStatus(self.itsItem, triageArg, popToNow=True)
 
         if not self.fromEIMML:
