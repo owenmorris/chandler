@@ -361,8 +361,25 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         # at the bottom of the virtual window.
         dc.DrawRectangle(0, 0, width1, height + 10)
 
+        # hardcode this for now - eventually this should be a preference
+        workdayHourStart = 9 # 9am
+        workdayHourEnd = 17  # 5pm
+        
+        # Shade non-working hours
+        gc = wx.GraphicsContext.Create(dc)
+        gc.SetBrush(styles.nonWorkingHoursBrush)
+        gc.DrawRectangle(self.xOffset,
+                         0,
+                         width1,
+                         workdayHourStart * self.hourHeight)
+        gc.DrawRectangle(self.xOffset,
+                         workdayHourEnd * self.hourHeight,
+                         width1,
+                         24 * self.hourHeight)
+        # not needed: dc.SetBrush(wx.WHITE_BRUSH)
+        
         self.ShadeToday(dc)
-        self.DrawBackgroundSelection(dc)
+        self.DrawBackgroundSelection(gc)
 
         # Set text properties for legend
         dc.SetTextForeground(styles.legendColor)
@@ -437,22 +454,18 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         pen.SetCap(wx.CAP_BUTT)
         dc.SetPen(pen)
         
-        # hardcode this for now - eventually this should be a preference
-        workdayHourStart = 9 # 9am
-        workdayHourEnd = 17  # 5pm
-        
         dc.DrawLine(legendBorderX, workdayHourStart*hourHeight,
                     legendBorderX, workdayHourEnd * hourHeight + 1)
         
 
-    def DrawBackgroundSelection(self, dc):
+    def DrawBackgroundSelection(self, gc):
         # draw selection stuff (highlighting)
         if (self._bgSelectionStartTime and self._bgSelectionEndTime):
             
-            dc.DrawRectangleList(list(self.GenerateBoundsRects(self._bgSelectionStartTime,
-                                                               self._bgSelectionEndTime)),
-                                 wx.TRANSPARENT_PEN,
-                                 self.blockItem.calendarContainer.selectionBrush)
+            gc.SetBrush(self.blockItem.calendarContainer.selectionBrush)
+            boundsRects = self.GenerateBoundsRects(self._bgSelectionStartTime, self._bgSelectionEndTime)
+            for rect in boundsRects:
+                gc.DrawRectangle(rect.x, rect.y, rect.width, rect.height)
 
     @staticmethod
     def sortByStartTime(event1, event2):

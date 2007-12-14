@@ -1622,8 +1622,9 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         y = 0
         (width, height) = (drawInfo.columnWidths[dayNum+1],
                            self.size.height)
-        dc.SetBrush(styles.todayBrush)
-        dc.DrawRectangle(x,y,width, height)
+        gc = wx.GraphicsContext.Create(dc)
+        gc.SetBrush(styles.todayBrush)
+        gc.DrawRectangle(x,y,width, height)
 
     def DrawDayLines(self, dc):
         """
@@ -2139,8 +2140,9 @@ class CalendarContainer(CalendarRangeBlock):
  
         self.majorLinePen = wx.Pen(self.majorLineColor)
         self.minorLinePen = wx.Pen(self.minorLineColor)
-        self.selectionBrush = wx.Brush(wx.Colour(229, 229, 229))
-        self.todayBrush = wx.Brush(wx.Colour(242,242,242))
+        self.selectionBrush = wx.Brush(wx.Colour(0, 0, 0, 28))
+        self.nonWorkingHoursBrush = wx.Brush(wx.Colour(0,0,0, 8))
+        self.todayBrush = wx.Brush(wx.Colour(0,95,237, 23))
 
         # gradient cache
         self.brushes = Gradients()
