@@ -37,12 +37,7 @@ class TypeHandler(object):
         if isitem(value):
             return cls.typeHandlers[view][ItemRef][0]
 
-        try:
-            typeKind = cls.typeHandlers[view][None]
-        except KeyError:
-            print type(value), value
-            raise
-        
+        typeKind = cls.typeHandlers[view][None]
         types = typeKind.findTypes(value)
         if types:
             return types[0]
