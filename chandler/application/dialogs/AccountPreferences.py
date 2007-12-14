@@ -125,7 +125,8 @@ def IncomingSaveHandler(item, fields, values):
 
         ns_pim = schema.ns('osaf.pim', item.itsView)
 
-        isCurrent = item == ns_pim.currentIncomingAccount.item
+        isCurrent = item == getattr(ns_pim.currentIncomingAccount, \
+                                    "item", None)
 
         if newAccountProtocol == "IMAP":
             item = Mail.IMAPAccount(itsView=item.itsView)
