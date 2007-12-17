@@ -64,7 +64,8 @@ class CommunicationStatus(schema.Annotation):
     # (firsttime has this bit unset)
     # UPDATE      =           1
 
-
+    #  1    2    4   8        16      32    64     128     256    512          1024
+    #0x1    2    4   8        10      20    40     80      100    200          400
     UPDATE, OUT, IN, NEITHER, EDITED, SENT, ERROR, QUEUED, DRAFT, NEEDS_REPLY, READ = (
         1<<n for n in xrange(11)
     )
@@ -90,11 +91,10 @@ class CommunicationStatus(schema.Annotation):
 
         if MailStamp in stampTypes:
             # update: This means either: we have just
-            # received an update, or it's ready to go
-            # out as an update
+            # received an update, or it's been sent before and edited.
             modification = Modification
             if (modification.updated == lastMod or
-                (modification.sent != lastMod and
+                (modification.edited in modifiedFlags and 
                 modification.sent in modifiedFlags)):
                 result |= CommunicationStatus.UPDATE
 
@@ -112,15 +112,21 @@ class CommunicationStatus(schema.Annotation):
             # sent
             if lastMod in (modification.sent, modification.updated):
                 result |= CommunicationStatus.SENT
-            # draft if it's not one of sent/queued/error
-            if  result & (CommunicationStatus.SENT |
-                          CommunicationStatus.QUEUED |
-                          CommunicationStatus.ERROR) == 0:
-                result |= CommunicationStatus.DRAFT
 
-        # edited
-        if Modification.edited in modifiedFlags:
-            result |= CommunicationStatus.EDITED
+            # edited & draft only if it's never been mailed (per bug 10933)
+            if Modification.edited in modifiedFlags \
+               and not Modification.sent in modifiedFlags:
+                result |= CommunicationStatus.EDITED
+            else:
+                # draft if it's not one of sent/queued/error
+                if  result & (CommunicationStatus.SENT |
+                              CommunicationStatus.QUEUED |
+                              CommunicationStatus.ERROR) == 0:
+                    result |= CommunicationStatus.DRAFT
+        else:
+            # edited
+            if Modification.edited in modifiedFlags:
+                result |= CommunicationStatus.EDITED
 
         # needsReply
         if needsReply:
@@ -194,7 +200,12 @@ class CommunicationStatus(schema.Annotation):
 
         if isMessage:
             msg = MailStamp(self.itsItem)
-            preferFrom = (commState & CommunicationStatus.OUT) == 0            
+            if getattr(msg, 'dateSent', None) is not None:
+                # Bug 10933: keep showing the From address for edited messages that
+                # were previously sent
+                preferFrom = True
+            else:
+                preferFrom = (commState & CommunicationStatus.OUT) == 0            
             toAddress = getattr(msg, 'toAddress', schema.Nil)
             toText = u", ".join(x.getLabel() for x in toAddress)
             whos.append((preferFrom and 4 or 2, toText, 'to'))
