@@ -1724,7 +1724,11 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
         # Changing the recurrence period on a non-master item could delete 
         # this very 'item'; we'll try to select the "same" occurrence
         # afterwards ...
-        assert pim.has_stamp(item, pim.EventStamp)
+
+        # It seems we occasionally get told to save our value after a stamping
+        # change has removed eventity (bug 11569). Do nothing when this happens.
+        if not pim.has_stamp(item, pim.EventStamp):
+            return
 
         # we may want to prompt the user about destructive rrule changes,
         # but calling changeThisAndFuture on a proxy's rruleset has the
