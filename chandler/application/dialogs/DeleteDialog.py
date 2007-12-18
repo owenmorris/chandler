@@ -91,7 +91,7 @@ def GetItemRemovalState(selectedCollection, item, view):
             # Items in the dashboard because they're in a mine collection
             # can't be removed, they're always deleted
             if GetReadOnlyCollection(item, view) is None:
-                for collection in memberItem.collections or []:
+                for collection in memberItem.appearsIn or []:
                     if collection in pim_ns.mine.sources:
                         return DELETE_DASHBOARD
             else:
