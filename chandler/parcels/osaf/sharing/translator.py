@@ -413,9 +413,10 @@ class SharingTranslator(eim.Translator):
 
     ignoreFields = {
         MailMessageRecord :
-            ("fromAddress", "headers", "messageId", "inReplyTo", "references"),
+            ("fromAddress", "headers", "messageId", "inReplyTo", "references",
+             "dateSent"),
         NoteRecord :
-            ("icalExtra", ),
+            ("icalExtra", "icalUid"),
     }
 
     def isMajorChange(self, diff):
@@ -826,9 +827,14 @@ class SharingTranslator(eim.Translator):
         # Task in Bug 9359, icalUID may be serialized as None or equivalent
         # to UUID, in these cases don't set Chandler's icalUID attribute, it's
         # redundant
-        icalUID = record.icalUid
-        if icalUID is None or splitUUID(self.rv, record.uuid)[0] == icalUID:
-            icalUID = eim.NoChange
+
+        if record.uuid != getMasterAlias(record.uuid):
+            # An occurrence
+            icalUID = eim.Inherit
+        else:
+            icalUID = record.icalUid
+            if icalUID is None:
+                icalUID = eim.NoChange
 
         if record.icalExtra is None:
             icalExtra = eim.NoChange
@@ -857,6 +863,8 @@ class SharingTranslator(eim.Translator):
         icalUID = handleEmpty(note, 'icalUID')
         if icalUID is None:
             icalUID = note.itsUUID.str16()
+        if isinstance(note, Occurrence):
+            icalUID = eim.Inherit
 
         yield model.NoteRecord(
             note,                                       # uuid
