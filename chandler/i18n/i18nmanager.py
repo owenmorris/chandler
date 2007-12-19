@@ -350,7 +350,7 @@ class I18nManager(EggTranslations):
                 # discovering of the localeSet, capture
                 # it here and keep the localeSet variable
                 # as None. This will result in the
-                # locale being set to "en" later in the
+                # locale being set to "en_US" later in the
                 # code. In the discovery case Chandler
                 # should do everything possible to
                 # still load the application even
@@ -400,8 +400,13 @@ class I18nManager(EggTranslations):
         # the gettext .mo files for each locale in
         # the locale set.
         if not found:
-            localeSet.append("en")
+            localeSet.append("en_US")
 
+        #XXX This can raise an Exception if an invalid locale is
+        # passed. Could make a more user friendly error message
+        # here by capturing and re-raising the exception.
+        # A bogus locale would be related to a user manually
+        # entering the locale on the command line.
         super(I18nManager, self).setLocaleSet(localeSet, fallback)
 
         if discover:
@@ -426,16 +431,17 @@ class I18nManager(EggTranslations):
                         (hasCountryCode(lc) and \
                          self.hasTranslation(self._DEFAULT_PROJECT, self._DEFAULT_CATALOG, stripCountryCode(lc))):
                         primaryLocale = lc
-                        if primaryLocale == "en":
+
+                        if primaryLocale == "en_US":
                             # This is a bit of a hack but
                             # not sure of a cleaner way to
                             # implement this logic.
-                            # If the primaryLocale is "en"
+                            # If the primaryLocale is "en_US"
                             # then it means that all of the
                             # locales in the locale set that
                             # preceeded "en" do not have a
                             # translation.
-                            self._localeSet = ['en']
+                            self._localeSet = ['en_US', 'en']
                         break
 
             else:
@@ -457,12 +463,7 @@ class I18nManager(EggTranslations):
             self._setLocale(primaryLocale)
         except I18nException, e:
             if discover:
-                # XXX Would be nice to show a
-                # warning dialog when the
-                # locale discovered from the
-                # OS is not supported by
-                # Wx or PyICU
-                self._setLocale("en_US")
+                self._setLocale("en_US", ignoreError=True)
             else:
                 # If the locale was passed in (ie. not
                 # discovered from the OS) then raise
@@ -477,7 +478,7 @@ class I18nManager(EggTranslations):
         self._lookupCache = None
         self._lookupCache = {}
 
-    def _setLocale(self, primaryLocale):
+    def _setLocale(self, primaryLocale, ignoreError=False):
         if wxIsAvailable():
             # Strip the country code for wxLocales
             # since any invalid values raise an
@@ -485,7 +486,11 @@ class I18nManager(EggTranslations):
             # With the exception of Chinese, all
             # wx localizations use the lang
             # code exclusively.
-            setWxLocale(stripCountryCode(primaryLocale), self)
+            try:
+                setWxLocale(stripCountryCode(primaryLocale), self)
+            except I18nException, e:
+                if not ignoreError:
+                    raise e
 
         setPyICULocale(primaryLocale)
         setEnvironmentLocale(primaryLocale)
@@ -1183,9 +1188,11 @@ if _WX_AVAILABLE:
         global _WX_LOCALE
         _WX_LOCALE = None
 
+        # findWxLocale can return None when the locale
+        # is not supported on the host OS
         lc = findWxLocale(locale, i18nMan)
 
-        if not lc.IsOk() and hasCountryCode(locale):
+        if lc is not None and not lc.IsOk() and hasCountryCode(locale):
             # Need to unload wx.Locale object otherwise it will
             # hold a dangling reference and not use the
             # Stripped Locale
@@ -1198,7 +1205,7 @@ if _WX_AVAILABLE:
 
             lc = findWxLocale(stripCountryCode(locale), i18nMan)
 
-        if not lc.IsOk():
+        if lc is None or not lc.IsOk():
             raise I18nException("Invalid wxPython Locale: " \
                                      "'%s'" % locale)
 
@@ -1225,17 +1232,17 @@ if _WX_AVAILABLE:
           @param locale: a c{str} locale
           @type locale: c{str}
 
-          @return: a c{wx.Locale} object
+          @return: a c{wx.Locale} object or None if Wx 
+                   does not provide support for the requested
+                   locale
         """
 
         assert(isinstance(i18nMan, I18nManager))
 
         langInfo = I18nLocale.FindLanguageInfo(locale)
 
-        if langInfo is None:
-            #The locale request is invalid or not supported by wx
-            raise I18nException("Invalid wxPython Locale: " \
-                                     "'%s'" % locale)
+        if langInfo is None or not I18nLocale.IsAvailable(langInfo.Language):
+            return None
 
         #Get the wx Locale object for the ISO lang / country code
         return I18nLocale(langInfo.Language, i18nMan=i18nMan)
