@@ -23,8 +23,7 @@ setup(
     test_suite = "gdatasync.tests",
     packages = ["gdatasync"],
     include_package_data = True,
-    install_requires = ["gdata.py>=1.0.7"], # XXX 1.0.10 has installation bug (emailed author), and <1.0.10 will cause setuptools to not find suitable versions
-    dependency_links = ["http://gdata-python-client.googlecode.com/files/gdata.py-1.0.9.zip"],#XXX remove this line when above line works alone
+    install_requires = ["gdata.py>=1.0.7, !=1.0.10"],
     entry_points = {
         "chandler.parcels": ["Google Data Sync = gdatasync"],
         "chandler.chex_mixins": ["Google Data Sync = gdatasync:GDataTranslator"],
