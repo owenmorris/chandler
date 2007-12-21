@@ -14,7 +14,7 @@
 
 from datetime import timedelta
 from time import time, strftime
-import wx, os, sys, traceback, logging, re, webbrowser
+import wx, os, sys, traceback, logging, re
 import application.dialogs.Util
 import pkg_resources
 
@@ -446,7 +446,8 @@ class MainView(View):
 
     def openURLOrDialog(self, url):
         try:
-            webbrowser.open(url)
+            # webbrowser.open() is known to be unreliable on Linux so using wx instead
+            wx.LaunchDefaultBrowser(url, wx.BROWSER_NEW_WINDOW)
         except OSError:
             wx.MessageBox (_(u"Chandler could not access a browser to open %(url)s.") % {'url' : url},
                            _(u"Browser Not Found"),

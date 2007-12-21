@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import os, pkg_resources, wx, webbrowser, logging
+import os, pkg_resources, wx, logging
 
 from application import Utility, Globals, Parcel, schema
 from osaf.framework.blocks import Menu
@@ -64,7 +64,8 @@ class PluginMenu(Menu):
         return wxMenuItem(None, id=self.getWidgetID(), text=" ", subMenu=menu)
 
     def onBrowsePluginsEvent(self, event):
-        webbrowser.open(BROWSE_URL)
+        # webbrowser.open() is known to be unreliable on Linux so using wx instead
+        wx.LaunchDefaultBrowser(BROWSE_URL, wx.BROWSER_NEW_WINDOW)
 
     def onInstallPluginsEvent(self, event):
 

@@ -13,7 +13,6 @@
 #   limitations under the License.
 
 
-import webbrowser
 import wx, wx.html, os, sys
 import i18n
 import Utility
@@ -100,7 +99,8 @@ class HTMLPanel(wx.html.HtmlWindow):
           Called whenever a link on the about box is clicked.  Opens that
         url in the user's default web browser.
         """
-        webbrowser.open(link.GetHref())
+        # webbrowser.open() is known to be unreliable on Linux so using wx instead
+        wx.LaunchDefaultBrowser(link.GetHref(), wx.BROWSER_NEW_WINDOW)
 
 def _getDefaultHTML():
     from version import version

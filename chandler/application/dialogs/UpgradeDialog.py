@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import webbrowser, os
+import os
 import wx
 from PyICU import DateFormat
 from i18n import ChandlerSafeTranslationMessageFactory as _
@@ -131,7 +131,8 @@ class MigrationDialog(wx.Dialog):
         self.EndModal(wx.YES)
 
     def onMoveDataButton(self, event):
-        webbrowser.open(MIGRATION_URL)
+        # webbrowser.open() is known to be unreliable on Linux so using wx instead
+        wx.LaunchDefaultBrowser(MIGRATION_URL, wx.BROWSER_NEW_WINDOW)
         self.EndModal(wx.CANCEL)
 
     def onDeleteDataButton(self, event):
