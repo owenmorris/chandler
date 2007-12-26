@@ -119,7 +119,7 @@ class CommunicationStatusTestCase(TestDomainModel.DomainModelTestCase):
         self.checkStatus(inoutFlags, 'SENT')
 
         self.note.changeEditState(Modification.edited)
-        self.checkStatus(inoutFlags, 'UPDATE', 'DRAFT')
+        self.checkStatus(inoutFlags, 'EDITED', 'UPDATE', 'DRAFT')
 
         # Remove the MailStamp; that should make it no longer a Draft
         mail.remove()
@@ -127,7 +127,7 @@ class CommunicationStatusTestCase(TestDomainModel.DomainModelTestCase):
 
         # Re-add the stamp
         mail.add()
-        self.checkStatus(inoutFlags, 'UPDATE', 'DRAFT')
+        self.checkStatus(inoutFlags, 'EDITED', 'UPDATE', 'DRAFT')
 
         # and finally, re-send it
         self.note.changeEditState(Modification.updated)
