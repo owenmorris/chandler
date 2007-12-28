@@ -76,14 +76,13 @@ WingMacRelease.wpr
 
 # Grab the rest of Chandler from the application/ and parcel/ folders
 recursive=yes
-glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html,*.pack,*.pem,*.ics,*.js,*.css,*.sh,*.conf
+glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html,*.pem,*.ics,*.js,*.css,*.sh,*.conf,*.pack,*.kind,*.type,*.attr
 application
 parcels
 util
 tools
 
 glob=*
-repository
 i18n
 Chandler.egg-info
 
