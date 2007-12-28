@@ -509,7 +509,7 @@ The sharing layer creates a new translator instance for each import or export
 operation.  The constructor accepts a single argument, a repository view, which
 is stored in the ``rv`` attribute::
 
-    >>> from repository.persistence.RepositoryView import NullRepositoryView
+    >>> from chandlerdb.persistence.RepositoryView import NullRepositoryView
     >>> rv = NullRepositoryView(verify=True)  # report errors immediately
 
     >>> t = DemoTranslator(rv)

@@ -21,7 +21,7 @@ __parcel__ = "osaf.pim"
 from datetime import datetime
 
 from application import schema
-from repository.schema.Kind import Kind
+from chandlerdb.schema.Kind import Kind
 from chandlerdb.util.c import Empty, Nil
 from osaf.pim.reminders import isDead
 from osaf.pim.triage import Triageable

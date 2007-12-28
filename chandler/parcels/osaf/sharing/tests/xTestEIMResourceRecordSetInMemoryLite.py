@@ -19,7 +19,7 @@ from round_trip import RoundTripTestCase
 
 from osaf.sharing import recordset_conduit, translator, eimml
 
-from repository.item.Item import Item
+from chandlerdb.item.Item import Item
 from util import testcase
 from application import schema
 

@@ -19,7 +19,7 @@ from PyICU import DateFormat
 from application import schema
 from osaf import startup, sharing
 from i18n import ChandlerMessageFactory as _
-from repository.persistence.RepositoryView import thisViewWins
+from chandlerdb.persistence.RepositoryView import thisViewWins
 
 
 class CompactDialog(wx.Dialog):

@@ -19,7 +19,7 @@ from twisted.internet import reactor
 from application import Globals, schema
 import osaf.pim.mail as Mail
 
-from repository.persistence.RepositoryView import otherViewWins
+from chandlerdb.persistence.RepositoryView import otherViewWins
 
 #Chandler Mail Service import
 from smtp import SMTPClient

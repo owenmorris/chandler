@@ -18,7 +18,7 @@ import amazon, sgmllib, wx, string
 
 from osaf.pim import ContentItem, ListCollection
 from osaf.pim.types import LocalizableString
-from repository.util.URL import URL
+from chandlerdb.util.URL import URL
 from application import schema
 from i18n import MessageFactory
 import AmazonDialog

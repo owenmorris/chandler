@@ -26,7 +26,7 @@ be reported in the correct file::
 For many of our examples, we'll need a view.  We'll be using a null
 repository view, ``rv``::
 
-    >>> from repository.persistence.RepositoryView import NullRepositoryView
+    >>> from chandlerdb.persistence.RepositoryView import NullRepositoryView
     >>> rv = NullRepositoryView()
 
 Use hotkey_script to run a script in response to a function key pressed.

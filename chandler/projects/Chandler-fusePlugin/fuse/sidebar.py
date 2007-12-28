@@ -20,8 +20,8 @@ from osaf.sharing import ICalendar
 from application import schema
 
 from fuse.c import FUSE
-from repository.persistence.DBRepository import DBRepository
-from repository.persistence.Repository import RepositoryThread, RepositoryWorker
+from chandlerdb.persistence.DBRepository import DBRepository
+from chandlerdb.persistence.Repository import RepositoryThread, RepositoryWorker
 
 
 class sidebar(FUSE):

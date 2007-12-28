@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+
+  <item>
+    <name>ParcelManager</name>
+    <kind type="path">//Schema/Core/Kind</kind>
+
+    <ref name="attributes">
+      <!-- 
+         - plus local attributes below:
+         -     path
+        -->
+    </ref>
+
+    <ref name="superKinds">
+      <ref type="path">//Schema/Core/Item</ref>
+    </ref>
+
+    <attribute name="classes">
+      <value name="python">application.Parcel.Manager</value>
+    </attribute>
+  </item>
+
+  <item>
+    <name>path</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/ParcelManager</parent>
+
+    <ref name="kinds">
+      <ref type="path" otherAlias="path">..</ref>
+    </ref>
+
+    <ref name="type" type="path">/Core/String</ref>
+    <attribute name="cardinality">list</attribute>
+    <attribute name="initialValue" type="list"><values /></attribute>
+  </item>
+
+</items>

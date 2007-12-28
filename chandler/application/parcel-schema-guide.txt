@@ -112,7 +112,7 @@ For our examples in this document, however, we don't *really* want to store
 any objects, so we'll use a "pretend" repository called a
 ``NullRepositoryView``::
 
-    >>> from repository.persistence.RepositoryView import NullRepositoryView
+    >>> from chandlerdb.persistence.RepositoryView import NullRepositoryView
     >>> rv = NullRepositoryView(verify=True)  # report errors immediately
 
 A **repository view** is a connection to a repository, much like a connection
@@ -1751,7 +1751,7 @@ objects:
          |  Method resolution order:
          |      Kind
          |      application.schema.Item
-         |      repository.item.Item.Item
+         |      chandlerdb.item.Item.Item
          |      chandlerdb.item.c.CItem
          |      __builtin__.object
          |  

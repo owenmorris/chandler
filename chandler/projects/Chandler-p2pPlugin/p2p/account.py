@@ -15,7 +15,7 @@
 
 from application import schema
 from osaf.sharing import conduits, shares
-from repository.item.Principal import Principal
+from chandlerdb.item.Principal import Principal
 
 
 def findAccounts(view):

@@ -27,7 +27,7 @@ from osaf.pim import items
 from datetime import datetime
 import dateutil.rrule
 from dateutil.rrule import rrule, rruleset
-from repository.item.PersistentCollections import PersistentList
+from chandlerdb.item.PersistentCollections import PersistentList
 from PyICU import DateFormat, DateFormatSymbols, Calendar
 from TimeZone import coerceTimeZone, forceToDateTime
 from i18n import ChandlerMessageFactory as _

@@ -30,7 +30,6 @@ import cPickle
 import logging
 import datetime
 from chandlerdb.util.c import Empty
-from repository.item.Item import Item
 
 logger = logging.getLogger(__name__)
 

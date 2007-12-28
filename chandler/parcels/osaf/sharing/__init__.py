@@ -27,7 +27,7 @@ from osaf.pim.collections import (UnionCollection, DifferenceCollection,
                                   FilteredCollection)
 from i18n import ChandlerMessageFactory as _
 from chandlerdb.util.c import UUID
-from repository.persistence.RepositoryView import currentview
+from chandlerdb.persistence.RepositoryView import currentview
 from osaf.activity import *
 
 import twisted
@@ -1067,7 +1067,7 @@ def isIncomingMailSetUp(view):
     See if the IMAP/POP account has at least the minimum setup needed.
 
     @param view: The repository view object
-    @type view: L{repository.persistence.RepositoryView}
+    @type view: L{chandlerdb.persistence.RepositoryView}
     @return: True if the account is set up; False otherwise.
     """
 
@@ -1086,7 +1086,7 @@ def isOutgoingMailSetUp(view):
     sharing (SMTP needs host).
 
     @param view: The repository view object
-    @type view: L{repository.persistence.RepositoryView}
+    @type view: L{chandlerdb.persistence.RepositoryView}
     @return: True if the account is set up; False otherwise.
     """
 
@@ -1101,7 +1101,7 @@ def isMailSetUp(view):
     sharing.
 
     @param view: The repository view object
-    @type view: L{repository.persistence.RepositoryView}
+    @type view: L{chandlerdb.persistence.RepositoryView}
     @return: True if the accounts are set up; False otherwise.
     """
     if isIncomingMailSetUp(view) and isOutgoingMailSetUp(view) and \
@@ -1122,7 +1122,7 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
     account info is filled in will this method return True.
 
     @param view: The repository view object
-    @type view: L{repository.persistence.RepositoryView}
+    @type view: L{chandlerdb.persistence.RepositoryView}
     @return: True if accounts are set up; False otherwise.
     """
     parent = wx.GetApp().mainFrame

@@ -23,8 +23,8 @@ from wx import colheader
 from wx.lib.stattext import GenStaticText
 
 from osaf.pim import isDead, Stamp
-from repository.item.Monitors import Monitors
-from repository.item.Item import MissingClass
+from chandlerdb.item.Monitors import Monitors
+from chandlerdb.item.Item import MissingClass
 
 from datetime import datetime, timedelta, date, time
 from PyICU import GregorianCalendar, DateFormatSymbols

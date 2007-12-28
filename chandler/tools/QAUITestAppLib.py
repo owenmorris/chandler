@@ -30,7 +30,7 @@ from i18n.tests import uw
 from osaf.framework.blocks.Block import Block
 from application.dialogs.PublishCollection import ShowPublishDialog
 import application.dialogs.SubscribeCollection as SubscribeCollection
-from repository.item.Item import MissingClass
+from chandlerdb.item.Item import MissingClass
 
 #Global AppProxy instance
 App_ns = scripting.app_ns()

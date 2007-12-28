@@ -21,7 +21,7 @@ from osaf.views.main.SideBar import *
 from osaf.pim.structs import SizeType, RectType
 from osaf import pim
 from osaf import messages
-from repository.item.Item import MissingClass
+from chandlerdb.item.Item import MissingClass
 from i18n import ChandlerMessageFactory as _
 import osaf.pim.calendar
 from application import schema

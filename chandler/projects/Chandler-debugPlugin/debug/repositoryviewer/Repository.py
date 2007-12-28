@@ -19,7 +19,7 @@
 import wx
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
 
-from repository.item.RefCollections import RefList
+from chandlerdb.item.RefCollections import RefList
 
 class RepositoryDelegate (ControlBlocks.ListDelegate):
     """ Used by the tree in the repository view

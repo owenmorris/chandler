@@ -15,15 +15,15 @@
 
 from chandlerdb.schema.c import Redirector
 from chandlerdb.util.c import Nil
-from repository.item.Item import Item as Base, ItemClass as BaseClass
-from repository.item.Collection import CollectionClass as BaseCollectionClass
-from repository.schema.Kind import CDescriptor, Kind
-from repository.schema.Attribute import Attribute
-from repository.schema import Types
-from repository.schema.Cloud import Cloud as _Cloud
-from repository.schema.Cloud import Endpoint as _Endpoint
+from chandlerdb.item.Item import Item as Base, ItemClass as BaseClass
+from chandlerdb.item.Collection import CollectionClass as BaseCollectionClass
+from chandlerdb.schema.Kind import CDescriptor, Kind
+from chandlerdb.schema.Attribute import Attribute
+from chandlerdb.schema import Types
+from chandlerdb.schema.Cloud import Cloud as _Cloud
+from chandlerdb.schema.Cloud import Endpoint as _Endpoint
 from zope.interface.advice import getFrameInfo, addClassAdvisor
-import __main__, repository, os, sys
+import __main__, application, os, sys
 
 __all__ = [
     'ActiveDescriptor', 'Activator', 'Descriptor', 'itemFor', 'kindInfo',
@@ -1597,7 +1597,7 @@ def itemFor(obj, view):
 # -------------------------------
 
 def initRepository(rv,
-    packdir=os.path.join(os.path.dirname(repository.__file__),'packs')
+    packdir=os.path.join(os.path.dirname(application.__file__), 'packs')
 ):
     """Ensure repository view `rv` has been initialized with core schema"""
 

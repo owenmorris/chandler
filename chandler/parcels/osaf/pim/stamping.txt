@@ -11,7 +11,7 @@ Setup
 First, we'll import the modules we'll need:
 
 >>> import application.schema as schema
->>> from repository.persistence.RepositoryView import NullRepositoryView
+>>> from chandlerdb.persistence.RepositoryView import NullRepositoryView
 >>> from osaf.pim import *
 >>> repoView = NullRepositoryView()
 

@@ -15,7 +15,7 @@
 
 import unittest, sys, os, logging, datetime
 from osaf import pim, sharing
-from repository.item.Item import Item
+from chandlerdb.item.Item import Item
 from util import testcase
 from application import schema
 

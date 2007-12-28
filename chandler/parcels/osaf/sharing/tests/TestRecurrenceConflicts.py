@@ -20,7 +20,7 @@ from osaf.sharing.translator import formatDateTime
 from osaf.sharing import findRecurrenceConflicts
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
-from repository.item.Item import Item
+from chandlerdb.item.Item import Item
 import datetime
 
 one_week = datetime.timedelta(7)

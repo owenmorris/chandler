@@ -24,7 +24,7 @@ from osaf.pim.structs import SizeType
 from osaf.pim import KindCollection
 from osaf.usercollections import UserCollection
 from osaf.framework.certstore import certificate
-from repository.item.Item import MissingClass
+from chandlerdb.item.Item import MissingClass
 from application import schema
 
 

@@ -99,7 +99,7 @@ class Contact(items.ContentItem):
         """ Given an email address string, find (or create) a matching contact.
 
         @param view: The repository view object
-        @type view: L{repository.persistence.RepositoryView}
+        @type view: L{chandlerdb.persistence.RepositoryView}
         @param address: An email address to use for looking up a contact
         @type address: string
         @return: A Contact

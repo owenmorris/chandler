@@ -93,7 +93,7 @@ def main():
     else:
         try:
             # The normal way: wrap the app in an exception frame
-            from repository.persistence.RepositoryError \
+            from chandlerdb.persistence.RepositoryError \
                 import RepositoryOpenDeniedError, ExclusiveOpenDeniedError
 
             import logging, wx

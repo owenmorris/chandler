@@ -26,7 +26,7 @@ from osaf.framework import password
 from osaf.framework.twisted import waitForDeferred
 
 from datetime import datetime
-from repository.util.Path import Path
+from chandlerdb.util.Path import Path
 from i18n.tests import uw
 
 class MailTest(TestDomainModel.DomainModelTestCase):

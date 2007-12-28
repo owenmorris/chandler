@@ -10,7 +10,7 @@ The ``osaf.startup`` module provides an API for invoking repository items when
 the application has been started.  For our examples, we'll be using a null
 repository view, ``rv``::
 
-    >>> from repository.persistence.RepositoryView import NullRepositoryView
+    >>> from chandlerdb.persistence.RepositoryView import NullRepositoryView
     >>> rv = NullRepositoryView()
 
 In order to run code at application startup, you simply create items of type
@@ -516,8 +516,7 @@ to ensure that you are seeing an up-to-date persistent state for the item(s).)
 To demonstrate, let's set up a "real" (in-memory) repository, since null
 repository views can't be forked::
 
-    >>> from repository.persistence.DBRepository import DBRepository
-    >>> import os, repository
+    >>> from chandlerdb.persistence.DBRepository import DBRepository
     >>> rep = DBRepository('__nosuchfile__')
     >>> rep.create(ramdb=True, refcounted=True)
 

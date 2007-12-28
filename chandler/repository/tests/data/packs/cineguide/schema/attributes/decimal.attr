@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-
-<item>
-    <name>decimal</name>
-    <kind type="path">//Schema/Core/Attribute</kind>
-
-    <attribute name="cardinality">single</attribute>
-    <ref name="type" type="path">//Schema/Core/Decimal</ref>
-</item>

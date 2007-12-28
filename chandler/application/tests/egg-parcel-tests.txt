@@ -108,7 +108,7 @@ repository view and an entry point yielded by ``loadable_parcels()``::
 
     >>> from application.Parcel import load_parcel_from_entrypoint
 
-    >>> from repository.persistence.RepositoryView import NullRepositoryView
+    >>> from chandlerdb.persistence.RepositoryView import NullRepositoryView
     >>> rv = NullRepositoryView(verify=True)  # report errors immediately
 
 

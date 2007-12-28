@@ -21,7 +21,7 @@ from datetime import datetime, timedelta
 from weakref import WeakValueDictionary
 
 from application import schema
-from repository.persistence.Repository import RepositoryThread
+from chandlerdb.persistence.Repository import RepositoryThread
 
 __all__ = [
     'Startup', 'Thread', 'TwistedTask', 'PeriodicTask',

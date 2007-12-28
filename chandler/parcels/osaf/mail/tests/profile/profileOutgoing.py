@@ -23,7 +23,7 @@ from osaf.pim.calendar import Calendar
 from osaf import pim
 from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
 from util.easyprof import QuickProfile
-from repository.persistence.RepositoryView import NullRepositoryView
+from chandlerdb.persistence.RepositoryView import NullRepositoryView
 import sys
 
 view = NullRepositoryView()

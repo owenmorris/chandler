@@ -18,7 +18,7 @@ __parcel__ = "photos"
 import urllib2, time, cStringIO, logging, mimetypes
 from datetime import datetime
 from osaf import pim
-from repository.util.URL import URL
+from chandlerdb.util.URL import URL
 from application import schema
 import EXIF
 from i18n import MessageFactory

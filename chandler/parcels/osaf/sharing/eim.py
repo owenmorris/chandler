@@ -28,7 +28,7 @@ from weakref import WeakValueDictionary
 import linecache, decimal, datetime
 from application import schema
 from chandlerdb.util.c import UUID
-from repository.persistence.RepositoryView import currentview
+from chandlerdb.persistence.RepositoryView import currentview
 from osaf import pim
 from twisted.internet.defer import Deferred
 import errors

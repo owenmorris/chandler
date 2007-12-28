@@ -13,11 +13,12 @@
 #   limitations under the License.
 
 
-import os,unittest
+import unittest, os
+
 from osaf.pim.collections import *
 from osaf import pim
-from repository.persistence.DBRepository import DBRepository
-from repository.tests.RepositoryTestCase import RepositoryTestCase
+from chandlerdb.persistence.DBRepository import DBRepository
+from util.RepositoryTestCase import RepositoryTestCase
 from i18n.tests import uw
 
 class NotifyHandler(schema.Item):
@@ -80,13 +81,14 @@ class CollectionTestCase(unittest.TestCase):
         view = rep.createView()
 
         if view.getRoot("Schema") is None:
-            view.loadPack(os.path.join(self.chandlerDir, 'repository', 'packs', 'schema.pack'))
+            view.loadPack('packs/schema.pack', package='chandlerdb')
             view.loadPack(os.path.join(self.chandlerDir, 'repository', 'packs', 'chandler.pack'))
         self.view = view
         self.trash = schema.ns('osaf.pim', view).trashCollection
 
     def tearDown(self):
         self.failUnless(self.view.check(), "check() failed")
+
 
 class CollectionTests(CollectionTestCase):
 
@@ -652,9 +654,31 @@ class TestCollections(RepositoryTestCase):
         super(TestCollections, self).setUp()
 
         view = self.view
-        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
-                                     'cineguide.pack')
-        view.loadPack(cineguidePack)
+
+        root = view.findPath(self._ITEM_KIND).newItem('CineGuide', view)
+
+        actorKind = view.findPath(self._KIND_KIND).newItem('Actor', root)
+        movieKind = view.findPath(self._KIND_KIND).newItem('Movie', root)
+        attrKind = view.findPath('//Schema/Core/Attribute')
+
+        movies = attrKind.newItem('movies', actorKind,
+                                  cardinality='list',
+                                  otherName='actors')
+        actors = attrKind.newItem('actors', movieKind, 
+                                  cardinality='list',
+                                  otherName='movies')
+        collections = attrKind.newItem('collections', movieKind,
+                                       cardinality='list',
+                                       otherName='inclusions')
+
+        actorKind.addValue('attributes', movies, alias='movies')
+        movieKind.addValue('attributes', actors, alias='actors')
+        movieKind.addValue('attributes', collections, alias='collections')
+
+        actor = actorKind.newItem('KHepburn', root)
+
+        for i in xrange(36):
+            movieKind.newItem(None, root, actors=[actor])
 
     def testIntersectionSourceChanges(self):
 
@@ -767,6 +791,7 @@ class TestCollections(RepositoryTestCase):
             i += 1
 
         self.assert_(view.check())
+
 
 class IndexDefinitionTestCase(CollectionTestCase):
     indexName = 'myIndex'

@@ -24,7 +24,7 @@ from twisted.internet import reactor
 
 from chandlerdb.item.c import CItem
 from chandlerdb.util.c import UUID
-from repository.item.Access import ACL, ACE, Permissions
+from chandlerdb.item.Access import ACL, ACE, Permissions
 
 from application import schema
 from osaf import pim

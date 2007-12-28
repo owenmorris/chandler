@@ -18,8 +18,8 @@ A helper class which sets up and tears down dual RamDB repositories
 
 import unittest, os, sys
 from util.testcase import SharedSandboxTestCase, NRVTestCase
-import repository.persistence.DBRepository as DBRepository
-import repository.item.Item as Item
+import chandlerdb.persistence.DBRepository as DBRepository
+import chandlerdb.item.Item as Item
 import application.Parcel as Parcel
 from application import schema
 from osaf import pim, sharing

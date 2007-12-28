@@ -20,7 +20,7 @@ import application.dialogs.RecurrenceDialog as RecurrenceDialog
 from osaf.pim.items import ContentItem
 from osaf.pim.collections import ContentCollection
 from osaf.usercollections import UserCollection
-from repository.item.Item import MissingClass
+from chandlerdb.item.Item import MissingClass
 import wx
 import logging
 

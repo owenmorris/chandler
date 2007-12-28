@@ -29,7 +29,7 @@ from twisted.mail import smtp
 
 #Chandler imports
 import application.Globals as Globals
-from repository.util.Lob import Lob
+from chandlerdb.util.Lob import Lob
 from i18n import ChandlerMessageFactory as _
 
 __all__ = ['log', 'trace', 'disableTwistedTLS', 'getEmptyDate',

@@ -12,8 +12,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from repository.persistence.DBRepository import DBRepository
-from repository.item.Sets import KindSet
+from chandlerdb.persistence.DBRepository import DBRepository
+from chandlerdb.item.Sets import KindSet
 
 r = DBRepository('data')
 r.create()

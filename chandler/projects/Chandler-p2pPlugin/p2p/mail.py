@@ -32,7 +32,7 @@ from cStringIO import StringIO
 from application import schema
 from chandlerdb.item.c import CItem
 from chandlerdb.util.c import UUID, Nil
-from repository.item.Access import ACL, ACE, Permissions
+from chandlerdb.item.Access import ACL, ACE, Permissions
 from osaf import pim
 from osaf.sharing import SharedItem
 from osaf.sharing.formats import ElementTreeDOM

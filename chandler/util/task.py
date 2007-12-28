@@ -17,7 +17,7 @@ import wx
 from twisted.internet import reactor, defer
 import logging
 from i18n import ChandlerMessageFactory as _
-from repository.persistence.RepositoryError import MergeError
+from chandlerdb.persistence.RepositoryError import MergeError
 from osaf import sharing, activity
 
 logger = logging.getLogger(__name__)

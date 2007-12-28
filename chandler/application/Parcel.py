@@ -136,7 +136,7 @@ class Manager(schema.Item):
         will be returned.  Otherwise one will be created.
 
         @param view: The repository view object to load items into.
-        @type view: L{repository.persistence.RepositoryView}
+        @type view: L{chandlerdb.persistence.RepositoryView}
         @param path: The search path for finding parcels.  This is a list
         of absolute directory paths; when loading parcels, each directory
         in the search path will be used as a starting point for recursively

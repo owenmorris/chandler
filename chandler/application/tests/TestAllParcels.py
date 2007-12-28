@@ -16,12 +16,13 @@
 Loads all parcels
 """
 
-import ParcelLoaderTestCase, os, sys, unittest
+import os, sys, unittest
 
+from ParcelLoaderTestCase import ParcelLoaderTestCase
 from application import Utility, Globals
 import util.timing
 
-class AllParcelsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
+class AllParcelsTestCase(ParcelLoaderTestCase):
 
     def testAllParcels(self):
         """

@@ -22,7 +22,7 @@ See: http://lists.osafoundation.org/pipermail/chandler-dev/2006-May/005901.html
 import os, sys, wx, tarfile
 from application import Globals
 from application.Utility import getDesktopDir, locateRepositoryDirectory
-from repository.persistence.DBRepository import DBRepository
+from chandlerdb.persistence.DBRepository import DBRepository
 from osaf.framework import MasterPassword
 
 # The localization code may not have been initialized yet at start up

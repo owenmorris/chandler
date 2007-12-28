@@ -19,9 +19,9 @@ import re
 from osaf import pim, webserver, sharing
 from osaf.pim.items import ContentItem
 from osaf.pim.collections import ContentCollection
-from repository.schema.TypeHandler import TypeHandler
-from repository.item.RefCollections import RefList
-from repository.item.Sets import \
+from chandlerdb.schema.TypeHandler import TypeHandler
+from chandlerdb.item.RefCollections import RefList
+from chandlerdb.item.Sets import \
     Set, MultiUnion, Union, MultiIntersection, Intersection, Difference, \
     KindSet, ExpressionFilteredSet, MethodFilteredSet
 

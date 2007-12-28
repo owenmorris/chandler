@@ -14,10 +14,12 @@
 
 
 import os, unittest
-import repository.tests.RepositoryTestCase as RepositoryTestCase
 import util.timing
 
-class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
+from util.RepositoryTestCase import RepositoryTestCase
+
+
+class TestParcelPerf(RepositoryTestCase):
 
     def testLoadAllParcelItems(self):
         """ Load the entire domain model into the repository and then commit it"""

@@ -19,7 +19,7 @@
 import wx
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
 
-from repository.item.RefCollections import RefList
+from chandlerdb.item.RefCollections import RefList
 
 def getItemName (item):
     name = getattr(item, 'blockName', None)

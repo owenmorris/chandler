@@ -21,7 +21,7 @@ from datetime import datetime, timedelta, date, time
 from osaf.pim.calendar.TimeZone import convertToICUtzinfo, forceToDateTime
 from osaf.pim.triage import Triageable
 from chandlerdb.util.c import UUID, Empty, Nil
-from repository.persistence.RepositoryView import currentview
+from chandlerdb.persistence.RepositoryView import currentview
 from i18n import ChandlerMessageFactory as _
 import md5
 from itertools import chain

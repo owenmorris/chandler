@@ -116,7 +116,7 @@ class SharingAccount(pim.ContentItem):
         same scheme+host+port+path combination.
 
         @param view: The repository view object
-        @type view: L{repository.persistence.RepositoryView}
+        @type view: L{chandlerdb.persistence.RepositoryView}
         @param url: The url which points to a collection
         @type url: String
         @return: An account item, or None if no WebDAV account could be found.

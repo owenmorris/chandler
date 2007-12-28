@@ -23,7 +23,7 @@ import email as email
 import email.Message as Message
 import email.Utils as emailUtils
 import unittest as unittest
-from repository.item.RefCollections import RefList
+from chandlerdb.item.RefCollections import RefList
 from osaf.pim.stamping import has_stamp
 from osaf.pim.mail import MailStamp
 from osaf.pim.calendar import EventStamp

@@ -24,11 +24,10 @@ from flickr import PhotoCollection, Tag, dialogs, flickr
 class TestI18nFlickr(TestDomainModel.DomainModelTestCase):
 
     def setUp(self):
-        super(TestI18nFlickr, self)._setup(self)
 
-        self.testdir = os.path.join(self.rootdir, 'parcels', 'flickr')
+        testdir = os.path.join('parcels', 'flickr')
+        super(TestI18nFlickr, self).setUp(testdir=testdir)
 
-        super(TestI18nFlickr, self)._openRepository(self)
         self.loadParcel("flickr")
 
     def testI18nOwner(self):

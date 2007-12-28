@@ -16,7 +16,7 @@
 import unittest, os, time
 from feeds.channels import FeedChannel, FeedItem
 from osaf import pim
-from repository.util.URL import URL
+from chandlerdb.util.URL import URL
 from util import testcase, indexes
 from zanshin.util import blockUntil
 from application import Utility, schema

@@ -17,7 +17,7 @@ from application import schema
 
 from chandlerdb.schema.c import CAttribute
 from chandlerdb.persistence.c import Record
-from repository.schema.Types import UString
+from chandlerdb.schema.Types import UString
 
 STRING  = 0
 LSTRING = 1

@@ -21,9 +21,9 @@ from i18n import ChandlerMessageFactory as _, getImage, getLocaleSet
 import schema, feedback
 from version import version
 
-from repository.persistence.RepositoryError import \
+from chandlerdb.persistence.RepositoryError import \
     RepositoryVersionError, RepositoryPlatformError, VersionConflictError
-from repository.persistence.RepositoryView import otherViewWins
+from chandlerdb.persistence.RepositoryView import otherViewWins
 
 
 

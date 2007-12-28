@@ -25,8 +25,8 @@ else:
     commitOnExit = True
 
 from application import schema, Utility, Globals
-from repository.item.Item import Item
-from repository.util.LinkedMap import LinkedMap
+from chandlerdb.item.Item import Item
+from chandlerdb.util.LinkedMap import LinkedMap
 
 view = None
 app = None

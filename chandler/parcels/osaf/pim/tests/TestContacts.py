@@ -22,7 +22,7 @@ import unittest, os
 import osaf.pim.tests.TestDomainModel as TestDomainModel
 from osaf.pim.contacts import Contact, ContactName
 
-from repository.util.Path import Path
+from chandlerdb.util.Path import Path
 from i18n.tests import uw
 
 

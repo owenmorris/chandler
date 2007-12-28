@@ -22,7 +22,7 @@ from osaf import sharing, dumpreload
 from osaf.activity import Activity
 from osaf.framework.blocks.Block import Block
 from osaf.framework.blocks import BlockEvent, MenuItem, Menu
-from repository.item.Item import Item
+from chandlerdb.item.Item import Item
 
 _ = MessageFactory("Chandler-debugPlugin")
 logger = logging.getLogger(__name__)

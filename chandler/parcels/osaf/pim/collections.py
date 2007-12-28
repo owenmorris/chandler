@@ -18,11 +18,11 @@ __parcel__ = "osaf.pim"
 from application import schema
 
 from chandlerdb.util.c import Nil
-from repository.item.Sets import (
+from chandlerdb.item.Sets import (
     Set, MultiUnion, Union, MultiIntersection, Intersection, Difference,
     KindSet, ExpressionFilteredSet, MethodFilteredSet, EmptySet
 )
-from repository.item.Collection import Collection
+from chandlerdb.item.Collection import Collection
 
 from osaf.pim.items import ContentItem
 import itertools

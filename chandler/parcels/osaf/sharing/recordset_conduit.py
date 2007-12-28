@@ -25,7 +25,7 @@ from i18n import ChandlerMessageFactory as _
 import logging
 from itertools import chain
 from application import schema
-from repository.item.Item import Item
+from chandlerdb.item.Item import Item
 from chandlerdb.util.c import UUID
 import dateutil
 

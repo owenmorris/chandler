@@ -25,7 +25,7 @@ import zanshin.webdav
 import osaf.sharing as sharing
 import osaf.pim
 from osaf.usercollections import UserCollection
-from repository.item.Item import MissingClass
+from chandlerdb.item.Item import MissingClass
 
 logger = logging.getLogger(__name__)
 _ = MessageFactory("Chandler-EVDBPlugin")

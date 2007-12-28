@@ -13,8 +13,8 @@ records.
     >>> from PyICU import ICUtzinfo, TimeZone
     >>> TimeZone.setDefault(ICUtzinfo.getInstance(
     ...                              "America/Los_Angeles").timezone)
-    >>> from repository.persistence.RepositoryView import currentview
-    >>> from repository.persistence.RepositoryView import NullRepositoryView
+    >>> from chandlerdb.persistence.RepositoryView import currentview
+    >>> from chandlerdb.persistence.RepositoryView import NullRepositoryView
     >>> rv = NullRepositoryView()
 
 

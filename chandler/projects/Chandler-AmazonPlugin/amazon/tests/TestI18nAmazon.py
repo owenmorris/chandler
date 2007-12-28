@@ -30,11 +30,10 @@ if False:
     class TestI18nAmazon(TestDomainModel.DomainModelTestCase):
     
         def setUp(self):
-            super(TestI18nAmazon, self)._setup(self)
-    
-            self.testdir = os.path.join(self.rootdir, 'parcels', 'amazon')
-    
-            super(TestI18nAmazon, self)._openRepository(self)
+
+            testdir = os.path.join('parcels', 'amazon')
+            super(TestI18nAmazon, self).setUp(testdir=testdir)
+
             self.loadParcel("amazon")
     
         def testI18nSearch(self):

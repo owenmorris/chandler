@@ -14,7 +14,7 @@
 
 
 import unittest, os
-from repository.tests.RepositoryTestCase import RepositoryTestCase
+from util.RepositoryTestCase import RepositoryTestCase
 from osaf import sharing
 
 class TestLargeImport(RepositoryTestCase):

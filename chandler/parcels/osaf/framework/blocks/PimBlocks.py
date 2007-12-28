@@ -16,7 +16,7 @@
 import wx
 from osaf import sharing
 import osaf.pim.mail as Mail
-from repository.item.Item import Item
+from chandlerdb.item.Item import Item
 from osaf.pim import Modification, EventStamp, Note, ContentCollection, has_stamp
 from i18n import ChandlerMessageFactory as _
 from osaf import messages

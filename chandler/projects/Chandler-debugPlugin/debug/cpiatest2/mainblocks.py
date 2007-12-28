@@ -24,7 +24,7 @@ from osaf import messages
 from i18n import ChandlerMessageFactory as _
 import osaf.pim.calendar
 from application import schema
-from repository.item.Item import MissingClass
+from chandlerdb.item.Item import MissingClass
 import wx.grid
 
 def makeCPIATest2MainView(parcel):

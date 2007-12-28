@@ -31,7 +31,7 @@ import email.Utils as emailUtils
 
 #Chandler imports
 from application import Globals
-from repository.persistence.RepositoryView import RepositoryView
+from chandlerdb.persistence.RepositoryView import RepositoryView
 from osaf.pim.mail import AccountBase
 from osaf.framework.certstore import ssl
 import application.Utility as Utility

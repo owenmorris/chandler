@@ -20,7 +20,7 @@ Unit tests for generated data
 import util.timing
 
 from osaf.pim.tests.TestDomainModel import DomainModelTestCase
-from repository.tests.RepositoryTestCase import RepositoryTestCase
+from util.RepositoryTestCase import RepositoryTestCase
 from debug.generate import GenerateItems, GenerateContact, GenerateCalendarEvent
 
 

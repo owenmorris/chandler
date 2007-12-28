@@ -34,7 +34,7 @@ from osaf import sharing, pim, search
 import twisted.internet.error
 from osaf.usercollections import UserCollection
 from osaf.sharing import ChooseFormat, Share
-from repository.item.Item import MissingClass
+from chandlerdb.item.Item import MissingClass
 from lucene import JavaError as LuceneError
 from osaf.pim import isDead
 from application import schema

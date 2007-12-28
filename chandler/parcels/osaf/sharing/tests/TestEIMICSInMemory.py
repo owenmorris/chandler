@@ -20,7 +20,7 @@ from osaf import pim, sharing
 
 from osaf.sharing import recordset_conduit, translator, ics
 
-from repository.item.Item import Item
+from chandlerdb.item.Item import Item
 from util import testcase
 from application import schema
 

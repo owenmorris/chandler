@@ -41,7 +41,7 @@ import osaf.pim.calendar.Recurrence as Recurrence
 from osaf.pim.calendar import TimeZoneInfo
 from osaf.pim import ContentItem
 #import osaf.mail.sharing as MailSharing
-from repository.item.Item import Item
+from chandlerdb.item.Item import Item
 from osaf.pim.types import LocalizableString
 import wx
 import logging

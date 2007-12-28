@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-
-<item>
-    <name>DYost</name>
-    <kind type="path">//Schema/CineGuide/Kinds/Writer</kind>
-
-    <attribute name="name">Dorothy Yost</attribute>
-</item>

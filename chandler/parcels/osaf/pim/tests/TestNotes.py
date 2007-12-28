@@ -21,7 +21,7 @@ import unittest, os
 import osaf.pim.tests.TestDomainModel as TestDomainModel
 from osaf import pim
 
-from repository.util.Path import Path
+from chandlerdb.util.Path import Path
 from i18n.tests import uw
 
 

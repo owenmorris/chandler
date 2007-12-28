@@ -26,7 +26,7 @@ import osaf.pim.calendar.Calendar as Calendar
 import logging
 
 from datetime import datetime
-from repository.util.Path import Path
+from chandlerdb.util.Path import Path
 from osaf.pim.stamping import has_stamp, StampAlreadyPresentError, StampNotPresentError
 
 def test_stamping_doc():

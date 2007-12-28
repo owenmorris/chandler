@@ -13,26 +13,18 @@
 #   limitations under the License.
 
 
-import unittest, os, sys
+import os
+from util.RepositoryTestCase import RepositoryTestCase
 
-import repository.tests.RepositoryTestCase as RepositoryTestCase
 
-
-class MailTestCase(RepositoryTestCase.RepositoryTestCase):
+class MailTestCase(RepositoryTestCase):
 
     __setup = False
 
     def setUp(self):
 
-        if self.__setup:
-            return
+        if not self.__setup:
+            self.__setup = True
 
-        self.__setup = True
-
-        super(MailTestCase, self)._setup(self)
-
-        self.testdir = os.path.join(self.rootdir, 'parcels', 'osaf',
-         'pim', 'mail')
-
-        super(MailTestCase, self)._openRepository(self)
-
+            testdir = os.path.join('parcels', 'osaf', 'pim', 'mail')
+            super(MailTestCase, self).setUp(testdir=testdir)

@@ -18,7 +18,7 @@ from twisted.web import server, resource, static, script
 from twisted.internet import reactor
 from application import schema, Globals
 from osaf import pim
-from repository.item import Access
+from chandlerdb.item import Access
 import os
 import logging
 from i18n import ChandlerMessageFactory as _

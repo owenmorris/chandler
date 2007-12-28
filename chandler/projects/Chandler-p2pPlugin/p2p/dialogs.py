@@ -22,7 +22,7 @@ from i18n import MessageFactory
 
 from p2p.account import findAccounts, findDefaultAccounts, findLoggedInAccounts
 from p2p.mail import MailAccount
-from repository.item.Access import ACL, ACE, Permissions
+from chandlerdb.item.Access import ACL, ACE, Permissions
 
 
 _ = MessageFactory("Chandler-p2pPlugin")

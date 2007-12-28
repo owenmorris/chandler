@@ -35,7 +35,7 @@ except AttributeError:
 
 if i is not None:
     #XXX [i18n] i.itsPath should be an ascii string however
-    #    it is a repository.util.Path.Path.
+    #    it is a chandlerdb.util.Path.Path.
     #    In addition when doing an str() or i.itsPath
     #    in certain cases the value returned is unicode.
     #    This is not correct and needs to be fixed.

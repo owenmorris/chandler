@@ -25,7 +25,7 @@ from application import schema
 from osaf import pim
 from osaf.framework.twisted import waitForDeferred
 from osaf.framework.password import passwordAttribute
-from repository.item.Item import Item
+from chandlerdb.item.Item import Item
 from chandlerdb.util.c import UUID
 import zanshin, M2Crypto.BIO, twisted.web.http
 import logging

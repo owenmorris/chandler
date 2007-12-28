@@ -56,8 +56,8 @@ from application import schema, Globals
 import WebDAV
 import urlparse, base64, datetime
 from i18n import ChandlerMessageFactory as _
-from repository.util.Lob import Lob
-from repository.persistence.RepositoryError import MergeError
+from chandlerdb.util.Lob import Lob
+from chandlerdb.persistence.RepositoryError import MergeError
 from itertools import chain
 from osaf.sharing import errors
 from HTMLParser import HTMLParser
@@ -330,7 +330,7 @@ def findMatchingShare(view, url):
     """ Find a Share which corresponds to a URL.
 
     @param view: The repository view object
-    @type view: L{repository.persistence.RepositoryView}
+    @type view: L{chandlerdb.persistence.RepositoryView}
     @param url: A url pointing at a WebDAV Collection
     @type url: String
     @return: A Share item, or None
@@ -534,7 +534,7 @@ def checkForActiveShares(view):
     See if there are any non-hidden, active shares.
 
     @param view: The repository view object
-    @type view: L{repository.persistence.RepositoryView}
+    @type view: L{chandlerdb.persistence.RepositoryView}
     @return: True if there are non-hidden, active shares; False otherwise
     """
 

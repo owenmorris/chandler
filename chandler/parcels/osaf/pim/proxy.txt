@@ -7,7 +7,7 @@ The ``osaf.pim.proxy`` module
 >>> from __future__ import with_statement
 >>> __parcel__ = 'osaf.pim.tests'
 >>> from application import schema
->>> from repository.persistence.RepositoryView import NullRepositoryView
+>>> from chandlerdb.persistence.RepositoryView import NullRepositoryView
 >>> import osaf.pim as pim
 >>> from osaf.pim.proxy import *
 >>> from datetime import *

@@ -15,7 +15,7 @@
 from util.testcase import SharedSandboxTestCase
 from osaf.pim import *
 from datetime import *
-from repository.item.Item import Item
+from chandlerdb.item.Item import Item
 
 """
 Tests for domain model support of edit/update workflows.

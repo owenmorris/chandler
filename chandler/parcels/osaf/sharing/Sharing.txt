@@ -1,5 +1,5 @@
     >>> from osaf import sharing, pim
-    >>> from repository.persistence.RepositoryView import NullRepositoryView
+    >>> from chandlerdb.persistence.RepositoryView import NullRepositoryView
     >>> rv = NullRepositoryView()
 
 Define proxies::

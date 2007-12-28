@@ -23,7 +23,7 @@ from optparse import OptionParser
 from configobj import ConfigObj
 
 from chandlerdb.util.c import UUID, loadUUIDs, Default
-from repository.persistence.RepositoryError import \
+from chandlerdb.persistence.RepositoryError import \
     VersionConflictError, RepositoryPasswordError, RepositoryVersionError, \
     RepositoryRunRecoveryError
 from PyICU import ICUtzinfo
@@ -642,7 +642,7 @@ def locateRepositoryDirectory(profileDir, options):
 
 def initRepository(directory, options, allowSchemaView=False):
 
-    from repository.persistence.DBRepository import DBRepository
+    from chandlerdb.persistence.DBRepository import DBRepository
 
     if options.uuids:
         input = file(options.uuids)

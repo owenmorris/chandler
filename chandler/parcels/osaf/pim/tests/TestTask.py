@@ -24,7 +24,7 @@ from osaf.pim.stamping import has_stamp
 import osaf.pim.tests.TestDomainModel as TestDomainModel
 from application import schema
 
-from repository.util.Path import Path
+from chandlerdb.util.Path import Path
 from i18n.tests import uw
 
 class TaskTest(TestDomainModel.DomainModelTestCase):

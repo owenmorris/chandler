@@ -22,7 +22,7 @@ from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import osaf.pim as pim
 from i18n.tests import uw
 from osaf.framework.blocks.Block import Block
-from repository.item.Item import MissingClass
+from chandlerdb.item.Item import MissingClass
 
 
 class TestSharing(ChandlerTestCase):

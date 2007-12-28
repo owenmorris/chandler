@@ -17,7 +17,7 @@ import unittest
 from datetime import datetime, time
 from PyICU import *
 from osaf.pim.calendar import DateTimeUtil
-from repository.tests.RepositoryTestCase import RepositoryTestCase
+from util.RepositoryTestCase import RepositoryTestCase
 
 class AbstractTestCase(RepositoryTestCase):
     """

@@ -15,7 +15,7 @@
 import unittest
 import doctest
 from util.testcase import SingleRepositoryTestCase
-from repository.item.Item import Item
+from chandlerdb.item.Item import Item
 import osaf.pim as pim
 import datetime, time
 from osaf.mail.message import messageTextToKind

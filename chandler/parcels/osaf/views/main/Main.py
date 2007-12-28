@@ -26,7 +26,7 @@ from application.dialogs import ( AccountPreferences, PublishCollection,
                                   ActivityViewer, Progress, Invite, Proxies
 )
 
-from repository.item.Item import MissingClass
+from chandlerdb.item.Item import MissingClass
 from osaf import (
     pim, sharing, messages, webserver, settings, dumpreload, quickentry
 )

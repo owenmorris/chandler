@@ -18,19 +18,17 @@ Basic Unit tests for pim
 
 import unittest, os
 
-import repository.tests.RepositoryTestCase as RepositoryTestCase
 import osaf.pim.items as items
+from util.RepositoryTestCase import RepositoryTestCase
 from i18n.tests import uw
 
-class DomainModelTestCase(RepositoryTestCase.RepositoryTestCase):
-    def setUp(self):
-        super(DomainModelTestCase, self)._setup()
+class DomainModelTestCase(RepositoryTestCase):
 
-        self.testdir = os.path.join(self.rootdir, 'parcels', \
-         'osaf', 'pim', 'tests')
+    def setUp(self, testdir=None):
 
-        super(DomainModelTestCase, self)._openRepository()
-
+        if testdir is None:
+            testdir = os.path.join('parcels', 'osaf', 'pim', 'tests')
+        super(DomainModelTestCase, self).setUp(testdir=testdir)
 
     def isOnline(self):
         import socket

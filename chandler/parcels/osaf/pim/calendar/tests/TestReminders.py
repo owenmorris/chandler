@@ -13,13 +13,13 @@
 #   limitations under the License.
 
 
-import repository.tests.RepositoryTestCase as RepositoryTestCase
 import unittest
+from datetime import datetime, timedelta, time
+
+import osaf.pim.tests.TestDomainModel as TestDomainModel
 from osaf.pim import *
 from osaf.pim.calendar.Recurrence import *
-import osaf.pim.tests.TestDomainModel as TestDomainModel
-import repository.item
-from datetime import datetime, timedelta, time
+
 
 class AbsoluteReminderTestCase(TestDomainModel.DomainModelTestCase):
     def setUp(self):

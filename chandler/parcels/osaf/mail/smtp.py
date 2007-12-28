@@ -32,8 +32,8 @@ from application import Globals, Utility
 from osaf.pim.mail import SMTPAccount, MailStamp, getRecurrenceMailStamps
 from osaf.pim import Modification
 from osaf.framework.certstore import ssl
-from repository.persistence.RepositoryView import RepositoryView
-from repository.persistence.RepositoryError \
+from chandlerdb.persistence.RepositoryView import RepositoryView
+from chandlerdb.persistence.RepositoryError \
     import RepositoryError, VersionConflictError
 
 #Chandler Mail Service imports

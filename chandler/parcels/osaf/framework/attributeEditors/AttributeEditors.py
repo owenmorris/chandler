@@ -25,8 +25,8 @@ import osaf.pim as pim
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.calendar import shortTZ
 import osaf.pim.mail as Mail
-from repository.schema.TypeHandler import TypeHandler
-#from repository.util.Lob import Lob
+from chandlerdb.schema.TypeHandler import TypeHandler
+#from chandlerdb.util.Lob import Lob
 from chandlerdb.util.c import Nil
 from osaf.framework.blocks import DrawingUtilities, Styles
 #from operator import itemgetter

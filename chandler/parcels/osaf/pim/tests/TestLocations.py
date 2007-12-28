@@ -21,7 +21,7 @@ import unittest, os
 import osaf.pim.tests.TestDomainModel as TestDomainModel
 import osaf.pim.calendar.Calendar as Calendar
 
-from repository.util.Path import Path
+from chandlerdb.util.Path import Path
 from i18n.tests import uw
 
 

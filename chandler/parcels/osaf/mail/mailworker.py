@@ -13,8 +13,8 @@
 #   limitations under the License.
 
 from __future__ import with_statement
-from repository.persistence.Repository import RepositoryWorker
-from repository.persistence.RepositoryView import otherViewWins
+from chandlerdb.persistence.Repository import RepositoryWorker
+from chandlerdb.persistence.RepositoryView import otherViewWins
 import twisted.internet.reactor as reactor
 import logging
 

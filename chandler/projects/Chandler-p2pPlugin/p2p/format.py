@@ -18,7 +18,7 @@ from itertools import izip
 
 from chandlerdb.util.c import UUID, isuuid, Nil
 from chandlerdb.item.c import isitemref
-from repository.schema.Kind import Kind
+from chandlerdb.schema.Kind import Kind
 from application import schema
 from osaf.sharing import formats, utility
 from osaf import pim

@@ -18,7 +18,7 @@ import repository
 #import wx
 
 from application import Globals, Utility, schema
-from repository.item.RefCollections import RefList
+from chandlerdb.item.RefCollections import RefList
 from chandlerdb.item.c import isitemref
 
 

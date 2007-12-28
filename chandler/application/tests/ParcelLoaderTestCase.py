@@ -20,9 +20,9 @@ that a parcel loader unit test might need
 
 import unittest, os, sys
 
-import repository.tests.RepositoryTestCase as RepositoryTestCase
-
 import application
+from util.RepositoryTestCase import RepositoryTestCase
+
 
 # Fix for hardhat running test cases with sys.path including a subpackage :(
 mydir = os.path.dirname(__file__)
@@ -30,12 +30,9 @@ if mydir in sys.path:
     sys.path.remove(mydir)
 
 
-class ParcelLoaderTestCase(RepositoryTestCase.RepositoryTestCase):
+class ParcelLoaderTestCase(RepositoryTestCase):
 
     def setUp(self):
 
-        super(ParcelLoaderTestCase, self)._setup(self)
-
-        self.testdir = os.path.join(self.rootdir, 'application', 'tests')
-
-        super(ParcelLoaderTestCase, self)._openRepository(self)
+        testdir = os.path.join('application', 'tests')
+        super(ParcelLoaderTestCase, self).setUp(testdir=testdir)

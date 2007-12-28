@@ -11,7 +11,7 @@ First define a record type::
     >>> from osaf.sharing import ( eimml, recordset_conduit, State, getFilter,
     ...     Inherit, RecordSet as rs, NoChange as nc, Diff, RecordSet )
     >>> import datetime, decimal
-    >>> from repository.persistence.RepositoryView import NullRepositoryView
+    >>> from chandlerdb.persistence.RepositoryView import NullRepositoryView
     >>> rv = NullRepositoryView()
     >>> class TestRecord(sharing.Record):
     ...     URI = 'cid:TestRecord@osaf.us'

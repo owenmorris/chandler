@@ -18,8 +18,8 @@ from chandlerdb.item.c import CItem
 from osaf.pim import has_stamp
 from osaf.sharing import SharedItem
 
-from repository.persistence.Repository import RepositoryWorker
-from repository.item.Access import AccessDeniedError, Permissions
+from chandlerdb.persistence.Repository import RepositoryWorker
+from chandlerdb.item.Access import AccessDeniedError, Permissions
 
 
 

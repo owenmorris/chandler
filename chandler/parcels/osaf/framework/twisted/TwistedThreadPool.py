@@ -15,7 +15,7 @@
 
 import twisted.python.threadable as threadable
 import twisted.python.threadpool as threadpool
-import repository.persistence.Repository as Repository
+import chandlerdb.persistence.Repository as Repository
 import Queue
 
 threadable.init()

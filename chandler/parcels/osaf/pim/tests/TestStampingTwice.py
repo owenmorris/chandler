@@ -27,7 +27,7 @@ import logging
 #import wingdbstub
 
 from datetime import datetime
-from repository.util.Path import Path
+from chandlerdb.util.Path import Path
 
 
 class StampingTest(TestDomainModel.DomainModelTestCase):

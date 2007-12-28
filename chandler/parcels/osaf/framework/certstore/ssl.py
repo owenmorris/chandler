@@ -56,7 +56,7 @@ from application import schema, Utility
 from osaf.framework.certstore import constants, utils
 from osaf.framework.twisted import runInUIThread
 from osaf import messages
-from repository.persistence.RepositoryView import otherViewWins
+from chandlerdb.persistence.RepositoryView import otherViewWins
 
 
 __all__ = ['loadCertificatesToContext', 'SSLContextError', 'getContext',
@@ -80,10 +80,10 @@ def _getSSLView(repo):
     its Items.
     
     @param repo: The repository whose SSL view we want to return
-    @type repo: L{repository.persistence.DBRepository.DBRepository}
+    @type repo: L{chandlerdb.persistence.DBRepository.DBRepository}
     
     @return: A repository view with name 'SSL'
-    @rtype: L{repository.persistence.DBRepositoryView.DBRepositoryView}
+    @rtype: L{chandlerdb.persistence.DBRepositoryView.DBRepositoryView}
     """
     with _sslLock:
         for view in repo.views:

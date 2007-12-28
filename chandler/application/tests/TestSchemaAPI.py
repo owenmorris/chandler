@@ -18,8 +18,8 @@ this_module = "application.tests.TestSchemaAPI"     # change this if it moves
 from i18n.tests import uw
 
 from application import schema, tests
-from repository.schema import Types
-from repository.persistence.RepositoryView import NullRepositoryView
+from chandlerdb.schema import Types
+from chandlerdb.persistence.RepositoryView import NullRepositoryView
 
 class Dummy(schema.Item):
     """Just a test fixture"""

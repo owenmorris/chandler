@@ -17,8 +17,8 @@ import unittest, sys, os
 
 from application import Utility, Globals
 from chandlerdb.util.c import Default
-from repository.persistence.RepositoryView import NullRepositoryView
-from repository.item.Item import Item
+from chandlerdb.persistence.RepositoryView import NullRepositoryView
+from chandlerdb.item.Item import Item
 
 # This test class is a possible replacement for RepositoryTestCase, and it
 # makes use of Utility.py startup helper methods.  I'm trying it out for a

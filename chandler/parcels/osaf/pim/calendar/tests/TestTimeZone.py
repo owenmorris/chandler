@@ -15,9 +15,9 @@
 
 import unittest
 
-from repository.tests.RepositoryTestCase import RepositoryTestCase
+from util.RepositoryTestCase import RepositoryTestCase
 from util.testcase import SingleRepositoryTestCase
-from repository.persistence.RepositoryView import NullRepositoryView
+from chandlerdb.persistence.RepositoryView import NullRepositoryView
 from osaf.pim.calendar.TimeZone import *
 from osaf.pim.calendar.Calendar import CalendarEvent, EventStamp    
 from osaf.pim.calendar.Recurrence import RecurrenceRuleSet, RecurrenceRule
@@ -205,10 +205,12 @@ class DatetimeFormatTestCase(AbstractTimeZoneTestCase):
 
     def testDifferentTimeZone(self):
 
-        dt = datetime(2022, 9, 17, 2, 11, tzinfo = self.view.tzinfo.getInstance("America/New_York"))
-        self.failUnlessEqual(formatTime(self.view, dt), "2:11 AM EDT")
+        dt = datetime(2022, 9, 17, 2, 11,
+                      tzinfo=self.view.tzinfo.getInstance("America/New_York"))
+        self.failUnlessEqual(formatTime(self.view, dt), "2:11 AM GMT-04:00")
 
-        dt = datetime(2022, 9, 17, 2, 11, tzinfo=self.view.tzinfo.getInstance("Africa/Johannesburg"))
+        dt = datetime(2022, 9, 17, 2, 11,
+                      tzinfo=self.view.tzinfo.getInstance("Africa/Johannesburg"))
         self.failUnlessEqual(formatTime(self.view, dt), "2:11 AM GMT+02:00")
 
 class DatetimeFrenchFormatTestCase(AbstractTimeZoneTestCase):
@@ -235,8 +237,10 @@ class DatetimeFrenchFormatTestCase(AbstractTimeZoneTestCase):
 
     def testDifferentTimeZone(self):
         dt = datetime(2022, 9, 17, 2, 11,
-                tzinfo=self.view.tzinfo.getInstance("America/New_York"))
-        self.failUnlessEqual(formatTime(self.view, dt), u'02:11 HAE (\u00c9UA)')
+                      tzinfo=self.view.tzinfo.getInstance("America/New_York"))
+        self.failUnlessEqual(formatTime(self.view, dt),
+#                             u'02:11 HAE (\u00c9UA)')
+                             u'02:11 GMT-04:00')
 
         dt = datetime(2022, 9, 17, 2, 11, tzinfo = self.view.tzinfo.getInstance("Africa/Johannesburg"))
         self.failUnlessEqual(formatTime(self.view, dt), u"02:11 GMT+02:00")

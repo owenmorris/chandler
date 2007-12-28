@@ -24,9 +24,8 @@ from osaf.pim.calendar.TimeZone import TimeZoneInfo
 import osaf.pim.stamping as stamping
 import util.testcase as testcase
 
-from repository.tests.RepositoryTestCase import RepositoryTestCase
 from application import schema
-from repository.util.Path import Path
+from chandlerdb.util.Path import Path
 from i18n.tests import uw
 
 

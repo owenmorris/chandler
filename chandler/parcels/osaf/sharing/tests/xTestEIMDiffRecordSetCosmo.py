@@ -23,7 +23,7 @@ from osaf.framework.password import Password
 from osaf.framework.twisted import waitForDeferred
 
 
-from repository.item.Item import Item
+from chandlerdb.item.Item import Item
 from util import testcase
 from application import schema
 

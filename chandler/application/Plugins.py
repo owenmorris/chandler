@@ -18,7 +18,7 @@ from application import Utility, Globals, Parcel, schema
 from osaf.framework.blocks import Menu
 from osaf.framework.blocks.MenusAndToolbars import wxMenu, wxMenuItem
 from osaf.framework.blocks.Block import Block
-from repository.schema.Kind import Kind
+from chandlerdb.schema.Kind import Kind
 from i18n import ChandlerMessageFactory as _
 
 BROWSE_URL = "http://cheeseshop.python.org/pypi?:action=browse&c=519"

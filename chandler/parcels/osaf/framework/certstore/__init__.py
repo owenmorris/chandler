@@ -14,7 +14,7 @@
 
 
 from certificate import *
-from repository.item.Item import Item
+from chandlerdb.item.Item import Item
 
 class TrustedCACertsFilter(Item):
     def isTrustedCACert(self, view, uuid):

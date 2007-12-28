@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-
-<item withSchema="True" coreSchema="True">
-  <name>Anything</name>
-  <kind type="path">//Schema/Core/Alias</kind>
-  <class module="repository.schema.Alias">Alias</class>
-</item>

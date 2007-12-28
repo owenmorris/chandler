@@ -31,13 +31,10 @@ from osaf.pim.tests import TestDomainModel
 
 class TestSSL(TestDomainModel.DomainModelTestCase):
     def setUp(self):
-        super(TestSSL, self)._setup()
 
         self.profileDir = os.path.dirname(__file__)
         Utility.initCrypto(self.profileDir)
-        self.testdir = self.profileDir
-
-        super(TestSSL, self)._openRepository()
+        super(TestSSL, self).setUp(testdir=self.profileDir)
 
         self.loadParcel("osaf.framework.certstore")
         self.loadParcel("osaf.framework.certstore.data")

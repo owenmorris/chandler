@@ -20,8 +20,8 @@ from application import schema
 from osaf import pim
 from photos import PhotoMixin
 from osaf.pim.collections import KindCollection
-from repository.util.URL import URL
-from repository.item.Item import MissingClass
+from chandlerdb.util.URL import URL
+from chandlerdb.item.Item import MissingClass
 from datetime import datetime, timedelta
 from i18n import MessageFactory
 from osaf import messages

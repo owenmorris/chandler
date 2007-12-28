@@ -5,7 +5,7 @@ Schema Definition Support
 .. contents:: **Table of Contents**
 
     >>> from application import schema
-    >>> from repository.persistence.RepositoryView import NullRepositoryView
+    >>> from chandlerdb.persistence.RepositoryView import NullRepositoryView
 
 
 ------------------
@@ -94,7 +94,7 @@ All role objects have at least the following attributes and methods:
          |  Method resolution order:
          |      Kind
          |      application.schema.Item
-         |      repository.item.Item.Item
+         |      chandlerdb.item.Item.Item
          |      chandlerdb.item.c.CItem
          |      __builtin__.object
          |  
