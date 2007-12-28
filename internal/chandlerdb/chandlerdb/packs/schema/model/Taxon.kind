@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+
+  <item withSchema="True" coreSchema="True">
+    <name>Taxon</name>
+    <kind type="path">//Schema/Core/Kind</kind>
+    <class module="chandlerdb.schema.Kind">Kind</class>
+
+    <ref name="attributes" otherName="kinds" cardinality="list" 
+         otherCard="list">
+
+      <!-- 
+         - plus local attributes below:
+         -     typeFor, aliasedBy
+        -->
+    </ref>
+
+    <ref name="superKinds" cardinality="list"
+         otherName="subKinds" otherCard="list">
+      <ref type="path">/Core/Item</ref>
+    </ref>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>aliasedBy</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Taxon</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="aliasedBy">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">types</attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>typeFor</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Taxon</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="typeFor">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">type</attribute>
+  </item>
+
+</items>

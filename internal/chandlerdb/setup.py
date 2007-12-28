@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 import os
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 
 def main():
 
@@ -23,16 +23,8 @@ def main():
     DEBUG = int(os.environ.get('DEBUG', '0'))
 
     extensions = []
-    modules = ['chandlerdb.__init__',
-               'chandlerdb.util.__init__',
-               'chandlerdb.util.lock',
-               'chandlerdb.util.debugger',
-               'chandlerdb.schema.__init__',
-               'chandlerdb.item.__init__',
-               'chandlerdb.item.ItemError',
-               'chandlerdb.persistence.__init__']
-
     defines = ['-DVERSION="%s"' %(VERSION)]
+
     sources=['chandlerdb/util/uuid.c',
              'chandlerdb/util/pyuuid.c',
              'chandlerdb/util/linkedmap.c',
@@ -108,8 +100,18 @@ def main():
                         libraries=['db-%s' %(DB_VER)])
     extensions.append(ext)
 
-    setup(name='chandlerdb', version=VERSION,
-          ext_modules=extensions, py_modules=modules)
+    setup(name = 'chandlerdb',
+          version = VERSION,
+          packages = ['chandlerdb',
+                      'chandlerdb.item',
+                      'chandlerdb.schema',
+                      'chandlerdb.persistence',
+                      'chandlerdb.util'],
+          ext_modules = extensions,
+          test_suite = 'tests',
+          zip_safe = True,
+          include_package_data = True,
+          exclude_package_data = {'': ['*.c', '*.h', '*.py']})
 
 if __name__ == "__main__":
     main()

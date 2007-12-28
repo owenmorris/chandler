@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+    <name>actors</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">movies</attribute>
+    <attribute name="copyPolicy">cascade</attribute>
+</item>

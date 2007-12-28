@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+
+  <item withSchema="True" coreSchema="True">
+    <name>Struct</name>
+    <kind type="path">//Schema/Core/Kind</kind>
+    <class module="chandlerdb.schema.Kind">Kind</class>
+
+    <ref name="attributes" otherName="kinds" cardinality="list"
+         otherCard="list">
+
+      <!-- 
+         - plus local attributes below:
+         -     fields
+        -->
+    </ref>
+
+    <ref name="superKinds" cardinality="list"
+         otherName="subKinds" otherCard="list">
+      <ref type="path">//Schema/Core/Type</ref>
+    </ref>
+
+    <attribute name="classes" cardinality="dict" type="class">
+      <value name="python">chandlerdb.schema.Types.Struct</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>fields</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Struct</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="fields">..</ref>
+    </ref>
+
+    <attribute name="cardinality">dict</attribute>
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Dictionary</ref>
+  </item>
+
+</items>

@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+
+  <item withSchema="True" coreSchema="True">
+    <name>Attribute</name>
+    <kind type="path">//Schema/Core/Kind</kind>
+    <class module="chandlerdb.schema.Kind">Kind</class>
+
+    <ref name="attributes" otherName="kinds" cardinality="list" 
+         otherCard="list">
+
+      <ref alias="schemaHash" type="path">/Core/schemaHash</ref>
+
+      <!-- 
+         - plus local attributes below:
+         -     required, indexed, notify,
+	 -     cardinality, type,
+	 -     defaultValue, initialValue, afterChange,
+         -     inheritFrom, otherName,
+	 -     deletePolicy, copyPolicy, countPolicy,
+         -     kinds, superAttribute, subAttributes,
+	 -     root, roots, domains
+        -->
+    </ref>
+
+    <ref name="superKinds" cardinality="list"
+         otherName="subKinds" otherCard="list">
+      <ref type="path">/Core/Item</ref>
+    </ref>
+
+    <attribute name="classes" cardinality="dict" type="class">
+      <value name="python">chandlerdb.schema.Attribute.Attribute</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>required</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="required">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Boolean</ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="defaultValue" type="bool">False</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterAspectChange</value>
+      <value>_afterRequiredChange</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>indexed</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="indexed">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Boolean</ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="defaultValue" type="bool">False</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterAspectChange</value>
+      <value>_afterIndexedChange</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>notify</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="notify">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Boolean</ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="defaultValue" type="bool">False</attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>cardinality</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="cardinality">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor"
+         type="path" otherCard="list">/Core/Cardinality</ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="defaultValue">single</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterAspectChange</value>
+      <value>_afterCardinalityChange</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>type</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="type">..</ref>
+    </ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="otherName">typeFor</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterAspectChange</value>
+      <value>_afterTypeChange</value>
+    </attribute>
+    <attribute name="defaultValue" type="none"></attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>defaultValue</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="defaultValue">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Anything</ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterAspectChange</value>
+      <value>_afterDefaultValueChange</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>initialValue</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="initialValue">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Anything</ref>
+
+    <attribute name="cardinality">single</attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>afterChange</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="afterChange">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Importable</ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterAspectChange</value>
+      <value>_afterAfterChangeChange</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>inheritFrom</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="inheritFrom">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Importable</ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterAspectChange</value>
+      <value>_afterInheritFromChange</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>otherName</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="otherName">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Importable</ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterAspectChange</value>
+      <value>_afterOtherNameChange</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>deletePolicy</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="deletePolicy">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/DeletePolicy</ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="defaultValue">remove</attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>copyPolicy</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="copyPolicy">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/CopyPolicy</ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="defaultValue">remove</attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>countPolicy</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="countPolicy">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/CountPolicy</ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="defaultValue">none</attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>kinds</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="kinds">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">attributes</attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>superAttribute</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="superAttribute">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Attribute</ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="otherName">subAttributes</attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>subAttributes</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="subAttributes">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Attribute</ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">superAttribute</attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>root</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="root">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/ItemRef</ref>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>roots</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="roots">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/ItemRef</ref>
+
+    <attribute name="cardinality">dict</attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>domains</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="domains">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Importable</ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="initialValue" type="list"></attribute>
+  </item>
+
+</items>

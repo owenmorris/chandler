@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+
+  <item withSchema="True" coreSchema="True">
+    <name>Kind</name>
+    <kind type="path">//Schema/Core/Kind</kind>
+    <class module="chandlerdb.schema.Kind">Kind</class>
+
+    <ref name="attributes" otherName="kinds"
+         cardinality="list" otherCard="list">
+
+      <ref alias="schemaHash" type="path">/Core/schemaHash</ref>
+
+      <!-- 
+         - plus local attributes below:
+         -     superKinds, subKinds, attributes, correlations,
+	 -     classes, clouds, mixins, extent, notify
+        -->
+    </ref>
+
+    <ref name="superKinds" cardinality="list"
+         otherName="subKinds" otherCard="list">
+      <ref type="path">/Core/Taxon</ref>
+    </ref>
+
+    <attribute name="classes" cardinality="dict" type="class">
+      <value name="python">chandlerdb.schema.Kind.Kind</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>superKinds</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Kind</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="superKinds">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">subKinds</attribute>
+    <attribute name="initialValue" type="list"></attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterSchemaChange</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>subKinds</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Kind</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="subKinds">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">superKinds</attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>attributes</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Kind</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="attributes">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">kinds</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterSchemaChange</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>correlations</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Kind</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="correlations">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">kind</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterSchemaChange</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>classes</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Kind</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="classes">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Class</ref>
+
+    <attribute name="cardinality">dict</attribute>
+    <attribute name="defaultValue" type="dict">
+      <value name="python" type="class">chandlerdb.item.Item.Item</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>clouds</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Kind</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="clouds">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">kind</attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>mixins</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Kind</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="mixins">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Path</ref>
+    <attribute name="cardinality">list</attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>extent</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Kind</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="extent">..</ref>
+    </ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="otherName">kind</attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>notify</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Kind</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="notify">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Boolean</ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="defaultValue" type="bool">True</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterNotifyChange</value>
+    </attribute>
+  </item>
+
+</items>

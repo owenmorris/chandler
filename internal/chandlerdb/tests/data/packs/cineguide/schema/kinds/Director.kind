@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+  <name>Director</name>
+  <kind type="path">//Schema/Core/Kind</kind>
+
+  <ref name="attributes">
+    <ref alias="name" type="path">/CineGuide/Attributes/name</ref>
+    <ref alias="directed" type="path">/CineGuide/Attributes/directed</ref>
+    <ref alias="workedWith" type="path">/CineGuide/Attributes/workedWith</ref>
+    <ref alias="website" type="path">/CineGuide/Attributes/website</ref>
+  </ref>
+
+  <ref name="superKinds">
+    <ref type="path">/Core/Item</ref>
+  </ref>
+
+</item>

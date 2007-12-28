@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+  <name>Movies</name>
+  <kind type="path">//Schema/Core/Kind</kind>
+
+  <ref name="attributes">
+    <ref alias="collection" type="path">/CineGuide/Attributes/collection</ref>
+    <ref alias="set" type="path">/CineGuide/Attributes/set</ref>
+  </ref>
+
+  <attribute name="classes">
+    <value name="python">tests.classes.Movie.Movies</value>
+  </attribute>
+
+  <ref name="superKinds">
+    <ref type="path">/Core/Item</ref>
+  </ref>
+
+</item>

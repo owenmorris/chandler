@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<pack name="Schema" cwd="schema">
+
+  <item file="Schema.root">
+    <item file="Core.domain" cwd="model" afterLoadHooks="True">
+
+      <item file="Core.types" />
+      <item file="Anything.alias" />
+
+      <item files="*.attr" />
+
+      <item file="Item.kind" />
+      <item file="Attribute.kind" />
+      <item file="Correlation.kind" />
+      <item file="Taxon.kind" />
+      <item file="Kind.kind" />
+      <item file="Extent.kind" />
+      <item file="Alias.kind" />
+      <item file="Type.kind" />
+      <item file="Enumeration.kind" />
+      <item file="Struct.kind" />
+
+      <item file="Cloud.kind" />
+      <item file="Endpoint.kind" />
+      <item file="Principal.kind" />
+      <item file="Monitors.kind" />
+      <item file="Monitor.kind" />
+      <item file="Watch.kind" />
+      <item file="Collection.kind" />
+    </item>
+
+    <item path="//Schema/Core" cwd="model" afterLoadHooks="True">
+      <item file="Pack.kind" />
+      <item file="Mixins.namespace" />
+
+      <item file="items.namespace" cwd="items">
+        <item file="Monitors.item" />
+        <item file="monitors.namespace" />
+        <item file="watches.namespace" />
+      </item>
+    </item>
+  </item>
+
+</pack>

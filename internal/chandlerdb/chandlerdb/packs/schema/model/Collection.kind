@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+  <item withSchema="True" coreSchema="True">
+    <name>Collection</name>
+    <kind type="path">//Schema/Core/Kind</kind>
+    <class module="chandlerdb.schema.Kind">Kind</class>
+
+    <ref name="attributes" otherName="kinds" cardinality="list" 
+         otherCard="list">
+
+      <!-- 
+         - plus local attributes below: 
+         - 
+        -->
+    </ref>
+
+    <ref name="superKinds" cardinality="list"
+         otherName="subKinds" otherCard="list">
+      <ref type="path">/Core/Item</ref>
+    </ref>
+    <attribute name="classes" cardinality="dict" type="class">
+      <value name="python">chandlerdb.item.Collection.Collection</value>
+    </attribute>
+  </item>
+</items>

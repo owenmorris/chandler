@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+  <item>
+    <name>Actor</name>
+    <kind type="path">//Schema/Core/Kind</kind>
+
+    <ref name="attributes">
+      <ref alias="name" type="path">/CineGuide/Attributes/name</ref>
+      <ref alias="born" type="path">/CineGuide/Attributes/born</ref>
+      <ref alias="died" type="path">/CineGuide/Attributes/died</ref>
+      <ref alias="movies" type="path">/CineGuide/Attributes/movies</ref>
+      <ref alias="rectangle" type="path">/CineGuide/Attributes/rectangle</ref>
+      <ref alias="picture" type="path">/CineGuide/Attributes/picture</ref>
+      <ref alias="set" type="path">/CineGuide/Attributes/set</ref>
+      <ref alias="workedWith" type="path">/CineGuide/Attributes/workedWith</ref>
+      <ref alias="epoch" type="path">/CineGuide/Attributes/epoch</ref>
+      <ref alias="decimal" type="path">/CineGuide/Attributes/decimal</ref>
+      <ref alias="timezone" type="path">/CineGuide/Attributes/timezone</ref>
+    </ref>
+
+    <attribute name="classes">
+      <value name="python">tests.classes.Actor.Actor</value>
+    </attribute>
+
+    <ref name="superKinds">
+      <ref type="path">/Core/Item</ref>
+    </ref>
+  </item>
+
+  <item>
+    <name>Butler</name>
+    <kind type="path">//Schema/Core/Kind</kind>
+
+    <ref name="superKinds">
+      <ref type="path">../Actor</ref>
+    </ref>
+  </item>
+
+</items>

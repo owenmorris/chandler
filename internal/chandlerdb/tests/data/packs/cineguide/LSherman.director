@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+    <name>LSherman</name>
+    <kind type="path">//Schema/CineGuide/Kinds/Director</kind>
+
+    <attribute name="name">Lowell Sherman</attribute>
+    <attribute name="website">http://imdb.com/name/nm0792514/</attribute>
+</item>

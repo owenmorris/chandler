@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+
+  <item>
+    <name>Movie</name>
+    <kind type="path">//Schema/Core/Cloud</kind>
+
+    <ref name="endpoints">
+
+      <!-- 
+         - plus local endpoints below:
+         -     actors, director
+        -->
+    </ref>
+
+    <ref name="kind" otherAlias="remote" type="path">../../Kinds/Movie</ref>
+  </item>
+
+  <item>
+    <name>actors</name>
+    <kind type="path">//Schema/Core/Endpoint</kind>
+    <parent type="path">//Schema/CineGuide/Clouds/Movie</parent>
+
+    <ref name="clouds">
+      <ref type="path">..</ref>
+    </ref>
+
+    <attribute name="attribute">
+      <value>actors</value>
+    </attribute>
+  </item>
+
+  <item>
+    <name>director</name>
+    <kind type="path">//Schema/Core/Endpoint</kind>
+    <parent type="path">//Schema/CineGuide/Clouds/Movie</parent>
+
+    <ref name="clouds">
+      <ref type="path">..</ref>
+    </ref>
+
+    <attribute name="attribute">
+      <value>director</value>
+    </attribute>
+  </item>
+
+</items>

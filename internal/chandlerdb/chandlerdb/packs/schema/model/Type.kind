@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+
+  <item withSchema="True" coreSchema="True">
+    <name>TypeKind</name>
+    <kind type="path">//Schema/Core/Kind</kind>
+    <class module="chandlerdb.schema.Kind">Kind</class>
+
+    <ref name="attributes" otherName="kinds" cardinality="list" 
+         otherCard="list">
+
+      <!-- 
+         - plus local attributes below:
+         -     types
+        -->
+    </ref>
+
+    <attribute name="classes" cardinality="dict" type="class">
+      <value name="python">chandlerdb.schema.Types.TypeKind</value>
+    </attribute>
+
+    <ref name="superKinds" cardinality="list"
+         otherName="subKinds" otherCard="list">
+      <ref type="path">/Core/Kind</ref>
+    </ref>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>types</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/TypeKind</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="types">..</ref>
+    </ref>
+
+    <attribute name="otherName">typeIndex</attribute>
+    <attribute name="cardinality">list</attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True" afterLoadHook="_collectTypes">
+    <name>Type</name>
+    <kind type="path">//Schema/Core/TypeKind</kind>
+    <class module="chandlerdb.schema.Types">TypeKind</class>
+
+    <ref name="attributes" otherName="kinds" cardinality="list" 
+         otherCard="list">
+
+      <ref alias="typeIndex" type="path">/Core/typeIndex</ref>
+
+      <!-- 
+         - plus local attributes below:
+         -     implementationTypes
+        -->
+    </ref>
+
+    <attribute name="classes" cardinality="dict" type="class">
+      <value name="python">chandlerdb.schema.Types.Type</value>
+    </attribute>
+
+    <ref name="superKinds" cardinality="list"
+         otherName="subKinds" otherCard="list">
+      <ref type="path">/Core/Taxon</ref>
+    </ref>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>implementationTypes</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Type</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="implementationTypes">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Class</ref>
+
+    <attribute name="cardinality">dict</attribute>
+  </item>
+
+</items>

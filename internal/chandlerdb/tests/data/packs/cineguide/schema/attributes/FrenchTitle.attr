@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+    <name>frenchTitle</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+
+    <ref name="type" type="path">//Schema/Core/String</ref>
+    <attribute name="cardinality">single</attribute>
+    <attribute name="inheritFrom">title</attribute>
+    <attribute name="indexed">True</attribute>
+</item>

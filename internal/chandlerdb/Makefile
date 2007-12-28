@@ -1,9 +1,12 @@
 
-RELVER=0.7-$(BRANCH_REV_PREFIX)31
+VERSION=0.7
+SUFFIX=$(BRANCH_REV_PREFIX)32
+RELVER=$(VERSION)-$(SUFFIX)
 CHANDLERDB=$(INTERNAL)/chandlerdb
 DB_VER=4.6
 SRC=$(CHANDLERDB)
 BUILD=build_$(SNAP)
+EGG=$(notdir $(shell cd $(BUILD_ROOT); find $(SNAP)/$(SITE) -name 'chandlerdb-$(VERSION)_$(SUFFIX)-py$(PYTHON_VER)-*.egg'))
 TARBALL=chandlerdb-$(SNAP)-$(RELVER).tar.gz
 
 include ../Makefile.inc
@@ -27,17 +30,18 @@ build:
 
 ifneq (/,$(CHANDLERDB)/$(BUILD))
 clean:
-	rm -rf $(BUILD)
+	rm -rf $(BUILD) build
 	rm -f $(_chandlerbin)/$(SNAP)/$(TARBALL).inst
 
 endif
 
 realclean: clean
 
-$(TARBALL): strip
-	cd $(BUILD_ROOT); \
-	find $(MANIFEST) -name "*.py[co]" -delete; \
-        tar -cvzf $(CHANDLERDB)/$(TARBALL) $(MANIFEST)
+$(TARBALL): $(BUILD_ROOT)/$(SNAP)/$(SITE)/$(EGG)
+	echo "./$(EGG)" > $(BUILD_ROOT)/$(SNAP)/$(SITE)/chandlerdb.pth
+	tar -C $(BUILD_ROOT) -cvzf $(CHANDLERDB)/$(TARBALL) \
+                             $(SNAP)/$(SITE)/$(EGG) \
+                             $(SNAP)/$(SITE)/chandlerdb.pth
 
 binaries: $(TARBALL)
 
@@ -48,4 +52,12 @@ install: $(TARBALL)
 
 
 plop:
-	tar -C $(BUILD_ROOT) -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -
+	tar -C $(BUILD_ROOT)/$(SNAP) -cf - $(SITE)/$(EGG) | tar -C $(CHANDLERBIN)/$(SNAP) -xvf -
+
+test:
+	PREFIX=$(_prefix) DB_VER=$(DB_VER) VERSION=$(RELVER) \
+        $(CHANDLERBIN)/$(SNAP)/RunPython setup.py test
+
+test-%:
+	PREFIX=$(_prefix) DB_VER=$(DB_VER) VERSION=$(RELVER) \
+        $(CHANDLERBIN)/$(SNAP)/RunPython setup.py test --test-suite=tests.Test$*

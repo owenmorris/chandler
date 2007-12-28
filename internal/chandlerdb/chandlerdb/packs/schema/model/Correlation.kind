@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+
+  <item withSchema="True" coreSchema="True">
+    <name>Correlation</name>
+    <kind type="path">//Schema/Core/Kind</kind>
+    <class module="chandlerdb.schema.Kind">Kind</class>
+
+    <ref name="attributes" otherName="kinds" cardinality="list" 
+         otherCard="list">
+
+      <ref alias="schemaHash" type="path">/Core/schemaHash</ref>
+
+      <!-- 
+         - plus local attributes below:
+         -     names, kind
+        -->
+    </ref>
+
+    <ref name="superKinds" cardinality="list"
+         otherName="subKinds" otherCard="list">
+      <ref type="path">/Core/Item</ref>
+    </ref>
+
+    <attribute name="classes" cardinality="dict" type="class">
+      <value name="python">chandlerdb.schema.Correlation.Correlation</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>names</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Correlation</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="names">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Importable</ref>
+
+    <attribute name="cardinality">set</attribute>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
+    <name>kind</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="chandlerdb.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Correlation</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="kind">..</ref>
+    </ref>
+
+    <attribute name="otherName">correlations</attribute>
+  </item>
+
+</items>

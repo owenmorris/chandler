@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item withSchema="True" coreSchema="True">
+  <name>typeIndex</name>
+  <kind type="path">//Schema/Core/Attribute</kind>
+  <class module="chandlerdb.schema.Attribute">Attribute</class>
+
+  <attribute name="otherName">types</attribute>
+  <attribute name="cardinality">single</attribute>
+</item>
