@@ -687,7 +687,7 @@ def runUnitTests(options, testlist=None, params=None):
     >>> options.unit    = True
     >>> runUnitTests(options)
     ...
-    /.../RunPython... repository/tests/TestMixins.py -v
+    /.../RunPython... parcels/osaf/pim/tests/TestContacts.py -v
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     ...
     False
