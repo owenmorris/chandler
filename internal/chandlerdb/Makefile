@@ -17,10 +17,12 @@ ifeq ($(OS),Cygwin)
 _swig=`cygpath -aw $(SWIG)`
 _prefix=`cygpath -aw $(PREFIX)`
 _chandlerbin=`cygpath -au $(CHANDLERBIN)`
+_runpython=`cygpath -au $(CHANDLERBIN)/$(SNAP)/RunPython.bat`
 else
 _swig=$(SWIG)
 _prefix=$(PREFIX)
 _chandlerbin=$(CHANDLERBIN)
+_runpython=$(CHANDLERBIN)/$(SNAP)/RunPython
 endif
 
 build:
@@ -56,8 +58,8 @@ plop:
 
 test:
 	PREFIX=$(_prefix) DB_VER=$(DB_VER) VERSION=$(RELVER) \
-        $(CHANDLERBIN)/$(SNAP)/RunPython setup.py test
+        $(_runpython) setup.py test
 
 test-%:
 	PREFIX=$(_prefix) DB_VER=$(DB_VER) VERSION=$(RELVER) \
-        $(CHANDLERBIN)/$(SNAP)/RunPython setup.py test --test-suite=tests.Test$*
+        $(_runpython) setup.py test --test-suite=tests.Test$*
