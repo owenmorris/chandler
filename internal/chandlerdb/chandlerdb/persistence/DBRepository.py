@@ -1606,7 +1606,7 @@ class DBIndexerThread(RepositoryThread):
             if self._alive:
                 try:
                     condition.wait(self.interval)
-                except TypeError: # on exit
+                except: # on exit
                     return
             condition.release()
 

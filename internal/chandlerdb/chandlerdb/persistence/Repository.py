@@ -417,7 +417,7 @@ class RepositoryWorker(RepositoryThread):
                     if requests.empty():
                         try:
                             condition.wait()
-                        except TypeError: # on exit
+                        except: # on exit
                             return
                     if self._alive:
                         request = requests.get()

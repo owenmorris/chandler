@@ -32,7 +32,7 @@ build:
 
 ifneq (/,$(CHANDLERDB)/$(BUILD))
 clean:
-	rm -rf $(BUILD) build
+	rm -rf $(BUILD) build $(TARBALL)
 	rm -f $(_chandlerbin)/$(SNAP)/$(TARBALL).inst
 
 endif
@@ -55,6 +55,8 @@ install: $(TARBALL)
 
 plop:
 	tar -C $(BUILD_ROOT)/$(SNAP) -cf - $(SITE)/$(EGG) | tar -C $(CHANDLERBIN)/$(SNAP) -xvf -
+	echo "./$(EGG)" > $(BUILD_ROOT)/$(SNAP)/$(SITE)/chandlerdb.pth
+	cp -p $(BUILD_ROOT)/$(SNAP)/$(SITE)/chandlerdb.pth $(CHANDLERBIN)/$(SNAP)/$(SITE)
 
 test:
 	PREFIX=$(_prefix) DB_VER=$(DB_VER) VERSION=$(RELVER) \

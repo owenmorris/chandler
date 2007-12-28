@@ -109,7 +109,7 @@ def main():
                       'chandlerdb.util'],
           ext_modules = extensions,
           test_suite = 'tests',
-          zip_safe = True,
+          zip_safe = os.name != 'nt' or DEBUG == 0,
           include_package_data = True,
           exclude_package_data = {'': ['*.c', '*.h', '*.py']})
 
