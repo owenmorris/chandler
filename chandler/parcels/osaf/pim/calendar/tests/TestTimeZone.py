@@ -23,7 +23,7 @@ from osaf.pim.calendar.Calendar import CalendarEvent, EventStamp
 from osaf.pim.calendar.Recurrence import RecurrenceRuleSet, RecurrenceRule
 from datetime import *
 from application import schema
-from PyICU import Locale as ICULocale, ICUtzinfo, FloatingTZ
+from PyICU import Locale as ICULocale, ICUtzinfo, FloatingTZ, ICU_VERSION
 
 
 class TimeZoneTestCase(SingleRepositoryTestCase):
@@ -207,7 +207,10 @@ class DatetimeFormatTestCase(AbstractTimeZoneTestCase):
 
         dt = datetime(2022, 9, 17, 2, 11,
                       tzinfo=self.view.tzinfo.getInstance("America/New_York"))
-        self.failUnlessEqual(formatTime(self.view, dt), "2:11 AM GMT-04:00")
+        if ICU_VERSION >= '3.8':
+            self.failUnlessEqual(formatTime(self.view, dt), "2:11 AM GMT-04:00")
+        else:
+            self.failUnlessEqual(formatTime(self.view, dt), "2:11 AM EDT")
 
         dt = datetime(2022, 9, 17, 2, 11,
                       tzinfo=self.view.tzinfo.getInstance("Africa/Johannesburg"))
@@ -238,9 +241,12 @@ class DatetimeFrenchFormatTestCase(AbstractTimeZoneTestCase):
     def testDifferentTimeZone(self):
         dt = datetime(2022, 9, 17, 2, 11,
                       tzinfo=self.view.tzinfo.getInstance("America/New_York"))
-        self.failUnlessEqual(formatTime(self.view, dt),
-#                             u'02:11 HAE (\u00c9UA)')
-                             u'02:11 GMT-04:00')
+        if ICU_VERSION >= '3.8':
+            self.failUnlessEqual(formatTime(self.view, dt),
+                                 u'02:11 GMT-04:00')
+        else:
+            self.failUnlessEqual(formatTime(self.view, dt),
+                                 u'02:11 HAE (\u00c9UA)')
 
         dt = datetime(2022, 9, 17, 2, 11, tzinfo = self.view.tzinfo.getInstance("Africa/Johannesburg"))
         self.failUnlessEqual(formatTime(self.view, dt), u"02:11 GMT+02:00")
