@@ -687,7 +687,7 @@ def runUnitTests(options, testlist=None, params=None):
     >>> options.unit    = True
     >>> runUnitTests(options)
     ...
-    /.../RunPython... parcels/osaf/pim/tests/TestContacts.py -v
+    /.../RunPython... parcels/osaf/mail/tests/TestHTMLMessage.py -v
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     ...
     False
@@ -743,9 +743,9 @@ def runUnitSuite(options):
     >>> options.modes   = ['release', 'debug']
     
     >>> runUnitSuite(options)
-    /.../release/RunPython... tools/run_tests.py -v application i18n osaf repository
+    /.../release/RunPython... tools/run_tests.py -v application i18n osaf
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /.../debug/RunPython... tools/run_tests.py -v application i18n osaf repository
+    /.../debug/RunPython... tools/run_tests.py -v application i18n osaf
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
     
@@ -760,7 +760,7 @@ def runUnitSuite(options):
         if options.verbose:
             cmd += ['-v']
 
-        cmd += ['application', 'i18n', 'osaf', 'repository']
+        cmd += ['application', 'i18n', 'osaf']
 
         if options.params:
             cmd += [options.params]
@@ -1613,7 +1613,7 @@ def main(options):
     >>> options.mode  = None
     >>> options.unit = True
     >>> main(options)
-    /.../RunPython... .../tests/TestReferenceAttributes.py -v
+    /.../RunPython... parcels/osaf/mail/tests/TestHTMLMessage.py -v
     ...
     /.../RunPython... setup.py test -v
     ...
@@ -1624,7 +1624,7 @@ def main(options):
     >>> options.unit = False
     >>> options.unitSuite = True
     >>> main(options)
-    /.../RunPython... tools/run_tests.py -v application i18n osaf repository
+    /.../RunPython... tools/run_tests.py -v application i18n osaf
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
     
