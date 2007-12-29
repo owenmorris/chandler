@@ -218,7 +218,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
             return row
 
         # if we have no rows, skip out early
-        if not self.blockItem.contents:
+        if not getattr(self.blockItem, 'contents', None):
             return -1
         
         sectionAdjust = len(self.sectionRows) - 1
