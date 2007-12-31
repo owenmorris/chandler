@@ -379,6 +379,8 @@ class MainView(View):
             command = get_quick_entry(match.group('cmd').lower())
 
             if command is None:
+                if qe_commands:
+                    break
                 quickEntryWidget.SetValue(text + error_string)
                 self.setStatusMessage (_(u"Command entered is not valid."))
                 if sidebar.showSearch:
