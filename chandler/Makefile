@@ -28,7 +28,8 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
 BUILD_LOCALES = en \
                 fr \
                 fi \
-                sv
+                sv \
+                de
 
 ifeq ($(OS),Darwin)
     ifeq ($(shell arch),ppc)
