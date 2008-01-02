@@ -499,6 +499,14 @@ class PublishCollectionDialog(wx.Dialog):
 
                 self._showStatus(msg)
 
+            elif isinstance(err, sharing.DuplicateIcalUids):
+                logger.error("Items have duplicate icaluids; UUIDs: %s",
+                    ", ".join(err.uuids))
+
+                msg = _(u"Items with duplicate icalUIDs detected; UUIDs:")
+                msg = "%s\n%s" % (msg, ", ".join(err.uuids))
+                self._showStatus(msg)
+
             elif isinstance(err, sharing.AlreadyExists):
                 if hasattr(err, "mine"):
                     # This is a morsecode publish

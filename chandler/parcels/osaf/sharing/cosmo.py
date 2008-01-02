@@ -440,8 +440,32 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
             raise errors.TokenMismatch(_(u"Collection updated by someone else."))
 
         elif resp.status in (403, 409):
-            # Trying to publish a collection but the uuid of that collection
-            # is already on the server.
+            # Either a collection already exists with the UUID or we've got
+            # multiple items with the same icaluid.  Need to parse the response
+            # body to find out
+            try:
+                rootElement = fromstring(resp.body)
+            except:
+                logger.exception("Couldn't parse response: %s", resp.body)
+                rootElement = None
+                # continue on
+
+            if (rootElement is not None and
+                rootElement.tag == "{%s}error" % mcURI):
+                for errorsElement in rootElement:
+                    if errorsElement.tag == "{%s}no-uid-conflict" % mcURI:
+                        uuids = list()
+                        for errorElement in errorsElement:
+                            uuids.append(errorElement.text)
+                        toRaise = errors.DuplicateIcalUids(
+                            _(u"Duplicate ical UIDs detected: %(ids)s") %
+                            { 'ids' : ", ".join(uuids) })
+                        toRaise.uuids = uuids
+                        raise toRaise
+            else:
+                # not sure what we got back, assume dupe collection uuid
+                pass
+
             # Find out if it's ours:
             shares = self.account.getPublishedShares(blocking=True)
             toRaise = errors.AlreadyExists("%s (HTTP status %d)" %

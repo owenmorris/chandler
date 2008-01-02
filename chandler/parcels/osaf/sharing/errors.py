@@ -150,3 +150,8 @@ class WebPageParseError(SharingError):
     """
     Exception raised if a web page cannot be parsed for embedded collection info
     """
+
+class DuplicateIcalUids(SharingError):
+    """
+    Exception raised if two items in the same collection have the same icaluid
+    """

@@ -1219,30 +1219,6 @@ def getFilteredCollectionDisplayName(collection, filterClasses):
 
     return name
 
-def fixTriageStatusCallback(share=None, uuids=None):
-    """ 
-    Set triageStatus on new 'now' items received from sharing, importing,
-    or restore.
-    """
-    ## This is only called for old-style sharing, which should mostly be going
-    ## away.  But now that triageStatus sharing includes the
-    ## doAutoTriageOnDateChange flag, do auto-triage on import, even if
-    ## triage status is shared.
-    # Don't do this if we're sharing triageStatus (bug 7193)
-    #if '_triageStatus' not in share.filterAttributes:
-        #return
-
-    for u in uuids:
-        item = share.itsView.find(u)
-        # @@@ bug 6700: Can't do this for recurring events for now.
-        if Calendar.isRecurring(item):
-            continue
-        
-        item.read = False
-        item.setTriageStatus('auto', popToNow=True)
-        
-register(NEWITEMSUNESTABLISHED, fixTriageStatusCallback)
-
 
 
 
