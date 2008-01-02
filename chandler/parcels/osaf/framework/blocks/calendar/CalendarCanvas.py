@@ -1906,9 +1906,10 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
     def SaveItem(self):
         if ((self.event is not None) and (not self.IsBeingDeleted())):
             if self.event.summary != self.GetValue():
-                parentBlock = self.GetParent()
+                callback = self.GetParent().widgetGuardedCallback(
+                                    self.GetParent().wxSynchronizeWidget)
                 proxy = RecurrenceDialog.getProxy(u'ui', self.event,
-                                    cancelCallback=parentBlock.wxSynchronizeWidget)
+                                    cancelCallback=callback)
                 Calendar.EventStamp(proxy).summary = self.GetValue()
 
     def ResetFocus(self):
