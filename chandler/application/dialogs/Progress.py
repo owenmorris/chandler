@@ -25,6 +25,7 @@ def Show(activity, parent=None):
         activity=activity)
     win.CenterOnParent()
     win.Show()
+    return win
 
 
 

@@ -1055,23 +1055,7 @@ class wxApplication (wx.App):
         else:
             prefs = schema.ns("osaf.app",
                               self.UIRepositoryView).prefs
-            if not hasattr(prefs, 'backupOnQuit'):
-                from application.dialogs.Util import checkboxUserDialog
-                dlg = checkboxUserDialog(self.mainFrame,
-                                         _(u'Export Collections and Settings'),
-                                         _(u'Export Collections and Settings when quitting to enable automatic migration when upgrading Chandler?'),
-                                         _(u'&Never ask again'))
-                if dlg.ShowModal() == wx.ID_YES:
-                    backup = True
-                else:
-                    backup = False
-                if dlg.GetValue():
-                    prefs.backupOnQuit = backup
-                dlg.Destroy()
-                
-                # will commit below
-            else:
-                backup = prefs.backupOnQuit
+            backup = getattr(prefs, 'backupOnQuit', True)
 
         if backup:
             mainView = Block.findBlockByName("MainView")

@@ -22,7 +22,6 @@ from application import schema
 from osaf.framework import password, MasterPassword
 from osaf.framework.twisted import waitForDeferred
 from i18n import ChandlerMessageFactory as _
-from osaf.activity import ActivityAborted
 from pkg_resources import iter_entry_points
 
 logger = logging.getLogger(__name__)
@@ -165,13 +164,13 @@ def dump(rv, filename, uuids=None, serializer=PickleSerializer,
             del dump
         finally:
             output.close()
+
+        if activity:
+            activity.update(msg=_(u"Exported %(total)d records") % {'total':count})
+
     except:
         logger.exception("Error during export")
         os.remove(filename)
-
-    if activity:
-        activity.update(msg=_(u"Exported %(total)d records") % {'total':count})
-
 
 
 def reload(rv, filename, serializer=PickleSerializer, activity=None,

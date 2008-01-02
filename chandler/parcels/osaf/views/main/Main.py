@@ -947,8 +947,39 @@ class MainView(View):
             dlg.Destroy()
 
         if path:
-            activity = Activity("Export to %s" % path)
-            Progress.Show(activity)
+            def timeoutCallback(activity, *args, **kw):
+                # returning True stops, False continues export
+                if not getattr(activity, 'timeoutOccurred', False):
+                    return False
+
+                timeoutListener.unregister()
+                
+                app = wx.GetApp()
+                prefs = schema.ns('osaf.app',
+                                  app.UIRepositoryView).prefs
+                if not hasattr(prefs, 'backupOnQuit'):
+                    from application.dialogs import autoexport
+                    dlg = autoexport.AutoExportDialog(parent)
+                    result = dlg.ShowModal()
+                    if result == wx.ID_NO:
+                        backup = prefs.backupOnQuit = False
+                    elif result == wx.ID_YES:
+                        backup = prefs.backupOnQuit = True
+                    elif result == wx.ID_OK:
+                        backup = True
+                    else:
+                        backup = False
+                    dlg.Destroy()
+                else:
+                    backup = prefs.backupOnQuit
+                    assert backup
+
+                return not backup
+            
+            activity = TimeoutActivity("Export to %s" % path, timeout=15)
+            timeoutListener = Listener(callback=timeoutCallback,
+                                       activity=activity)
+            parent = Progress.Show(activity)
             activity.started()
 
             try:
@@ -959,6 +990,7 @@ class MainView(View):
                 logger.exception("Failed to export file")
                 activity.failed(exception=e)
                 raise
+
             self.setStatusMessage(_(u'Items exported.'))
 
     def onDumpToFileEvent(self, event):

@@ -15,6 +15,7 @@
 
 """Activity monitoring module"""
 
+import time
 from chandlerdb.util.c import UUID
 from osaf import ChandlerException
 from i18n import ChandlerMessageFactory as _
@@ -24,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 __all__ = [
     'Activity',
+    'TimeoutActivity',
     'ActivityAborted',
     'Listener',
     'STATUS_ABORTED',
@@ -36,7 +38,6 @@ __all__ = [
 
 class ActivityAborted(ChandlerException):
     """ Exception raised if an Activity is aborted """
-
 
 
 STATUS_ABORTED    = -4
@@ -124,6 +125,23 @@ class Activity(object):
     def requestAbort(self):
         self.abortRequested = True
 
+
+class TimeoutActivity(Activity):
+    def __init__(self, title, timeout):
+        """
+        Activity that can notify after timeout seconds of work.
+        """
+        self.timeStop = time.time() + timeout
+        self.timeoutOccurred = False
+        super(TimeoutActivity, self).__init__(title)
+        
+    def update(self, *args, **kwds):
+        if not self.timeoutOccurred and time.time() > self.timeStop:
+            self.timeoutOccurred = True
+            if Listener.broadcast(self, status=self.status):
+                self.requestAbort()
+
+        super(TimeoutActivity, self).update(*args, **kwds)
 
 
 listeners = set()
