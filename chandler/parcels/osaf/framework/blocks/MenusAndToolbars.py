@@ -479,6 +479,25 @@ class wxQuickEntry (wx.SearchCtrl):
             text = text.GetChildren()[0]
         text.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
 
+        # Workaround for bug #11375.  Catch the del key with an
+        # accelerator table to override the accelerator in the
+        # menubar, since the menu item is disabled when this widget
+        # gets the focus.
+        ID = wx.NewId()
+        accel = wx.AcceleratorTable([
+            ( wx.ACCEL_NORMAL, wx.WXK_DELETE, ID ) ])
+        text.SetAcceleratorTable(accel)
+        text.Bind(wx.EVT_MENU, self.OnDoDelete, id=ID)
+
+    def OnDoDelete(self, evt):
+        text = self
+        if text.GetChildren():
+            text = text.GetChildren()[0]
+        f, t = text.GetSelection()
+        if f == t:
+            t += 1
+        text.Remove(f, t)
+        
     def OnCancelButton (self, event):
         block = self.blockItem
         block.post (block.event, {"cancelClicked": True}, sender = block)
