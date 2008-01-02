@@ -128,16 +128,21 @@ def inspect(rv, url, username=None, password=None):
 
         except zanshin.http.HTTPError, e:
 
-            if e.status == 401: # Unauthorized
+            if e.status == 400: # Bad Request
+                raise errors.IllegalOperation("Bad request (%s)" % e.message)
+            elif e.status == 401: # Unauthorized
                 raise errors.NotAllowed("Not authorized (%s)" % e.message)
             elif e.status == 404: # Not Found
                 raise errors.NotFound("Not found (%s)" % e.message)
+            else:
+                raise e
 
 
     try:
         result = _catchError(getOPTIONS)
-    except errors.NotFound:
-        # Google returns 404 if you OPTIONS a .ics URL
+    except (errors.NotFound, errors.IllegalOperation):
+        # Google returns 404 if you OPTIONS a .ics URL, or a 400 if you
+        # OPTIONS an HTML URL
         return _catchError(getHEADInfo)
 
     if 'dav' in result:
