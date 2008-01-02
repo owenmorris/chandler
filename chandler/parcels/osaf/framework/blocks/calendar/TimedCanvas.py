@@ -380,6 +380,8 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         
         self.ShadeToday(dc)
         self.DrawBackgroundSelection(gc)
+        # don't keep the gc around, or it will make dc's font behave strangely
+        del gc
 
         # Set text properties for legend
         dc.SetTextForeground(styles.legendColor)
