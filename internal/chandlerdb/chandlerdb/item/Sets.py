@@ -1,4 +1,4 @@
-#   Copyright (c) 2005-2007 Open Source Applications Foundation
+#   Copyright (c) 2005-2008 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -589,7 +589,7 @@ class AbstractSet(ItemValue, Indexed):
                 item.itsRefs._setRef(self._otherName, self._owner(),
                                      self._attribute)
 
-    def clear(self):
+    def clear(self, ignore=None):
         self._removeRefs()
 
 

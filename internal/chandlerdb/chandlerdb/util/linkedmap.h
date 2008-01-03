@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2007 Open Source Applications Foundation
+ *  Copyright (c) 2003-2008 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -41,9 +41,12 @@ typedef struct {
 
 
 enum {
-    LM_NEW     = 0x0001,
-    LM_LOAD    = 0x0002,
-    LM_MERGING = 0x0004
+    LM_NEW      = 0x0001,
+    LM_LOAD     = 0x0002,
+    LM_MERGING  = 0x0004,
+    LM_SETDIRTY = 0x0008,
+    LM_READONLY = 0x0010,
+    LM_DEFERRED = 0x0020,
 };
 
 #endif /* _LINKEDMAP_H */

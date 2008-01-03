@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2007 Open Source Applications Foundation
+ *  Copyright (c) 2003-2008 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -128,6 +128,7 @@ extern PyObject *PyExc_DBError;
 extern PyObject *PyExc_DBLockDeadlockError;
 extern PyObject *PyExc_DBLockNotGrantedError;
 extern PyObject *PyExc_DBAccessError;
+extern PyObject *PyExc_DBBusyError;
 extern PyObject *PyExc_DBInvalidArgError;
 extern PyObject *PyExc_DBNoSpaceError;
 extern PyObject *PyExc_DBNotFoundError;

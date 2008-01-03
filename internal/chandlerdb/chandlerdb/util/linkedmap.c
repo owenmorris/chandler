@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2007 Open Source Applications Foundation
+ *  Copyright (c) 2003-2008 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -446,6 +446,7 @@ static int t_lm_dict_set(t_lm *self, PyObject *key, PyObject *value);
 
 static PyObject *t_lm_previousKey(t_lm *self, PyObject *key);
 static PyObject *t_lm_nextKey(t_lm *self, PyObject *key);
+static PyObject *t_lm_isDeferred(t_lm *self);
 
 
 static PyMemberDef t_lm_members[] = {
@@ -463,6 +464,7 @@ static PyMethodDef t_lm_methods[] = {
     { "lastKey", (PyCFunction) t_lm__getLastKey, METH_NOARGS, "" },
     { "previousKey", (PyCFunction) t_lm_previousKey, METH_O, "" },
     { "nextKey", (PyCFunction) t_lm_nextKey, METH_O, "" },
+    { "isDeferred", (PyCFunction) t_lm_isDeferred, METH_NOARGS, "" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -848,6 +850,14 @@ static PyObject *t_lm_nextKey(t_lm *self, PyObject *key)
     }
 }
 
+static PyObject *t_lm_isDeferred(t_lm *self)
+{
+    if (self->flags & LM_DEFERRED)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
 
 /* _dict property */
 
@@ -952,6 +962,9 @@ void _init_linkedmap(PyObject *m)
             PyDict_SetItemString_Int(dict, "NEW", LM_NEW);
             PyDict_SetItemString_Int(dict, "LOAD", LM_LOAD);
             PyDict_SetItemString_Int(dict, "MERGING", LM_MERGING);
+            PyDict_SetItemString_Int(dict, "SETDIRTY", LM_SETDIRTY);
+            PyDict_SetItemString_Int(dict, "READONLY", LM_READONLY);
+            PyDict_SetItemString_Int(dict, "DEFERRED", LM_DEFERRED);
 
             Py_INCREF(&LinkType);
             PyModule_AddObject(m, "CLink", (PyObject *) &LinkType);

@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2007 Open Source Applications Foundation
+#   Copyright (c) 2004-2008 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -546,13 +546,10 @@ class References(Values):
         item = self._item
         if value is other:
             if other not in (None, Empty) and other._isRefs():
-                other.clear()
+                deferred = item.itsView.isDeferringDelete()
+                other.clear(deferred)
                 dirty = CItem.RDIRTY
-                view = item.itsView
-                if view.isDeferringDelete():
-                    view._deferredDeletes.append((item, 'remove',
-                                                  (name, other)))
-                else:
+                if not deferred:
                     del self[name]
             else:
                 dirty = CItem.VDIRTY

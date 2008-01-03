@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2007 Open Source Applications Foundation
+ *  Copyright (c) 2003-2008 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ PyObject *PyExc_DBError = NULL;
 PyObject *PyExc_DBLockDeadlockError = NULL;
 PyObject *PyExc_DBLockNotGrantedError = NULL;
 PyObject *PyExc_DBAccessError = NULL;
+PyObject *PyExc_DBBusyError = NULL;
 PyObject *PyExc_DBInvalidArgError = NULL;
 PyObject *PyExc_DBNoSpaceError = NULL;
 PyObject *PyExc_DBNotFoundError = NULL;
@@ -75,6 +76,9 @@ PyObject *raiseDBError(int err)
         break;
       case EACCES:
         obj = PyExc_DBAccessError;
+        break;
+      case EBUSY:
+        obj = PyExc_DBBusyError;
         break;
       case EINVAL:
         obj = PyExc_DBInvalidArgError;
@@ -159,6 +163,7 @@ void initc(void)
     MAKE_EXC(m, DBLockDeadlockError, DBError);
     MAKE_EXC(m, DBLockNotGrantedError, DBError);
     MAKE_EXC(m, DBAccessError, DBError);
+    MAKE_EXC(m, DBBusyError, DBError);
     MAKE_EXC(m, DBInvalidArgError, DBError);
     MAKE_EXC(m, DBNoSpaceError, DBError);
     MAKE_EXC(m, DBNotFoundError, DBError);

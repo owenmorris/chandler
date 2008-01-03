@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2007 Open Source Applications Foundation
+#   Copyright (c) 2003-2008 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ class RefList(LinkedMap, Indexed):
             self._setOwner(item, name)
 
         if readOnly:
-            self._flags |= RefList.READONLY
+            self._flags |= CLinkedMap.READONLY
         
     def _isRefs(self):
         return True
@@ -66,7 +66,7 @@ class RefList(LinkedMap, Indexed):
 
     def _setDirty(self, noFireChanges=False):
 
-        if self._flags & RefList.SETDIRTY:
+        if self._flags & CLinkedMap.SETDIRTY:
             item = self._owner()
             item.setDirty(item.RDIRTY, self._name, item._references, noFireChanges)
 
@@ -145,10 +145,10 @@ class RefList(LinkedMap, Indexed):
         
         if item is not None:
             self._owner = item.itsRef
-            self._flags |= RefList.SETDIRTY
+            self._flags |= CLinkedMap.SETDIRTY
         else:
             self._owner = Nil
-            self._flags &= ~RefList.SETDIRTY
+            self._flags &= ~CLinkedMap.SETDIRTY
 
     def _getOwner(self):
         return self._owner(), self._name
@@ -231,11 +231,11 @@ class RefList(LinkedMap, Indexed):
         """
         
         try:
-            sd = self._setFlag(RefList.SETDIRTY, False)
+            sd = self._setFlag(CLinkedMap.SETDIRTY, False)
             for value in valueList:
                 self.append(value, None, None, _noFireChanges)
         finally:
-            self._setFlag(RefList.SETDIRTY, sd)
+            self._setFlag(CLinkedMap.SETDIRTY, sd)
 
         self._setDirty(True)
 
@@ -285,7 +285,7 @@ class RefList(LinkedMap, Indexed):
                                         _noFireChanges, 'list',
                                         alias, self._dictKey, otherKey)
 
-    def clear(self):
+    def clear(self, deferred=False):
         """
         Remove all references from this ref collection.
         """
@@ -295,6 +295,12 @@ class RefList(LinkedMap, Indexed):
         # of a removal without throwing off the iteration (bug 9004).
 
         view = self.itsView
+
+        if deferred:
+            self._flags |= CLinkedMap.DEFERRED
+            view._deferredDeletes.append((self._owner(), 'remove',
+                                          (self._name, self)))
+
         while True:
             uOther = self.firstKey()
             if uOther is None:
@@ -445,7 +451,7 @@ class RefList(LinkedMap, Indexed):
 
     def _removeRef_(self, other):
 
-        if self._flags & RefList.READONLY:
+        if self._flags & CLinkedMap.READONLY:
             raise ReadOnlyAttributeError, (self._owner(), self._name)
 
         key = other.itsUUID
@@ -773,12 +779,6 @@ class RefList(LinkedMap, Indexed):
     def iterKeys(self):
         return self.iterkeys()
 
-    #    NEW  = 0x0001 (defined on CLinkedMap)
-    #    LOAD = 0x0002 (defined on CLinkedMap)
-    # MERGING = 0x0004 (defined on CLinkedMap)
-    SETDIRTY  = 0x0008
-    READONLY  = 0x0010
-
 
 class RefDict(object):
     """
@@ -849,7 +849,7 @@ class RefDict(object):
         
         refList.append(other, alias, otherKey)
 
-    def clear(self):
+    def clear(self, ignore=None):
         
         for refList in self._dict.itervalues():
             refList.clear()

@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2007 Open Source Applications Foundation
+#   Copyright (c) 2003-2008 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ from chandlerdb.item.c import CItem
 from chandlerdb.item import Indexable
 from chandlerdb.persistence.c import DBEnv, DB, Transaction, \
     DBNoSuchFileError, DBPermissionsError, DBInvalidArgError, \
+    DBAccessError, DBBusyError, \
     DBLockDeadlockError, DBVersionMismatchError, DBRunRecoveryError, \
     DB_VERSION_MAJOR, DB_VERSION_MINOR, DB_VERSION_PATCH
 
@@ -1122,6 +1123,12 @@ class DBStore(Store):
         except DBNoSuchFileError:
             self.abortTransaction(None, txnStatus)
             raise
+        except DBAccessError:
+            self.abortTransaction(None, txnStatus)
+            raise
+        except DBBusyError:
+            self.abortTransaction(None, txnStatus)
+            raise
         except RepositoryVersionError:
             self.abortTransaction(None, txnStatus)
             raise
@@ -1648,9 +1655,13 @@ class DBIndexerThread(RepositoryThread):
                                            earliestVersion, store)
                         indexVersion = version
             finally:
-                condition.acquire()
-                condition.notifyAll()
-                condition.release()
+                if self._alive and self.isAlive():
+                    try:
+                        condition.acquire()
+                        condition.notifyAll()
+                        condition.release()
+                    except: # on exit
+                        return
 
         if view is not None:
             view.closeView()
