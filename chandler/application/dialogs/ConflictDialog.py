@@ -262,7 +262,6 @@ class ConflictVScrolledArea(ScrolledPanel):
         self.callback()
 
     def onLayoutNeeded(self, event):
-        print "in onLayoutNeeded"
         self.SetupScrolling(scroll_x=False, scroll_y=True, rate_x=20, rate_y=20)
 
 class ConflictDialog(wx.Dialog):
