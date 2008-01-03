@@ -836,9 +836,9 @@ def makeMainMenus(parcel):
                         accel = _(u'Ctrl+?')),
                      MenuItem.template('SubscribeUserMenuItem',
                         event = globalBlocks.SubscribeUser,
-                        title = _(u'S&ubscribe to the Chandler user list'),
+                        title = _(u'S&ubscribe to Chandler Users List'),
                         helpString =
-                             _(u'Subscribe to the Chandler user mailinglist to discuss Chandler and get help')),
+                             _(u'Subscribe to the Chandler Users mailing list to ask questions and give feedback')),
                      MenuItem.template('FileBugMenuItem',
                         event = globalBlocks.FileBug,
                         title = _(u'Report a &Bug'),
