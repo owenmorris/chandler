@@ -27,7 +27,8 @@ from datetime import datetime
 #Chandler imports
 from osaf.pim.mail import EmailAddress, MailMessage, MIMEText, MIMEBinary, \
                           getMessageBody, getCurrentMeEmailAddresses, \
-                          getRecurrenceMailStamps, addressMatchGenerator
+                          getRecurrenceMailStamps, addressMatchGenerator, \
+                          isMeAddress
 
 from osaf.pim.calendar.Calendar import parseText, setEventDateTime
 from osaf.pim import has_stamp, TaskStamp, EventStamp, MailStamp, Remindable
@@ -330,22 +331,9 @@ def messageObjectToKind(view, messageObject, messageText=None):
     return (1, mailStamp)
 
 def parseEIMML(view, peer, matchingAddresses, eimml):
-    if peer in getCurrentMeEmailAddresses(view):
+    if isMeAddress(peer):
         # If the Chandler EIMML message is from me then
         # ignore it.
-        #XXX This needs to refined to handle the case
-        # where the user starts with a fresh Chandler and
-        # tries to retrieve Chandler Messages from an incoming
-        # server. The messages from 'me' will be ignored even
-        # though there is no longer a corresponding item in
-        # the repo. To handle this the ignore me logic needs
-        # to be moved to the inbound method. The EIM layer
-        # needs to determine if:
-        #   1. The message is from 'me'
-        #   2. The message corresponds to an existing item in the repo
-        #
-        # If both cases are True then ignore the message other
-        # wise process the EIMML.
         return (0, None)
 
     try:
