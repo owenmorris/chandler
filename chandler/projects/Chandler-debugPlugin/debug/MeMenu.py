@@ -41,7 +41,7 @@ class MeMenuHandler(Block):
         else:
             collection = [pim.currentMeEmailAddress.item]
 
-        list = [eAddr.emailAddress for eAddr in collection if eAddr]
+        list = [eAddr.format() for eAddr in collection if eAddr]
 
         win = dialogs.Util.DebugWindow(u"Email Address Debugger",
                                        u'\n'.join(list), tsize=[400, 300])

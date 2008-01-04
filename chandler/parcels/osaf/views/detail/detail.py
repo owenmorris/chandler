@@ -2055,7 +2055,7 @@ class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
         choices = []
 
         for addr in addrs:
-            choices.append(addr.emailAddress)
+            choices.append(addr.format())
 
         choices.append(_(u"Create outgoing mail account..."))
         return choices
