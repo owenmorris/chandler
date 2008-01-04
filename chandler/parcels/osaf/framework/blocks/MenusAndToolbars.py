@@ -80,6 +80,12 @@ class MenuItem (BaseItem):
                 "Separator": wx.ID_SEPARATOR,
                 "Check": wx.ITEM_CHECK,
                 "Radio": wx.ITEM_RADIO} [self.menuItemKind]
+        
+        # Linux doesn't support checked icon menus
+        if (wx.Platform == '__WXGTK__' and
+            hasattr (self, "icon") and
+            kind == wx.ITEM_CHECK):
+            kind = wx.ITEM_NORMAL;
 
         if kind == wx.ID_SEPARATOR:
             id = wx.ID_SEPARATOR
@@ -127,7 +133,8 @@ class wxMenuItem (wx.MenuItem):
                 root, extension = os.path.splitext (icon)
                 checkedBitmap = theApp.GetImage(root + "Checked" + extension)
 
-            if checkedBitmap is None:
+            # Linux doesn't support checked icon menus
+            if checkedBitmap is None or wx.Platform == '__WXGTK__':
                 checkedBitmap = unCheckedBitmap
 
             self.SetBitmaps(checkedBitmap, unCheckedBitmap)
