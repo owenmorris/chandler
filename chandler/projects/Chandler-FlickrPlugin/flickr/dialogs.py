@@ -82,7 +82,7 @@ class LicenseDialog(wx.Dialog):
         sizer.Add(grid, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
 
         # Register (button)....
-        button = wx.Button(self, -1, "Register")
+        button = wx.Button(self, -1, "Register", name="Register")
         self.Bind(wx.EVT_BUTTON, self.onRegister, button)
         
         buttonSizer = wx.StdDialogButtonSizer()

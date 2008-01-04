@@ -219,6 +219,7 @@ def makeMainView(parcel):
             main.MenuBar,
             main.SidebarContextMenu,
             main.ItemContextMenu,
+            main.DragAndDropTextCtrlContextMenu,
             StatusBar.template('StatusBar'),
             ReminderTimer.template('ReminderTimer',
                                    event = main.ReminderTime,

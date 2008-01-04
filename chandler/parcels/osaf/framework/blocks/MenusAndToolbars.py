@@ -67,7 +67,7 @@ class BaseItem(Block.Block):
     )
 
 class menuItemKindEnumType(schema.Enumeration):
-      values = "Normal", "Separator", "Check", "Radio"
+    values = "Normal", "Separator", "Check", "Radio"
 
 class MenuItem (BaseItem):
     menuItemKind = schema.One(menuItemKindEnumType, defaultValue = 'Normal')

@@ -64,9 +64,6 @@ wxEventTypes = ("wx.EVT_MENU",
                 "wx.EVT_CHAR",
                 "wx.EVT_TEXT_ENTER",
                 "wx.EVT_CHOICE",
-                "wx.EVT_TEXT_CUT",
-                "wx.EVT_TEXT_COPY",
-                "wx.EVT_TEXT_PASTE",
                 "wx.EVT_SCROLLWIN_LINEUP",
                 "wx.EVT_SCROLLWIN_LINEDOWN",
                 "wx.EVT_SCROLLWIN_PAGEUP",
@@ -86,9 +83,6 @@ checkFocusEventTypes = ("wx.EVT_LEFT_DOWN",
                         "wx.EVT_CHAR",
                         "wx.EVT_TEXT_ENTER",
                         "wx.EVT_CHOICE",
-                        "wx.EVT_TEXT_CUT",
-                        "wx.EVT_TEXT_COPY",
-                        "wx.EVT_TEXT_PASTE",
                         "wx.EVT_BUTTON",
                         "wx.EVT_CHECKBOX")
 
@@ -96,10 +90,7 @@ checkFocusEventTypes = ("wx.EVT_LEFT_DOWN",
 ignoreValueCheckEventTypes = ("wx.EVT_SET_FOCUS",
                               "wx.EVT_TEXT_ENTER",
                               "wx.EVT_KEY_UP",
-                              "wx.EVT_LEFT_UP",
-                              "wx.EVT_TEXT_CUT",
-                              "wx.EVT_TEXT_COPY",
-                              "wx.EVT_TEXT_PASTE")
+                              "wx.EVT_LEFT_UP")
 
 # Scripts run at different times, and on machines in different time zones, so these widgets
 #values vary from run to run.
@@ -116,13 +107,13 @@ ignoreEventsToAssociatedBlocks = set (("RecordingMenuItem",
 commentTheseEventTypes = set (("wx.EVT_CHAR",
                                "wx.EVT_MENU",
                                "wx.EVT_LEFT_DOWN",
+                               "wx.EVT_RIGHT_DOWN",
                                "wx.EVT_LEFT_DCLICK",                               
                                "wx.EVT_CHOICE",
                                "wx.EVT_BUTTON",
                                "wx.EVT_CHECKBOX",
                                "wx.EVT_LISTBOX",
-                               "wx.EVT_RADIOBUTTON",
-                               "wx.EVT_TEXT_CUT", "wx.EVT_TEXT_COPY", "wx.EVT_TEXT_PASTE"))
+                               "wx.EVT_RADIOBUTTON"))
 
 wxEventTypeReverseMapping = {}
 
@@ -287,6 +278,13 @@ class Controller (Block.Block):
             Given a widget, returns a name that can be used to find the
             same widget during playback.
             """
+            if isinstance (widget, wx.Button):
+                name = {wx.ID_OK: "__wxID_OK__",
+                        wx.ID_CANCEL: "__wxID_CANCEL__",
+                        wx.ID_YES: "__wxID_YES__",
+                        wx.ID_NO: "__wxID_NO__"}.get (widget.GetId(), None)
+                if name is not None:
+                    return name
             if isinstance (widget, wx.Window):
                 return widget.GetName()
             elif widget is None:
@@ -332,12 +330,15 @@ class Controller (Block.Block):
                                     break
                             
                             menuBar = widget.GetMenuBar()
-                            for index in xrange (menuBar.GetMenuCount()):
-                                if menuBar.GetMenu (index) is widget:
-                                    menuName = menuBar.GetLabelTop (index) + " > " + menuName
-                                    break
+                            if menuBar is None:
+                                menuName = "Context Menu" + " > " + menuName
                             else:
-                                assert False, "Didn't find expected menu in menuBar"
+                                for index in xrange (menuBar.GetMenuCount()):
+                                    if menuBar.GetMenu (index) is widget:
+                                        menuName = menuBar.GetLabelTop (index) + " > " + menuName
+                                        break
+                                else:
+                                    assert False, "Didn't find expected menu in menuBar"
 
                             self.comments += "        Choose menu '%s' (%d)%s" % \
                                 (menuName, self.lineNumber, os.linesep)
@@ -350,24 +351,79 @@ class Controller (Block.Block):
                 
                     elif eventType == "wx.EVT_LEFT_DOWN":
                         self.comments += "        Left Mouse Down in %s (%d)%s" % (sentToName, self.lineNumber, os.linesep)
+                    elif eventType == "wx.EVT_RIGHT_DOWN":
+                        self.comments += "        Right Mouse Down in %s (%d)%s" % (sentToName, self.lineNumber, os.linesep)
                     elif eventType == "wx.EVT_LEFT_DCLICK":
-                        self.comments += "        Left Mouse Double Click in " + sentToName + os.linesep
+                        self.comments += "        Left Mouse Double Click in %s (%d)%s" % (sentToName, self.lineNumber, os.linesep)
 
+        def lookupMenuAccelerator (event):
+            """
+            wxWidgets has this functionality but doesn't expose it correctly
+            """
+            def getNextMenuItem (menu):
+                for menuItem in menu.GetMenuItems():
+                    if menuItem.IsSubMenu():
+                        for subMenuItem in getNextMenuItem (menuItem.GetSubMenu()):
+                            yield subMenuItem
+                    yield menuItem
+
+            flags = 0
+            keyCode = event.m_keyCode
+            if event.m_controlDown:
+                flags |= wx.ACCEL_CTRL
+                keyCode += 64 # convert to non control character
+            if event.m_altDown:
+                flags |= wx.ACCEL_ALT
+            if event.m_shiftDown:
+                flags |= wx.ACCEL_SHIFT
+                
+            if flags != 0:
+                menuBar = wx.GetApp().mainFrame.GetMenuBar()
+                for index in xrange (menuBar.GetMenuCount()):
+                    for menuItem in getNextMenuItem (menuBar.GetMenu (index)):
+                        accel = menuItem.GetAccel()
+                        if (accel is not None and
+                            accel.GetKeyCode() == keyCode and
+                            accel.GetFlags() == flags):
+                            return menuItem
+            return None
+    
         if event.__class__ in wxEventClasseInfo:
             eventType = wxEventTypeReverseMapping.get (event.GetEventType(), None)
             if eventType is not None:
+
+                # Save dictionary of properties of the event
+                values = []
+                if eventType == "wx.EVT_CHAR":
+                    # Translate command keys to menu commands
+                    menuItem = lookupMenuAccelerator (event)
+                    if menuItem is not None:
+                        id = menuItem.GetId()
+                        senttoWidget = event.GetEventObject()
+                        event = wx.CommandEvent (commandType = wx.EVT_MENU.evtType[0], winid = id)
+                        eventType = "wx.EVT_MENU"
+                        event.SetEventObject (senttoWidget)
+                        
+                        # Special feature when using a command key to paste, we keep track of the
+                        # clipboard so that playing back uses the clipboard that was recorded
+                        if id == wx.ID_PASTE:
+                            data = wx.TextDataObject()
+                            if wx.TheClipboard.Open():
+                                if wx.TheClipboard.GetData (data):
+                                    values.append ("'clipboard':" + self.valueToString (data.GetText()))
+                                wx.TheClipboard.Close()
+
                 sentToWidget = event.GetEventObject()
 
-                # Ignore events on widgets that are being deleted. Also ignore focus events on
-                # generic buttons since not all platforms can set the focus to them.
+                # Ignore events on widgets that are being deleted. Also ignore 
                 if (not getattr (sentToWidget, "widgetIsBeingDeleted", False) and
-                   not (eventType == "wx.EVT_SET_FOCUS" and isinstance (sentToWidget, GenButton))):
+                    # Ignore focus events on generic buttons since not all platforms can set the focus to them.
+                    not (eventType == "wx.EVT_SET_FOCUS" and isinstance (sentToWidget, GenButton))):
+
                     # Find the name of the block that the event was sent to
                     # Translate events in wx.Grid's GridWindow to wx.Grid
                     sentToName = widgetToName (sentToWidget)
                     
-                    # Save dictionary of properties of the event
-                    values = []
                     associatedBlock = Block.Block.idToBlock.get (event.GetId(), None)
                     if associatedBlock is not None:
                         associatedBlockName = associatedBlock.blockName
@@ -383,14 +439,6 @@ class Controller (Block.Block):
                         # Track selection of choice controls so we can set them on playback
                         if (eventType == "wx.EVT_CHOICE" or eventType == "wx.EVT_LISTBOX"):
                             values.append ("'selectedItem':" + self.valueToString (sentToWidget.GetSelection()))
-
-                        # Keep track of the clipboard on paste events
-                        elif eventType == "wx.EVT_TEXT_PASTE":
-                            data = wx.TextDataObject()
-                            if wx.TheClipboard.Open():
-                                if wx.TheClipboard.GetData (data):
-                                    values.append ("'clipboard':" + self.valueToString (data.GetText()))
-                                wx.TheClipboard.Close()
 
                         # Use mouse up events in text controls to set selection during playback
                         if (eventType == 'wx.EVT_LEFT_UP' and isinstance (sentToWidget, wx.TextCtrl)):
@@ -421,7 +469,7 @@ class Controller (Block.Block):
                                 
                                 # Don't verify focus changes when they are GenButtons, which some platforms
                                 # can't set the focus to.
-                                if not isinstance (sentToWidget, GenButton):
+                                if not isinstance (focusWindow, GenButton):
                                     values.append ("'recordedFocusWindow':" + self.valueToString (widgetToName(focusWindow)))
                                     values.append ("'recordedFocusWindowClass':" + getClassName (focusWindow.__class__))
 
@@ -440,7 +488,6 @@ class Controller (Block.Block):
                                 not eventType in ignoreValueCheckEventTypes and
                                 not lastSentToWidget.GetName() in ignoreValueCheckForWidgets):
                                     values.append ("'lastWidgetValue':" + self.valueToString (method()))
-
 
                         # Keep track of the last widget so we can record the change in Value and
                         # verify it during playbeck.

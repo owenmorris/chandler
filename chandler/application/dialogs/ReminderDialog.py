@@ -79,7 +79,7 @@ class ReminderDialog(wx.Frame):
         sizer.Add(listCtrl, 0, wx.ALIGN_CENTER|wx.ALL, 5)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
-        snoozeButton = wx.Button(panel, -1, _(u"&Snooze for 5 minutes"))
+        snoozeButton = wx.Button(panel, -1, _(u"&Snooze for 5 minutes"), name="Snooze for 5 minutes")
         snoozeButton.Enable(False)
         snoozeButton.Bind(wx.EVT_BUTTON, self.onSnooze)
         box.Add(snoozeButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)

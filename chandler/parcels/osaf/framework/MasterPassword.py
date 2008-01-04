@@ -502,7 +502,7 @@ class ChangeMasterPasswordDialog(wx.Dialog):
         box = wx.BoxSizer(wx.HORIZONTAL)
 
         if changing:
-            self.reset = wx.Button(self, -1, _(u'&Reset Master Password...'))
+            self.reset = wx.Button(self, -1, _(u'&Reset Master Password...'), name="Reset Master Password...")
             box.Add(self.reset, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
         if changing:

@@ -34,7 +34,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "470" # vajda: repository sources moved to chandlerdb
+SCHEMA_VERSION = "471" # john: bug #11616. Use menu block so script recording/playback works
 
 logger = None # initialized in initLogging()
 

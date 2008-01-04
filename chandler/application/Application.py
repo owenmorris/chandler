@@ -866,7 +866,6 @@ class wxApplication (wx.App):
             window = window.GetParent()
         event.Skip()
 
-
     def OnDestroyWindow(self, event):
         from osaf.framework.blocks.Block import Block
         Block.wxOnDestroyWidget (event.GetWindow())

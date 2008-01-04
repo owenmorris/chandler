@@ -47,7 +47,7 @@ class textAlignmentEnumType(schema.Enumeration):
     values = "Left", "Center", "Right"
 
 class buttonKindEnumType(schema.Enumeration):
-     values = "Text", "Image", "Toggle", "TextImage"
+    values = "Text", "Image", "Toggle", "TextImage"
 
 class Button(RectangularChild):
     characterStyle = schema.One(Styles.CharacterStyle)
@@ -77,13 +77,13 @@ class Button(RectangularChild):
         elif self.buttonKind == "TextImage":
             bitmap = wx.GetApp().GetImage(self.icon)
             button = GenBitmapTextButton(parentWidget,
-                                      id,
-                                      bitmap,
-                                      self.title,
-                                      wx.DefaultPosition,
-                                      (self.minimumSize.width, self.minimumSize.height),
-                                      style = wx.NO_BORDER,
-                                      drawstyle = drawstyle)
+                                         id,
+                                         bitmap,
+                                         self.title,
+                                         wx.DefaultPosition,
+                                         (self.minimumSize.width, self.minimumSize.height),
+                                         style = wx.NO_BORDER,
+                                         drawstyle = drawstyle)
             button.SetFont(Styles.getFont(getattr(self, "characterStyle", None)))
         elif self.buttonKind == "Toggle":
             button = wx.ToggleButton (parentWidget, 
@@ -95,6 +95,7 @@ class Button(RectangularChild):
             assert False, "unknown buttonKind"
 
         parentWidget.Bind(wx.EVT_BUTTON, self.buttonPressed, id=id)
+        button.SetName (self.blockName)
         return button
 
     def buttonPressed(self, event):

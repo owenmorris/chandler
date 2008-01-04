@@ -484,4 +484,4 @@ class ConfigureDialog(MsgDialog):
 
     def getButtons(self):
         self.buttons.append(wx.Button(self, wx.ID_CANCEL))
-        self.buttons.append(wx.Button(self, -1, _(u"Configure Folders")))
+        self.buttons.append(wx.Button(self, -1, _(u"Configure Folders"), name="Configure_Folders"))

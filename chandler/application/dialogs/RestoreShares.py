@@ -155,7 +155,7 @@ class UnsubscribedCollectionsDialog(wx.Dialog):
             self.NoButton = wx.Button(self.panel, wx.ID_CANCEL,
                 _(u"&Don't Sync"))
             self.LaterButton = wx.Button(self.panel, -1,
-                _(u"Sync &Later"))
+                _(u"Sync &Later"), name="Sync Later")
             self.SyncButton = wx.Button(self.panel, wx.ID_OK,
                 _(u"&Sync Now"))
 

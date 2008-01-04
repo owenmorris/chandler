@@ -53,7 +53,7 @@ class UnpublishDialog(wx.Dialog):
         self.buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.CancelButton = wx.Button(self.panel, wx.ID_CANCEL)
         self.RemoveButton = wx.Button(self.panel, wx.ID_OK, _(u"&Remove"))
-        self.DontButton = wx.Button(self.panel, -1, _(u"&Don't Remove"))
+        self.DontButton = wx.Button(self.panel, -1, _(u"&Don't Remove"), name="Don't Remove")
         self.RemoveButton.SetDefault()
         self.buttonSizer.Add(self.CancelButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
         self.buttonSizer.Add(self.RemoveButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)

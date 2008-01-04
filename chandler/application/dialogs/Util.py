@@ -473,7 +473,7 @@ class LogWindow(wx.Dialog):
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        btn = wx.Button(self, -1, _(u"Copy to Clipboard"))
+        btn = wx.Button(self, -1, _(u"Copy to Clipboard"), name="Copy to Clipboard")
         self.Bind(wx.EVT_BUTTON, self.OnCopy, id=btn.GetId())
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
@@ -875,11 +875,11 @@ class ResultsButtonPanel(wx.Panel):
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         if statusCode == self.parent.ERROR:
-            self.tryAgainButton = wx.Button(self, -1, _(u"&Try Again"))
+            self.tryAgainButton = wx.Button(self, -1, _(u"&Try Again"), name="Try Again")
             self.tryAgainButton.Bind(wx.EVT_BUTTON, self.parent.OnTryAgain)
             self.sizer.Add(self.tryAgainButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
-            self.closeButton = wx.Button(self, -1, _(u"Close &Window"))
+            self.closeButton = wx.Button(self, -1, _(u"Close &Window"), name="Close Window")
             self.closeButton.SetDefault()
             self.closeButton.Bind(wx.EVT_BUTTON, self.parent.OnClose)
             self.sizer.Add(self.closeButton, 1, wx.ALIGN_RIGHT|wx.ALL, 5)
@@ -899,13 +899,13 @@ class ResultsButtonPanel(wx.Panel):
             self.cButton.Bind(wx.EVT_BUTTON, self.parent.OnClose)
             self.sizer.Add(self.cButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
-            self.aButton = wx.Button(self, -1, _(u"&Apply Settings"))
+            self.aButton = wx.Button(self, -1, _(u"&Apply Settings"), name="Apply Settings")
             self.aButton.SetDefault()
             self.aButton.Bind(wx.EVT_BUTTON, self.parent.OnApplySettings)
             self.sizer.Add(self.aButton, 1, wx.ALIGN_RIGHT|wx.ALL, 5)
 
         else:
-            self.closeButton = wx.Button(self, -1, _(u"Close &Window"))
+            self.closeButton = wx.Button(self, -1, _(u"Close &Window"), name="Close Window")
             self.closeButton.SetDefault()
             self.closeButton.Bind(wx.EVT_BUTTON, self.parent.OnClose)
             self.sizer.Add(self.closeButton, 1, wx.ALIGN_RIGHT|wx.ALL, 5)

@@ -25,13 +25,24 @@ ignoreMSWEvents = set ((wx.EVT_TEXT_ENTER,
 def ProcessEvent (line, theClass, properties, attributes):
     
     def nameToWidget (name):
-        if name == "__none__":
+        
+        id = {"__wxID_OK__": wx.ID_OK,
+              "__wxID_CANCEL__": wx.ID_CANCEL,
+              "__wxID_YES__": wx.ID_YES,
+              "__wxID_NO__": wx.ID_NO}.get (name, None)
+        if id is not None:
+            widget = wx.FindWindowById (id)
+            assert isinstance (widget, wx.Button), \
+                   "event %d -- Expected widget with id %s to be a button. Instead it is %s" \
+                   % (eventNumber, name, sentTo, str(widget))
+            return widget
+        elif name == "__none__":
             return None
         elif name.startswith ("__block__"):
             block = Block.findBlockByName (name [len ("__block__"):])
             return block.widget
         else:
-            return wx.FindWindowByName (name)        
+            return wx.FindWindowByName (name)
 
     application = wx.GetApp()
     eventNumber = application.eventsIndex - 1
@@ -123,6 +134,25 @@ def ProcessEvent (line, theClass, properties, attributes):
     if eventType is wx.EVT_KEY_DOWN:
         ProcessEvent.last_rawCode = event.m_rawCode
 
+    # Track contents of clipboard in events with the clipboard property
+    contents = properties.get ("clipboard", None)
+    if contents is not None:
+        # Work around for bug #
+        success = wx.TheClipboard.Open()
+        assert success, "event %d -- The clipboard can't be opened" % eventNumber
+        success = wx.TheClipboard.SetData (wx.TextDataObject (contents))
+        assert success, "event %d -- Clipboard SetData failed" % eventNumber
+        
+        data = wx.TextDataObject()
+        success = wx.TheClipboard.GetData (data)
+        assert success, "event %d -- Clipboard GetData failed. This is often caused by a bug in Parallels, try turning off Clipboard Synchronization" % eventNumber
+        value = data.GetText()
+        
+        # Work around for bug #11699
+        if wx.Platform != "__WXMAC__":
+            assert value == contents, 'event %d -- Clipboard broken: set: "%s"; got: "%s"' % (eventNumber, contents, value)
+        wx.TheClipboard.Close()
+
     # Verify script if necessary
     if schema.ns('osaf.framework.script_recording', application.UIRepositoryView).RecordingController.verifyScripts:
         lastSentToWidget = ProcessEvent.lastSentToWidget
@@ -172,13 +202,9 @@ def ProcessEvent (line, theClass, properties, attributes):
             if lastWidgetValue is not None:
                 value = GetValueMethod()
 
-                # Special hackery for string that varies depending on Chandler build
-                if type (value) is unicode and value.startswith (u"Welcome to Chandler 0.7.dev-r"):
-                    assert lastWidgetValue.startswith (u"Welcome to Chandler 0.7.dev-r")
-                else:
-                    assert value == lastWidgetValue,\
-                           'event %d -- widget %s value, "%s" doesn\'t match the value when the script was recorded: "%s"; application.IsActive() is %s'\
-                            % (eventNumber, ProcessEvent.lastSentTo, value, lastWidgetValue, str(application.IsActive()))
+                assert value == lastWidgetValue,\
+                       'event %d -- widget %s value, "%s" doesn\'t match the value when the script was recorded: "%s"; application.IsActive() is %s'\
+                        % (eventNumber, ProcessEvent.lastSentTo, value, lastWidgetValue, str(application.IsActive()))
 
         # Keep track of the last widget. Use Id because widget can be deleted
 
@@ -249,16 +275,7 @@ def ProcessEvent (line, theClass, properties, attributes):
                                 event.UnicodeKey = 10
             
                             EmulateKeyPress (event)
-                elif eventType is wx.EVT_TEXT_PASTE:
-                    contents = properties.get ("clipboard", None)
-                    if contents is not None:
-                        assert wx.TheClipboard.Open(), "event %d -- The clipboard can't be opened" % eventNumber
-                        assert wx.TheClipboard.SetData (wx.TextDataObject (contents)), "event %d -- Clipboard SetData failed" % eventNumber
-                        wx.TheClipboard.Close()
-                        sentToWidget.Paste ()
-                        value = sentToWidget.GetValue()
-                        assert value == contents, 'event %d -- Pasted "%s". After paste widget has value: "%s"' % (eventNumber, contents, value)
-                        
+
     selectionRange = properties.get ("selectionRange", None)
     if selectionRange is not None:
         (start, end) = selectionRange

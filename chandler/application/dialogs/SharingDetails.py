@@ -39,11 +39,11 @@ class SharingDetailsFrame(wx.Frame):
         sizer.Add(textCtrl, 1, wx.EXPAND|wx.ALL, 5)
 
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
-        button = wx.Button(self, -1, _(u"Close"))
+        button = wx.Button(self, -1, _(u"Close"), name="Close")
         self.Bind(wx.EVT_BUTTON, self.OnClose, id=button.GetId())
         buttonSizer.Add(button, 0, wx.ALL, 5)
 
-        button = wx.Button(self, -1, _(u"Copy to Clipboard"))
+        button = wx.Button(self, -1, _(u"Copy to Clipboard"), name="Copy to Clipboard")
         self.Bind(wx.EVT_BUTTON, self.OnCopy, id=button.GetId())
         buttonSizer.Add(button, 0, wx.ALL, 5)
 

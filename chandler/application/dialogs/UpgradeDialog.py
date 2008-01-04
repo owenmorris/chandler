@@ -94,18 +94,18 @@ class MigrationDialog(wx.Dialog):
         box.Add((0,0), proportion=1, flag=wx.ALL)
 
         if backup is not None:
-            reloadButton = wx.Button(self, -1, _(u"&Reload Data"))
+            reloadButton = wx.Button(self, -1, _(u"&Reload Data"), name="Reload Data")
             reloadButton.Bind(wx.EVT_BUTTON, self.onReloadButton)
             box.Add(reloadButton, flag=wx.ALL, border=5)
 
-        moveButton = wx.Button(self, -1, _(u"&Move Data"))
+        moveButton = wx.Button(self, -1, _(u"&Move Data"), name="Move Data")
         moveButton.Bind(wx.EVT_BUTTON, self.onMoveDataButton)
         box.Add(moveButton, flag=wx.ALL, border=5)
         # Alternatively could maybe use a link
         #self.linkText = wx.HyperlinkCtrl(self, -1, _(u'Move Data'), MIGRATION_URL)
         #box.Add(self.linkText, flag=wx.ALL, border=5)
 
-        deleteButton = wx.Button(self, -1, _(u"&Delete Data"))
+        deleteButton = wx.Button(self, -1, _(u"&Delete Data"), name="Delete Data")
         deleteButton.Bind(wx.EVT_BUTTON, self.onDeleteDataButton)
         box.Add(deleteButton, flag=wx.ALL, border=5)
 

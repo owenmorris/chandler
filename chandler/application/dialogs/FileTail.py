@@ -46,23 +46,23 @@ class FileTailWindow(wx.Dialog):
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
         self.Bind(wx.EVT_BUTTON, self.OnOK, id=wx.ID_OK)
 
-        btn = wx.Button(self, -1, _(u"Mark"))
+        btn = wx.Button(self, -1, _(u"Mark"), name="Mark")
         self.Bind(wx.EVT_BUTTON, self.OnMark, id=btn.GetId())
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        btn = wx.Button(self, -1, _(u"Clear"))
+        btn = wx.Button(self, -1, _(u"Clear"), name="Clear")
         self.Bind(wx.EVT_BUTTON, self.OnClear, id=btn.GetId())
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        btn = wx.Button(self, -1, _(u"Copy to Clipboard"))
+        btn = wx.Button(self, -1, _(u"Copy to Clipboard"), name="Copy to Clipboard")
         self.Bind(wx.EVT_BUTTON, self.OnCopy, id=btn.GetId())
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        btn = wx.Button(self, -1, _(u"Font++"))
+        btn = wx.Button(self, -1, _(u"Font++"), name="Font++")
         self.Bind(wx.EVT_BUTTON, self.OnFontIncrease, id=btn.GetId())
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        btn = wx.Button(self, -1, _(u"Font--"))
+        btn = wx.Button(self, -1, _(u"Font--"), name="Font--")
         self.Bind(wx.EVT_BUTTON, self.OnFontDecrease, id=btn.GetId())
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 

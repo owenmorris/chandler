@@ -1089,7 +1089,11 @@ class BaseWidget(object):
             # a subclass of wx.MenuItem, it doesn't think it has the method GetSubMenu,
             # so we'll just call the correct method directly
             menu = wx.MenuItem.GetSubMenu (menuBlock.widget)
-            wx.Window.PopupMenu (menuBlock.parentBlock.widget, menu)
+            
+            # We don't display the context menus while playing back scripts because 
+            # context menus block the event loop while they are up
+            if not wx.GetApp().PlaybackEventPending():
+                wx.Window.PopupMenu (menuBlock.parentBlock.widget, menu)
 
 # These are the mappings looked up by wxRectangularChild.CalculateWXFlag, below
 _wxFlagMappings = {

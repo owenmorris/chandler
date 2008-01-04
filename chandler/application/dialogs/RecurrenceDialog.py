@@ -75,17 +75,17 @@ class RecurrenceDialog(wx.Dialog):
         self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancel)
 
         self.allButton = wx.Button(id=-1, label=u'',
-              name=u'allButton', parent=self)
+              name='allButton', parent=self)
         self.allButton.Bind(wx.EVT_BUTTON, self.onAll,
               id=-1)
 
         self.futureButton = wx.Button(id=-1, label=u'',
-              name=u'futureButton', parent=self)
+              name='futureButton', parent=self)
         self.futureButton.Bind(wx.EVT_BUTTON, self.onFuture,
               id=-1)
 
         self.thisButton = wx.Button(id=-1,
-              label=u'', name=u'thisButton', parent=self)
+              label=u'', name='thisButton', parent=self)
         self.thisButton.Bind(wx.EVT_BUTTON, self.onThis,
               id=-1)
 

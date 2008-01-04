@@ -24,6 +24,7 @@ from datetime import datetime, timedelta
 from osaf.framework.blocks.Block import BaseWidget
 from osaf import messages
 from BaseAttributeEditor import NotifyBlockToSaveValue
+from osaf.framework.blocks import Block
 
 class DragAndDropTextCtrl(BaseWidget,
                           DragAndDrop.DraggableWidget,
@@ -75,26 +76,19 @@ class DragAndDropTextCtrl(BaseWidget,
         """
         self.SetFocus()
         
-        # @@@ In the future, it might be nice to base this menu
-        # on CPIA mechanisms, but we don't need that for now.
-        menu = wx.Menu()
-        menu.Append(wx.ID_UNDO)#, messages.UNDO) # wx fills the message automatically
-        menu.Append(wx.ID_REDO)#, messages.REDO)
-        menu.AppendSeparator()
-        menu.Append(wx.ID_CUT)#, messages.CUT)
-        menu.Append(wx.ID_COPY)#, messages.COPY)
-        menu.Append(wx.ID_PASTE)#, messages.PASTE)
-        menu.Append(wx.ID_CLEAR, messages.CLEAR) # have to use ours for mnemonic
-        menu.AppendSeparator()
-        menu.Append(wx.ID_SELECTALL)#, messages.SELECT_ALL)
-
+        # Use menu block so that script recording/playback works
+        contextMenuBlock = Block.Block.findBlockByName ('DragAndDropTextCtrlContextMenu')
+        menu = wx.MenuItem.GetSubMenu (contextMenuBlock.widget)
+        
         if wx.Platform == '__WXGTK__':
             # (see note below re: GTK)
             menu.Bind(wx.EVT_MENU, self.OnMenuChoice)
             menu.Bind(wx.EVT_UPDATE_UI, self.OnMenuUpdateUI)
 
-        self.PopupMenu(menu)
-        menu.Destroy()
+        # We don't display the context menus while playing back scripts because 
+        # context menus block the event loop while they are up
+        if not wx.GetApp().PlaybackEventPending():
+            self.PopupMenu(menu)
 
         # event.Skip() intentionally not called: we don't want
         # the menu built into wx to appear!
