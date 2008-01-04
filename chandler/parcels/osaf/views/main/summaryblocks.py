@@ -753,6 +753,7 @@ def makeSummaryBlocks(parcel):
                     HTML.template('SummaryEmptyDashBoardView',
                         text = u'<html><body><center>&nbsp;<br>&nbsp;<br>%s</center></body></html>' % _(u'0 items'),
                         treatAsURL = False,
+                        contextMenu = "ItemContextMenu",
                         emptyContentsShow = True)
                 ]
             ),
