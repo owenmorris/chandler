@@ -132,6 +132,9 @@ def installParcel(parcel, oldName=None):
             BlockEvent.template('FileBug',
                                 dispatchEnum = 'FocusBubbleUp').install(parcel),
             
+            BlockEvent.template('ShowTip',
+                                dispatchEnum = 'FocusBubbleUp').install(parcel),
+            
             BlockEvent.template('Close',
                                 dispatchEnum = 'FocusBubbleUp').install(parcel),
     

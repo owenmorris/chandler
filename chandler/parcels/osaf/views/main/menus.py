@@ -844,6 +844,11 @@ def makeMainMenus(parcel):
                         title = _(u'Report a &Bug'),
                         helpString =
                              _(u'Open instructions on how to file a bug in your web browser')),
+                     MenuItem.template('ShowTipMenuItem',
+                        event = globalBlocks.ShowTip,
+                        title = _(u'Show &Tips...'),
+                        helpString =
+                             _(u'Learn more about how you can use Chandler!')),
                     ]) # Menu HelpMenu
             ]).install (parcel) # Menu MenuBar
 

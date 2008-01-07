@@ -478,6 +478,15 @@ class MainView(View):
             'http://chandlerproject.org/reportabug'
         )
 
+    def onShowTipEvent(self, event):
+        app = wx.GetApp()
+        prefs = schema.ns("osaf.app",
+                          app.UIRepositoryView).prefs
+        tp = wx.CreateFileTipProvider('application/tips.txt',
+                                      prefs.tipIndex)
+        prefs.showTip = wx.ShowTip(app.mainFrame, tp)
+        prefs.tipIndex = tp.GetCurrentTip()
+
     def onQuitEvent (self, event):
         """
         Close all the windows. Close the mainFrame last since it's the
