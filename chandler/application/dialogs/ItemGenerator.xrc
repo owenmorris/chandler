@@ -1,0 +1,1561 @@
+<?xml version="1.0" encoding="ISO-8859-15"?>
+<resource>
+  <object class="wxDialog" name="FRAME1">
+    <title></title>
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxNotebook" name="noteBookContainer">
+          <object class="notebookpage">
+            <label>General</label>
+            <object class="wxPanel" name="pageGeneral">
+              <object class="wxGridBagSizer">
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelGeneralPage">
+                    <label>Settings that apply to all items types</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>bold</weight>
+                      <underlined>0</underlined>
+                      <face>Arial</face>
+                    </font>
+                  </object>
+                </object>
+                <object class="spacer">
+                  <size>70,20</size>
+                  <cellpos>0,5</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelTotalItems">
+                    <label>Total number of items to generate</label>
+                    <tooltip>total number of items to generate</tooltip>
+                  </object>
+                  <cellpos>1,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTextCtrl" name="textCtrlTotalItems">
+                    <value>1</value>
+                    <size>40, 20</size>
+                    <tooltip>total number of items to generate</tooltip>
+                  </object>
+                  <cellpos>1,1</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelNumOfItemsValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>1,5</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelStamps">
+                    <label>Stamps:</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>normal</weight>
+                      <underlined>0</underlined>
+                      <face>Geneva</face>
+                    </font>
+                    <tooltip>specify percentage of items to have each type of stamp.  Sum of percentages does not have to equal 100.</tooltip>
+                  </object>
+                  <cellpos>2,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelPercentTask">
+                    <label>% Task</label>
+                    <tooltip>percentage of items to be stamped as tasks</tooltip>
+                    <style></style>
+                  </object>
+                  <ratio>10</ratio>
+                  <cellpos>2,1</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxChoice" name="choicePercentTask">
+                    <content>
+                      <item>0</item>
+                      <item>5</item>
+                      <item>10</item>
+                      <item>15</item>
+                      <item>20</item>
+                      <item>25</item>
+                      <item>30</item>
+                      <item>35</item>
+                      <item>40</item>
+                      <item>45</item>
+                      <item>50</item>
+                      <item>55</item>
+                      <item>60</item>
+                      <item>65</item>
+                      <item>70</item>
+                      <item>75</item>
+                      <item>80</item>
+                      <item>85</item>
+                      <item>90</item>
+                      <item>95</item>
+                      <item>100</item>
+                    </content>
+                    <selection>5</selection>
+                    <tooltip>percentage of items to be stamped as tasks</tooltip>
+                  </object>
+                  <cellpos>3,1</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelPercentMail">
+                    <label>% Mail</label>
+                  </object>
+                  <cellpos>2,2</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxChoice" name="choicePercentMail">
+                    <content>
+                      <item>0</item>
+                      <item>5</item>
+                      <item>10</item>
+                      <item>15</item>
+                      <item>20</item>
+                      <item>25</item>
+                      <item>30</item>
+                      <item>35</item>
+                      <item>40</item>
+                      <item>45</item>
+                      <item>50</item>
+                      <item>55</item>
+                      <item>60</item>
+                      <item>65</item>
+                      <item>70</item>
+                      <item>75</item>
+                      <item>80</item>
+                      <item>85</item>
+                      <item>90</item>
+                      <item>95</item>
+                      <item>100</item>
+                    </content>
+                    <selection>5</selection>
+                    <tooltip>percentage of items to be stamped as mail</tooltip>
+                  </object>
+                  <cellpos>3,2</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelPercentEvent">
+                    <label>% Event</label>
+                  </object>
+                  <cellpos>2,3</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxChoice" name="choicePercentEvent">
+                    <content>
+                      <item>0</item>
+                      <item>5</item>
+                      <item>10</item>
+                      <item>15</item>
+                      <item>20</item>
+                      <item>25</item>
+                      <item>30</item>
+                      <item>35</item>
+                      <item>40</item>
+                      <item>45</item>
+                      <item>50</item>
+                      <item>55</item>
+                      <item>60</item>
+                      <item>65</item>
+                      <item>70</item>
+                      <item>75</item>
+                      <item>80</item>
+                      <item>85</item>
+                      <item>90</item>
+                      <item>95</item>
+                      <item>100</item>
+                    </content>
+                    <selection>10</selection>
+                    <tooltip>Percentage of items to be stamped as events</tooltip>
+                  </object>
+                  <cellpos>3,3</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelStampsValid">
+                    <label>     </label>
+                  </object>
+                  <cellpos>3,5</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelTitle">
+                    <label>Title: source file path and file name</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>normal</weight>
+                      <underlined>0</underlined>
+                      <face>Geneva</face>
+                    </font>
+                    <tooltip>path to a file containing newline separated title strings</tooltip>
+                  </object>
+                  <flag>wxEXPAND|wxGROW</flag>
+                  <cellpos>4,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTextCtrl" name="textCtrlTitleSourceFile">
+                    <value>itemGenTitles.txt</value>
+                    <tooltip>path to a file containing newline separated title strings</tooltip>
+                  </object>
+                  <flag>wxEXPAND|wxGROW</flag>
+                  <minsize>300,20</minsize>
+                  <cellpos>4,1</cellpos>
+                  <cellspan>1,4</cellspan>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelTitleSourceValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>4,5</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelNoteField">
+                    <label>Note Field: source file path and file name:</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>normal</weight>
+                      <underlined>0</underlined>
+                      <face>Geneva</face>
+                    </font>
+                    <tooltip>path to a file containing newline separated note strings</tooltip>
+                  </object>
+                  <flag>wxGROW|wxSHAPED</flag>
+                  <cellpos>5,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTextCtrl" name="textCtrlNoteSourceFilePath">
+                    <value>itemGenNotes.txt</value>
+                    <tooltip>path to a file containing newline separated note strings</tooltip>
+                  </object>
+                  <flag>wxEXPAND|wxGROW</flag>
+                  <minsize>300,20</minsize>
+                  <cellpos>5,1</cellpos>
+                  <cellspan>1,4</cellspan>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelNoteSourceValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>5,5</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelCollectionSource">
+                    <label>Collection names: source file path and file name</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>normal</weight>
+                      <underlined>0</underlined>
+                      <face>Geneva</face>
+                    </font>
+                    <tooltip>path to a file containing newline separated collection names</tooltip>
+                  </object>
+                  <flag>wxEXPAND|wxGROW</flag>
+                  <cellpos>6,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTextCtrl" name="textCtrlCollectionFileName">
+                    <value>itemGenCollections.txt</value>
+                    <tooltip>path to a file containing newline separated collection names</tooltip>
+                  </object>
+                  <flag>wxEXPAND|wxGROW</flag>
+                  <minsize>300,20</minsize>
+                  <cellpos>6,1</cellpos>
+                  <cellspan>1,4</cellspan>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelCollectionSourceValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>6,5</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelNumberOfCollections">
+                    <label>Number of collections to create:</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>normal</weight>
+                      <underlined>0</underlined>
+                      <face>Geneva</face>
+                    </font>
+                    <tooltip>number of collections to create and distribute created items among</tooltip>
+                  </object>
+                  <cellpos>7,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTextCtrl" name="textCtrlCollectionCount">
+                    <value>4</value>
+                    <size>40,20</size>
+                    <tooltip>number of collections to create and distribute created items among</tooltip>
+                  </object>
+                  <cellpos>7,1</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelCollectionCountValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>7,5</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelCollectionMembership">
+                    <label>Number of collections items have membership in:</label>
+                    <tooltip>c:p Number of collections to have membership in, colon, percentage of items to use this rule.  Multiple rules can be given by separating them with a comma.  Note: c (number of collections) value must not exceed total number of collections created.</tooltip>
+                  </object>
+                  <cellpos>8,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTextCtrl" name="textCtrlCollectionMembership">
+                    <value>1:20, 3:80</value>
+                    <tooltip>c:p Number of collections to have membership in, colon, percentage of items to use this rule.  Multiple rules can be given by separating them with a comma.  Note: 'c' (collection count) value must not exceed total number of collections created.</tooltip>
+                  </object>
+                  <flag>wxEXPAND|wxGROW</flag>
+                  <cellpos>8,1</cellpos>
+                  <cellspan>1,4</cellspan>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelCollectionMembershipValid">
+                    <label></label>
+                  </object>
+                  <cellpos>8,5</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelLocationField">
+                    <label>Location Field: source file path and file name:</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>normal</weight>
+                      <underlined>0</underlined>
+                      <face>Geneva</face>
+                    </font>
+                    <tooltip>path to a file containing newline separated location strings</tooltip>
+                  </object>
+                  <flag>wxGROW|wxSHAPED</flag>
+                  <cellpos>9,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTextCtrl" name="textCtrlLocationSourceFilePath">
+                    <value>itemGenLocations.txt</value>
+                    <tooltip>path to a file containing newline separated location strings</tooltip>
+                  </object>
+                  <flag>wxEXPAND|wxGROW</flag>
+                  <minsize>300,20</minsize>
+                  <cellpos>9,1</cellpos>
+                  <cellspan>1,4</cellspan>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelLocationSourceValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>9,5</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelTriageStatus">
+                    <label>Triage status:</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>normal</weight>
+                      <underlined>0</underlined>
+                      <face>Geneva</face>
+                    </font>
+                    <tooltip>set percent of items to have each type of triage status.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>10,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelPercentUnassignedStatus">
+                    <label>% unassigned</label>
+                    <style></style>
+                    <tooltip>percentage of items to leave triage status unchanged from auto assigned value.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <ratio>10</ratio>
+                  <cellpos>10,1</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxChoice" name="choicePercentUnassignedStatus">
+                    <content>
+                      <item>0</item>
+                      <item>5</item>
+                      <item>10</item>
+                      <item>15</item>
+                      <item>20</item>
+                      <item>25</item>
+                      <item>30</item>
+                      <item>35</item>
+                      <item>40</item>
+                      <item>45</item>
+                      <item>50</item>
+                      <item>55</item>
+                      <item>60</item>
+                      <item>65</item>
+                      <item>70</item>
+                      <item>75</item>
+                      <item>80</item>
+                      <item>85</item>
+                      <item>90</item>
+                      <item>95</item>
+                      <item>100</item>
+                    </content>
+                    <selection>10</selection>
+                    <tooltip>percentage of items to leave triage status unchanged from auto assigned value.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>11,1</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelPercentNow">
+                    <label>% NOW</label>
+                    <style></style>
+                    <tooltip>percentage of items to change triage status to NOW.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <ratio>10</ratio>
+                  <cellpos>10,2</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxChoice" name="choicePercentNow">
+                    <content>
+                      <item>0</item>
+                      <item>5</item>
+                      <item>10</item>
+                      <item>15</item>
+                      <item>20</item>
+                      <item>25</item>
+                      <item>30</item>
+                      <item>35</item>
+                      <item>40</item>
+                      <item>45</item>
+                      <item>50</item>
+                      <item>55</item>
+                      <item>60</item>
+                      <item>65</item>
+                      <item>70</item>
+                      <item>75</item>
+                      <item>80</item>
+                      <item>85</item>
+                      <item>90</item>
+                      <item>95</item>
+                      <item>100</item>
+                    </content>
+                    <selection>4</selection>
+                    <tooltip>percentage of items to change triage status to NOW.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>11,2</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelPercentLater">
+                    <label>% LATER</label>
+                    <style></style>
+                    <tooltip>percentage of items to change triage status to LATER.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <ratio>10</ratio>
+                  <cellpos>10,3</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxChoice" name="choicePercentLater">
+                    <content>
+                      <item>0</item>
+                      <item>5</item>
+                      <item>10</item>
+                      <item>15</item>
+                      <item>20</item>
+                      <item>25</item>
+                      <item>30</item>
+                      <item>35</item>
+                      <item>40</item>
+                      <item>45</item>
+                      <item>50</item>
+                      <item>55</item>
+                      <item>60</item>
+                      <item>65</item>
+                      <item>70</item>
+                      <item>75</item>
+                      <item>80</item>
+                      <item>85</item>
+                      <item>90</item>
+                      <item>95</item>
+                      <item>100</item>
+                    </content>
+                    <selection>4</selection>
+                    <tooltip>percentage of items to change triage status to LATER.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>11,3</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelPercentDone">
+                    <label>% DONE</label>
+                    <tooltip>percentage of items to change triage status to DONE.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>10,4</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxChoice" name="choicePercentDone">
+                    <content>
+                      <item>0</item>
+                      <item>5</item>
+                      <item>10</item>
+                      <item>15</item>
+                      <item>20</item>
+                      <item>25</item>
+                      <item>30</item>
+                      <item>35</item>
+                      <item>40</item>
+                      <item>45</item>
+                      <item>50</item>
+                      <item>55</item>
+                      <item>60</item>
+                      <item>65</item>
+                      <item>70</item>
+                      <item>75</item>
+                      <item>80</item>
+                      <item>85</item>
+                      <item>90</item>
+                      <item>95</item>
+                      <item>100</item>
+                    </content>
+                    <selection>2</selection>
+                    <tooltip>percentage of items to change triage status to DONE.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>11,4</cellpos>
+                </object>
+                <vgap>5</vgap>
+                <hgap>5</hgap>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelTriageValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>11,5</cellpos>
+                </object>
+              </object>
+            </object>
+          </object>
+          <object class="notebookpage">
+            <label>Event</label>
+            <object class="wxPanel" name="pageEvent">
+              <object class="wxGridBagSizer">
+                <object class="spacer">
+                  <size>50,20</size>
+                  <cellpos>0,7</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelEventPage">
+                    <label>Settings that apply to events</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>bold</weight>
+                      <underlined>0</underlined>
+                      <face>Arial</face>
+                    </font>
+                  </object>
+                  <cellpos>0,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelTimePeriod">
+                    <label>Date range:</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>normal</weight>
+                      <underlined>0</underlined>
+                      <face>Geneva</face>
+                    </font>
+                    <tooltip>define a date range to create all events within</tooltip>
+                  </object>
+                  <cellpos>1,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelStartDate">
+                    <label>Start date (yyyy,m,d)</label>
+                    <tooltip>starting date for date range to create all events within</tooltip>
+                  </object>
+                  <cellpos>1,1</cellpos>
+                  <cellspan>1,2</cellspan>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTextCtrl" name="textCtrlStartDate">
+                    <value>2008,1,1</value>
+                    <tooltip>starting date for date range to create all events within</tooltip>
+                  </object>
+                  <cellpos>2,1</cellpos>
+                  <cellspan>1,2</cellspan>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelEndDate">
+                    <label>End date (yyyy,m,d)</label>
+                    <tooltip>ending date for date range to create all events within</tooltip>
+                  </object>
+                  <flag>wxEXPAND|wxGROW</flag>
+                  <cellpos>1,3</cellpos>
+                  <cellspan>1,2</cellspan>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTextCtrl" name="textCtrlEndDate">
+                    <value>2008,12,31</value>
+                    <tooltip>ending date for date range to create all events within</tooltip>
+                  </object>
+                  <cellpos>2,3</cellpos>
+                  <cellspan>1,2</cellspan>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelDateRangeValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>2,7</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelTimeOfDay">
+                    <label>Time of day:</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>normal</weight>
+                      <underlined>0</underlined>
+                      <face>Geneva</face>
+                    </font>
+                    <tooltip>start times to use expressed as an hour range, colin, percent of events to use that range.  Example eight to five skipping lunch is: 8-12:50, 13-18:50</tooltip>
+                  </object>
+                  <cellpos>3,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTextCtrl" name="textCtrlTimeOfDay">
+                    <value>8-17:50, 19-23:50</value>
+                    <tooltip>start times to use expressed as an hour range, colin, percent of events to use that range.  Example eight to five skipping lunch is: 8-12:50, 13-18:50</tooltip>
+                  </object>
+                  <flag>wxEXPAND|wxGROW</flag>
+                  <cellpos>3,1</cellpos>
+                  <cellspan>1,6</cellspan>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelTimeOfDaySpecValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>3,7</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelDuration">
+                    <label>Duration:</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>normal</weight>
+                      <underlined>0</underlined>
+                      <face>Geneva</face>
+                    </font>
+                    <tooltip>h.m:p  hours.minutes:percentage to use that duration, multiple specifications can be added if they are separated by commas</tooltip>
+                  </object>
+                  <cellpos>4,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTextCtrl" name="textCtrlDuration">
+                    <value>0.10:20, 2.0:80</value>
+                    <tooltip>h.m:p  hours.minutes:percentage to use that duration, multiple specifications can be added if they are separated by commas</tooltip>
+                  </object>
+                  <flag>wxEXPAND|wxGROW</flag>
+                  <cellpos>4,1</cellpos>
+                  <cellspan>1,6</cellspan>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelDurationSpecValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>4,7</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelDurationTypes">
+                    <label>Duration types:</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>normal</weight>
+                      <underlined>0</underlined>
+                      <face>Geneva</face>
+                    </font>
+                    <tooltip>set what percentage of events should use the different duration types</tooltip>
+                  </object>
+                  <cellpos>5,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelPercentAllDay">
+                    <label>% all-day</label>
+                    <style></style>
+                    <tooltip>percentage of events to mark as &quot;all-day&quot; (all-day box is checked).  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>5,1</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxChoice" name="choicePercentAllDay">
+                    <content>
+                      <item>0</item>
+                      <item>5</item>
+                      <item>10</item>
+                      <item>15</item>
+                      <item>20</item>
+                      <item>25</item>
+                      <item>30</item>
+                      <item>35</item>
+                      <item>40</item>
+                      <item>45</item>
+                      <item>50</item>
+                      <item>55</item>
+                      <item>60</item>
+                      <item>65</item>
+                      <item>70</item>
+                      <item>75</item>
+                      <item>80</item>
+                      <item>85</item>
+                      <item>90</item>
+                      <item>95</item>
+                      <item>100</item>
+                    </content>
+                    <selection>2</selection>
+                    <tooltip>percentage of events to mark as &quot;all-day&quot; (all-day box is checked).  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>6,1</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelPercentAtTime">
+                    <label>% at-time</label>
+                    <tooltip>percentage of events to create as &quot;at-time&quot; events, (start and end times are the same).  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>5,2</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxChoice" name="choicePercentAtTime">
+                    <content>
+                      <item>0</item>
+                      <item>5</item>
+                      <item>10</item>
+                      <item>15</item>
+                      <item>20</item>
+                      <item>25</item>
+                      <item>30</item>
+                      <item>35</item>
+                      <item>40</item>
+                      <item>45</item>
+                      <item>50</item>
+                      <item>55</item>
+                      <item>60</item>
+                      <item>65</item>
+                      <item>70</item>
+                      <item>75</item>
+                      <item>80</item>
+                      <item>85</item>
+                      <item>90</item>
+                      <item>95</item>
+                      <item>100</item>
+                    </content>
+                    <selection>2</selection>
+                    <tooltip>percentage of events to create as &quot;at-time&quot; events, (start and end times are the same).  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>6,2</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelPercentAnyTime">
+                    <label>% any-time</label>
+                    <tooltip>percentage of events to create as &quot;any-time&quot; events, no start or end time.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>5,3</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxChoice" name="choicePercentAnyTime">
+                    <content>
+                      <item>0</item>
+                      <item>5</item>
+                      <item>10</item>
+                      <item>15</item>
+                      <item>20</item>
+                      <item>25</item>
+                      <item>30</item>
+                      <item>35</item>
+                      <item>40</item>
+                      <item>45</item>
+                      <item>50</item>
+                      <item>55</item>
+                      <item>60</item>
+                      <item>65</item>
+                      <item>70</item>
+                      <item>75</item>
+                      <item>80</item>
+                      <item>85</item>
+                      <item>90</item>
+                      <item>95</item>
+                      <item>100</item>
+                    </content>
+                    <selection>2</selection>
+                    <tooltip>percentage of events to create as &quot;any-time&quot; events, no start or end time.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>6,3</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelPercentDuration">
+                    <label>% duration</label>
+                    <tooltip>percentage of events to create with a timed duration ie., start and end times.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>5,4</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxChoice" name="choicePercentDuration">
+                    <content>
+                      <item>0</item>
+                      <item>5</item>
+                      <item>10</item>
+                      <item>15</item>
+                      <item>20</item>
+                      <item>25</item>
+                      <item>30</item>
+                      <item>35</item>
+                      <item>40</item>
+                      <item>45</item>
+                      <item>50</item>
+                      <item>55</item>
+                      <item>60</item>
+                      <item>65</item>
+                      <item>70</item>
+                      <item>75</item>
+                      <item>80</item>
+                      <item>85</item>
+                      <item>90</item>
+                      <item>95</item>
+                      <item>100</item>
+                    </content>
+                    <selection>14</selection>
+                    <tooltip>percentage of events to create with a timed duration ie., start and end times.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>6,4</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelDurationTypesValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>6,7</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelStatus">
+                    <label>Status:</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>normal</weight>
+                      <underlined>0</underlined>
+                      <face>Geneva</face>
+                    </font>
+                    <tooltip>set what percentage of events should have each status value.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>7,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelPercentConfirmed">
+                    <label>% confirmed</label>
+                    <style></style>
+                    <tooltip>percentage of events to have 'confirmed' status.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <ratio>10</ratio>
+                  <cellpos>7,1</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxChoice" name="choicePercentConfirmed">
+                    <content>
+                      <item>0</item>
+                      <item>5</item>
+                      <item>10</item>
+                      <item>15</item>
+                      <item>20</item>
+                      <item>25</item>
+                      <item>30</item>
+                      <item>35</item>
+                      <item>40</item>
+                      <item>45</item>
+                      <item>50</item>
+                      <item>55</item>
+                      <item>60</item>
+                      <item>65</item>
+                      <item>70</item>
+                      <item>75</item>
+                      <item>80</item>
+                      <item>85</item>
+                      <item>90</item>
+                      <item>95</item>
+                      <item>100</item>
+                    </content>
+                    <selection>12</selection>
+                    <tooltip>percentage of events to have 'confirmed' status.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>8,1</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelPercentTentative">
+                    <label>% tentative</label>
+                    <tooltip>percentage of events to have 'tentative' status.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>7,2</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxChoice" name="choicePercentTentative">
+                    <content>
+                      <item>0</item>
+                      <item>5</item>
+                      <item>10</item>
+                      <item>15</item>
+                      <item>20</item>
+                      <item>25</item>
+                      <item>30</item>
+                      <item>35</item>
+                      <item>40</item>
+                      <item>45</item>
+                      <item>50</item>
+                      <item>55</item>
+                      <item>60</item>
+                      <item>65</item>
+                      <item>70</item>
+                      <item>75</item>
+                      <item>80</item>
+                      <item>85</item>
+                      <item>90</item>
+                      <item>95</item>
+                      <item>100</item>
+                    </content>
+                    <selection>4</selection>
+                    <tooltip>percentage of events to have 'tentative' status.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>8,2</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelPercentFYI">
+                    <label>% FYI</label>
+                    <tooltip>percentage of event to have 'FYI' status.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>7,3</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxChoice" name="choicePercentFYI">
+                    <content>
+                      <item>0</item>
+                      <item>5</item>
+                      <item>10</item>
+                      <item>15</item>
+                      <item>20</item>
+                      <item>25</item>
+                      <item>30</item>
+                      <item>35</item>
+                      <item>40</item>
+                      <item>45</item>
+                      <item>50</item>
+                      <item>55</item>
+                      <item>60</item>
+                      <item>65</item>
+                      <item>70</item>
+                      <item>75</item>
+                      <item>80</item>
+                      <item>85</item>
+                      <item>90</item>
+                      <item>95</item>
+                      <item>100</item>
+                    </content>
+                    <selection>4</selection>
+                    <tooltip>percentage of event to have 'FYI' status.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>8,3</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelStatusValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>8,7</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelRecurrence">
+                    <label>Recurrence:</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>normal</weight>
+                      <underlined>0</underlined>
+                      <face>Geneva</face>
+                    </font>
+                    <tooltip>set what percentage of events should have each recurrence frequency.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>9,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelPercentNonRecurring">
+                    <label>% None</label>
+                    <style></style>
+                    <tooltip>percentage of events to occur only once.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <ratio>10</ratio>
+                  <cellpos>9,1</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxChoice" name="choicePercentNonRecurring">
+                    <content>
+                      <item>0</item>
+                      <item>5</item>
+                      <item>10</item>
+                      <item>15</item>
+                      <item>20</item>
+                      <item>25</item>
+                      <item>30</item>
+                      <item>35</item>
+                      <item>40</item>
+                      <item>45</item>
+                      <item>50</item>
+                      <item>55</item>
+                      <item>60</item>
+                      <item>65</item>
+                      <item>70</item>
+                      <item>75</item>
+                      <item>80</item>
+                      <item>85</item>
+                      <item>90</item>
+                      <item>95</item>
+                      <item>100</item>
+                    </content>
+                    <selection>12</selection>
+                    <tooltip>percentage of events to occur only once.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>10,1</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelPercentDaily">
+                    <label>% daily</label>
+                    <style></style>
+                    <tooltip>percentage of events to recur daily.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <ratio>10</ratio>
+                  <cellpos>9,2</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxChoice" name="choicePercentDaily">
+                    <content>
+                      <item>0</item>
+                      <item>5</item>
+                      <item>10</item>
+                      <item>15</item>
+                      <item>20</item>
+                      <item>25</item>
+                      <item>30</item>
+                      <item>35</item>
+                      <item>40</item>
+                      <item>45</item>
+                      <item>50</item>
+                      <item>55</item>
+                      <item>60</item>
+                      <item>65</item>
+                      <item>70</item>
+                      <item>75</item>
+                      <item>80</item>
+                      <item>85</item>
+                      <item>90</item>
+                      <item>95</item>
+                      <item>100</item>
+                    </content>
+                    <selection>2</selection>
+                    <tooltip>percentage of events to recur daily.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>10,2</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelPercentWeekly">
+                    <label>% weekly</label>
+                    <tooltip>percentage of events to recur weekly.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>9,3</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxChoice" name="choicePercentWeekly">
+                    <content>
+                      <item>0</item>
+                      <item>5</item>
+                      <item>10</item>
+                      <item>15</item>
+                      <item>20</item>
+                      <item>25</item>
+                      <item>30</item>
+                      <item>35</item>
+                      <item>40</item>
+                      <item>45</item>
+                      <item>50</item>
+                      <item>55</item>
+                      <item>60</item>
+                      <item>65</item>
+                      <item>70</item>
+                      <item>75</item>
+                      <item>80</item>
+                      <item>85</item>
+                      <item>90</item>
+                      <item>95</item>
+                      <item>100</item>
+                    </content>
+                    <selection>2</selection>
+                    <tooltip>percentage of events to recur weekly.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>10,3</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelPercentBiWeekly">
+                    <label>% bi-weekly</label>
+                    <tooltip>percentage of events to recur bi-weekly.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>9,4</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxChoice" name="choicePercentBiWeekly">
+                    <content>
+                      <item>0</item>
+                      <item>5</item>
+                      <item>10</item>
+                      <item>15</item>
+                      <item>20</item>
+                      <item>25</item>
+                      <item>30</item>
+                      <item>35</item>
+                      <item>40</item>
+                      <item>45</item>
+                      <item>50</item>
+                      <item>55</item>
+                      <item>60</item>
+                      <item>65</item>
+                      <item>70</item>
+                      <item>75</item>
+                      <item>80</item>
+                      <item>85</item>
+                      <item>90</item>
+                      <item>95</item>
+                      <item>100</item>
+                    </content>
+                    <selection>2</selection>
+                    <tooltip>percentage of events to recur bi-weekly.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>10,4</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelPercentMonthly">
+                    <label>% monthly</label>
+                    <tooltip>percentage of events to recur monthly.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>9,5</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxChoice" name="choicePercentMonthly">
+                    <content>
+                      <item>0</item>
+                      <item>5</item>
+                      <item>10</item>
+                      <item>15</item>
+                      <item>20</item>
+                      <item>25</item>
+                      <item>30</item>
+                      <item>35</item>
+                      <item>40</item>
+                      <item>45</item>
+                      <item>50</item>
+                      <item>55</item>
+                      <item>60</item>
+                      <item>65</item>
+                      <item>70</item>
+                      <item>75</item>
+                      <item>80</item>
+                      <item>85</item>
+                      <item>90</item>
+                      <item>95</item>
+                      <item>100</item>
+                    </content>
+                    <selection>2</selection>
+                    <tooltip>percentage of events to recur monthly.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>10,5</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelPercentYearly">
+                    <label>% yearly</label>
+                    <tooltip>percentage of events to recur yearly.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>9,6</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxChoice" name="choicePercentYearly">
+                    <content>
+                      <item>0</item>
+                      <item>5</item>
+                      <item>10</item>
+                      <item>15</item>
+                      <item>20</item>
+                      <item>25</item>
+                      <item>30</item>
+                      <item>35</item>
+                      <item>40</item>
+                      <item>45</item>
+                      <item>50</item>
+                      <item>55</item>
+                      <item>60</item>
+                      <item>65</item>
+                      <item>70</item>
+                      <item>75</item>
+                      <item>80</item>
+                      <item>85</item>
+                      <item>90</item>
+                      <item>95</item>
+                      <item>100</item>
+                    </content>
+                    <selection>0</selection>
+                    <tooltip>percentage of events to recur yearly.  The sum of all percentages must equal 100.</tooltip>
+                  </object>
+                  <cellpos>10,6</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelRecurrenceValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>10,7</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelRecurrenceEndDate">
+                    <label>Recurrence end date:</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>normal</weight>
+                      <underlined>0</underlined>
+                      <face>Geneva</face>
+                    </font>
+                    <tooltip>N:P number of occurrences till end date : percent</tooltip>
+                  </object>
+                  <cellpos>11,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTextCtrl" name="textCtrlRecurrenceEndDates">
+                    <value>10:50, 0:50</value>
+                    <tooltip>N:P number of occurrences till end date : percent</tooltip>
+                  </object>
+                  <flag>wxEXPAND|wxGROW</flag>
+                  <cellpos>11,1</cellpos>
+                  <cellspan>1,6</cellspan>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelRecurrenceEndDateValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>11,7</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelAlarmSpecification">
+                    <label>Alarm time:</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>normal</weight>
+                      <underlined>0</underlined>
+                      <face>Geneva</face>
+                    </font>
+                    <tooltip>th.m:p type hour.minute:percent  valid types are b=before, a=after, c=custom.   For custom hour.minute defines a time of day.  b &amp; a types can only be used on events whereas c types apply to all items</tooltip>
+                  </object>
+                  <cellpos>12,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTextCtrl" name="textCtrlAlarmSpec">
+                    <value>b0.10:50, a1.1:25, c5.5:25</value>
+                    <tooltip>th.m:p type hour.minute:percent  valid types are b=before, a=after, c=custom.   For custom hour.minute defines a time of day.  b &amp; a types can only be used on events whereas c types apply to all items</tooltip>
+                  </object>
+                  <flag>wxEXPAND|wxGROW</flag>
+                  <cellpos>12,1</cellpos>
+                  <cellspan>1,6</cellspan>
+                </object>
+                <vgap>5</vgap>
+                <hgap>5</hgap>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelAlarmTypeValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>12,7</cellpos>
+                </object>
+              </object>
+            </object>
+          </object>
+          <object class="notebookpage">
+            <label>Message</label>
+            <object class="wxPanel" name="pageMessage">
+              <object class="wxGridBagSizer">
+                <object class="spacer">
+                  <size>50,20</size>
+                  <cellpos>0,5</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelMsgPage">
+                    <label>Settings that apply to messages</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>bold</weight>
+                      <underlined>0</underlined>
+                      <face>Arial</face>
+                    </font>
+                  </object>
+                  <cellpos>0,0</cellpos>
+                  <cellspan>1,3</cellspan>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelTo">
+                    <label>To:</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>normal</weight>
+                      <underlined>0</underlined>
+                      <face>Geneva</face>
+                    </font>
+                  </object>
+                  <cellpos>1,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelToFile">
+                    <label>address source file *</label>
+                    <tooltip>path/name of file containing newline delimited addresses</tooltip>
+                  </object>
+                  <cellpos>2,1</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTextCtrl" name="textCtrlToFile">
+                    <tooltip>path/name of file containing newline delimited addresses</tooltip>
+                  </object>
+                  <flag>wxEXPAND|wxGROW</flag>
+                  <minsize>200,20</minsize>
+                  <cellpos>2,2</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelToSourceValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>2,4</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelToSpec">
+                    <label>Specify number of 'To:' addresses per message</label>
+                    <tooltip>number_of_addresses:percentage to use that number.  Example &quot;5:20, 1:80&quot; means 20% of the messages will have 5 addresses and 80% will have one address</tooltip>
+                  </object>
+                  <cellpos>3,1</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTextCtrl" name="textCtrlToSpec">
+                    <value>1:100</value>
+                    <tooltip>number_of_addresses:percentage to use that number.  Example &quot;5:20, 1:80&quot; means 20% of the messages will have 5 addresses and 80% will have one address</tooltip>
+                  </object>
+                  <flag>wxEXPAND|wxGROW</flag>
+                  <minsize>200,20</minsize>
+                  <cellpos>3,2</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelToSpecValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>3,4</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelCC">
+                    <label>CC:</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>normal</weight>
+                      <underlined>0</underlined>
+                      <face>Geneva</face>
+                    </font>
+                  </object>
+                  <cellpos>4,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelCCFileName">
+                    <label>address source file *</label>
+                    <tooltip>path/name of file containing newline delimited addresses</tooltip>
+                  </object>
+                  <cellpos>5,1</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTextCtrl" name="textCtrlCCFileName">
+                    <tooltip>path/name of file containing newline delimited addresses</tooltip>
+                  </object>
+                  <flag>wxEXPAND|wxGROW</flag>
+                  <minsize>200,20</minsize>
+                  <cellpos>5,2</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelCCSourceValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>5,4</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelCCSpec">
+                    <label>Specify number of 'CC:' addresses per message</label>
+                    <tooltip>number_of_addresses:percentage to use that number.  Example &quot;5:20, 1:80&quot; means 20% of the messages will have 5 addresses and 80% will have one address</tooltip>
+                  </object>
+                  <cellpos>6,1</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTextCtrl" name="textCtrlCCSpec">
+                    <value>0:100</value>
+                    <tooltip>number_of_addresses:percentage to use that number.  Example &quot;5:20, 1:80&quot; means 20% of the messages will have 5 addresses and 80% will have one address</tooltip>
+                  </object>
+                  <flag>wxEXPAND|wxGROW</flag>
+                  <minsize>200,20</minsize>
+                  <cellpos>6,2</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelCCSpecValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>6,4</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelBCC">
+                    <label>BCC:</label>
+                    <font>
+                      <size>14</size>
+                      <family>default</family>
+                      <style>normal</style>
+                      <weight>normal</weight>
+                      <underlined>0</underlined>
+                      <face>Geneva</face>
+                    </font>
+                  </object>
+                  <cellpos>7,0</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelCtrlBCCFileName">
+                    <label>address source file *</label>
+                    <tooltip>path/name of file containing newline delimited addresses</tooltip>
+                  </object>
+                  <cellpos>8,1</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTextCtrl" name="textCtrlBCCFileName">
+                    <tooltip>path/name of file containing newline delimited addresses</tooltip>
+                  </object>
+                  <flag>wxEXPAND|wxGROW</flag>
+                  <minsize>200,20</minsize>
+                  <cellpos>8,2</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelBCCSourceValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>8,4</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelNumBCCSpec">
+                    <label>Specify number of 'BCC' addresses per message</label>
+                    <tooltip>number_of_addresses:percentage to use that number.  Example &quot;5:20, 1:80&quot; means 20% of the messages will have 5 addresses and 80% will have one address</tooltip>
+                  </object>
+                  <cellpos>9,1</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTextCtrl" name="textCtrlBCCSpec">
+                    <value>0:100</value>
+                    <tooltip>number_of_addresses:percentage to use that number.  Example &quot;5:20, 1:80&quot; means 20% of the messages will have 5 addresses and 80% will have one address</tooltip>
+                  </object>
+                  <flag>wxEXPAND|wxGROW</flag>
+                  <minsize>200,20</minsize>
+                  <cellpos>9,2</cellpos>
+                </object>
+                <vgap>5</vgap>
+                <hgap>5</hgap>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="labelBCCSpecValid">
+                    <label>      </label>
+                  </object>
+                  <cellpos>9,4</cellpos>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxStaticText" name="addressFieldNote">
+                    <label>* leave address file field blank to use random addresses</label>
+                  </object>
+                  <cellpos>12,1</cellpos>
+                  <cellspan>1,2</cellspan>
+                </object>
+              </object>
+            </object>
+          </object>
+        </object>
+        <flag>wxEXPAND|wxGROW</flag>
+        <border>10</border>
+      </object>
+      <object class="spacer">
+        <size>10,10</size>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxHORIZONTAL</orient>
+          <object class="sizeritem">
+            <object class="wxButton" name="buttonGenerate">
+              <label>Generate</label>
+              <tooltip>Create the items as specified</tooltip>
+            </object>
+          </object>
+          <object class="spacer">
+            <size>10,10</size>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="buttonCancel">
+              <label>Cancel</label>
+            </object>
+          </object>
+          <object class="spacer">
+            <size>10,10</size>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="buttonSave">
+              <label>save settings</label>
+              <style></style>
+              <tooltip>save all dialog values to a file</tooltip>
+            </object>
+          </object>
+          <object class="spacer">
+            <size>10,10</size>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="buttonRestore">
+              <label>restore settings</label>
+              <style></style>
+              <tooltip>restore the values saved with &quot;save settings&quot; button</tooltip>
+            </object>
+          </object>
+          <object class="spacer">
+            <size>10,10</size>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="buttonHelp">
+              <label>Help</label>
+              <style></style>
+              <tooltip>show help for the more difficult parts of this dialog</tooltip>
+            </object>
+          </object>
+        </object>
+      </object>
+      <object class="spacer">
+        <size>10,10</size>
+      </object>
+    </object>
+  </object>
+</resource>

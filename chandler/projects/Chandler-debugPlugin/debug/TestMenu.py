@@ -22,6 +22,8 @@ from osaf.framework.blocks import BlockEvent, ChoiceEvent, MenuItem, Menu
 from debug.generate import GenerateAllItems
 from debug.GenerateItemsFromFile import GenerateItems
 from debug.mail import loadMailTests
+from wx import xrc
+import application.dialogs.ItemGenerator as itemGenerator
 
 _ = MessageFactory("Chandler-debugPlugin")
 
@@ -62,7 +64,11 @@ class TestMenuHandler(Block):
                               %{'filename': filename})
 
         return GenerateItems(self.itsView, os.path.join(dir, filename))
-
+    
+    def on_debug_GenerateDataFromDialogEvent(self, event):
+        # triggered from "Tools | Test | Generate Items from dialog" menu
+        itemGenerator.show()
+    
     def on_debug_MimeTestEvent(self, event):
         loadMailTests(self.itsView, "mime_tests")
 
@@ -85,7 +91,11 @@ def makeTestMenu(parcel, toolsMenu):
                           blockName='_debug_GenerateDataFromFile',
                           dispatchEnum='SendToBlockByReference',
                           destinationBlockReference=handler)
-
+    generateDataFromDialogEvent = \
+        BlockEvent.update(parcel, None,
+                          blockName='_debug_GenerateDataFromDialog',
+                          dispatchEnum='SendToBlockByReference',
+                          destinationBlockReference=handler)
     mimeTestEvent = \
         BlockEvent.update(parcel, None,
                           blockName='_debug_MimeTest',
@@ -120,7 +130,12 @@ def makeTestMenu(parcel, toolsMenu):
                     helpString=_(u'generates items from a file'),
                     event=generateDataFromFileEvent,
                     parentBlock=testMenu)
-
+    MenuItem.update(parcel, None,
+                    blockName='_debug_GenerateDataFromDialog',
+                    title=_(u'Generate Items from a &Dialog'),
+                    helpString=_(u'choose items to generate from a dialog'),
+                    event=generateDataFromDialogEvent,
+                    parentBlock=testMenu)
     MenuItem.update(parcel, None,
                     blockName='_debug_test_separator_1',
                     menuItemKind='Separator',
