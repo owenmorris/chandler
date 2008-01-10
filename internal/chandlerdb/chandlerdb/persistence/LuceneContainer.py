@@ -48,16 +48,18 @@ class DbLock(PythonLock):
 
 class DbIndexOutput(PythonIndexOutput):
 
-    def __init__(self, stream):
+    def __init__(self, directory, stream):
         super(DbIndexOutput, self).__init__()
         self.stream = stream
-        self.isOpen = True
+        directory._streams.append(self)
+        self.directory = directory
 
     def close(self):
-        if self.isOpen:
+        if self.directory is not None:
             super(DbIndexOutput, self).close()
-            self.isOpen = False
             self.stream.close()
+            self.directory = None
+        self.finalize()
 
     def length(self):
         return long(self.stream.length)
@@ -71,23 +73,25 @@ class DbIndexOutput(PythonIndexOutput):
 
 class DbIndexInput(PythonIndexInput):
 
-    def __init__(self, stream, bufferSize, clone=False):
+    def __init__(self, directory, stream, bufferSize, clone=False):
         if not clone:
             super(DbIndexInput, self).__init__(bufferSize)
         self.stream = stream
-        self.isOpen = True
+        directory._streams.append(self)
+        self.directory = directory
 
     def length(self):
         return long(self.stream.length)
 
     def clone(self):
-        clone = DbIndexInput(self.stream.clone(), 0, True)
+        clone = DbIndexInput(self.directory, self.stream.clone(), 0, True)
         return super(DbIndexInput, self).clone(clone)
 
     def close(self):
-        if self.isOpen:
-            self.isOpen = False
+        if self.directory is not None:
             self.stream.close()
+            self.directory = None
+        self.finalize()
 
     def readInternal(self, length, pos):
         self.stream.seek(pos)
@@ -102,17 +106,18 @@ class DbDirectory(PythonDirectory):
         super(DbDirectory, self).__init__()
         self.fileContainer = fileContainer
         self._streams = []
+        self._locks = {}
 
     def close(self):
         for stream in self._streams:
             stream.close()
         del self._streams[:]
+        for lock in self._locks.itervalues():
+            lock.finalize()
+        self._locks.clear()
 
     def createOutput(self, name):
-        stream = self.fileContainer.createFile(name)
-        stream = DbIndexOutput(stream)
-        self._streams.append(stream)
-        return stream
+        return DbIndexOutput(self, self.fileContainer.createFile(name))
 
     def deleteFile(self, name):
         if self.fileContainer.fileExists(name):
@@ -131,16 +136,18 @@ class DbDirectory(PythonDirectory):
         return self.fileContainer.list()
 
     def makeLock(self, name):
-        return DbLock(name)
+        lock = self._locks.get(name)
+        if lock is None:
+            lock = DbLock(name)
+            self._locks[name] = lock
+        return lock
 
     def openInput(self, name, bufferSize=0):
         try:
             stream = self.fileContainer.openFile(name)
         except RepositoryError:
             raise JavaError, IOException(name)
-        stream = DbIndexInput(stream, bufferSize)
-        self._streams.append(stream)
-        return stream
+        return DbIndexInput(self, stream, bufferSize)
 
     def touchFile(self, name):
         self.fileContainer.touchFile(name)
