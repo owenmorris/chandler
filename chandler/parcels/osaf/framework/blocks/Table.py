@@ -197,19 +197,22 @@ class wxTable(DragAndDrop.DraggableWidget,
         return super(wxTable, self).Destroy()
 
     def displayContextMenu(self, event):
-        (column, row) = self.__eventToCell(event)
-        selectedItemIndex = self.RowToIndex (row)
-        blockItem = self.blockItem
-        if selectedItemIndex != -1:
-            # if the row in question is already selected, don't change selection
-            itemRange = (selectedItemIndex, selectedItemIndex)
-            if not blockItem.contents.isSelected(itemRange):
-                blockItem.contents.setSelectionRanges ([itemRange])
-                blockItem.PostSelectItems()
-            # Update the screen before showing the context menu
-            theApp = wx.GetApp()
-            theApp.propagateAsynchronousNotifications()
-            theApp.Yield(True)
+        cell = self.__eventToCell(event)
+        if cell is not None: # it's not keyboard-triggered, so we have a cell.
+            (column, row) = cell
+            selectedItemIndex = self.RowToIndex (row)
+            if selectedItemIndex != -1:
+                # if the row in question is already selected, don't change selection
+                itemRange = (selectedItemIndex, selectedItemIndex)
+                blockItem = self.blockItem
+                if not blockItem.contents.isSelected(itemRange):
+                    blockItem.contents.setSelectionRanges ([itemRange])
+                    blockItem.PostSelectItems()
+                    
+                    # Update the screen before showing the context menu
+                    theApp = wx.GetApp()
+                    theApp.propagateAsynchronousNotifications()
+                    theApp.Yield(True)
         super(wxTable, self).displayContextMenu(event)
 
     def OnPaint (self, event):
@@ -385,6 +388,11 @@ class wxTable(DragAndDrop.DraggableWidget,
 
     def __eventToCell(self, event):
         """ return the cell coordinates for the X & Y in this event """
+        # See if this event has a GetX() method (if it doesn't, it's probably a
+        # keyboard-triggered context menu event..., and thus has no coordinates).
+        getX = getattr(event, 'GetX', None)
+        if getX is None:
+            return None
         x = event.GetX()
         y = event.GetY()
         unscrolledX, unscrolledY = self.CalcUnscrolledPosition(x, y)
