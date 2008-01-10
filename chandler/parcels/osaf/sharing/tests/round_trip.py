@@ -1021,10 +1021,33 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         event = self._makeRecurringEvent(view0, self.share0.contents)
         item = event.itsItem
         
+        def countPoppedToNow(master):
+            popped = 0
+            for mod in pim.EventStamp(master).modifications:
+                if hasattr(mod, '_sectionTriageStatus'):
+                    popped += 1
+            return popped
+
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+
+        item1 = view1.findUUID(item.itsUUID)
+        
+        self.assert_(pim.has_stamp(item1, pim.EventStamp))
+        event1 = pim.EventStamp(item1)
+
+        # only the next future occurrence should be popped to NOW
+        self.assertEqual(countPoppedToNow(item1), 1)
+
+        for mod in event1.modifications:
+            mod.purgeSectionTriageStatus()
+
         event.changeAll('displayName', u'This is very original')
         
         view0.commit(); stats = self.share0.sync(); view0.commit()
         view1.commit(); stats = self.share1.sync(); view1.commit()
+        
+        self.assertEquals(countPoppedToNow(item1), 1)
         
         fourth0 = event.getRecurrenceID(event.startTime +
                                         datetime.timedelta(days=21))
@@ -1032,11 +1055,10 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
 
         view0.commit(); stats = self.share0.sync(); view0.commit()
         view1.commit(); stats = self.share1.sync(); view1.commit()
-        
-        item1 = view1.findUUID(item.itsUUID)
-        self.assert_(pim.has_stamp(item1, pim.EventStamp))
-        event1 = pim.EventStamp(item1)
-        
+
+        # fourth1 should be popped to NOW, too
+        self.assertEquals(countPoppedToNow(item1), 2)
+                
         fourth1 = event1.getRecurrenceID(fourth0.recurrenceID)
         self.failUnlessEqual(fourth1.itsItem.displayName,
                              u'What a singular title')
@@ -1063,6 +1085,22 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
                         
         self.failUnlessEqual(second1.startTime, newStart,
                              "startTime not modified correctly")
+
+        # second1 is the next future occurrence, still only 2 popped to now
+        self.assertEquals(countPoppedToNow(item1), 2)
+
+        for mod in event1.modifications:
+            mod.purgeSectionTriageStatus()
+
+        second0.deleteThis()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+
+        # Nothing new pops to now when an occurrence is deleted
+        self.assertEquals(countPoppedToNow(item1), 0)
+        # this fails because of bug 11733, the deleted modification is only
+        # unmodified in the receiving view, no new triage-only mod is created
+        # self.assertEquals(len(event1.modifications), 3)
 
         # remove recurrence
         event.removeRecurrence()

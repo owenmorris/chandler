@@ -2053,6 +2053,8 @@ class EventStamp(Stamp):
         # Because force isn't set, this will preserve _sectionTriageStatus
         # if the master happened to be pinned already
         firstItem.setTriageStatus('auto', pin=True)
+        if firstItem._sectionTriageStatus == firstItem._triageStatus:
+            firstItem.purgeSectionTriageStatus()
         
         if wasModification and oldTriageStatus == TriageEnum.later:
             # this occurrence was the token Later occurrence, make sure there's
@@ -3108,20 +3110,35 @@ class TriageStatusReminder(RelativeReminder):
             
 def setTriageStatus(item, *args, **kwds):
     """
-    Set triage status on this item, which might be a recurring event: if
-    it is, we'll need to triage its modifications individually.
+    Handle triaging recurring items for the sharing layer.
+    
+    Sets triage status on this item, unless the item is a master. If it is,
+    only triage the next, or last (whichever is later) occurrence, bug 11661.
     """
     if has_stamp(item, EventStamp):
         event = EventStamp(item)
+        now = getNow(tz=item.itsView.tzinfo.default)
         if event.isRecurrenceMaster():
-            # if the item that has changed is a master, DON'T set
-            # triage status on the master, particularly
-            # _sectionTriageStatus, as that will be inherited by
-            # occurrences; instead, just pop all modifications to NOW
+            # if the item that has changed is a master, DON'T set triage
+            # status on the master, particularly _sectionTriageStatus, as that
+            # will be inherited by occurrences; instead, just pop the next
+            # modification to NOW
+            last_mod = None
             for mod in event.modifications or []:
-                mod.setTriageStatus(None, **kwds)
+                if not last_mod:
+                    last_mod = mod
+                else:
+                    last_ev = EventStamp(last_mod)
+                    mod_ev = EventStamp(mod)
+                    if last_ev.startTime < now:
+                        if mod_ev.startTime > last_ev.startTime:
+                            last_mod = mod
+                    else:
+                        if now < mod_ev.startTime < last_ev.startTime:
+                            last_mod = mod
+            if last_mod:
+                last_mod.setTriageStatus(None, **kwds)
             return
         
     # Not an event, or not a master - do it normally.
     item.setTriageStatus(*args, **kwds)
-
