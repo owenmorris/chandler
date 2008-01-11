@@ -1092,15 +1092,21 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         for mod in event1.modifications:
             mod.purgeSectionTriageStatus()
 
+        third0 = second0.getNextOccurrence()
         second0.deleteThis()
         view0.commit(); stats = self.share0.sync(); view0.commit()
         view1.commit(); stats = self.share1.sync(); view1.commit()
 
-        # Nothing new pops to now when an occurrence is deleted
+        # Nothing new pops to now when a modification is deleted
         self.assertEquals(countPoppedToNow(item1), 0)
-        # this fails because of bug 11733, the deleted modification is only
-        # unmodified in the receiving view, no new triage-only mod is created
-        # self.assertEquals(len(event1.modifications), 3)
+        self.assertEquals(len(event1.modifications), 3)
+        
+        third0.deleteThis()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+
+        # Nothing new pops to now when a triage-only modification is deleted
+        self.assertEquals(countPoppedToNow(item1), 0)
 
         # remove recurrence
         event.removeRecurrence()

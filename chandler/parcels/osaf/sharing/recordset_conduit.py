@@ -167,6 +167,7 @@ class RecordSetConduit(conduits.BaseConduit):
         triageFilter = eim.Filter(None, "Filter out triage and read")
         triageFilter += model.triageFilter
         triageFilter += model.readFilter
+        triageFilter += model.occurrenceDeletion
 
         if receive:
 
@@ -889,7 +890,7 @@ class RecordSetConduit(conduits.BaseConduit):
             # locally
             # At this point, we know there were no local modifications
             _callback(msg="Removing items from collection", totalWork=None)
-
+            mastersWithOccurrenceDeletions = set()
             # sort in reverse order to process modifications before masters
             for alias in sorted(remotelyRemoved, reverse=True):
                 uuid = translator.getUUIDForAlias(alias)
@@ -909,6 +910,8 @@ class RecordSetConduit(conduits.BaseConduit):
                         # if the whole series isn't being removed from the
                         # collection
                         pim.EventStamp(item)._safeDelete()
+                        if masterAlias not in remotelyRemoved:
+                            mastersWithOccurrenceDeletions.add(masterAlias)
                     else:
                         share.contents.remove(item)
 
@@ -916,6 +919,9 @@ class RecordSetConduit(conduits.BaseConduit):
                     receiveStats['removed'].add(alias)
 
                 self.removeState(alias)
+            for masterAlias in mastersWithOccurrenceDeletions:
+                # fix bug 11733, updateTriageStatus when deleting occurrences
+                pim.EventStamp(rv.findUUID(masterAlias)).updateTriageStatus()
 
         # For each item that was in the collection before but is no longer,
         # remove its state; if sending, add an empty recordset to toSend

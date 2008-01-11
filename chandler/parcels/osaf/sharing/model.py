@@ -44,6 +44,9 @@ needsReplyFilter = eim.Filter('cid:needs-reply-filter@osaf.us', u"Needs Reply")
 
 readFilter = eim.Filter('cid:read-filter@osaf.us', u"Has Been Read")
 
+occurrenceDeletion = eim.Filter('cid:occurrence-deletion-filter@osaf.us',
+                                u"Occurrence deleted")
+
 eventStatusFilter = eim.Filter('cid:event-status-filter@osaf.us',
     u"Event Status")
 
@@ -154,9 +157,9 @@ class EventRecord(eim.Record):
 
     # EventStamp.[recurrenceID, rruleset, etc.]
     rrule = eim.field(text32K)
-    exrule = eim.field(text32K)
+    exrule = eim.field(text32K, filters=[occurrenceDeletion])
     rdate = eim.field(text32K)
-    exdate = eim.field(text32K)
+    exdate = eim.field(text32K, filters=[occurrenceDeletion])
 
     # EventStamp.transparency
     status = eim.field(text256, _(u"Event status"), filters=[eventStatusFilter])
