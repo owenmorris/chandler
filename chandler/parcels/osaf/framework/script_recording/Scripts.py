@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 displayTestResults = True
         
 def runScript (name):
-    if (not run_recorded.run_test_by_name (name, test_modules=run_recorded.get_test_modules (observe_exclusions=False)) and
+    if (not run_recorded.run_test_by_name (name, test_modules=run_recorded.get_test_modules ()) and
         schema.ns('osaf.framework.script_recording', wx.GetApp().UIRepositoryView).RecordingController.verifyScripts):
     
         #display the results of the script just ran to the user if "Check Results" is On
@@ -44,7 +44,7 @@ class wxScriptsMenu(wxMenu):
         #create the newItems item
         newItems = super(wxMenu, self).GetNewItems()
         
-        dynamicItems = sorted (run_recorded.get_test_modules(observe_exclusions=False))
+        dynamicItems = sorted (run_recorded.get_test_modules())
         if dynamicItems: 
             newItems.append('__separator__')
             newItems.extend(dynamicItems)
