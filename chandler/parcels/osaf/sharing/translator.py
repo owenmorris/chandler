@@ -1425,11 +1425,10 @@ class SharingTranslator(eim.Translator):
                 # since there's no recurrence currently, avoid creating a
                 # rruleset if all the positive recurrence fields are None
                 return
-
-            if event.rruleset is not None and not fakeMaster:
-                rruleset = event.rruleset
-            else:
-                rruleset = RecurrenceRuleSet(None, itsView=self.rv)
+            
+            newRule = event.rruleset is None or fakeMaster
+            rruleset = (RecurrenceRuleSet(None, itsView=self.rv) if newRule 
+                        else event.rruleset)
 
             for ruletype in 'rrule', 'exrule':
                 record_field = getattr(record, ruletype)
@@ -1478,13 +1477,20 @@ class SharingTranslator(eim.Translator):
                 # pinned to now, which is undesirable, bug 9414
                 event.itsItem.setTriageStatus('auto')
                 event.itsItem.purgeSectionTriageStatus()
-                if event.rruleset is not None and not fakeMaster:
+                if not newRule:
                     # changed existing recurrence
                     event.rruleset._ignoreValueChanges = ignoreChanges
                     event.cleanRule()
                 else:
                     # new recurrence
                     event.rruleset = rruleset
+                    # fix bug 11475, when recurrence is initially added,
+                    # don't let occurring-now events be triaged NOW
+                    for mod in event.modifications:
+                        if mod._triageStatus == pim.TriageEnum.now:
+                            mod._triageStatus = pim.TriageEnum.done
+                            mod.purgeSectionTriageStatus()
+                    
                 # search through modifications in case they were created before
                 # the master, if they're timezoned they'll have recurrenceID in
                 # UTC, worse, if they inherit startTime it'll be in UTC

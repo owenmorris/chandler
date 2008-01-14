@@ -1121,6 +1121,25 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.failIf(event1.occurrences,
                     "occurrences not removed/cleared after sync")
 
+        # Bug 11475, events synced with an occurrence taking place now should
+        # still be DONE if DONE in the source
+        timemachine.setNow(self.elevenToday - datetime.timedelta(days=2, hours=23.5))
+        event0 = self._makeRecurringEvent(view0, self.share0.contents)
+        nowMods = [i for i in event0.modifications if i._triageStatus == pim.TriageEnum.now]
+        self.assertEqual(len(nowMods), 1)
+        first0 = pim.EventStamp(nowMods[0])
+        first0.itsItem._triageStatus = pim.TriageEnum.done
+
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+
+        event1 = pim.EventStamp(view1.findUUID(event0.itsItem.itsUUID))
+
+        first1 = event1.getRecurrenceID(first0.recurrenceID)
+        self.assertEqual(first1.itsItem._triageStatus, pim.TriageEnum.done)
+
+        timemachine.resetNow()
+
         # Sync a THISANDFUTURE change.
         event = self._makeRecurringEvent(view0, self.share0.contents)
         item = event.itsItem

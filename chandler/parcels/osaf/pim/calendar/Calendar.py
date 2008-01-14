@@ -659,7 +659,7 @@ class EventStamp(Stamp):
 
     def initialStartTime(self):
         defaultTz = TimeZoneInfo.get(self.itsItem.itsView).default
-        now = datetime.now(defaultTz)
+        now = getNow(defaultTz)
         roundedTime = time(hour=now.hour, minute=(now.minute/30)*30,
                            tzinfo=defaultTz)
         return datetime.combine(now, roundedTime)
@@ -1936,7 +1936,7 @@ class EventStamp(Stamp):
         the past, if one exists (or can be created).  Otherwise return None.
         """
         defaultTz = TimeZoneInfo.get(self.itsItem.itsView).default
-        now = datetime.now(defaultTz)
+        now = getNow(tz=defaultTz)
         master = self.getMaster()
         if master.rruleset is None:
             # this isn't useful on a non-recurring event
@@ -1968,7 +1968,7 @@ class EventStamp(Stamp):
         
         """
         defaultTz = TimeZoneInfo.get(self.itsItem.itsView).default
-        now = datetime.now(defaultTz)        
+        now = getNow(tz=defaultTz)
         master = self.getMaster()
         # run through future occurrences to find a LATER
         for occurrence in master._generateRule(after=now):
@@ -1993,7 +1993,7 @@ class EventStamp(Stamp):
         if not has_stamp(self, EventStamp):
             return TriageEnum.now
         item = self.itsItem
-        now = datetime.now(tz=item.itsView.tzinfo.default)
+        now = getNow(tz=item.itsView.tzinfo.default)
         if self.effectiveStartTime > now:
             # Hasn't started yet? it's Later.
             status = TriageEnum.later
@@ -2819,7 +2819,7 @@ class RelativeReminder(Reminder):
 
     def updatePending(self, dt=None):
         if dt is None:
-            dt = datetime.now(self.itsView.tzinfo.default)
+            dt = getNow(tz=self.itsView.tzinfo.default)
             
         reminderItem = self.reminderItem
         reminderTime = self._getReminderTime(reminderItem)
@@ -3018,7 +3018,7 @@ class TriageStatusReminder(RelativeReminder):
         view = self.itsView
 
         if when is None:
-            when = datetime.now(view.tzinfo.default)
+            when = getNow(tz=view.tzinfo.default)
             
         def yieldEvents(start, end):
             # Yield events overlapping this range, both regular and occurrences.
