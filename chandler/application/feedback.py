@@ -61,8 +61,7 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
         # windows popping up at the same time
         return self
 
-    def write(self, text):
-
+    def _do_write(text):
         app = wx.GetApp()
         view = getattr(app, 'UIRepositoryView', None)
         refreshErrors = getattr(view, 'refreshErrors', 0)
@@ -72,6 +71,12 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
         self.noContinue(refreshErrors > 3)
 
         wx.PyOnDemandOutputWindow.write(self, text)
+
+    def write(self, text):
+        if not wx.Thread_IsMain():
+            wx.CallAfter(self._do_write, text)
+        else:
+            self._do_write(text)
 
     def noContinue(self, noContinue):
         if self.frame is None:
