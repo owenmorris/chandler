@@ -61,7 +61,7 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
         # windows popping up at the same time
         return self
 
-    def _do_write(text):
+    def _do_write(self, text):
         app = wx.GetApp()
         view = getattr(app, 'UIRepositoryView', None)
         refreshErrors = getattr(view, 'refreshErrors', 0)
