@@ -1884,7 +1884,7 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         # shown when needed, but will hide it initially.  This allows
         # multi-line, being able to enter more text than can be shown,
         # etc.  And it works on all platforms,
-        style = wx.NO_BORDER | wx.TE_PROCESS_ENTER | wx.TE_RICH
+        style = wx.NO_BORDER | wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB | wx.TE_RICH
         if wx.Platform != "__WXMSW__":
             style |= wx.TE_NO_VSCROLL 
         if allowMultiLine:
@@ -1966,6 +1966,8 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         keycode = event.GetKeyCode()
         if keycode == wx.WXK_ESCAPE:
             self.OnEscapePressed(event)
+        elif keycode == wx.WXK_TAB:
+            self.SaveAndHide()
         else:
             event.Skip()
 
