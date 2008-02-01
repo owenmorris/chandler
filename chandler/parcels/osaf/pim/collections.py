@@ -1027,14 +1027,15 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
         """
         Moves an item to a new C{location} in an __adhoc__ index.
         """
+        # Get the index. It's necessary to get the length, and if
+        # it doesn't exist getCollectionIndex will create it.
+        self.getCollectionIndex()
         if location == 0:
-            # Get the index. It's necessary to get the length, and if
-            # it doesn't exist getCollectionIndex will create it.
-            self.getCollectionIndex()
-            before = None
+            after = None
         else:
-            before = self [location - 1]
-        self.placeInIndex(item, before, self.indexName)
+            after = self[location - 1]
+
+        self.placeInIndex(item, after, None, self.indexName)
 
     #
     # General selection methods

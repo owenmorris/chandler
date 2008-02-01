@@ -73,7 +73,6 @@ class wxSidebar(wxTable):
         # do another Bind
         gridWindow.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
         gridWindow.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
-
         self.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
 
     def onKeyDown(self, event):
@@ -276,14 +275,47 @@ class wxSidebar(wxTable):
         finally:
             blockItem.startNotificationDirt()
 
-    def OnRequestDrop (self, x, y):
+    __draggingToSelf = False
+
+    def _refreshDropRow(self):
+        row = self.__dropRow
+        if row != wx.NOT_FOUND:
+            numRows = self.GetNumberRows()
+            if row >= numRows:
+                row = numRows - 1
+            self.RefreshRect(self.CalculateCellRect(row))
+
+    def OnRequestDrop(self, x, y):
         self.hoverRow = wx.NOT_FOUND
         x, y = self.CalcUnscrolledPosition(x, y)
-        self.whereToDropItem = self.YToRow(y)
-        if self.whereToDropItem == wx.NOT_FOUND:
-            del self.whereToDropItem
-            return False
-        return True
+        dropRow = self.YToRow(y)
+        
+        if self.GetDraggedFromWidget() is self:
+            self.__draggingToSelf = True
+            numRows = self.GetNumberRows()
+            if dropRow < 0:
+                # If you're below the last row, make sure we set dropRow to
+                # numRows - 1
+                if y > self.CellToRect(numRows - 1, 0).Bottom:
+                    dropRow = numRows
+
+            if dropRow in self.__validTargetRows:
+                newDropRow = dropRow
+            else:
+                newDropRow = wx.NOT_FOUND
+            
+            if self.__dropRow != newDropRow:
+                self._refreshDropRow()
+                self.__dropRow = newDropRow
+                self._refreshDropRow()
+                
+            return self.__dropRow != wx.NOT_FOUND
+        else:
+            self.whereToDropItem = dropRow
+            if self.whereToDropItem == wx.NOT_FOUND:
+                del self.whereToDropItem
+                return False
+            return True
 
     def AddItems (self, itemList):
         # Adding due to Drag and Drop?
@@ -305,15 +337,151 @@ class wxSidebar(wxTable):
                     if method is not None:
                         method (item, possibleCollection)
 
-    def OnItemDrag (self, event):
-        # @@@ You currently can't drag out of the sidebar
-        pass
+    def GetDragDropState(self):
+        """
+        If we're not busy with a drag-reordering of collections, return
+        C{None}. Else return a 3-element tuple containing:
+        
+           1. A list of the items (i.e. collections) that are currently being
+             dragged.
+
+           2. A set of the rows where a drop may occur (may include an append
+             as above).
+
+           3. The row where the drop would occur, with wx.NOT_FOUND meaning
+             the mouse is not hovering over a valid destination.
+        
+        In 2. and 3. the convention used here for rows is exactly the same as
+        for C{list.insert}. For example, if N is the number of rows in the
+        grid, then "drop at row N" means "append to the list of collections".
+        """
+        if self.__draggingToSelf:
+            return self.__dragItems, self.__validTargetRows, self.__dropRow
+        else:
+            return None
+
+    def MoveDraggedCollections(self, collections, targetRow):
+        contents = self.blockItem.contents
+        selected = list(collections)
+        
+        for item in collections:
+            logger.debug('Moving %s to location %s', item.displayName, targetRow)
+            contents.moveItemToLocation(item, targetRow)
+        
+        logger.debug('contents: %s', list(x.displayName for x in self.blockItem.contents))
+
+        # [grant] This is in the cheesy hack category. Since the Sidebar
+        # displays items ordered on an IndexedSelectionCollection's __adhoc__
+        # index, but the dump/reload code just dumps out the value of the
+        # sidebarCollection's 'inclusions' attribute, it's a little tricky to
+        # make sure that dump/reload remembers collection order.
+        #
+        # So, we reassign inclusions here, so the dump code will write it out
+        # in the correct order. The alternative is to make the translator
+        # find our blockItem's contents to figure out what to write out.
+        sidebar = schema.ns("osaf.app", self.blockItem.itsView).sidebarCollection
+        oldInclusions = set(sidebar.inclusions)
+        sidebar.inclusions = list(c for c in contents if c in oldInclusions)
+
+        # Update selection to be the recently dragged collection(s). The
+        # synchronizeWidget() and PostSelectItems() calls are as in the
+        # DeleteSelection() method below.
+        contents.clearSelection()
+        logger.debug('Setting selection to %s', [item.displayName for item in collections])
+        self.blockItem.synchronizeWidget()
+        self.blockItem.PostSelectItems(selected)
+        
+        # Since the drag was a user-initiated change, commit now that we're
+        # done.
+        self.blockItem.itsView.commit()
+
+
+    def CopyData(self):
+        sourceData = wx.CustomDataObject(__name__)
+        sourceData.SetData(",".join(x.itsUUID.str16()
+                                    for x in self.__dragItems))
+        return sourceData
+
+    def OnItemDrag(self, event):
+        contents = self.blockItem.contents
+        eventRow = event.GetRow()
+
+        # Here, we get the selection from the grid, not from
+        # contents' selection. The reason is that clicking and
+        # dragging an unselected row causes the table selection
+        # to change before that change has been propagated back
+        # to contents.
+        selection = [contents[self.RowToIndex(row)]
+                        for row in xrange(self.GetNumberRows())
+                        if self.IsInSelection(row, 0)]
+                         
+        eventItem = contents[self.RowToIndex(eventRow)]
+
+        if not selection:
+            self.__dragItems = [eventItem]
+        else:
+            self.__dragItems = selection
+
+        self.__dragItems = [item for item in self.__dragItems
+                            if not UserCollection(item).outOfTheBoxCollection]
+
+        # By "target row", we mean the position we would insert each
+        # item in a list of items. In other words:
+        #
+        #   0 ==> insert before the first element
+        #   len(list) ==> append after the last element
+        #
+        # This is the same semantic as the .moveItemToLocation() API, FWIW.
+        self.__validTargetRows = set()
+
+        # Calculate which rows we'll allow you to move the selection to.
+        # (This really should be broken out in a separate staticmethod and
+        # unit tested).
+        firstSelectedIndex = -1
+        firstValidIndexAfterSelection = -1
+        
+        for index, item in enumerate(contents):
+            if UserCollection(item).outOfTheBoxCollection:
+                continue
+
+            if firstSelectedIndex == -1:
+                if item in self.__dragItems:
+                    firstSelectedIndex = index
+                else:
+                    self.__validTargetRows.add(index)                    
+                    
+            elif firstValidIndexAfterSelection == -1:
+                if not item in self.__dragItems:
+                    firstValidIndexAfterSelection = index + 1
+            else:
+                self.__validTargetRows.add(index)
+                
+        if firstValidIndexAfterSelection != -1:
+            self.__validTargetRows.add(len(contents))
+
+        if self.__dragItems and self.__validTargetRows:
+
+            self.__dropRow = wx.NOT_FOUND
+            
+            result = self.DoDragAndDrop(copyOnly=False, noDelete=True)
+
+            if result == wx.DragMove:
+                self.MoveDraggedCollections(self.__dragItems, self.__dropRow)
+                
+            del self.__dropRow
+
+        del self.__dragItems
+        del self.__validTargetRows
 
     def onCopyEventUpdateUI(self, event):
         # You can't Cut or Copy items from the sidebar
         event.arguments['Enable'] = False
 
     def OnHover (self, x, y, dragResult):
+
+        if self.GetDraggedFromWidget() is self:
+            return wx.DragMove if self.OnRequestDrop(x, y) else wx.DragNone
+
         x, y = self.CalcUnscrolledPosition(x, y)
         hoverRow = self.YToRow(y)
         if not hasattr (self, 'hoverRow'):
@@ -364,6 +532,10 @@ class wxSidebar(wxTable):
             # Clear the selection colour if necessary
             self.SetRowHighlight(self.hoverRow, False)
             self.hoverRow = wx.NOT_FOUND
+        if self.GetDraggedFromWidget() is self:
+            self.__draggingToSelf = False
+            self._refreshDropRow()
+        
 
     def SetRowHighlight (self, row, highlightOn):
         if highlightOn:
@@ -559,6 +731,7 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
         dc.SetClippingRect (textRect)
         DrawingUtilities.DrawClippedTextWithDots (dc, name, textRect)
         dc.DestroyClippingRegion()
+
         """
           Optionally Draw the "Out of the box", "User" collection line separator
           It's drawn if the item is the first "Out of the box" collection
@@ -572,6 +745,22 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
             else:
                 dc.SetPen (wx.Pen (grid.GetGridLineColour()))
                 dc.DrawLine (rect.GetLeft(), rect.GetTop(), rect.GetRight() + 1, rect.GetTop())
+
+        dropState  = grid.GetDragDropState()
+        
+        if dropState is not None:
+            dropItems, validRows, dropRow = dropState
+
+            def drawFeedback(top):
+                dc.SetPen(wx.Pen(grid.GetGridLineColour(), 2.0, wx.SOLID))
+                
+                dc.DrawLine(rect.Left + 18.0, top, rect.Right, top)
+
+            if dropRow == row:
+                drawFeedback(rect.Top + 1.0)
+            elif dropRow == grid.GetNumberRows() and row + 1 == dropRow:
+                # append past last element
+                drawFeedback(rect.Bottom)
 
 
 class SSSidebarEditor (GridCellAttributeEditor):
