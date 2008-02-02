@@ -39,9 +39,8 @@ class TestCertstoreView(ChandlerTestCase):
             """
             self.logger.startAction("Checking that we have exactly one collection named %s" % name)
             entries = []
-            sidebarWidget = self.app_ns.sidebar.widget
-            for i in range(sidebarWidget.GetNumberRows()):
-                collection = sidebarWidget.GetTable().GetValue(i,0)[0]
+            sidebar = self.app_ns.sidebar
+            for i, collection in enumerate(sidebar.contents):
                 if collection.displayName == name:
                     entries.append(collection)
             lenEntries = len(entries)

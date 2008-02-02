@@ -47,9 +47,8 @@ def sidebarCollectionNamed(name):
     """
     Look for a sidebar collection with name, otherwise return None
     """
-    sidebarWidget = App_ns.sidebar.widget
-    for i in range(sidebarWidget.GetNumberRows()):
-        collection = sidebarWidget.GetTable().GetValue(i,0)[0]
+    sidebar = App_ns.sidebar
+    for collection in sidebar.contents:
         if collection.displayName == name:
             return collection
     return None
@@ -237,7 +236,7 @@ def GetCollectionRow(cellName):
     """
     for i in range(App_ns.sidebar.widget.GetNumberRows()):
         item = App_ns.sidebar.widget.GetTable().GetValue(i,0)[0]
-        if item.displayName == cellName:
+        if getattr(item, 'displayName', None) == cellName:
             return i
     return False
 

@@ -269,12 +269,12 @@ def emulate_sidebarClick(sidebar, cellName, double=False, overlay=False):
         xOffset=3 
 
     cellRect = None
-    for i in range(sidebar.widget.GetNumberRows()):
-        item = sidebar.widget.GetTable().GetValue(i,0)[0]
+    for i, item in enumerate(sidebar.contents):
         if item.displayName == cellName or item is cellName:
             #make sure its visible (not scrolled off screen)
-            sidebar.widget.MakeCellVisible(i, 0)
-            cellRect = sidebar.widget.CalculateCellRect(i)
+            row = sidebar.widget.IndexToRow(i)
+            sidebar.widget.MakeCellVisible(row, 0)
+            cellRect = sidebar.widget.CalculateCellRect(row)
             break
     if cellRect:
         # events processing

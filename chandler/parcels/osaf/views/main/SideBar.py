@@ -16,9 +16,10 @@
 __parcel__ = "osaf.views.main"
 
 from osaf.framework.blocks import ControlBlocks
-import wx, time
+import wx, wx.grid, time
 from osaf.framework.blocks import (
-    Block, BranchPoint, DrawingUtilities, Table, wxTable, GridCellAttributeEditor
+    Block, BranchPoint, DrawingUtilities, Table, wxTable,
+    GridCellAttributeEditor, WithoutSynchronizeWidget
     )
 
 from osaf.pim import (
@@ -45,18 +46,39 @@ from colorsys import rgb_to_hsv
 import logging
 logger = logging.getLogger(__name__)
 
+class DividerRenderer(wx.grid.PyGridCellRenderer):
+    def Draw(self, grid, attr, dc, rect, row, col, isSelected):
+        dc.SetBackgroundMode(wx.SOLID)
+        dc.SetPen(wx.WHITE_PEN)
+        dc.SetBrush(wx.WHITE_BRUSH)
+
+        dc.DrawRectangleRect(rect)
+
+        dc.SetPen(wx.Pen(grid.FEEDBACK_COLOUR, 2.0, wx.SOLID))
+        
+        top = rect.Top + 5.0
+                
+        dc.DrawLine(rect.Left + 3.0, top, rect.Right - 3.0, top)
+
+
 class SidebarElementDelegate (ControlBlocks.ListDelegate):
+
     def ReadOnly (self, row, column):
         """
           Second argument should be True if all cells have the first value
         """
         (item, attribute) = self.GetElementValue (row, column)
-        return (not UserCollection (item).renameable), False
+        return (attribute is None or not UserCollection (item).renameable), False
 
     def GetElementType (self, row, column):
-        return "Item"
+        if row == self.dividerRow:
+            return "Divider"
+        else:
+            return "Item"
 
     def GetElementValue (self, row, column):
+        if row == self.dividerRow:
+            return (None, None)
         if row >= 0:
             itemIndex = self.RowToIndex(row)
             return (self.blockItem.contents [itemIndex],
@@ -64,7 +86,29 @@ class SidebarElementDelegate (ControlBlocks.ListDelegate):
         else:
             return (None, None)
 
+    def RowToIndex(self, row):
+        if row > self.dividerRow:
+            return row - 1
+        else:
+            return row
+    
+    def IndexToRow(self, index):
+        if index >= self.dividerRow:
+            return index + 1
+        else:
+            return index
+
+    def GetElementCount(self):
+        return 1 + len(self.blockItem.contents)
+    
+
 class wxSidebar(wxTable):
+    # Color for drawring the feedback line, as well as the divider
+    # between OOTB and user collections
+    FEEDBACK_COLOUR = (164, 164, 164, 255)
+    
+    dividerRow = 0
+
     def __init__(self, *arguments, **keywords):
         super (wxSidebar, self).__init__ (*arguments, **keywords)
         gridWindow = self.GetGridWindow()
@@ -74,14 +118,56 @@ class wxSidebar(wxTable):
         gridWindow.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
         gridWindow.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
         self.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
+        self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnLeftMouse)
+
+    def wxSynchronizeWidget(self):
+        contents = self.blockItem.contents or ()
+        for index, item in enumerate(contents):
+            if not UserCollection(item).outOfTheBoxCollection:
+                dividerRow = index
+                break
+        else:
+            dividerRow = len(contents)
+
+        if dividerRow != self.dividerRow:
+            self.SetRowSize(self.dividerRow, self.GetDefaultRowSize())
+            self.dividerRow = dividerRow
+
+        self.SetRowSize(self.dividerRow, 12)
+            
+        super(wxSidebar, self).wxSynchronizeWidget()
+
+    def OnLeftMouse(self, event):
+        if event.Row == self.dividerRow:
+            event.Skip(False)
+        else:
+            event.Skip()
 
     def onKeyDown(self, event):
+        event.Skip()
+
+        keyCode = event.GetKeyCode()
         if self.IsCellEditControlEnabled():
-            keyCode = event.GetKeyCode()
             if keyCode == wx.WXK_RETURN or keyCode == wx.WXK_NUMPAD_ENTER:
                 self.DisableCellEditControl()
                 return
-        event.Skip()
+        if keyCode in (wx.WXK_UP, wx.WXK_DOWN):
+            contents = self.blockItem.contents
+            selectedItem = contents.getSelectedItemIfOnlyOneIsSelected()
+            
+            if selectedItem is not None:
+                newIndex = contents.positionInIndex(contents.indexName,
+                                                    selectedItem)
+                if keyCode == wx.WXK_UP:
+                    newIndex -= 1
+                else:
+                    newIndex += 1
+
+                if 0 <= newIndex < len(contents):
+                    newItem = contents[newIndex]
+                    event.Skip(False)
+                    self.blockItem.PostSelectItems([newItem])
+            
 
     def OnSetFocus (self, event):
         # If we already have the focus, let's keep the focus
@@ -319,13 +405,12 @@ class wxSidebar(wxTable):
 
     def AddItems (self, itemList):
         # Adding due to Drag and Drop?
-        whereToDropItem = getattr (self, 'whereToDropItem', None)
-        if whereToDropItem is None:
+        collection = self.getCollectionDroppedOn()
+        if collection is None:
             possibleCollections = self.SelectedItems()
         else:
-            possibleCollections = [self.blockItem.contents[whereToDropItem]]
-            self.SetRowHighlight(self.whereToDropItem, False)
-            del self.whereToDropItem
+            possibleCollections = [collection]
+            
         for possibleCollection in possibleCollections:
             for item in itemList:
                 # create a recurrence proxy if adding a recurring item
@@ -366,7 +451,7 @@ class wxSidebar(wxTable):
         
         for item in collections:
             logger.debug('Moving %s to location %s', item.displayName, targetRow)
-            contents.moveItemToLocation(item, targetRow)
+            contents.moveItemToLocation(item, self.RowToIndex(targetRow))
         
         logger.debug('contents: %s', list(x.displayName for x in self.blockItem.contents))
 
@@ -448,16 +533,16 @@ class wxSidebar(wxTable):
                 if item in self.__dragItems:
                     firstSelectedIndex = index
                 else:
-                    self.__validTargetRows.add(index)                    
+                    self.__validTargetRows.add(self.IndexToRow(index))
                     
             elif firstValidIndexAfterSelection == -1:
                 if not item in self.__dragItems:
                     firstValidIndexAfterSelection = index + 1
             else:
-                self.__validTargetRows.add(index)
+                self.__validTargetRows.add(self.IndexToRow(index))
                 
         if firstValidIndexAfterSelection != -1:
-            self.__validTargetRows.add(len(contents))
+            self.__validTargetRows.add(self.GetNumberRows())
 
         if self.__dragItems and self.__validTargetRows:
 
@@ -513,7 +598,8 @@ class wxSidebar(wxTable):
                 dragResult = wx.DragNone
         else:
             # Switch to the "move" icon if we're over the trash
-            possibleCollection = self.blockItem.contents[hoverRow]
+            hoverIndex = self.RowToIndex(hoverRow)
+            possibleCollection = self.blockItem.contents[hoverIndex]
             theTrash = schema.ns('osaf.pim', self.blockItem.itsView).trashCollection
             if possibleCollection is theTrash:
                 if self.GetDragData() is not None: # make sure the data is the kind we want.
@@ -566,7 +652,8 @@ class wxSidebar(wxTable):
         if whereToDropItem is None:
             coll = None
         else:
-            coll = self.blockItem.contents[whereToDropItem]
+            dropRow = self.RowToIndex(whereToDropItem)
+            coll = self.blockItem.contents[dropRow]
             self.SetRowHighlight(self.whereToDropItem, False)
             del self.whereToDropItem
         return coll
@@ -712,7 +799,7 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
 
         name = getattr (item, attribute)
         sidebar = grid.blockItem
-        if sidebar.showSearch:
+        if sidebar.showSearch and item is not None:
             searchMatches = UserCollection(item).searchMatches
             if searchMatches != 0:
                 name = name + u"(" + unicode (searchMatches) + u")"
@@ -732,29 +819,16 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
         DrawingUtilities.DrawClippedTextWithDots (dc, name, textRect)
         dc.DestroyClippingRegion()
 
-        """
-          Optionally Draw the "Out of the box", "User" collection line separator
-          It's drawn if the item is the first "Out of the box" collection
-          in the table
-        """
-        if not UserCollection (item).outOfTheBoxCollection: # i.e. a "User" collection
-            for theRow in xrange (row-1, -1, -1):
-                theItem, theAttribute = grid.GetTable().GetValue (theRow, col)
-                if not UserCollection (theItem).outOfTheBoxCollection:
-                    break
-            else:
-                dc.SetPen (wx.Pen (grid.GetGridLineColour()))
-                dc.DrawLine (rect.GetLeft(), rect.GetTop(), rect.GetRight() + 1, rect.GetTop())
-
+        # Drop feedback
         dropState  = grid.GetDragDropState()
         
         if dropState is not None:
             dropItems, validRows, dropRow = dropState
 
             def drawFeedback(top):
-                dc.SetPen(wx.Pen(grid.GetGridLineColour(), 2.0, wx.SOLID))
+                dc.SetPen(wx.Pen(grid.FEEDBACK_COLOUR, 2.0, wx.SOLID))
                 
-                dc.DrawLine(rect.Left + 18.0, top, rect.Right, top)
+                dc.DrawLine(rect.Left + 18.0, top, rect.Right - 3.0, top)
 
             if dropRow == row:
                 drawFeedback(rect.Top + 1.0)
@@ -822,7 +896,8 @@ class SSSidebarButton(schema.Item):
 class SSSidebarIconButton2 (SSSidebarButton):
     def getChecked (self, item):
         blockItem = self.buttonOwner
-        return (blockItem.filterClass not in blockItem.disallowOverlaysForFilterClasses and
+        return (item is not None and
+                blockItem.filterClass not in blockItem.disallowOverlaysForFilterClasses and
                 UserCollection(item).checked)
 
     def setChecked (self, item, checked):
@@ -922,7 +997,7 @@ class SSSidebarIconButton2 (SSSidebarButton):
 
 class SSSidebarIconButton (SSSidebarButton):
     def getChecked (self, item):
-        return UserCollection(item).checked
+        return item is not None and UserCollection(item).checked
 
     def setChecked (self, item, checked):
         UserCollection(item).checked = checked
@@ -1246,20 +1321,22 @@ class SidebarBlock(Table):
     # is the height of the button which is centered vertically in the
     # cell. A height of zero uses the height of the cell
     editRectOffsets = schema.Sequence (schema.Integer, required = True)
-
+    
     schema.addClouds(
         copying = schema.Cloud(
             byRef = [filterClass],
             byCloud = [buttons]
         )
     )
-
+    
     def instantiateWidget (self):
         widget = wxSidebar (self.parentBlock.widget,
                             Block.Block.getWidgetID(self),
                             characterStyle=getattr(self, "characterStyle", None),
                             headerCharacterStyle=getattr(self, "headerCharacterStyle", None))
         widget.RegisterDataType ("Item", SSSidebarRenderer(), SSSidebarEditor("Item"))
+        widget.RegisterDataType ("Divider", DividerRenderer(), None)
+        widget.SetRowMinimalAcceptableHeight(12)
         return widget
 
     def onClassParameterizedEvent(self, event):
