@@ -557,6 +557,8 @@ class wxSidebar(wxTable):
 
         del self.__dragItems
         del self.__validTargetRows
+        if self.__draggingToSelf:
+            del self.__draggingToSelf
 
     def onCopyEventUpdateUI(self, event):
         # You can't Cut or Copy items from the sidebar
