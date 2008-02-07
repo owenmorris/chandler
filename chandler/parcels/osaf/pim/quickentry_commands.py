@@ -116,7 +116,7 @@ class NoteCommand(QuickEntryCommand):
 class TaskCommand(NoteCommand):
     stamp_types = [TaskStamp]
     # L10N: A comma separated list of names for commands to create a task
-    command_names = _(u"task").split(',')
+    command_names = _(u"task,starred").split(',')
 
 class EventCommand(NoteCommand):
     stamp_types = [EventStamp]

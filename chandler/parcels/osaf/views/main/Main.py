@@ -188,7 +188,7 @@ class MainView(View):
                 # L10N: One of the possible titles for the  Item -> New -> New Item menu.
                 # This title changes based on the area selected in the Toolbar.
                 # The keyboard mnemonic should be the same for each alternative title.
-                event.arguments['Text'] = _(u'Ne&w Task')
+                event.arguments['Text'] = _(u'Ne&w Starred')
             elif Block.findBlockByName("ApplicationBarEventButton").widget.IsToggled():
                 # L10N: One of the possible titles for the  Item -> New -> New Item menu.
                 # This title changes based on the area selected in the Toolbar.

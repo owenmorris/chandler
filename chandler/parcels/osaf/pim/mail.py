@@ -53,28 +53,28 @@ log = logging.getLogger(__name__)
 
 # Kind Combinations
 MESSAGE = _(u"Message")
-TASK = _(u"Task")
+TASK = _(u"Starred Note")
 EVENT = _(u"Event")
 R_EVENT = _(u"Recurring Event")
 A_EVENT = _(u"All-day Event")
 RA_EVENT = _(u"Recurring All-day Event")
-SCHEDULED_TASK = _(u"Scheduled Task")
-R_SCHEDULED_TASK = _(u"Recurring Scheduled Task")
-A_SCHEDULED_TASK = _(u"All-day Scheduled Task")
+SCHEDULED_TASK = _(u"Starred Event")
+R_SCHEDULED_TASK = _(u"Recurring Starred Event")
+A_SCHEDULED_TASK = _(u"All-day Starred Event")
 
 # Kind Combinations with sentence prefix
 # XXX This is not the ideal way to do this but
 # am having trouble capturing the finer aspects
 # of the English language in a localization friendly
 # manner. I will revisit this decision at a later date.
-P_TASK = _(u"a Task")
+P_TASK = _(u"a Starred Note")
 P_EVENT = _(u"an Event")
 P_R_EVENT = _(u"a Recurring Event")
 P_A_EVENT = _(u"an All-day Event")
 P_RA_EVENT = _(u"a Recurring All-day Event")
-P_SCHEDULED_TASK = _(u"a Scheduled Task")
-P_R_SCHEDULED_TASK = _(u"a Recurring Scheduled Task")
-P_A_SCHEDULED_TASK = _(u"an All-day Scheduled Task")
+P_SCHEDULED_TASK = _(u"a Starred Event")
+P_R_SCHEDULED_TASK = _(u"a Starred Recurring Event")
+P_A_SCHEDULED_TASK = _(u"a Starred All-day Event")
 
 # L10N: Description of a recurring event with a specific end to its recurrence
 # %(recurrenceFrequency)s will be replaced with something like "every month".

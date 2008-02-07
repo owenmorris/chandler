@@ -548,9 +548,9 @@ class TaskColumnAttributeEditor(attributeEditors.IconAttributeEditor):
     def getToolTip(self, item, attributeName):
         state = self.GetAttributeValue(item, attributeName)
         if state == "SumTask.Stamped":
-            return _(u"Remove from Task list")
+            return _(u"Remove star")
         else:
-            return _(u"Add to Task list")
+            return _(u"Add star")
         return None
 
     def advanceState(self, item, attributeName):
