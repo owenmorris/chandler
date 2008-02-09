@@ -659,16 +659,6 @@ def makeMarkupBar(parcel, oldVersion):
                                     stretchFactor=0.0,
                                     minimumSize=SizeType(30, 18))
 
-    mailMessageButton = \
-        MailMessageButtonBlock.template('MailMessageButton',
-                                        title=messages.STAMP_MAIL,
-                                        icon="MarkupMail",
-                                        helpString=messages.STAMP_MAIL_HELP,
-                                        unstampedHelpString=messages.UNSTAMP_MAIL_HELP,
-                                        event=buttonPressed,
-                                        stretchFactor=0.0,
-                                        minimumSize=SizeType(30, 18))
-
     taskStamp = \
         TaskStampButtonBlock.template('TaskStamp',
                                 title=messages.STAMP_TASK,
@@ -678,6 +668,20 @@ def makeMarkupBar(parcel, oldVersion):
                                 event=buttonPressed,
                                 stretchFactor=0.0,
                                 minimumSize=SizeType(30, 18))
+
+    markupSpacer2 = ControlBlocks.StaticText.template('MarkupSpacer2',
+                                    title=u'',
+                                    stretchFactor=0.0,
+                                    minimumSize=SizeType(15, 18))
+    mailMessageButton = \
+        MailMessageButtonBlock.template('MailMessageButton',
+                                        title=messages.STAMP_MAIL,
+                                        icon="MarkupMail",
+                                        helpString=messages.STAMP_MAIL_HELP,
+                                        unstampedHelpString=messages.UNSTAMP_MAIL_HELP,
+                                        event=buttonPressed,
+                                        stretchFactor=0.0,
+                                        minimumSize=SizeType(30, 18))
 
     calendarStamp = \
         CalendarStampButtonBlock.template('CalendarStamp',
@@ -689,7 +693,7 @@ def makeMarkupBar(parcel, oldVersion):
                                 stretchFactor=0.0,
                                 minimumSize=SizeType(30, 18))
 
-    markupSpacer2 = ControlBlocks.StaticText.template('MarkupSpacer2',
+    markupSpacer3 = ControlBlocks.StaticText.template('MarkupSpacer3',
                                     title=u'',
                                     stretchFactor=0.0,
                                     minimumSize=SizeType(30, 18))
@@ -705,7 +709,7 @@ def makeMarkupBar(parcel, oldVersion):
                                     #event=buttonPressed,
                                     #stretchFactor=0.0,
                                     #minimumSize=SizeType(30, 18))
-    #markupSpacer3 = ControlBlocks.StaticText.template('MarkupSpacer3',
+    #markupSpacer4 = ControlBlocks.StaticText.template('MarkupSpacer3',
                                     #title=u'')
 
     readOnlyIcon = \
@@ -720,13 +724,14 @@ def makeMarkupBar(parcel, oldVersion):
     markupBar = ControlBlocks.ContentItemDetail.template('MarkupBar',
                                     childBlocks=[triageStamp,
                                                     markupSpacer1,
-                                                    mailMessageButton,
                                                     taskStamp,
-                                                    calendarStamp,
                                                     markupSpacer2,
+                                                    mailMessageButton,
+                                                    calendarStamp,
+                                                    markupSpacer3,
                                                     # hidden per bug 8999
                                                     #privateSwitchButton,
-                                                    #markupSpacer3,
+                                                    #markupSpacer4,
                                                     readOnlyIcon],
                                     position=0.09,
                                     toolSize=SizeType(30, 18),

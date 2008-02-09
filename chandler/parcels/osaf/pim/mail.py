@@ -53,7 +53,7 @@ log = logging.getLogger(__name__)
 
 # Kind Combinations
 MESSAGE = _(u"Message")
-TASK = _(u"Starred Note")
+TASK = _(u"Starred Message")
 EVENT = _(u"Event")
 R_EVENT = _(u"Recurring Event")
 A_EVENT = _(u"All-day Event")
@@ -67,7 +67,7 @@ A_SCHEDULED_TASK = _(u"All-day Starred Event")
 # am having trouble capturing the finer aspects
 # of the English language in a localization friendly
 # manner. I will revisit this decision at a later date.
-P_TASK = _(u"a Starred Note")
+P_TASK = _(u"a Starred Message")
 P_EVENT = _(u"an Event")
 P_R_EVENT = _(u"a Recurring Event")
 P_A_EVENT = _(u"an All-day Event")

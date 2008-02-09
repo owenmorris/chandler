@@ -169,7 +169,7 @@ class AppProxy(object):
     Has attributes for its major children blocks, like
     "root", "sidebar", "calendar", etc.
     All BlockEvents are mapped onto methods in this class, 
-    so you can say AppProxy.NewTask() to post the "NewTask"
+    so you can say AppProxy.NewNote() to post the "NewNote"
     event.
     """
     def __init__(self, view):

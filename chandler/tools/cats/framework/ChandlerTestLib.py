@@ -266,7 +266,7 @@ def SetChoice(choiceWidget, string):
 
 DataTypes = { 'Event' : 'NewCalendar',
               'Note' : 'NewNote',
-              'Task' : 'NewTask',
+              'Task' : None,
               'MailMessage' : 'NewMailMessage',
               'Collection' : 'NewCollection',
               }
