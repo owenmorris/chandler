@@ -474,7 +474,7 @@ class wxQuickEntry (wx.SearchCtrl):
     def __init__(self, *arguments, **keywords):
         super (wxQuickEntry, self).__init__ (*arguments, **keywords)
         self.ShowSearchButton(False)
-        self.SetDescriptiveText(_(u"Create new items or enter '/Find' to search."))
+        self.SetDescriptiveText(_(u"Create a new note."))
         self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.OnCancelButton)
         self.Bind(wx.EVT_TEXT_ENTER, theApp.OnCommand)
         self.Bind(wx.EVT_TEXT, self.OnTextChange)
