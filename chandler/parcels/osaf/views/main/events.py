@@ -186,11 +186,6 @@ def makeMainEvents(parcel):
                                      methodName = 'onClassParameterizedEvent',
                                      dispatchToBlockName = 'Sidebar').install(parcel)
 
-    ClassParameterizedEvent.template('ApplicationBarMail',
-                                     methodName = 'onClassParameterizedEvent',
-                                     classParameter = osaf.pim.mail.MailStamp,
-                                     dispatchToBlockName = 'Sidebar').install(parcel)
-
     ClassParameterizedEvent.template('ApplicationBarEvent',
                                      methodName = 'onClassParameterizedEvent',
                                      classParameter = osaf.pim.calendar.Calendar.EventStamp,

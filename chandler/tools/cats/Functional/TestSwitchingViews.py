@@ -32,8 +32,6 @@ class TestSwitchingViews(ChandlerTestCase):
         testView.SwitchToAllView()
         # switch to tasks view
         testView.SwitchToTaskView()
-        # switch to email view
-        testView.SwitchToMailView()
         # switch to calendar view
         testView.SwitchToCalView()
 

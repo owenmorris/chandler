@@ -104,6 +104,12 @@ def makeMainView(parcel):
         calendarContainer = None,
         stretchFactor = 0.0).install(parcel)
 
+    # customize for Linux, where toolbar items are extra-wide
+    if wx.Platform != '__WXGTK__':
+        quickEntryWidth = 440
+    else:
+        quickEntryWidth = 350
+
     appBarBlocks = [
         ToolBarItem.template('ApplicationBarAllButton',
             event = main.ApplicationBarAll,
@@ -112,12 +118,6 @@ def makeMainView(parcel):
             selected = True,
             toolBarItemKind = 'Radio',
             helpString = _(u'View all items')),
-        ToolBarItem.template('ApplicationBarMailButton',
-            event = main.ApplicationBarMail,
-            bitmap = 'ApplicationBarMail.png',
-            title = _(u'Mail'),
-            toolBarItemKind = 'Radio',
-            helpString = _(u'View messages')),
         ToolBarItem.template('ApplicationBarTaskButton',
             event = main.ApplicationBarTask,
             bitmap = 'ApplicationBarTask.png',
@@ -130,62 +130,29 @@ def makeMainView(parcel):
             title = _(u'Calendar'),
             toolBarItemKind = 'Radio',
             helpString = _(u'View events')),
-        ToolBarItem.template('ApplicationSeparator1',
-            toolBarItemKind = 'Separator'),
         ToolBarItem.template('ApplicationBarSyncButton',
             event = main.SyncAll,
             bitmap = 'ApplicationBarSync.png',
             title = _(u'Sync'),
             helpString = _(u'Sync all shared collections and download new messages')),
-        ToolBarItem.template('ApplicationBarNewButton',
-            event = main.NewItem,
-            bitmap = 'ApplicationBarNew.png',
-            title = _(u'New'),
-            helpString = _(u'Create a new item')),
-        ToolBarItem.template('ApplicationBarReplyButton',
-            event = main.ReplyMessage,
-            bitmap = 'ApplicationBarReply.png',
-            title = messages.REPLY,
-            helpString = _(u'Reply to sender of selected message')),
-        ToolBarItem.template('ApplicationBarReplyAllButton',
-            event = main.ReplyAllMessage,
-            bitmap = 'ApplicationBarReplyAll.png',
-            title = messages.REPLY_ALL,
-            helpString = _(u'Reply to all recipients of selected message')),
-        ToolBarItem.template('ApplicationBarForwardButton',
-            event = main.ForwardMessage,
-            bitmap = 'ApplicationBarForward.png',
-            title = messages.FORWARD,
-            helpString = _(u'Forward selected message')),
+        ToolBarItem.template('ApplicationBarQuickEntry',
+            event = main.QuickEntry,
+            text = u"", # text value displayed in the control
+            toolBarItemKind = 'QuickEntry',
+            size = SizeType (quickEntryWidth,-1),
+            helpString = _(u"Create new note.")),
+        ToolBarItem.template('TriageButton',
+            event = main.Triage,
+            title = _(u"Clean up"),
+            bitmap = 'ApplicationBarTriage.png',
+            helpString = _(u'Sort items by triage status')),
         SendToolBarItem.template('ApplicationBarSendButton',
             event = main.SendShareItem,
             bitmap = 'ApplicationBarSend.png',
             title = messages.SEND,
             viewAttribute='modifiedFlags',
             helpString = _(u'Send selected message')),
-        ToolBarItem.template('ApplicationSeparator2',
-            toolBarItemKind = 'Separator'),
-        ToolBarItem.template('TriageButton',
-            event = main.Triage,
-            title = _(u"Triage"),
-            bitmap = 'ApplicationBarTriage.png',
-            helpString = _(u'Sort items by triage status')),
-        ToolBarItem.template('ApplicationSeparator3',
-            toolBarItemKind = 'Separator')
     ]
-
-    # customize for Linux, where toolbar items are extra-wide
-    if wx.Platform != '__WXGTK__':
-        quickEntryWidth = 325
-    else:
-        quickEntryWidth = 150
-    quickEntryItem = ToolBarItem.template('ApplicationBarQuickEntry',
-                event = main.QuickEntry,
-                text = u"", # text value displayed in the control
-                toolBarItemKind = 'QuickEntry',
-                size = SizeType (quickEntryWidth,-1),
-                helpString = _(u"Quick Entry: Create new items or enter '/Find' to search."))
-    appBarBlocks.append(quickEntryItem)
 
     ApplicationBar = ToolBar.template(
         'ApplicationBar',
@@ -211,7 +178,6 @@ def makeMainView(parcel):
             main.DayMode,
             main.ApplicationBarEvent,
             main.ApplicationBarTask,
-            main.ApplicationBarMail,
             main.ApplicationBarAll,
             main.DisplayMailMessage,
             ],

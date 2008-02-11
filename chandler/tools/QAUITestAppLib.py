@@ -1651,8 +1651,6 @@ class UITestView(object):
             return "AllView"
         elif App_ns.appbar.pressed("ApplicationBarTaskButton"):
             return "TaskView"
-        elif App_ns.appbar.pressed("ApplicationBarMailButton"):
-            return "MailView"
         elif App_ns.appbar.pressed("ApplicationBarEventButton"):
             return "CalendarView"
         else:
@@ -1661,7 +1659,7 @@ class UITestView(object):
     def SwitchView(self, viewName, id=''):
         """
         @type viewName : string
-        @param viewName : name of the view to select (CalendarView,TaskView,MailView,AllView)
+        @param viewName : name of the view to select (CalendarView,TaskView,AllView)
         """
         if self.state == viewName :
             return False
@@ -1669,8 +1667,6 @@ class UITestView(object):
             button = "ApplicationBarEventButton"
         elif viewName == "TaskView":
             button = "ApplicationBarTaskButton"
-        elif viewName == "MailView":
-            button = "ApplicationBarMailButton"
         elif viewName == "AllView":
             button = "ApplicationBarAllButton"
         else:
@@ -1695,12 +1691,6 @@ class UITestView(object):
         """
         self.SwitchView("TaskView")
 
-    def SwitchToMailView(self):
-        """
-        Switch to the email view
-        """
-        self.SwitchView("MailView")
-        
     def SwitchToAllView(self, id=''):
         """
         Switch to the all view

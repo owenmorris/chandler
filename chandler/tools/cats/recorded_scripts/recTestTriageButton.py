@@ -5,7 +5,7 @@ def run():
         Type u'testTriageButton' (3)
         Left Mouse Down in ApplicationBar (57)
         Left Mouse Down in ApplicationBar (59)
-        Choose toolbar button 'New' (61)
+        Choose 'NewItem' menu item (61)
         Left Mouse Down in HeadlineBlockAEEditControl (63)
         Left Mouse Down in HeadlineBlockAEEditControl (65)
         Type u'Test Triage Button' (69)
@@ -80,7 +80,7 @@ def run():
         (58, wx.MouseEvent, {'associatedBlock':'ApplicationBar', 'eventType':wx.EVT_LEFT_UP, 'sentTo':u'ApplicationBar'}, {'m_x':33, 'm_y':25}),
         (59, wx.MouseEvent, {'associatedBlock':'ApplicationBar', 'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'ApplicationBar'}, {'m_leftDown':True, 'm_x':287, 'm_y':25}),
         (60, wx.MouseEvent, {'associatedBlock':'ApplicationBar', 'eventType':wx.EVT_LEFT_UP, 'sentTo':u'ApplicationBar'}, {'m_x':287, 'm_y':25}),
-        (61, wx.CommandEvent, {'associatedBlock':'ApplicationBarNewButton', 'eventType':wx.EVT_MENU, 'sentTo':u'ApplicationBar'}, {}),
+        (61, wx.CommandEvent, {'associatedBlock':'NewItemItem', 'eventType':wx.EVT_MENU, 'sentTo':'__block__NewItemMenu'}, {}),
         (62, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'HeadlineBlockAEEditControl'}, {}),
         (63, wx.MouseEvent, {'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'HeadlineBlockAEEditControl', 'recordedFocusWindow':u'HeadlineBlockAEEditControl', 'recordedFocusWindowClass':osaf.framework.attributeEditors.DragAndDropTextCtrl.DragAndDropTextCtrl, 'lastWidgetValue':u'Untitled'}, {'m_leftDown':True, 'm_x':85, 'm_y':7}),
         (64, wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':u'HeadlineBlockAEEditControl', 'selectionRange': (8,8)}, {'m_x':85, 'm_y':7}),

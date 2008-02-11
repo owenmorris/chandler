@@ -52,7 +52,6 @@ allTests = [
                 ("TestEnableTimezones","TestEnableTimezones"),
                 ("TestSwitchTimezone","TestSwitchTimezone"),
                 ("TestVisibleHours","TestVisibleHours"), 
-                ("TestBlocks","TestBlocks"), 
                 ]
 
 exclusions = {#tests to exclude on specific platfoms only

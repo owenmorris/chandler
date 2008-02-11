@@ -57,7 +57,6 @@ class UserCollection(schema.Annotation):
     renameable               = schema.One(schema.Boolean, defaultValue = True)
     color                    = schema.One(ColorType)
     iconName                 = schema.One(schema.Text, defaultValue = "")
-    iconNameHasClassVariant  = schema.One(schema.Boolean, defaultValue = False)
     colorizeIcon             = schema.One(schema.Boolean, defaultValue = True)
     dontDisplayAsCalendar    = schema.One(schema.Boolean, defaultValue = False)
     outOfTheBoxCollection    = schema.One(schema.Boolean, defaultValue = False)
@@ -123,7 +122,6 @@ def installParcel(parcel, oldVersion=None):
     allUC.setValues(renameable=False,
                     outOfTheBoxCollection = True,
                     iconName = "Dashboard",
-                    iconNameHasClassVariant = True,
                     colorizeIcon = False,
                     dontDisplayAsCalendar = True,
                     allowOverlay = False)

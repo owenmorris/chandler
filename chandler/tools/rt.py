@@ -1574,11 +1574,11 @@ def main(options):
     
       unit test and functional test:
     
-    >>> options.single = 'TestCrypto,TestBlocks'
+    >>> options.single = 'TestCrypto,TestTriageSectioning'
     >>> main(options)
     /.../RunPython... application/tests/TestCrypto.py -v
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /.../release/RunPython... Chandler.py --create --catch=tests --profileDir=test_profile --parcelPath=tools/cats/DataFiles --chandlerTests=TestBlocks -D2 -M0
+    /.../release/RunPython... Chandler.py --create --catch=tests --profileDir=test_profile --parcelPath=tools/cats/DataFiles --chandlerTests=TestTriageSectioning -D2 -M0
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
     

@@ -3,7 +3,7 @@ def run():
     wx.GetApp().RunRecordedScript ([
         (0, wx.MouseEvent, {'associatedBlock':'ApplicationBar', 'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'ApplicationBar'}, {'m_leftDown':True, 'm_x':285, 'm_y':21}),
         (1, wx.MouseEvent, {'associatedBlock':'ApplicationBar', 'eventType':wx.EVT_LEFT_UP, 'sentTo':u'ApplicationBar'}, {'m_x':285, 'm_y':21}),
-        (2, wx.CommandEvent, {'associatedBlock':'ApplicationBarNewButton', 'eventType':wx.EVT_MENU, 'sentTo':u'ApplicationBar'}, {}),
+        (2, wx.CommandEvent, {'associatedBlock':'NewItemItem', 'eventType':wx.EVT_MENU, 'sentTo':'__block__NewItemMenu'}, {}),
         (3, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'HeadlineBlockAEEditControl'}, {}),
         (4, wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':u'HeadlineBlockAEEditControl', 'lastWidgetValue':u'Untitled'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':152, 'm_y':120, 'UnicodeKey':13}),
         (5, wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':u'HeadlineBlockAEEditControl', 'recordedFocusWindow':u'HeadlineBlockAEEditControl', 'recordedFocusWindowClass':osaf.framework.attributeEditors.DragAndDropTextCtrl.DragAndDropTextCtrl, 'lastWidgetValue':u'Untitled'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':152, 'm_y':120, 'UnicodeKey':13}),

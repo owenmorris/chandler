@@ -18,7 +18,6 @@ from osaf.framework.blocks.Block import Block
 
 from debug.TestMenu import makeTestMenu
 from debug.DebugMenu import makeDebugMenu
-from debug.CPIAMenu import makeCPIAMenu
 from debug.MeMenu import makeMeMenu
 from debug.SharingMenu import makeSharingMenu
 
@@ -35,7 +34,6 @@ def installParcel(parcel, version=None):
 
     makeTestMenu(parcel, toolsMenu)
     makeDebugMenu(parcel, toolsMenu)
-    makeCPIAMenu(parcel, toolsMenu)
 
     MenuItem.update(parcel, None,
                     blockName='_debug_separator_1',

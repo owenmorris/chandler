@@ -979,8 +979,6 @@ class SSSidebarIconButton2 (SSSidebarButton):
 
         iconName = userCollection.iconName
         filterClass = sidebarBlock.filterClass
-        if userCollection.iconNameHasClassVariant and filterClass is not MissingClass:
-            iconName += filterClass.__name__
 
         image = wx.GetApp().GetRawImage (imagePrefix + iconName + mouseState + deactive + imageSuffix)
 
@@ -1073,9 +1071,6 @@ class SSSidebarIconButton (SSSidebarButton):
 
         iconName = userCollection.iconName
         filterClass = sidebarBlock.filterClass
-        if (userCollection.iconNameHasClassVariant and
-            filterClass is not MissingClass):
-            iconName += filterClass.__name__
 
         image = wx.GetApp().GetRawImage (imagePrefix + iconName + mouseState + deactive + imageSuffix)
 
