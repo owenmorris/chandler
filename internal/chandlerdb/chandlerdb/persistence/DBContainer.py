@@ -1510,8 +1510,9 @@ class VersionContainer(DBContainer):
     # 0.7.8: == values in sorted indexes now ranked by comparing their keys
     # 0.7.9: MERGED item bit persisted
     # 0.7.10: Lucene index now stored from Python
+    # 0.7.11: repository moved into chandlerdb egg.
 
-    FORMAT_VERSION = 0x00070a00
+    FORMAT_VERSION = 0x00070b00
 
     SCHEMA_KEY  = pack('>16si', Repository.itsUUID._uuid, 0)
     VERSION_KEY = pack('>16si', Repository.itsUUID._uuid, 1)
