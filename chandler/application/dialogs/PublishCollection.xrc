@@ -379,7 +379,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxButton" name="BUTTON_CLIPBOARD">
-                        <label>&amp;Copy URL(s) to Clipboard</label>
+                        <label>&amp;Copy URL(s)</label>
                     </object>
                 </object>
                 <object class="sizeritem">
@@ -420,7 +420,7 @@
                     <border>5</border>
                     <object class="wxButton" name="BUTTON_PUBLISHING">
                         <enabled>0</enabled>
-                        <label>&amp;Copy URL(s) to Clipboard</label>
+                        <label>&amp;Copy URL(s)</label>
                     </object>
                 </object>
                 <object class="sizeritem">
@@ -447,7 +447,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxButton" name="BUTTON_CLIPBOARD">
-                        <label>&amp;Copy URL(s) to Clipboard</label>
+                        <label>&amp;Copy URL(s)</label>
                     </object>
                 </object>
                 <object class="sizeritem">

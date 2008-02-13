@@ -59,8 +59,7 @@ class InviteFrame(wx.Frame):
         self.buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.CancelButton = wx.Button(self.panel, wx.ID_CANCEL)
-        self.CopyButton = wx.Button(self.panel, wx.ID_OK,
-            _(u"&Copy URL(s) to Clipboard"))
+        self.CopyButton = wx.Button(self.panel, wx.ID_OK, _(u"&Copy URL(s)"))
         self.CopyButton.SetDefault()
 
         self.buttonSizer.Add(self.CancelButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)

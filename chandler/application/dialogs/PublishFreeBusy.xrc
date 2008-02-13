@@ -91,7 +91,7 @@
             <border>5</border>
             <object class="wxButton" name="BUTTON_PUBLISHING">
               <enabled>0</enabled>
-              <label>Copy URL to Clipboard</label>
+              <label>Copy URL</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -117,7 +117,7 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxButton" name="BUTTON_CLIPBOARD">
-              <label>Copy URL to Clipboard</label>
+              <label>Copy URL</label>
             </object>
           </object>
           <object class="sizeritem">
