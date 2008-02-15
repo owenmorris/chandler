@@ -7,20 +7,20 @@ def run():
         Choose menu 'Collection > New' (0)
         Type u'Test' (4)
         Left Mouse Down in ApplicationBar (19)
-        Choose toolbar button 'New' (21)
+        Choose menu item 'New Item' (21)
         Left Mouse Down in TriageStamp (23)
         Left Mouse Down in TriageStamp (26)
         Left Mouse Down in DashboardSummaryViewGridWindow (29)
         Left Mouse Double Click in DashboardSummaryViewGridWindow
         Type u'Done' (37)
         Left Mouse Down in ApplicationBar (52)
-        Choose toolbar button 'New' (54)
+        Choose menu item 'New Item' (20)
         Left Mouse Down in TriageStamp (56)
         Left Mouse Down in DashboardSummaryViewGridWindow (59)
         Left Mouse Double Click in DashboardSummaryViewGridWindow
         Type u'Later' (67)
         Left Mouse Down in ApplicationBar (85)
-        Choose toolbar button 'New' (87)
+        Choose menu item 'New Item' (87)
         Left Mouse Down in DashboardSummaryViewGridWindow (89)
         Left Mouse Double Click in DashboardSummaryViewGridWindow
         Type u'Now' (97)
@@ -66,7 +66,7 @@ def run():
         (18, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'SidebarGridWindow'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':148, 'm_y':-58, 'UnicodeKey':13}),
         (19, wx.MouseEvent, {'associatedBlock':'ApplicationBar', 'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'ApplicationBar', 'recordedFocusWindow':u'SidebarGridWindow', 'recordedFocusWindowClass':wx.Window}, {'m_leftDown':True, 'm_x':280, 'm_y':22}),
         (20, wx.MouseEvent, {'associatedBlock':'ApplicationBar', 'eventType':wx.EVT_LEFT_UP, 'sentTo':u'ApplicationBar'}, {'m_x':280, 'm_y':22}),
-        (21, wx.CommandEvent, {'associatedBlock':'ApplicationBarNewButton', 'eventType':wx.EVT_MENU, 'sentTo':u'ApplicationBar'}, {}),
+        (21, wx.CommandEvent, {'associatedBlock':'NewItemItem', 'eventType':wx.EVT_MENU, 'sentTo':'__block__NewItemMenu'}, {}),
         (22, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'HeadlineBlockAEEditControl'}, {}),
         (23, wx.MouseEvent, {'associatedBlock':'TriageStamp', 'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'TriageStamp', 'lastWidgetValue':u'Untitled'}, {'m_leftDown':True, 'm_x':15, 'm_y':18}),
         (24, wx.MouseEvent, {'associatedBlock':'TriageStamp', 'eventType':wx.EVT_LEFT_UP, 'sentTo':u'TriageStamp'}, {'m_x':15, 'm_y':18}),
@@ -99,7 +99,7 @@ def run():
         (51, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'DashboardSummaryViewGridWindow'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':184, 'm_y':29, 'UnicodeKey':13}),
         (52, wx.MouseEvent, {'associatedBlock':'ApplicationBar', 'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'ApplicationBar', 'recordedFocusWindow':u'DashboardSummaryViewGridWindow', 'recordedFocusWindowClass':wx.Window}, {'m_leftDown':True, 'm_x':275, 'm_y':17}),
         (53, wx.MouseEvent, {'associatedBlock':'ApplicationBar', 'eventType':wx.EVT_LEFT_UP, 'sentTo':u'ApplicationBar'}, {'m_x':275, 'm_y':17}),
-        (54, wx.CommandEvent, {'associatedBlock':'ApplicationBarNewButton', 'eventType':wx.EVT_MENU, 'sentTo':u'ApplicationBar'}, {}),
+        (54, wx.CommandEvent, {'associatedBlock':'NewItemItem', 'eventType':wx.EVT_MENU, 'sentTo':'__block__NewItemMenu'}, {}),
         (55, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'HeadlineBlockAEEditControl'}, {}),
         (56, wx.MouseEvent, {'associatedBlock':'TriageStamp', 'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'TriageStamp', 'lastWidgetValue':u'Untitled'}, {'m_leftDown':True, 'm_x':24, 'm_y':15}),
         (57, wx.MouseEvent, {'associatedBlock':'TriageStamp', 'eventType':wx.EVT_LEFT_UP, 'sentTo':u'TriageStamp'}, {'m_x':24, 'm_y':15}),
@@ -132,7 +132,7 @@ def run():
         (84, wx.KeyEvent, {'eventType':wx.EVT_KEY_UP, 'sentTo':u'DashboardSummaryViewGridWindow'}, {'m_rawCode':13, 'm_keyCode':13, 'm_x':171, 'm_y':27, 'UnicodeKey':13}),
         (85, wx.MouseEvent, {'associatedBlock':'ApplicationBar', 'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'ApplicationBar', 'recordedFocusWindow':u'DashboardSummaryViewGridWindow', 'recordedFocusWindowClass':wx.Window}, {'m_leftDown':True, 'm_x':287, 'm_y':34}),
         (86, wx.MouseEvent, {'associatedBlock':'ApplicationBar', 'eventType':wx.EVT_LEFT_UP, 'sentTo':u'ApplicationBar'}, {'m_x':287, 'm_y':34}),
-        (87, wx.CommandEvent, {'associatedBlock':'ApplicationBarNewButton', 'eventType':wx.EVT_MENU, 'sentTo':u'ApplicationBar'}, {}),
+        (87, wx.CommandEvent, {'associatedBlock':'NewItemItem', 'eventType':wx.EVT_MENU, 'sentTo':'__block__NewItemMenu'}, {}),
         (88, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'HeadlineBlockAEEditControl'}, {}),
         (89, wx.MouseEvent, {'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'DashboardSummaryViewGridWindow', 'recordedFocusWindow':u'HeadlineBlockAEEditControl', 'recordedFocusWindowClass':osaf.framework.attributeEditors.DragAndDropTextCtrl.DragAndDropTextCtrl, 'lastWidgetValue':u'Untitled'}, {'m_leftDown':True, 'm_x':182, 'm_y':31}),
         (90, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'DashboardSummaryViewGridWindow'}, {}),
