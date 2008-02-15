@@ -480,12 +480,34 @@ class wxSidebar(wxTable):
         # done.
         self.blockItem.itsView.commit()
 
+    def ClipboardDataObject(self):
+        dataObject = super(wxSidebar, self).ClipboardDataObject()
+        for format in dataObject.AllFormats:
+            if format.Id == __name__:
+                break
+        else:
+            dataObject.Add(wx.CustomDataObject(__name__))
+        return dataObject
 
     def CopyData(self):
-        sourceData = wx.CustomDataObject(__name__)
-        sourceData.SetData(",".join(x.itsUUID.str16()
-                                    for x in self.__dragItems))
+        sourceData = self.ClipboardDataObject()
+        collectionData = ",".join(x.itsUUID.str16()
+                                    for x in self.__dragItems)
+        for format in sourceData.GetAllFormats():
+            if format.Id == __name__:
+                sourceData.SetData(format, collectionData)
         return sourceData
+
+    def PasteData(self, data):
+        for format in data.GetAllFormats():
+            if format.Id == __name__ and data.GetDataHere(format):
+                # Make sure to clear out the data, though.
+                # For "self-drags", there is nothing else to do here:
+                # we're tracking the drag state separately.
+                data.SetData(format, '')
+                break
+        else:
+            super(wxSidebar, self).PasteData(data)
 
     def OnItemDrag(self, event):
         contents = self.blockItem.contents
