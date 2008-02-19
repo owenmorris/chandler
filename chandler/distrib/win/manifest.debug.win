@@ -97,15 +97,6 @@ glob=*
 i18n
 Chandler.egg-info
 
-# Grab localization eggs
-src=chandler/plugins
-dest=plugins
-Chandler.de-1.0-py2.5.egg
-Chandler.en-1.0-py2.5.egg
-Chandler.fi-1.0-py2.5.egg
-Chandler.fr-1.0-py2.5.egg
-Chandler.sv-1.0-py2.5.egg
-
 # Grab the launchers and windows README
 src=chandler/distrib/win
 README.win.txt
