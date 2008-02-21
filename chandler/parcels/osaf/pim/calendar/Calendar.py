@@ -2053,7 +2053,8 @@ class EventStamp(Stamp):
         # Because force isn't set, this will preserve _sectionTriageStatus
         # if the master happened to be pinned already
         firstItem.setTriageStatus('auto', pin=True)
-        if firstItem._sectionTriageStatus == firstItem._triageStatus:
+        if (getattr(firstItem, '_sectionTriageStatus', None) ==
+            firstItem._triageStatus):
             firstItem.purgeSectionTriageStatus()
         
         if wasModification and oldTriageStatus == TriageEnum.later:
