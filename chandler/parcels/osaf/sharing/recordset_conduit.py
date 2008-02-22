@@ -68,6 +68,8 @@ class RecordSetConduit(conduits.BaseConduit):
     syncToken = schema.One(schema.Text, defaultValue="")
     filters = schema.Many(schema.Text, initialValue=set())
     lastVersion = schema.One(schema.Long, initialValue=0)
+    
+    _allTickets = ()
 
     def sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):
@@ -91,6 +93,27 @@ class RecordSetConduit(conduits.BaseConduit):
     def reset(self):
         self.syncToken = ""
         self.lastVersion = 0
+
+    def _getAllTickets(self, items):
+        """Return a list of all tickets applicable to all items in collection"""
+        collections = set()
+        tickets = []
+        for item in (items or ()):
+            for collection in item.collections:
+                # Don't process the same collection multiple times
+                # (though maybe this isn't a big deal)
+                if not collection in collections:
+                    collections.add(collection)
+                    collShares = getattr(shares.SharedItem(collection),
+                                         'shares', ())
+                    for share in collShares:
+                        conduit = share.conduit
+                        for attr in ('ticket', 'ticketReadWrite',
+                                     'ticketReadOnly'):
+                            ticket = getattr(conduit, attr, None)
+                            if ticket and not ticket in tickets:
+                                tickets.append(ticket)
+        return tickets
 
     def _sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):
@@ -163,6 +186,7 @@ class RecordSetConduit(conduits.BaseConduit):
         remotelyUnmodified = set() # Aliases of unmodified (removed) occurrences
         locallyAdded = set( ) # The aliases of locally added items
         localItems = set() # The aliases of all items we're to process
+        self._allTickets = self._getAllTickets(share.contents)
 
         triageFilter = eim.Filter(None, "Filter out triage and read")
         triageFilter += model.triageFilter
@@ -1031,6 +1055,12 @@ class RecordSetConduit(conduits.BaseConduit):
         self.lastVersion = rv.itsVersion
 
         share.established = True
+        
+        # Reset _allTickets
+        try:
+            del self._allTickets
+        except AttributeError:
+            pass
 
         _callback(msg="Done")
 

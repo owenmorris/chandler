@@ -414,7 +414,6 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         return resp.body
 
     def put(self, text):
-
         path = self.getMorsecodePath()
 
         if self.syncToken:
@@ -530,6 +529,9 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         ticket = getattr(self, 'ticket', None)
         if ticket:
             extraHeaders['Ticket'] = ticket
+
+        if self._allTickets:
+            extraHeaders['X-MorseCode-Ticket'] = list(self._allTickets)
 
         syncToken = getattr(self, 'syncToken', None)
         if syncToken:
