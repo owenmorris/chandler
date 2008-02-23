@@ -1592,6 +1592,13 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     def RefreshCanvasItems(self, resort=True):
         self.RebuildCanvasItems(resort)
         self.Refresh()
+
+    def RealignCanvasItems(self):
+        """
+        Subclass hook; called in the event (sic) of a user preference
+        that requires re-layout.
+        """
+        pass
         
     def GetCurrentDateRange(self):
         return self.blockItem.GetCurrentDateRange()
