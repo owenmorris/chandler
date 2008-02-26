@@ -18,6 +18,7 @@ import wx
 from wx import xrc
 import application.Globals as Globals
 import os 
+import pkg_resources
 import logging
 from debug import createItems as createItems 
 import cPickle as pickle
@@ -433,10 +434,9 @@ class xrcFRAME1(wx.Dialog):
 
 def __init_resources():
     global __res
-    resFile = os.path.join(Globals.chandlerDirectory,
-                           'application', 'dialogs', 'ItemGenerator.xrc')
+    xml = pkg_resources.resource_string(__name__, 'ItemGenerator.xrc')
     __res = xrc.EmptyXmlResource()
-    __res.Load(resFile)
+    __res.LoadFromString(xml)
 
 def show():
     dialogWin = xrcFRAME1(None)

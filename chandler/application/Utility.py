@@ -34,7 +34,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "476" # grant: File menu re-organization (Bug 11429)
+SCHEMA_VERSION = "477" # grant: Move "Generate Items" dialog into debug plugin.
 
 logger = None # initialized in initLogging()
 

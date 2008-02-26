@@ -3,7 +3,7 @@
 
 import wx
 import wx.xrc as xrc
-import os 
+import pkg_resources
 import application.Globals as Globals
 
 __res = None
@@ -39,10 +39,9 @@ class xrcHelpWin(wx.Dialog):
 
 def __init_resources():
     global __res
-    resFile = os.path.join(Globals.chandlerDirectory,
-     'application', 'dialogs', 'itemGenHelp.xrc')
+    xml = pkg_resources.resource_string(__name__, 'itemGenHelp.xrc')
     __res = xrc.EmptyXmlResource()
-    __res.Load(resFile)
+    __res.LoadFromString(xml)
     
 def showStandAlone():
     app = wx.PySimpleApp()
