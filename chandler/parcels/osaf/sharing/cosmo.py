@@ -121,8 +121,17 @@ class CosmoAccount(accounts.SharingAccount):
             return self._getPublishedShares(None)
 
         # don't block the current thread
-        t = threading.Thread(target=self._getPublishedShares,
-            args=(callback,))
+
+        def startThread(repository, uuid):
+            rv = viewpool.getView(repository)
+            conduit = rv[uuid]
+            try:
+                conduit._getPublishedShares(callback)
+            finally:
+                viewpool.releaseView(rv)
+            
+        t = threading.Thread(target=startThread,
+                             args=(self.itsView.repository, self.itsUUID))
         t.start()
 
     def _getPublishedShares(self, callback):
