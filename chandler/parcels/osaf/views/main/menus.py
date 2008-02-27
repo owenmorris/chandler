@@ -161,7 +161,7 @@ def makeMainMenus(parcel):
                         childBlocks=[
                             MenuItem.template('ImportICalendarItem',
                                 event = main.ImportICalendar,
-                                title = _(u'&Import Tasks and Events from .ics File...'),
+                                title = _(u'&Tasks and Events from .ics File...'),
                                 helpString = _(u'Import iCalendar file')),
                             MenuItem.template('ReloadFromFileItem',
                                 event = main.ReloadFromFile,
@@ -173,11 +173,11 @@ def makeMainMenus(parcel):
                         childBlocks=[
                             MenuItem.template('ExportICalendarItem',
                                 event = main.ExportICalendar,
-                                title = _(u'&Export .ics Calendar...'),
+                                title = _(u'&Events and Tasks to .ics File...'),
                                 helpString = _(u'Export Tasks and Events to .ics File...')),
                             MenuItem.template('DumpToFileItem',
                                 event = main.DumpToFile,
-                                title = _(u'E&xport Chandler Data to .chex File...'),
+                                title = _(u'&Chandler Data to .chex File...'),
                                 helpString = _(u'Export your data to move to a new version of Chandler')),
                         ]),
                     MenuItem.template('FileSeparator1',
