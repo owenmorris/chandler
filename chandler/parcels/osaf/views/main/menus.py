@@ -386,7 +386,7 @@ def makeMainMenus(parcel):
                         menuItemKind = 'Separator'),
                     MenuItem.template('TriageMenu',
                         event = main.Triage,
-                        title = _(u'T&riage'),
+                        title = _(u'&Clean up'),
                         accel = _(u'F5'),
                         helpString = _(u'Sort items into correct Triage sections')),
                     MenuItem.template('ViewSeparator1.5',
