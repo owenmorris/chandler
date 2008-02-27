@@ -75,15 +75,6 @@ glob=*
 i18n
 Chandler.egg-info
 
-# Grab localization eggs
-src=chandler/plugins
-dest=Contents/Resources/plugins
-Chandler.de-1.0-py2.5.egg
-Chandler.en-1.0-py2.5.egg
-Chandler.fi-1.0-py2.5.egg
-Chandler.fr-1.0-py2.5.egg
-Chandler.sv-1.0-py2.5.egg
-
 # Grab the osx README
 src=chandler/distrib/osx
 README.osx.txt
@@ -105,3 +96,13 @@ src=chandler/release
 dest=Contents/Resources/release
 RunPython
 
+# Grab localization eggs
+src=chandler/plugins
+dest=Contents/Resources/plugins
+glob=Chandler.*-1.0-py2.5.egg
+recursive=no
+Chandler.de-1.0-py2.5.egg
+Chandler.en-1.0-py2.5.egg
+Chandler.fi-1.0-py2.5.egg
+Chandler.fr-1.0-py2.5.egg
+Chandler.sv-1.0-py2.5.egg
