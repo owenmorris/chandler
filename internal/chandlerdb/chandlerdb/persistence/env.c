@@ -411,7 +411,12 @@ static PyObject *t_env_log_archive(t_env *self, PyObject *args)
         Py_END_ALLOW_THREADS;
 
         if (err)
+        {
+            if (err == DB_NOTFOUND)
+                list = NULL;
+
             return raiseDBError(err);
+        }
 
         {
             PyObject *strings = PyList_New(0);
