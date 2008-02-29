@@ -414,8 +414,8 @@ static PyObject *t_env_log_archive(t_env *self, PyObject *args)
         {
             if (err == DB_NOTFOUND)
                 list = NULL;
-
-            return raiseDBError(err);
+            else
+                return raiseDBError(err);
         }
 
         {
