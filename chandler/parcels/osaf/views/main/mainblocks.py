@@ -67,10 +67,7 @@ def makeMainView(parcel):
         parcel, 'sidebarSelectionCollection',
         source = app_ns.sidebarCollection)
 
-    if len(app_ns.sidebarCollection) > 4:
-        initialSelectedCollection = list(app_ns.sidebarCollection)[4]
-    else:
-        initialSelectedCollection = pim_ns.allCollection
+    initialSelectedCollection = pim_ns.allCollection
         
 
     Sidebar = SidebarBlock.template(

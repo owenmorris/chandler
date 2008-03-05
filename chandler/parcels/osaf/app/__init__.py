@@ -20,6 +20,7 @@ from application.Parcel import Reference
 from i18n import ChandlerMessageFactory as _
 from osaf import pim, messages, startup, sharing, preferences
 from osaf.framework import scripting, password
+from osaf.framework.blocks.calendar import CalendarUtility
 from osaf.usercollections import UserCollection
 
 class ApplicationPrefs(preferences.Preferences):
@@ -114,7 +115,7 @@ def installParcel(parcel, oldVersion=None):
         )
     )
     
-    # OOTB collections and items (bug 6545)
+    # OOTB collections and items (bugs 6545, 11772)
     # http://chandlerproject.org/bin/view/Journal/PreviewOOTBChandlerExperience
     #
     # (1) Don't create these in //parcels, or they won't get dumped
@@ -126,7 +127,16 @@ def installParcel(parcel, oldVersion=None):
     #     we're reloading, because summaryblocks references it.
     #     (Maybe there's a better way to have it selected in the
     #      detail view?) -- Grant
+    # (5) We create
     
+    triageWhenValues = [datetime.datetime.now(parcel.itsView.tzinfo.default)]
+    def changeTriage(itemOrStamp, triageValue):
+        triageWhen = triageWhenValues.pop()
+        item = getattr(itemOrStamp, 'itsItem', itemOrStamp)
+        item.setTriageStatus(triageValue, triageWhen)
+        triageWhenValues.append(triageWhen - datetime.timedelta(seconds=5))
+
+
     # OOTB item: Welcome Event
     noonToday = datetime.datetime.combine(
         datetime.date.today(),
@@ -162,8 +172,9 @@ The Chandler Team""")
 
     WelcomeEvent.body = body
     WelcomeEvent.changeEditState(pim.Modification.created)
-    WelcomeEvent.setTriageStatus(pim.TriageEnum.now)
+    changeTriage(WelcomeEvent, pim.TriageEnum.now)
     pim.TaskStamp(WelcomeEvent).add()
+    
     
     if Globals.options.reload:
         schema.ns('osaf.pim', parcel.itsView).allCollection.add(WelcomeEvent)
@@ -190,98 +201,387 @@ The Chandler Team""")
         home = makeCollection(_(u"Home"), True, u'Red')
         fun = makeCollection(_(u"Fun"), False, u'Plum')
 
+        dashboard = schema.ns("osaf.pim", parcel.itsView).allCollection
+
         # Add Welcome item to OOTB collections
         home.add(WelcomeEvent)
         work.add(WelcomeEvent)
-
-        # OOTB item1: Try sharing a Home task list
-        task1 = pim.Task(
-                  itsView=parcel.itsView,
-                  displayName=_(u"Try sharing a Home task list"),
-                  collections=[home],
-                  read=False,
-              )
-        task1.itsItem.changeEditState(pim.Modification.created)
-        task1.itsItem.setTriageStatus(pim.TriageEnum.later)
-        floating = parcel.itsView.tzinfo.floating
-
-        reminderTime = datetime.datetime.combine(
-                            datetime.datetime.now().date() +
-                                datetime.timedelta(days=1),
-                            datetime.time(8, 0, tzinfo=floating)
-                       )
-        task1.itsItem.userReminderTime = reminderTime
         
-        # OOTB item2: Play around with the Calendar
-        startevent2 = datetime.datetime.combine(
-                            datetime.datetime.now().date(),
-                            datetime.time(15, 0, tzinfo=floating)
-                       )
-        event2 = pim.CalendarEvent(
+        
+        thisWeek = CalendarUtility.getCalendarRange(noonToday.date())
+
+        def getDayInThisWeek(weekday):
+        
+            res = thisWeek[0]
+            while res.weekday() != weekday:
+                res += datetime.timedelta(days=1)
+            return res
+
+        # OOTB item 1: Next dentist appointment?
+        event1 = pim.CalendarEvent(
                     itsView=parcel.itsView,
-                    displayName=_(u"Play around with the Calendar"),
-                    startTime=startevent2,
-                    duration=datetime.timedelta(minutes=60),
-                    anyTime=False,
+                    displayName=_(u"Next dentist appointment?"),
+                    startTime=noonToday.replace(hour=9),
+                    anyTime=True,
                     collections=[home],
-                    read=False,
-                )
-        event2.itsItem.changeEditState(pim.Modification.created)
-        event2.itsItem.setTriageStatus(pim.TriageEnum.now)
-        
-        # OOTB item3: Download Chandler
-        startevent3 = datetime.datetime.combine(
-                            datetime.datetime.now().date(),
-                            datetime.time(11, 0, tzinfo=floating)
-                       )
-        event3 = pim.CalendarEvent(
+                    read=True,
+                 )
+        event1.itsItem.changeEditState(pim.Modification.created,
+                                       when=noonToday.replace(hour=8))
+        changeTriage(event1, pim.TriageEnum.now)
+
+        # OOTB item #2: Tell a friend about Chandler
+        item2 = pim.Note(
                     itsView=parcel.itsView,
-                    # L10N: The Trademark symbol "TM" is represented in Unicode as U+2122
-                    displayName=_(u"Download Chandler\u2122 Preview"),
-                    startTime=startevent3,
-                    duration=datetime.timedelta(minutes=30),
-                    anyTime=False,
+                    displayName=_(u"Tell a friend about Chandler"),
+                    read=True,
+                    body=_(
+u"""Try sharing a collection with family, friends or colleagues.
+
+Sign up for a Chandler Hub account to get started: http://hub.chandlerproject.org
+"""),
+               )
+
+        schema.ns("osaf.pim", parcel.itsView).allCollection.add(item2)
+        item2.changeEditState(pim.Modification.created,
+                                       when=noonToday.replace(hour=8))
+        changeTriage(item2, pim.TriageEnum.now)
+        
+        # OOTB item #3: Write-up
+        task3 = pim.Task(
+                    itsView=parcel.itsView,
+                    displayName=_(u"Write-up..."),
                     collections=[work],
-                    read=False,
-                )
-        event3.itsItem.changeEditState(pim.Modification.created)
-        event3.itsItem.setTriageStatus(pim.TriageEnum.done)
-        pim.TaskStamp(event3).add()
-        
-        # OOTB item4: Set up your accounts
-        startevent4 = datetime.datetime.combine(
-                            datetime.datetime.now().date(),
-                            datetime.time(16, 0, tzinfo=floating)
-                       )
-        event4 = pim.CalendarEvent(
+                    read=True,
+                    body=_(
+u"""Start jotting down ideas for that big write-up you should really have started last week!
+
+.
+.
+.
+"""),
+               )
+        task3.itsItem.changeEditState(pim.Modification.created)
+        changeTriage(task3, pim.TriageEnum.now)
+
+        # OOTB item #4: Follow up
+        task4 = pim.Task(
                     itsView=parcel.itsView,
-                    displayName=_(u"Set up your accounts"),
-                    startTime=startevent4,
-                    duration=datetime.timedelta(minutes=30),
-                    anyTime=False,
-                    collections=[fun],
-                    read=False,
+                    displayName=_(u"Follow up with...on..."),
+                    read=True,
+                    body=_(
+u"""Maintain a list of things you need to discuss with a colleague:
+.
+.
+.
+
+(Click on the clock icon to add this note to the calendar for the next time you're going to meet with them.)
+"""),
+               )
+        dashboard.add(task4.itsItem)
+        task4.itsItem.changeEditState(pim.Modification.created)
+        changeTriage(task4, pim.TriageEnum.now)
+
+        # OOTB item #5: Start planning vacation
+        task5 = pim.Task(
+                    itsView=parcel.itsView,
+                    displayName=_(u"Start planning vacation"),
+                    read=True,
+                    collections=[home],
+                    body=_(
+"""Places you could go?
+.
+.
+.
+
+Activities you'd like to try?
+.
+.
+.
+
+Interesting travel articles?
+.
+.
+.
+"""),
+               )
+
+        changeTriage(task5, pim.TriageEnum.now)
+        task5.itsItem.changeEditState(pim.Modification.created)
+
+        # OOTB item #6: Bi-Weekly Status Report
+        event5 = pim.CalendarEvent(
+                     itsView=parcel.itsView,
+                     displayName=_(u"Bi-Weekly Status Report"),
+                     startTime=noonToday,
+                     anyTime=True,
+                     read=True,
+                     collections=[work],
+                     body=_(
+"""What have you been up to the last couple of weeks?
+.
+.
+.
+"""),
+                 )
+        def makeRecurring(event, **kw):
+             rule = pim.calendar.Recurrence.RecurrenceRule(
+                        itsView=parcel.itsView,
+                        **kw
+                    )
+
+             event.rruleset = pim.calendar.Recurrence.RecurrenceRuleSet(
+                        itsView=parcel.itsView,
+                        rrules=[rule]
+                    )
+             for item in event.modifications:
+                 changeTriage(item, item._triageStatus)
+
+        pim.TaskStamp(event5).add()
+        event5.itsItem.changeEditState(pim.Modification.created)
+
+        makeRecurring(event5, freq='weekly', interval=2)
+
+        # OOTB item #6: Office supplies order
+        startTime6 = datetime.datetime.combine(getDayInThisWeek(4),
+                                               noonToday.timetz())
+
+        event6 = pim.CalendarEvent(
+                     itsView=parcel.itsView,
+                     displayName=_(u"Office supplies order"),
+                     startTime=startTime6,
+                     anyTime=True,
+                     read=True,
+                     collections=[work],
+                     body=_(
+u"""Maintain a list of supplies you need to get every month:
+.
+.
+.
+
+(Share it with others so you can all maintain the list together!)
+""")
                 )
-        event4.itsItem.changeEditState(pim.Modification.created)
-        event4.itsItem.setTriageStatus(pim.TriageEnum.later)
-        m = pim.MailStamp(event4)
-        m.add()
-        m.toAddress.append(pim.mail.EmailAddress.getEmailAddress(parcel.itsView, "someone@example.org"))
-        m.fromMe = True
-        pim.TaskStamp(event4).add()
+        changeTriage(event6, pim.TriageEnum.done)
+        event6.itsItem.changeEditState(pim.Modification.created)
+        makeRecurring(event6, freq='monthly')
 
-        # OOTB item5: Delete sample items and collections
-        note = pim.Note(
-                  itsView=parcel.itsView,
-                  displayName=_(u"Delete sample items and collections"),
-                  collections=[work],
-                  read=False,
-              )
-        note.changeEditState(pim.Modification.created)
-        note.setTriageStatus(pim.TriageEnum.later)
-        note.body = _(u"The items and collections Chandler creates at startup are examples. Feel free to delete them.")
+        # OOTB item #7: Salsa class
+        startTime7 = noonToday.replace(hour=14, minute=30)
+        delta = 14 + startTime7.date().weekday() - 6
+        startTime7 -= datetime.timedelta(days=delta)
+        until7 = startTime7 + datetime.timedelta(days=28)
+        event7 = pim.CalendarEvent(
+                     itsView=parcel.itsView,
+                     displayName=_(u"Salsa Class"),
+                     startTime=startTime7,
+                     duration=datetime.timedelta(hours=1),
+                     anyTime=False,
+                     read=True,
+                     collections=[home, fun],
+                     body=_(
+u"""Assignment for this week:
+.
+.
+.
+
+Remember to bring:
+.
+.
+.
+""")
+                 )
+        event7.itsItem.changeEditState(pim.Modification.created,
+                                       when=startTime7)
+        changeTriage(event7, pim.TriageEnum.done)
+        makeRecurring(event7, freq='weekly', until=until7)
+
+        # A hack to get this occurrence to appear in the dashboard
+        event7.getFirstOccurrence().getNextOccurrence().changeThis()
+        for m in sorted(event7.modifications,
+                        key=lambda o: pim.EventStamp(o).startTime):
+            changeTriage(m, m._triageStatus)
+
+        # OOTB item #8: Brunch potluck...
+        startTime8 = datetime.datetime.combine(
+                        getDayInThisWeek(6),
+                        datetime.time(11, 0, tzinfo=noonToday.tzinfo)
+                    )
+        
+        event8 = pim.CalendarEvent(
+                     itsView=parcel.itsView,
+                     displayName=_(u"Brunch potluck..."),
+                     startTime=startTime8,
+                     duration=datetime.timedelta(hours=2),
+                     anyTime=False,
+                     read=True,
+                     collections=[home, fun],
+                     body=_(
+u"""Directions
+.
+.
+.
+
+Ideas for games to bring...
+.
+.
+.
+
+Sign up to bring food...
+.
+.
+.
+"""),
+                )
+        changeTriage(event8, event8.autoTriage())
+        event8.itsItem.changeEditState(pim.Modification.created)
+
+        # OOTB Item #9: Ideas for presents
+        item9 = pim.Note(
+                    itsView=parcel.itsView,
+                    displayName=_(u"Ideas for presents"),
+                    read=True,
+                    collections=[home],
+                    body=_(
+u"""Maintain a list of possible presents for family, friends and colleagues so you're never short on ideas!
+.
+.
+.
+"""),
+                )
+        changeTriage(item9, pim.TriageEnum.later)
+        item9.changeEditState(pim.Modification.edited)
+
+        # OOTB Item #10: Thank you notes
+        item10 = pim.Note(
+                     itsView=parcel.itsView,
+                     displayName=_(u"Thank you notes"),
+                     read=True,
+                     collections=[home],
+                     body=_(
+u"""Who do you need to write thank you notes to? and for what reason?
+.
+.
+.
 
 
+"""),
+                )
+
+        changeTriage(item10, pim.TriageEnum.later)
+        item10.changeEditState(pim.Modification.created)
+
+        # OOTB Item #11: Movie list
+        item11 = pim.Note(
+                     itsView=parcel.itsView,
+                     displayName=_(u"Movie list"),
+                     read=True,
+                     collections=[fun, home],
+                     body=_(
+u"""Movies you want to see:
+
+.
+.
+.
+"""),
+                )
+
+        changeTriage(item11, pim.TriageEnum.later)
+        item11.changeEditState(pim.Modification.created)
+
+        # OOTB Item #12: Book list
+        item12 = pim.Note(
+                     itsView=parcel.itsView,
+                     displayName=_(u"Book list"),
+                     read=True,
+                     collections=[fun, home],
+                     body=_(
+u"""Book recommendations you've been meaning to follow up on:
+
+.
+.
+.
+"""),
+                )
+
+        changeTriage(item12, pim.TriageEnum.later)
+        item12.changeEditState(pim.Modification.created)
+
+        # OOTB Item #13: File taxes
+        startTime13 = noonToday.replace(month=4, day=15)
+        alarmTime13 = startTime13.replace(day=1)
+        if alarmTime13 < noonToday:
+            alarmTime13 = alarmTime13.replace(year=alarmTime13.year + 1)
+            startTime13 = startTime13.replace(year=startTime13.year + 1)
+
+        event13 = pim.CalendarEvent(
+                      itsView=parcel.itsView,
+                      startTime=startTime13,
+                      displayName=_(u"File taxes!"),
+                      read=True,
+                      collections=[home],
+                      body=_(
+u"""What forms do you have in hand?
+.
+.
+.
+
+What are you missing?
+.
+.
+.
+
+Questions for your accountant?
+.
+.
+.
+"""),
+                  )
+
+        pim.TaskStamp(event13).add()
+        event13.itsItem.changeEditState(pim.Modification.created)
+        changeTriage(event13, pim.TriageEnum.later)
+        event13.itsItem.userReminderTime = alarmTime13
+
+        # OOTB Item #14: Class Trip: Exhibit on Sound!
+        location14 = pim.Location.update(parcel, "Exploratorium",
+            displayName="Exploratorium",
+        )
+
+        startTime14 = datetime.datetime.combine(
+                        getDayInThisWeek(6),
+                        datetime.time(15, tzinfo=noonToday.tzinfo))
+        
+        event14 = pim.CalendarEvent(
+                      itsView=parcel.itsView,
+                      startTime=startTime14,
+                      displayName=_(u"Class Trip: Exhibit on Sound!"),
+                      read=True,
+                      location=location14,
+                      collections=[fun],
+                      body=_(
+u"""Directions...
+.
+.
+.
+"""),
+                  )
+        event14.itsItem.changeEditState(pim.Modification.edited,
+                                        when=startTime14)
+        changeTriage(event14, pim.TriageEnum.done)
+
+        # OOTB Item #15: Download Chandler!
+        note15 = pim.Note(
+                     itsView= parcel.itsView,
+                     displayName=_(u"Download Chandler!"),
+                     read=True,
+                 )
+        dashboard.add(note15)
+        done15 = datetime.datetime.now(parcel.itsView.tzinfo.default)
+        done15 -= datetime.timedelta(minutes=5)
+        done15 = done15.replace(second=0, microsecond=0)
+        changeTriage(note15, pim.TriageEnum.done)
+        note15.changeEditState(pim.Modification.edited, when=done15)
 
     # Set up the main web server
     from osaf import webserver
