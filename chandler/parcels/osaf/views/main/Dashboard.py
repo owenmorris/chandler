@@ -25,6 +25,7 @@ from osaf.framework.blocks import (
     Block, Table,  wxTable,
     Styles)
 from osaf import pim
+from osaf.sharing import isReadOnly
 from i18n import ChandlerMessageFactory as _
 from application.Utility import getPlatformID
 from chandlerdb.util.c import UUID
@@ -61,7 +62,7 @@ class DashboardBlock(Table):
     )
 
     def instantiateWidget (self):
-        widget = wxTable (self.parentBlock.widget, 
+        widget = wxDashboard(self.parentBlock.widget, 
                           Block.Block.getWidgetID(self),
                           characterStyle=getattr(self, "characterStyle", None),
                           headerCharacterStyle=getattr(self, "headerCharacterStyle", None))
@@ -154,3 +155,11 @@ class DashboardBlock(Table):
         if self.miniCalendar is not None:
             self.miniCalendar.activeViewChanged()
             self.miniCalendar.previewArea.activeViewChanged()
+            
+class wxDashboard(wxTable):
+    def OnItemDrag(self, event):
+        if isReadOnly(self.blockItem.contentsCollection):
+            event.Skip(False)
+            wx.MessageBox(_(u'This collection is read-only. You cannot drag items out of read-only collections.'), _(u'Warning'), parent=self)
+        else:
+            return super(wxDashboard, self).OnItemDrag(event)
