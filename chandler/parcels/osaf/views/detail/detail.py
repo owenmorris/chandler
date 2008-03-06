@@ -444,6 +444,7 @@ class DetailSynchronizedAttributeEditorBlock(DetailSynchronizedBehavior,
     def OnFinishChangesEvent(self, event):
         self.saveValue()
 
+
 class DetailTriageButtonBlock(DetailSynchronizedBehavior, ControlBlocks.Button):
     """
     A button that controls the triage state of an item
@@ -469,9 +470,15 @@ class DetailTriageButtonBlock(DetailSynchronizedBehavior, ControlBlocks.Button):
             multibitmaps = multibitmaps,
             bitmapProvider=TriageButtonImageProvider("Markup.Now.Stamped.png"))
 
-        parentWidget.Bind(wx.EVT_BUTTON, self.buttonPressed, id=id)
-        return button        
+        # For some reason, wx.lib.buttons.GenButton only binds to
+        # double-click on windows. So, to get double-click working
+        # as in Bug 11911, we enable this on non-Windows platforms, too.
+        if wx.Platform != '__WXMSW__':
+            button.Bind(wx.EVT_LEFT_DCLICK, self.buttonPressed, id=id)
 
+        parentWidget.Bind(wx.EVT_BUTTON, self.buttonPressed, id=id)
+        return button
+    
     def getState(self):
         """ If this button has state, return it. """
         state = getattr(self.widget, 'currentState', '')

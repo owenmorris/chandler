@@ -291,6 +291,17 @@ class TriageAttributeEditor(attributeEditors.IconAttributeEditor):
         item.setTriageStatus(newValue, pin=True)
         item.resetAutoTriageOnDateChange()
 
+    def OnMouseChange(self, event):
+        # Override double-click behaviour a la Bug 11911
+        if event.LeftDClick():
+            item, attributeName = event.getCellValue()
+            # We only advance once, because the single-click will have
+            # taken care of one advance.
+            self.advanceState(item, attributeName)
+            event.Skip(False)
+        else:
+            return super(TriageAttributeEditor, self).OnMouseChange(event)
+
 class ReminderColumnAttributeEditor(attributeEditors.IconAttributeEditor):    
     def makeStates(self):
         states = [
