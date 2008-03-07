@@ -372,7 +372,13 @@ class wxSidebar(wxTable):
             self.RefreshRect(self.CalculateCellRect(row))
 
     def OnRequestDrop(self, x, y):
+        # Clear out hoverRow here, because we're either done with
+        # an item drag, or we're in the middle of collection drag
+        # (which doesn't use the hoverRow stuff). 
+        if self.hoverRow != wx.NOT_FOUND:
+            self.SetRowHighlight(self.hoverRow, False)
         self.hoverRow = wx.NOT_FOUND
+        
         x, y = self.CalcUnscrolledPosition(x, y)
         dropRow = self.YToRow(y)
         
@@ -398,6 +404,14 @@ class wxSidebar(wxTable):
             return self.__dropRow != wx.NOT_FOUND
         else:
             self.whereToDropItem = dropRow
+            if self.whereToDropItem != wx.NOT_FOUND:
+                # Disable drop onto a read-only collection
+                dropIndex = self.RowToIndex(self.whereToDropItem)
+                collection = self.blockItem.contents[dropIndex]
+                
+                if sharing.isReadOnly(collection):
+                    self.whereToDropItem = wx.NOT_FOUND
+
             if self.whereToDropItem == wx.NOT_FOUND:
                 del self.whereToDropItem
                 return False
