@@ -12,13 +12,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-
 import  wx
 from i18n import ChandlerMessageFactory as _
-
-ID_Setup    =   wx.NewId()
-ID_Preview  =   wx.NewId()
-ID_Print    =   wx.NewId()
 
 class Printing(object):
     def __init__(self, frame, canvas):
@@ -90,43 +85,18 @@ class CanvasPrintout(wx.Printout):
         try:
             self.canvas.columnCanvas
         except AttributeError:
+            canvas = self.canvas
             width, height = self.canvas.GetVirtualSize()
         else:
+            canvas = self.canvas.columnCanvas
             width, height = self.canvas.columnCanvas.GetVirtualSize()
 
-        maxX = width
-        maxY = height
-
-
-        # Let's have at least 50 device units margin
-        marginX = 50
-        marginY = 50
-
-        # Add the margin to the graphic size
-        maxX = maxX + (2 * marginX)
-        maxY = maxY + (2 * marginY)
-
-        # Get the size of the DC in pixels
-        (w, h) = dc.GetSizeTuple()
-
-        # Calculate a suitable scaling factor
-        scaleX = float(w) / maxX
-        scaleY = float(h) / maxY
-
-        # Use x or y scaling factor, whichever fits on the DC
-        actualScale = min(scaleX, scaleY)
-
-        # Calculate the position on the DC for centering the graphic
-        posX = (w - (width * actualScale)) / 2.0
-        posY = (h - (height * actualScale)) / 2.0
-
-        # Set the scale and origin
-        dc.SetUserScale(actualScale, actualScale)
-        dc.SetDeviceOrigin(int(posX), int(posY))
-
-        #-------------------------------------------
-
-        self.canvas.PrintCanvas(dc)
+        # resize the calendar canvas to the size of the printed page
+        oldSize = canvas.GetSize()
+        canvas.SetSize(dc.GetSize())
+        # print everything
+        canvas.PrintCanvas(dc)
+        # restore the calendar canvas' old size
+        canvas.SetSize(oldSize)
 
         return True
-

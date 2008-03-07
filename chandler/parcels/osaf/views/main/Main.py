@@ -289,22 +289,14 @@ class MainView(View):
         if detailRoot:
             detailRoot.focus()
 
-    # Disabling Printing in Chandler as required by bug 8137 - This is a temporary measure
-    # Simply delete these functions to enable printing
+    # Disabling Print Preview in Chandler, since it seems to
+    # fail on all platforms. Remove the following to re-enable.
 
     def onPrintPreviewEventUpdateUI(self, event):
-        # Print Disabled
+        # Print Preview Disabled
         event.arguments['Enable'] = False
 
-    def onPageSetupEventUpdateUI(self, event):
-        # Print Disabled
-        event.arguments['Enable'] = False
-
-    def onPrintEventUpdateUI(self, event):
-        # Print Disabled
-        event.arguments['Enable'] = False
-
-    # End Disabling Printing
+    # End Disable Print Preview
 
     def onPrintPreviewEvent (self, event):
         self.printEvent(1)
@@ -427,19 +419,27 @@ class MainView(View):
 
 
     def printEvent(self, isPreview):
-        block = self.findBlockByName ("TimedEvents")
-        if block is None:
-            wx.MessageBox (_(u"Printing is currently only supported for the calendar view."),
+        mwBlock = self.findBlockByName ("MultiWeekCanvas")
+        if mwBlock is None:
+            wx.MessageBox (_(u"Printing is currently only supported for the calendar month view."),
                            u"Chandler",
                            parent=wx.GetApp().mainFrame)
         else:
-            printObject = Printing.Printing(wx.GetApp().mainFrame, block.widget)
+            # set block to whichever is visible: MultiWeek or TimedEvent
+            block = mwBlock
+            if getattr(block, 'printObject', None) is None:
+                block.printObject = Printing.Printing(wx.GetApp().mainFrame, block.widget)
+            else:
+                # every time the view chages among week/month/all, the widget is
+                # destroyed and re-created, so reset the widget attribute of the
+                # Printing object each time.
+                block.printObject.canvas = block.widget
             if isPreview == 1:
-                printObject.OnPrintPreview()
+                block.printObject.OnPrintPreview()
             elif isPreview == 0:
-                printObject.OnPrint()
+                block.printObject.OnPrint()
             elif isPreview == 2:
-                printObject.OnPageSetup()
+                block.printObject.OnPageSetup()
 
     def openURLOrDialog(self, url):
         try:

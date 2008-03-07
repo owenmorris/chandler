@@ -16,6 +16,7 @@ import wx
 from datetime import *
 import itertools
 import logging
+from operator import add
 
 from application import styles
 from i18n import ChandlerMessageFactory as _
@@ -242,6 +243,9 @@ class wxMultiWeekCanvas(BaseWidget, wxCalendarCanvas):
         self._multiDayEvents = []
         # keep track of available "slots" for drawing events
         self._eventSlots = SparseMatrix()
+        # should we use the multiWeekControl's column positions, or
+        # calculate our own?
+        self._shouldCalculateColumnPositions = False
 
         # rendering
         self.styles = Block.Block.findBlockByName("MultiWeekCalendarView")
@@ -300,6 +304,24 @@ class wxMultiWeekCanvas(BaseWidget, wxCalendarCanvas):
         self.DrawWeeks(gc)
         dc.EndDrawing()
 
+    def PrintCanvas(self, dc):
+        dc.BeginDrawing()
+        w, h = dc.GetSize()
+        # We need to create a 24-bit bitmap to work around a win32 bitmap bug
+        bitmap = wx.EmptyBitmap(w, h, -1)
+        mdc = wx.MemoryDC(bitmap)
+        mdc.SetBackground(wx.WHITE_BRUSH)
+        mdc.Clear()
+        gc = wx.GraphicsContext.Create(mdc)
+
+        self._shouldCalculateColumnPositions = True
+        self.DrawBackground(gc)
+        self.DrawWeeks(gc)
+        self._shouldCalculateColumnPositions = False
+
+        dc.DrawBitmap(bitmap, 0, 0)
+        dc.EndDrawing()
+
     def doDrawingCalculations(self):
         self.dateWidth, self.stringHeight = self.measure.GetTextExtent("31")
 
@@ -327,7 +349,7 @@ class wxMultiWeekCanvas(BaseWidget, wxCalendarCanvas):
             self.weekdayBitmaps = [self.makeBitmap(n) for n in names[1:]]
 
         control = self.multiWeekControl.widget
-        positions = control.columnPositions
+        positions = self.GetColumnPositions()
         widths = control.columnWidths
         
         firstDay = GregorianCalendarInstance.getFirstDayOfWeek()
@@ -345,7 +367,7 @@ class wxMultiWeekCanvas(BaseWidget, wxCalendarCanvas):
             gc.DrawBitmap(dayBitmap, dx, dy, width, height)
 
     def DrawWeeks(self, gc):
-        columnPositions = self.multiWeekControl.widget.columnPositions
+        columnPositions = self.GetColumnPositions()
         weekIndex = 0
         startDate = self._rangeStart
         for visibleWeekIndex in xrange(0, self.visibleWeeks):
@@ -532,7 +554,7 @@ class wxMultiWeekCanvas(BaseWidget, wxCalendarCanvas):
         h = r.GetHeight() - HEADER_HEIGHT
         increment = h / float(self.visibleWeeks)
         r.top = increment * index + HEADER_HEIGHT
-        r.bottom = increment *(index+1) + HEADER_HEIGHT
+        r.bottom = r.top + increment
         r.left = columnPositions[1]
         logger.debug("bounds for week %d: [%d, %d, %d, %d]" % ((index,) + r.Get()))
         return r
@@ -576,6 +598,34 @@ class wxMultiWeekCanvas(BaseWidget, wxCalendarCanvas):
         #for op, event in changes:
             #change, op = self.handleOneChange(op, event)
 
+    def GetColumnPositions(self):
+        if self._shouldCalculateColumnPositions:
+            daysPerWeek = self.visibleDaysPerWeek # usually 7
+            bounds = self.GetClientRect()
+
+            # the starting point for day widths - an integer, rounded down
+            baseDayWidth = bounds.width / daysPerWeek
+
+            # due to rounding there may be up to 6 extra pixels to distribute
+            leftover = bounds.width - baseDayWidth*daysPerWeek
+
+            # evenly distribute the leftover into a tuple of the right length
+            # for instance, leftover==4 gives us (0,0,0,1,1,1,1)
+            leftoverWidths = (0,) * (daysPerWeek-leftover) + (1,) * leftover
+
+            # now add the extra bits to the individual columns
+            columnWidths = (baseDayWidth,) * daysPerWeek # like  (80,80,80,80,80,80,80)
+            # with 5 leftover, this makes them like (80,80,81,81,81,81,81)
+            columnWidths = tuple(map(add, columnWidths, leftoverWidths))
+
+            ## e.g. 10,40,40,40 => 0,10,50,90
+            columnPositions = (bounds.left,) + tuple(sum(columnWidths[:i])
+                                         for i in range(len(columnWidths))) + (bounds.right,)
+        else:
+            columnPositions = self.multiWeekControl.widget.columnPositions
+            logger.debug(("call column positions: ", columnPositions))
+        return columnPositions
+
     def GetClickData(self, point):
         """Return a region constant and the data associated with it."""
         x, y = point
@@ -583,7 +633,7 @@ class wxMultiWeekCanvas(BaseWidget, wxCalendarCanvas):
             # eventually do something with clicks on days
             return EMPTY_REGION, None
 
-        positions = self.multiWeekControl.widget.columnPositions
+        positions = self.GetColumnPositions()
         r = self.GetClientRect()
         h = r.GetHeight() - HEADER_HEIGHT
         increment = h / float(self.visibleWeeks)
@@ -652,7 +702,6 @@ class wxMultiWeekCanvas(BaseWidget, wxCalendarCanvas):
     def RebuildCanvasItems(self, resort=False):
         # called by CalendarCanvas, line 1631, in RefreshCanvasItems()
         pass
-
 
 # (look at TimedCanvas.wxTimedEventsCanvas)
 # inherits a bunch of stuff we don't care about...

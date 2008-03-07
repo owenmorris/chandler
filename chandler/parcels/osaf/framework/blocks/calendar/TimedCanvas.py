@@ -364,24 +364,26 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         # hardcode this for now - eventually this should be a preference
         workdayHourStart = 9 # 9am
         workdayHourEnd = 17  # 5pm
+
+        # wx.GraphicsContext cannot be created from a printing context
+        if isinstance(dc, wx.WindowDC):
+            # Shade non-working hours
+            gc = wx.GraphicsContext.Create(dc)
+            gc.SetBrush(styles.nonWorkingHoursBrush)
+            gc.DrawRectangle(self.xOffset,
+                             0,
+                             width1,
+                             workdayHourStart * self.hourHeight)
+            gc.DrawRectangle(self.xOffset,
+                             workdayHourEnd * self.hourHeight,
+                             width1,
+                             24 * self.hourHeight)
+            # not needed: dc.SetBrush(wx.WHITE_BRUSH)
         
-        # Shade non-working hours
-        gc = wx.GraphicsContext.Create(dc)
-        gc.SetBrush(styles.nonWorkingHoursBrush)
-        gc.DrawRectangle(self.xOffset,
-                         0,
-                         width1,
-                         workdayHourStart * self.hourHeight)
-        gc.DrawRectangle(self.xOffset,
-                         workdayHourEnd * self.hourHeight,
-                         width1,
-                         24 * self.hourHeight)
-        # not needed: dc.SetBrush(wx.WHITE_BRUSH)
-        
-        self.ShadeToday(dc)
-        self.DrawBackgroundSelection(gc)
-        # don't keep the gc around, or it will make dc's font behave strangely
-        del gc
+            self.ShadeToday(dc)
+            self.DrawBackgroundSelection(gc)
+            # don't keep the gc around, or it will make dc's font behave strangely
+            del gc
 
         # Set text properties for legend
         dc.SetTextForeground(styles.legendColor)
