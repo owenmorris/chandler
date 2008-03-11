@@ -108,6 +108,7 @@ class wxSidebar(wxTable):
     FEEDBACK_COLOUR = (164, 164, 164, 255)
     
     dividerRow = 0
+    hoverRow = wx.NOT_FOUND
 
     def __init__(self, *arguments, **keywords):
         super (wxSidebar, self).__init__ (*arguments, **keywords)
@@ -377,7 +378,7 @@ class wxSidebar(wxTable):
         # (which doesn't use the hoverRow stuff). 
         if self.hoverRow != wx.NOT_FOUND:
             self.SetRowHighlight(self.hoverRow, False)
-        self.hoverRow = wx.NOT_FOUND
+            del self.hoverRow
         
         x, y = self.CalcUnscrolledPosition(x, y)
         dropRow = self.YToRow(y)
@@ -609,16 +610,13 @@ class wxSidebar(wxTable):
 
         x, y = self.CalcUnscrolledPosition(x, y)
         hoverRow = self.YToRow(y)
-        if not hasattr (self, 'hoverRow'):
-            # If it's our first time hovering then set previous state to be NOT_FOUND
-            self.hoverRow = wx.NOT_FOUND
 
         # Clear the selection colour if necessary
-        if self.hoverRow != wx.NOT_FOUND and self.hoverRow != hoverRow:
+        if self.hoverRow not in (wx.NOT_FOUND, hoverRow):
             self.SetRowHighlight(self.hoverRow, False)
 
         # Colour the item if it exists and isn't already coloured
-        if hoverRow != wx.NOT_FOUND and hoverRow != self.hoverRow:
+        if hoverRow not in (wx.NOT_FOUND, self.hoverRow):
             self.SetRowHighlight(hoverRow, True)
 
         # Store current state
@@ -653,11 +651,11 @@ class wxSidebar(wxTable):
 
     def OnLeave (self):
         # check if we had a hover row
-        hoverRow = getattr (self, 'hoverRow', None)
-        if hoverRow not in (None, wx.NOT_FOUND):
+        hoverRow = self.hoverRow
+        if hoverRow != wx.NOT_FOUND:
             # Clear the selection colour if necessary
             self.SetRowHighlight(self.hoverRow, False)
-            self.hoverRow = wx.NOT_FOUND
+            del self.hoverRow
         if self.GetDraggedFromWidget() is self:
             self.__draggingToSelf = False
             self._refreshDropRow()
