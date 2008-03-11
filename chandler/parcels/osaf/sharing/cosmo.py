@@ -39,10 +39,6 @@ logger = logging.getLogger(__name__)
 
 mcURI = "http://osafoundation.org/mc/"
 
-
-
-
-
 class CosmoAccount(accounts.SharingAccount):
 
     # The path attribute we inherit from WebDAVAccount represents the
@@ -451,28 +447,7 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
             # Either a collection already exists with the UUID or we've got
             # multiple items with the same icaluid.  Need to parse the response
             # body to find out
-            try:
-                rootElement = fromstring(resp.body)
-            except:
-                logger.exception("Couldn't parse response: %s", resp.body)
-                rootElement = None
-                # continue on
-
-            if (rootElement is not None and
-                rootElement.tag == "{%s}error" % mcURI):
-                for errorsElement in rootElement:
-                    if errorsElement.tag == "{%s}no-uid-conflict" % mcURI:
-                        uuids = list()
-                        for errorElement in errorsElement:
-                            uuids.append(errorElement.text)
-                        toRaise = errors.DuplicateIcalUids(
-                            _(u"Duplicate ical UIDs detected: %(ids)s") %
-                            { 'ids' : ", ".join(uuids) })
-                        toRaise.uuids = uuids
-                        raise toRaise
-            else:
-                # not sure what we got back, assume dupe collection uuid
-                pass
+            rootElement = self.raiseCosmoError(resp.body)
 
             # Find out if it's ours:
             shares = self.account.getPublishedShares(blocking=True)
@@ -512,6 +487,60 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
             if not self.ticketReadOnly or not self.ticketReadWrite:
                 raise errors.SharingError("Tickets not returned from server")
 
+
+    def raiseCosmoError(self, xmlText):
+        """
+        Utility function to parse a Cosmo XML body for errors.
+        
+        May raise:
+        
+            L{errors.DuplicateIcalUids}
+            
+            L{errors.ForbiddenItem}
+        
+        Otherwise returns C{None} (unparseable XML) or an C{ElementTree}
+        (XML parsed OK, but error unknown).
+        """
+        try:
+            rootElement = fromstring(xmlText)
+        except:
+            logger.exception("Couldn't parse response: %s", xmlText)
+            return None
+            # continue on
+
+        if (rootElement is not None and
+            rootElement.tag == "{%s}error" % mcURI):
+            for errorsElement in rootElement:
+                if errorsElement.tag == "{%s}no-uid-conflict" % mcURI:
+                    uuids = list()
+                    for errorElement in errorsElement:
+                        uuids.append(errorElement.text)
+                    toRaise = errors.DuplicateIcalUids(
+                        _(u"Duplicate ical UIDs detected: %(ids)s") %
+                        { 'ids' : ", ".join(uuids) })
+                    toRaise.uuids = uuids
+                    raise toRaise
+                elif errorsElement.tag == "{%s}insufficient-privileges" % mcURI:
+                    for child in errorsElement:
+                        if child.tag == "{%s}target-uuid" % mcURI:
+                            uuid = child.text
+                    
+                            try:
+                                item = self.itsView.findUUID(uuid)
+                            except ValueError:
+                                item = None
+                            displayName = getattr(item, 'displayName', '')
+                            errorText = _(
+    u"""The server denied access to the item "%(item description)s". Try to remove it from the collection and resync."""
+                            ) % { 'item description' : displayName or uuid }
+                            toRaise = errors.ForbiddenItem(errorText)
+                            toRaise.uuid = uuid
+                            raise toRaise
+                    assert False, \
+                       "Missing {%s}target-uuid element from XML body %s" % (
+                           mcURI, xmlText)
+
+        return rootElement
 
     def destroy(self, silent=False):
         path = self.getMorsecodePath()

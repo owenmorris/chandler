@@ -77,6 +77,17 @@ class NotAllowed(SharingError):
     Exception raised if we don't have access.
     """
 
+class ForbiddenItem(SharingError):
+    """
+    Exception raised if you try to upload an item to the
+    server, but it already exists there and you don't have
+    access to it.
+    
+    @ivar uuid: The UUID of the forbidden item.
+    @type uuid: C{str}
+    """
+    uuid = None
+
 class Misconfigured(SharingError):
     """
     Exception raised if a share isn't properly configured.

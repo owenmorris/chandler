@@ -506,6 +506,11 @@ class PublishCollectionDialog(wx.Dialog):
                 msg = _(u"Items with duplicate icalUIDs detected; UUIDs:")
                 msg = "%s\n%s" % (msg, ", ".join(err.uuids))
                 self._showStatus(msg)
+                
+            elif isinstance(err, sharing.ForbiddenItem):
+                logger.error("%s", err.message)
+                self._showStatus(err.message)
+
 
             elif isinstance(err, sharing.AlreadyExists):
                 if hasattr(err, "mine"):
