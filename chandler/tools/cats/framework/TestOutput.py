@@ -29,6 +29,7 @@ import time
 import wx
 import osaf.framework.scripting.User as User
 import logging
+from osaf.framework.script_recording.run_recorded import _inSeconds
 
 pyLogger = logging.getLogger(__name__)
 
@@ -37,10 +38,6 @@ class datetime(dtime):
     def __str__(self):
         """Method to return more parsable datetime string"""
         return '%s:%s:%0.2f' % (self.hour, self.minute, self.second +( 0.000001 * self.microsecond))
-    
-def _inSeconds(tDelta):
-        """return a timedelta object as a float of seconds"""
-        return (tDelta.days * 86400) + tDelta.seconds + (tDelta.microseconds * .000001)
     
 class TestOutput:
     """

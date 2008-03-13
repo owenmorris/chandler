@@ -13,14 +13,13 @@
 #   limitations under the License.
 
 
-import os, sys, wx, types, traceback, sys
+import os, sys, wx, types, traceback, sys, run_recorded
 from application import schema
 from osaf.framework.blocks import Block, BlockEvent, Table
 from osaf.framework.blocks.MenusAndToolbars import Menu, MenuItem, ToolBarItem
 from i18n import ChandlerMessageFactory as _
 from osaf.views.detail import DetailSynchronizedAttributeEditorBlock
-from osaf.framework.script_recording.Scripts import ScriptsMenu, runScript
-from tools.cats.framework import run_recorded
+from Scripts import ScriptsMenu, runScript
 from wx.lib.buttons import GenButton
 from i18n import ChandlerMessageFactory as _
 

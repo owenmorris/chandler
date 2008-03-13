@@ -16,7 +16,7 @@ import wx, logging, sys
 from osaf.framework.blocks import Menu
 from osaf.framework.blocks.MenusAndToolbars import wxMenu, wxMenuItem
 from application import schema
-from tools.cats.framework import run_recorded
+import run_recorded
 from i18n import ChandlerMessageFactory as _
 
 logger = logging.getLogger(__name__)

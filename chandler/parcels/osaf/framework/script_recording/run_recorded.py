@@ -18,33 +18,42 @@ import logging
 from application import Globals
 from datetime import datetime
 from osaf.framework.blocks.Block import Block
-from tools.cats.framework.TestOutput import _inSeconds 
 from application.Application import Globals
 
 logger = logging.getLogger('recorded_test_framework')
 
-recorded_scripts_dir = os.path.abspath(os.path.join(
-                        os.path.dirname(sys.modules[__name__].__file__),
-                        os.path.pardir, 
-                        'recorded_scripts'))
+recorded_scripts_dir = os.path.abspath(os.path.join (Globals.chandlerDirectory,
+                                                     "tools/cats/recorded_scripts"))
 
 last_format_exception = None
 
-def get_test_modules():
-    test_modules = {}   
-    sys.path.insert(0, recorded_scripts_dir)                     
-    for filename in os.listdir(recorded_scripts_dir):
-        if filename.endswith('.py') and not filename.startswith('.'):
-            (filename, extension) = os.path.splitext (filename)
-            
-            try:
-                test_module = __import__(filename)
-            except:
-                logger.exception('Failed to import test module %s' % filename)
-            else:
-                test_modules[filename] = test_module
+def _inSeconds(tDelta):
+    """return a timedelta object as a float of seconds"""
+    return (tDelta.days * 86400) + tDelta.seconds + (tDelta.microseconds * .000001)
+    
+def get_test_modules(observe_exclusions=True):
+    test_modules = {}
+    if os.path.isdir (recorded_scripts_dir):
+        sys.path.insert(0, recorded_scripts_dir)                     
+        for filename in os.listdir(recorded_scripts_dir):
+            if filename.endswith('.py') and not filename.startswith('.'):
+                (filename, extension) = os.path.splitext (filename)
                 
-    sys.path.pop(0)
+                try:
+                    test_module = __import__(filename)
+                except:
+                    logger.exception('Failed to import test module %s' % filename)
+                else:
+                    # Check for platform exclusions
+                    if observe_exclusions is True:
+                        if (not hasattr(test_module, '_platform_exclusions_') or
+                                (sys.platform not in test_module._platform_exclusions_ and
+                                'all' not in test_module._platform_exclusions_)):
+                            test_modules[filename] = test_module
+                    else:
+                        test_modules[filename] = test_module
+                    
+        sys.path.pop(0)
     return test_modules
 
 test_modules = get_test_modules()
@@ -54,6 +63,10 @@ def run_test_by_name(name, test_modules=test_modules):
 
     last_format_exception = ""
     logger.info('Starting Test:: %s' % name)
+
+    if not test_modules.has_key(name):
+        logger.info('Test dictionary does not have test named %s' % name)
+        return True
     
     # Run any dependencies
     if hasattr(test_modules[name], '_depends_' ):
@@ -107,19 +120,7 @@ def execute_frame(option_value):
         testNames = [option_value]
 
     for name in testNames:
-        
-        if not test_modules.has_key(name):
-            logger.info('No test with the name %s was found' % name)
-            print 'No test with the name %s was found' % name
-            return False
-        
-        # Check for platform exclusions
-        test_module = test_modules[name]
-        if (hasattr(test_module, '_platform_exclusions_') and
-                (sys.platform in test_module._platform_exclusions_ or
-                'all'  in test_module._platform_exclusions_)):
-            result = "EXCLUDED"
-        elif not run_test_by_name(name):
+        if not run_test_by_name(name):
             result = "FAILED"
 
     # Process the Quit message, which will check and cleanup the repository
@@ -136,7 +137,7 @@ def execute_frame(option_value):
         print '#TINDERBOX# Status = %s' % result
         
         
-        # Exit in a way that shouldn't cause any failures not to be logged.
+        # Exit in a way that shouldn't cause any failures not to b  e logged.
         if result == "FAILED":
             sys.exit(1)
         else:

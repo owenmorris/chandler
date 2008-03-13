@@ -246,7 +246,7 @@ def run_startup_script_with_symbols(view, builtIns):
         if not hasattr(Globals, 'test_dict'):
             from datetime import datetime
             Globals.test_dict = {'starttime':datetime.now()}
-        from tools.cats.framework.run_recorded import execute_frame
+        from osaf.framework.script_recording.run_recorded import execute_frame
         execute_frame(recordedTest)
     
     chandlerTests = Globals.options.chandlerTests
