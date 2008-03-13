@@ -22,8 +22,9 @@ from application.Application import Globals
 
 logger = logging.getLogger('recorded_test_framework')
 
-recorded_scripts_dir = os.path.abspath(os.path.join (Globals.chandlerDirectory,
-                                                     "tools/cats/recorded_scripts"))
+def recorded_scripts_dir():
+    return os.path.abspath(os.path.join (Globals.chandlerDirectory,
+                                         "tools/cats/recorded_scripts"))
 
 last_format_exception = None
 
@@ -33,9 +34,10 @@ def _inSeconds(tDelta):
     
 def get_test_modules(observe_exclusions=True):
     test_modules = {}
-    if os.path.isdir (recorded_scripts_dir):
-        sys.path.insert(0, recorded_scripts_dir)                     
-        for filename in os.listdir(recorded_scripts_dir):
+    scripts_dir = recorded_scripts_dir()
+    if os.path.isdir (scripts_dir):
+        sys.path.insert(0, scripts_dir)                     
+        for filename in os.listdir(scripts_dir):
             if filename.endswith('.py') and not filename.startswith('.'):
                 (filename, extension) = os.path.splitext (filename)
                 
@@ -56,10 +58,17 @@ def get_test_modules(observe_exclusions=True):
         sys.path.pop(0)
     return test_modules
 
-test_modules = get_test_modules()
+default_test_modules = None
 
-def run_test_by_name(name, test_modules=test_modules):
+def run_test_by_name(name, test_modules=None):
     global last_format_exception
+    global default_test_modules
+    
+    if default_test_modules is None:
+        default_test_modules = get_test_modules()
+        
+    if test_modules is None:
+        test_modules  = get_test_modules()
 
     last_format_exception = ""
     logger.info('Starting Test:: %s' % name)

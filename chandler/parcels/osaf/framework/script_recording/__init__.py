@@ -194,7 +194,7 @@ class Controller (Block.Block):
 
             dialog = wx.FileDialog (None,
                                     message = _(u"Save Script"),
-                                    defaultDir = run_recorded.recorded_scripts_dir, 
+                                    defaultDir = run_recorded.recorded_scripts_dir(), 
                                     defaultFile = u"",
                                     wildcard = u"*.py",
                                     style = wx.SAVE|wx.CHANGE_DIR)
@@ -255,7 +255,7 @@ class Controller (Block.Block):
     def onBrowseScriptEvent (self, event):
         dialog = wx.FileDialog (None,
                                 message = "Choose script",
-                                defaultDir = run_recorded.recorded_scripts_dir, 
+                                defaultDir = run_recorded.recorded_scripts_dir(), 
                                 defaultFile = "",
                                 wildcard = "*.py",
                                 style = wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
