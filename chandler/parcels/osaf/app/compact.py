@@ -88,6 +88,7 @@ class CompactDialog(wx.Dialog):
             self.condition.release()
 
         if compact:
+            self.now.Enable(False)
             self.later.SetLabel(_(u'Cancel'))
             progressMessage = _(u'Purging... (stage %(stageNum)d)')
             stages = set()
