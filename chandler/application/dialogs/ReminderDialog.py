@@ -41,20 +41,26 @@ pluralFutureMessages = { DAY: _(u'%(numOf)d days from now'),
 # activated.  (Windows and Linux only.  Mac will still activate the
 # whole application...)
 
-# NOTE #2: Using the wx.STAY_ON_TOP flag can be viewed as violating
-# the various style guides because it causes the window to be raised
-# above other apps if Chandler is not the active application.  It
-# would be better to just rely on the RequestUserAttention call below
-# to flash the taskbar icon, but there should probably also be a sound
-# played to make sure the user notices it...  Leaving the STAY_ON_TOP
-# until there is a sound to play.
+# NOTE #2: We are using wx.FRAME_FLOAT_ON_PARENT intead of wx.STAY_ON_TOP
+# because of Bug 11238; see the thread:
+#
+# http://www.nabble.com/STAY_ON_TOP-and-FileSelector-(wxmac2.9)-td15852826.html
+#
+# for a similar problem (along with Stefan's suggestion of wx.FLOAT_ON_PARENT).
+#
 
 class ReminderDialog(wx.Frame):
-    def __init__(self, size=wx.DefaultSize,
-                 pos=wx.DefaultPosition,
-                 style=(wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER) | wx.STAY_ON_TOP):
 
-        wx.Frame.__init__(self, None, -1, name=u'ReminderDialog', pos=pos, 
+    def __init__(self, size=wx.DefaultSize, pos=wx.DefaultPosition,
+                 style=(wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER) |
+                        wx.FRAME_FLOAT_ON_PARENT):
+
+        frame = getattr(wx.GetApp(), 'mainFrame', None)
+        
+        if frame is None:
+            style &= ~wx.FRAME_FLOAT_ON_PARENT # oh well
+
+        wx.Frame.__init__(self, frame, -1, name=u'ReminderDialog', pos=pos, 
                           size=size, style=style, title=_(u"Reminders"))
         panel = wx.Panel(self)
         
