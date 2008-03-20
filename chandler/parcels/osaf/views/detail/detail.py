@@ -1411,19 +1411,29 @@ class CalendarDateAttributeEditor(DateAttributeEditor):
             # claims to parse bogus  values like "06/05/0506/05/05" 
             #successfully, which causes fromtimestamp() to throw.)
             try:
-                # use parsedatetime to calculate the date
-                cal = parsedatetime.Calendar(ptc.Constants(str(getLocale())))
-                (dateVar, invalidFlag) = cal.parse(newValueString)
-                #invalidFlag = 0 implies no date/time
-                #invalidFlag = 2 implies only time, no date
-                if invalidFlag != 0 and invalidFlag != 2:
-                    dateTimeValue = datetime(*dateVar[:3])
-                else:
-                    self._changeTextQuietly(self.control, "%s ?" % newValueString)
-                    return
+                dateTimeValue = pim.shortDateFormat.parse(item.itsView, 
+                                                           newValueString,
+                                                           oldValue)
             except (ICUError, ValueError):
+                dateTimeValue = None
+
+            if dateTimeValue is None:
+                try:
+                    # use parsedatetime to calculate the date
+                    cal = parsedatetime.Calendar(ptc.Constants(
+                                                        str(getLocale())))
+                    (dateVar, invalidFlag) = cal.parse(newValueString)
+                    #invalidFlag = 0 implies no date/time
+                    #invalidFlag = 2 implies only time, no date
+                    if invalidFlag not in (0, 2):
+                        dateTimeValue = datetime(*dateVar[:3])
+                except (ICUError, ValueError):
+                    pass
+
+            if dateTimeValue is None:
                 self._changeTextQuietly(self.control, "%s ?" % newValueString)
                 return
+
 
             # If this results in a new value, put it back.
             value = datetime.combine(dateTimeValue.date(), oldValue.timetz())
