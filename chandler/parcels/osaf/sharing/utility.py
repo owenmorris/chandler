@@ -140,9 +140,10 @@ def inspect(rv, url, username=None, password=None):
 
     try:
         result = _catchError(getOPTIONS)
-    except (errors.NotFound, errors.IllegalOperation):
+    except (errors.NotFound, errors.IllegalOperation, zanshin.http.HTTPError):
         # Google returns 404 if you OPTIONS a .ics URL, or a 400 if you
-        # OPTIONS an HTML URL
+        # OPTIONS an HTML URL. Other random server error messages are possible
+        # here, so let's try move on to HEAD here.
         return _catchError(getHEADInfo)
 
     if 'dav' in result:
