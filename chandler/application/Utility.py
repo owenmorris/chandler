@@ -1077,6 +1077,11 @@ def openRepository(options, repoDir):
     view = initRepository(repoDir, options)
     verify, repoVersion, schemaVersion = verifySchema(view)
     if not verify:
+        try:
+            view.repository.close()
+        except:
+            logger.exception("Failed to close repository")
+
         raise SchemaMismatchError, (repoVersion, schemaVersion)
     return view
 
