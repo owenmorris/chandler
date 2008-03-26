@@ -91,7 +91,7 @@ def installParcel(parcel, oldVersion=None):
         invoke="osaf.sharing.BackgroundSyncHandler",
         run_at_startup=False,
         active=True,
-        interval=datetime.timedelta(minutes=60)
+        interval=datetime.timedelta(minutes=15)
     )
 
 

@@ -64,6 +64,7 @@ class AutoSyncPrefs(wx.Dialog):
 
         choices = [
             (_(u"Manually"), None),
+            (_(u"Every 15 minutes"), 15),
             (_(u"Every 30 minutes"), 30),
             (_(u"Every hour"), 60),
             (_(u"Every 2 hours"), 120),
