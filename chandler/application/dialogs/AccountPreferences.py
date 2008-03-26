@@ -1855,7 +1855,7 @@ class AccountPreferencesDialog(wx.Dialog):
         else:
             # If this code is reached then there is a
             # bug which needs to be fixed.
-            raise Exception("Internal Exception")
+            return alertError(_(u"This type of account does not support testing"), self)
 
     def OnIncomingDiscovery(self, evt):
         if not Globals.mailService.isOnline():
