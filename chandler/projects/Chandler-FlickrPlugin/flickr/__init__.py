@@ -270,7 +270,7 @@ class AddFlickrCollectionEvent(AddToSidebarEvent):
 class FlickrHandler(Block):
 
     def on_flickr_UpdateFlickrNowEvent(self, event):
-        schema.ns('flickr', self.itsView).FlickrUpdateTask.run_once()
+        schema.ns('flickr', self.itsView).updateTask.run_once()
 
 
 def installParcel(parcel, oldVersion=None):
