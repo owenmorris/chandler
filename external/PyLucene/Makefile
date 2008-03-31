@@ -1,6 +1,7 @@
 
-VERSION=2.2.0-2-$(SVNVER)
-SVNVER=377
+VERSION=2.3.1-2-$(SVNVER)
+SVNVER=416
+PYLUCENE_SVN=http://svn.osafoundation.org/pylucene/branches/release-2.3 
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-$(VERSION)
@@ -77,7 +78,7 @@ endif
 endif
 
 PyLucene-$(VERSION)-expanded:
-	svn export -r $(SVNVER) http://svn.osafoundation.org/pylucene/trunk/jcc PyLucene-$(VERSION)
+	svn export -r $(SVNVER) $(PYLUCENE_SVN) PyLucene-$(VERSION)
 	touch PyLucene-$(VERSION)-expanded
 
 expand: PyLucene-$(VERSION)-expanded
