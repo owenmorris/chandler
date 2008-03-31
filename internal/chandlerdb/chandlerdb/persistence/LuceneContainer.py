@@ -59,7 +59,6 @@ class DbIndexOutput(PythonIndexOutput):
             super(DbIndexOutput, self).close()
             self.stream.close()
             self.directory = None
-        self.finalize()
 
     def length(self):
         return long(self.stream.length)
@@ -91,7 +90,6 @@ class DbIndexInput(PythonIndexInput):
         if self.directory is not None:
             self.stream.close()
             self.directory = None
-        self.finalize()
 
     def readInternal(self, length, pos):
         self.stream.seek(pos)
@@ -112,8 +110,6 @@ class DbDirectory(PythonDirectory):
         for stream in self._streams:
             stream.close()
         del self._streams[:]
-        for lock in self._locks.itervalues():
-            lock.finalize()
         self._locks.clear()
 
     def createOutput(self, name):

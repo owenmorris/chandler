@@ -410,13 +410,10 @@ static PyObject *t_env_log_archive(t_env *self, PyObject *args)
         err = self->db_env->log_archive(self->db_env, &list, flags);
         Py_END_ALLOW_THREADS;
 
-        if (err)
-        {
-            if (err == DB_NOTFOUND)
-                list = NULL;
-            else
-                return raiseDBError(err);
-        }
+        if (err == DB_NOTFOUND)
+            list = NULL;
+        else if (err)
+            return raiseDBError(err);
 
         {
             PyObject *strings = PyList_New(0);
