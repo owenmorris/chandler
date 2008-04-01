@@ -10,7 +10,7 @@ def run():
     """
 
     wx.GetApp().RunRecordedScript ([
-        (0, wx.MouseEvent, {'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'SidebarGridWindow'}, {'m_leftDown':True, 'm_x':72, 'm_y':99}),
+        (0, wx.MouseEvent, {'eventType':wx.EVT_LEFT_DOWN, 'sentTo':u'SidebarGridWindow'}, {'m_leftDown':True, 'm_x':72, 'm_y':110}),
         (1, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'SidebarGridWindow'}, {}),
         (2, wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':u'SidebarGridWindow'}, {'m_x':72, 'm_y':99}),
         (3, wx.FocusEvent, {'eventType':wx.EVT_SET_FOCUS, 'sentTo':u'DashboardSummaryViewGridWindow'}, {}),
