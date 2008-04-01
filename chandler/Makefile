@@ -126,7 +126,7 @@ endif
 
 ARCHIVES = \
     $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)30.tar.gz \
-    $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.7-$(BP)36.tar.gz \
+    $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.7-$(BP)37.tar.gz \
     $(CHANDLERARCHIVES)/db-$(SNAP)-4.6.21-$(BP)3.tar.gz \
     $(READLINE) \
     $(PYTHON) \
@@ -136,7 +136,7 @@ ARCHIVES = \
     $(OPENJDK) \
     $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-0.18.2-$(BP)2.tar.gz \
     $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.8-92-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.2.0-2-377-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.3.1-2-416-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/twisted-$(SNAP)-r18795-$(BP)3.tar.gz \
     $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.7.1-r205-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)6.tar.gz \
