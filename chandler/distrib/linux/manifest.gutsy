@@ -52,7 +52,6 @@ version.py
 site.py
 LICENSE.txt
 NOTICE.txt
-WingLinuxRelease.wpr
 
 # Grab the rest of Chandler from the application/ and parcel/ folders
 recursive=yes
