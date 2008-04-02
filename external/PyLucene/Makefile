@@ -1,6 +1,6 @@
 
-VERSION=2.3.1-2-$(SVNVER)
-SVNVER=416
+VERSION=2.3.1-3-$(SVNVER)
+SVNVER=418
 PYLUCENE_SVN=http://svn.osafoundation.org/pylucene/branches/release-2.3 
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
