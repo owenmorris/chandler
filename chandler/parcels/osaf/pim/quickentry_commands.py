@@ -25,7 +25,8 @@ from osaf.quickentry import QuickEntryState, QuickEntryCommand
 from i18n import ChandlerMessageFactory as _
 
 __all__ = ['NoteCommand', 'TaskCommand', 'EventCommand', 'MailCommand',
-           'RequestCommand', 'InviteCommand', 'stamp_to_command']
+           'RequestCommand', 'InviteCommand', 'stamp_to_command',
+           'iter_commands']
 
 class ItemState(QuickEntryState):
     """
@@ -172,3 +173,18 @@ stamp_to_command = {None       : NoteCommand,
                     TaskStamp  : TaskCommand,
                     EventStamp : EventCommand,
                     MailStamp  : MailCommand}
+
+# Regular expression for finding quick entry commands 
+quick_entry_commands_re = re.compile(u'\s*/(?P<cmd>(\S+))',
+                                     re.UNICODE | re.LOCALE)
+
+def iter_commands(text):
+    match = quick_entry_commands_re.match(text)
+    while match is not None:
+        text = text[match.end():]
+        
+        yield match.group('cmd').lower(), text
+
+        match = quick_entry_commands_re.match(text)
+
+    

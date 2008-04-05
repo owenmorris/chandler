@@ -32,7 +32,7 @@ from osaf import (
 )
 from osaf.activity import *
 
-from osaf.pim import Contact, mail, stamp_to_command
+from osaf.pim import Contact, mail, stamp_to_command, iter_commands
 from osaf.usercollections import UserCollection
 
 from osaf.mail import constants
@@ -362,8 +362,9 @@ class MainView(View):
         end = 0
         # L10N: string to be appended to text when it has unrecognized commands
         error_string = _(u"  ?")
-        for match in quick_entry_commands_re.finditer(text):
-            command = get_quick_entry(match.group('cmd').lower())
+        
+        for cmdMatch, remainder in iter_commands(text):
+            command = get_quick_entry(cmdMatch)
 
             if command is None:
                 if qe_commands:
@@ -375,8 +376,8 @@ class MainView(View):
                 quickEntryWidget.SetFocus()
                 return
 
-            end = match.end()
             qe_commands.append(command)
+            text = remainder
             if len(qe_commands) == 1 and command.single_command:
                 break
 
@@ -1657,9 +1658,6 @@ class LuceneCommand(SearchCommand):
     def backslash_escape(cls, string, escape_chars):
         """Don't escape special lucene characters when searching."""
         return string
-
-# Regular expression for finding quick entry commands 
-quick_entry_commands_re = re.compile(u'/(?P<cmd>(\S+))', re.UNICODE | re.LOCALE)
 
 # create a mapping from command names to QuickEntryCommand objects
 quick_entry_objects = {}
