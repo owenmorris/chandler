@@ -119,6 +119,8 @@ FREQ_MATCHING_DAY = {
     'daily'    : _(u"every day"),
     # L10N: description of repetition for a weekly recurring event, used to build %(recurrenceFrequency)s
     'weekly'   : _(u"every week"),
+    # L10N: description of repetition for a recurring event that occurs every weekday, used to build %(recurrenceFrequency)s
+    'weekdaily' : _(u"every weekday"),
     # L10N: description of repetition for a biweekly recurring event, used to build %(recurrenceFrequency)s
     'biweekly' : _(u"every other week"),
     # L10N: description of repetition for a monthly recurring event, used to build %(recurrenceFrequency)s
@@ -457,8 +459,11 @@ def buildItemDescription(mailStamp):
     if recur.isComplex():
         args['recurrenceFrequency'] = COMPLEX_FREQ % args
     else:
-        if freq == 'weekly' and interval == 2:
-            freq = 'biweekly'
+        if freq == 'weekly':
+            if interval == 2:
+                freq = 'biweekly'
+            elif rule.isWeekdayRule():
+                freq = 'weekdaily'
         
         freqSource = (FREQ_MATCHING_DAY if event.recurrenceID.date() == 
                                            event.startTime.date() else
