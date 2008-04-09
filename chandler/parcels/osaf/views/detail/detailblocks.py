@@ -405,7 +405,7 @@ def makeCalendarArea(parcel, oldVersion):
                         # @@@ XXX i18n!
                         'choices': [_(u'Confirmed'), _(u'Tentative'), _(u'FYI')]},
                     stretchFactor=0.0,
-                    minimumSize=SizeType(100, -1))])
+                    minimumSize=SizeType(110, -1))])
   
     recurrencePopupArea = \
         makeArea(parcel, 'CalendarRecurrencePopupArea',
@@ -421,10 +421,11 @@ def makeCalendarArea(parcel, oldVersion):
                         # These choices must match the enumerated indexes in the
                         # RecurrenceAttributeEditor python code
                         'choices': [_(u'Once'), _(u'Daily'), _(u'Weekly'),
+                                    _(u'On weekdays'),
                                     _(u'Biweekly'), _(u'Monthly'), _(u'Yearly'),
                                     _(u'Custom...')]},
                     stretchFactor=0.0,
-                    minimumSize=SizeType(100, -1))])
+                    minimumSize=SizeType(110, -1))])
 
     recurrenceCustomArea = \
         makeArea(parcel, 'CalendarRecurrenceCustomArea',
@@ -795,7 +796,7 @@ def makeNoteSubtree(parcel, oldVersion):
                     viewAttribute=pim.Remindable.reminders.name,
                     presentationStyle={ 'format': 'reminderType' },
                     stretchFactor=0.0,
-                    minimumSize=SizeType(100, -1))],
+                    minimumSize=SizeType(110, -1))],
             position=0.81).install(parcel)
     reminderRelativeArea = \
         makeArea(parcel, 'ReminderRelativeArea',

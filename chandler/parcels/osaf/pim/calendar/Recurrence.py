@@ -344,6 +344,16 @@ class RecurrenceRule(items.ContentItem):
     # unless their length is greater than 1.
     interpretedNames = "byhour", "byminute", "bysecond"
 
+    WEEKDAYS = ('monday', 'tuesday', 'wednesday', 'thursday', 'friday')
+
+    def isWeekdayRule(self):
+        if (self.freq == 'weekly' and
+            self.interval == 1 and
+            len(self.byweekday or []) == len(self.WEEKDAYS) and
+            set(self.WEEKDAYS) == set(x.weekday for x in self.byweekday
+                                         if x.selector == 0)):
+            return True
+
     def calculatedUntil(self):
         """
         Return until or until + 23:59, depending on untilIsDate.
@@ -714,6 +724,8 @@ class RecurrenceRuleSet(items.ContentItem):
         if not (rule.interval == 1 or (rule.interval == 2 and
                                        rule.freq == 'weekly')):
             return True
+        elif rule.isWeekdayRule():
+            return False
         elif rule.byweekday:
             return True
         else:

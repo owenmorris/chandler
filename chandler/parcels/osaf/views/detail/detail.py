@@ -1662,9 +1662,10 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
     # Note that biweekly is not, in fact, a valid FrequencyEnum frequency, it's a
     # special case.
     # These should not be localized!
-    menuFrequencies = [ 'once', 'daily', 'weekly', 'biweekly', 'monthly', 'yearly', 'custom']
+    menuFrequencies = [ 'once', 'daily', 'weekly', 'weekdaily', 'biweekly', 'monthly', 'yearly', 'custom']
     onceIndex = menuFrequencies.index('once')
     customIndex = menuFrequencies.index('custom')
+    weekdailyIndex = menuFrequencies.index('weekdaily')
     biweeklyIndex = menuFrequencies.index('biweekly')
     weeklyIndex = menuFrequencies.index('weekly')
 
@@ -1682,8 +1683,11 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
             rrule = event.rruleset.rrules.first() 
             freq = rrule.freq
             # deal with biweekly special case
-            if freq == 'weekly' and rrule.interval == 2:
-                return RecurrenceAttributeEditor.biweeklyIndex
+            if freq == 'weekly':
+                if rrule.interval == 2:
+                    return RecurrenceAttributeEditor.biweeklyIndex
+                elif rrule.isWeekdayRule():
+                    return RecurrenceAttributeEditor.weekdailyIndex
         except AttributeError:
             # Can't get to the freq attribute, or there aren't any rrules
             # So it's once.
@@ -1783,23 +1787,30 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
                 # if this event is a modification, it will become the new master
                 newMaster = event            
 
-            interval = 1
+            rruleArgs = {'interval': 1}
             if value == RecurrenceAttributeEditor.biweeklyIndex:
-                interval = 2
+                rruleArgs['interval'] = 2
                 value = RecurrenceAttributeEditor.weeklyIndex
-            duFreq = Recurrence.toDateUtilFrequency(\
+            elif value == RecurrenceAttributeEditor.weekdailyIndex:
+                value = RecurrenceAttributeEditor.weeklyIndex
+                rruleArgs['byweekday'] = [Recurrence.toDateUtilWeekday(day)
+                                 for day in Recurrence.RecurrenceRule.WEEKDAYS]
+
+            duFreq = Recurrence.toDateUtilFrequency(
                 RecurrenceAttributeEditor.menuFrequencies[value])
             rruleset = Recurrence.RecurrenceRuleSet(None, itsView=item.itsView)
+
             rruleset.setRuleFromDateUtil(Recurrence.dateutil.rrule.rrule(duFreq,
-                                         interval=interval))
+                                         **rruleArgs))
+
+            rrule = rruleset.rrules.first()
             until = event.getLastUntil()
             if until is not None:
-                rruleset.rrules.first().until = until
-            elif hasattr(rruleset.rrules.first(), 'until'):
-                del rruleset.rrules.first().until
-            rruleset.rrules.first().untilIsDate = True
-
-
+                rrule.until = until
+            elif hasattr(rrule, 'until'):
+                del rrule.until
+            rrule.untilIsDate = True
+            
             event.rruleset = rruleset
             newMaster.deleteOffRuleModifications()
             

@@ -14,6 +14,7 @@
 
 
 import unittest, sys, os
+import pkg_resources
 
 from application import Utility, Globals
 from chandlerdb.util.c import Default
@@ -49,7 +50,21 @@ class SingleRepositoryTestCase(unittest.TestCase):
         view.closeView()
         view.openView(timezone=Default)
         Utility.initTimezone(Globals.options, view)
-        
+
+    def getTestResourcePath(self, filename):
+        """
+        Find the file with filename in the same directory as C{self}'s
+        python module. Used to locate test data (like, files to import,
+        etc). Returns a C{unicode} object (not C{str}).
+        """
+        path = pkg_resources.resource_filename(self.__class__.__module__,
+                                               filename)
+        # path is a str here, so convert it to unicode
+        if not isinstance(path, unicode):
+            path = unicode(path, sys.getfilesystemencoding())
+        return path
+
+
 class SharedSandboxTestCase(SingleRepositoryTestCase):
     """
     This test case class uses a single repository view, which is left

@@ -16,7 +16,7 @@
 A helper class which sets up and tears down dual RamDB repositories
 """
 
-import unittest, os, sys
+import unittest, os
 from util.testcase import SharedSandboxTestCase, NRVTestCase
 import chandlerdb.persistence.DBRepository as DBRepository
 import chandlerdb.item.Item as Item
@@ -51,14 +51,7 @@ class ICalendarTestCase(SharedSandboxTestCase):
         self.utc = self.view.tzinfo.getInstance('utc')
 
     def Import(self, view, filename):
-
-        sharePath = os.path.join(os.getenv('CHANDLERHOME') or '.',
-                                 'parcels', 'osaf', 'sharing', 'tests')
-
-        #sharePath is stored as schema.Text so convert to unicode
-        sharePath = unicode(sharePath, sys.getfilesystemencoding())
-        path = os.path.join(sharePath, filename)
-
+        path = self.getTestResourcePath(filename)
         self.importedCollection = sharing.importFile(view, path)
 
     def testMidnightToMidnight(self):
@@ -320,6 +313,27 @@ class ICalendarTestCase(SharedSandboxTestCase):
                                 '42583280-8164-11da-c77c-0011246e17f0'))
         mountain_time = self.view.tzinfo.getInstance('America/Denver')
         self.assertEqual(event.startTime.tzinfo, mountain_time)
+
+    def testWeekdayEvent(self):
+        self.Import(self.view, 'WeekdayEvent.ics')
+        event = pim.EventStamp(sharing.findUID(
+                                self.view,
+                                '5fc9f9a2-0655-11dd-8f5a-0016cbca6aed'))
+        rruleset = event.rruleset
+        self.failUnless(rruleset is not None)
+        self.failUnlessEqual(len(list(rruleset.rrules)), 1)
+
+        rrule = rruleset.rrules.first()
+        self.failUnlessEqual(rrule.freq, 'weekly')
+        self.failUnlessEqual(rrule.interval, 1)
+        self.failUnlessEqual(
+            [(ws.weekday, ws.selector) for ws in rrule.byweekday],
+            [
+                ('monday', 0), ('tuesday', 0), ('wednesday', 0),
+                ('thursday', 0), ('friday', 0)
+            ]
+        )
+        self.failUnless(rrule.isWeekdayRule())
 
     def testImportReminders(self):
         # @@@ [grant] Check for that reminders end up expired or not, as
