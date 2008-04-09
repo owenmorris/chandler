@@ -20,13 +20,8 @@ from util import testcase
 class IcalUIDToUUIDTestCase(testcase.SingleRepositoryTestCase):
 
     def testImport(self):
-        sharePath = os.path.join(os.getenv('CHANDLERHOME') or '.',
-                            'parcels', 'osaf', 'sharing', 'tests')
-
-        #sharePath is stored as schema.Text so convert to unicode
-        sharePath = unicode(sharePath, sys.getfilesystemencoding())
-
-        sharing.importFile(self.view, os.path.join(sharePath, u"icaluid.ics"))
+        path = self.getTestResourcePath('icaluid.ics')
+        sharing.importFile(self.view, path)
 
         # This item had a UUID-friendly icalUID, but its UUID shouldn't be used
         uid1 = 'BED962E5-6042-11D9-BE74-000A95BB2738'

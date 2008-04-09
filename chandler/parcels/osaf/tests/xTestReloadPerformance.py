@@ -24,8 +24,7 @@ profileLog = 'reload_perf.log'
 class ReloadTestCase(testcase.NRVTestCase):
 
     def testReload(self):
-        path = os.path.join(os.getenv('CHANDLERHOME') or '.',
-            'parcels', 'osaf', 'tests', 'office.dump')
+        inFile = self.getTestResourcePath('office.dump')
 
         if profile:
             import hotshot, hotshot.stats

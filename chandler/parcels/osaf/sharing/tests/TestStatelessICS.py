@@ -33,10 +33,9 @@ class StatelessICS(testcase.DualRepositoryTestCase):
 
     def runTest(self):
         self.setUp()
-        dir = os.path.join(os.getenv('CHANDLERHOME') or '.',
-            'parcels', 'osaf', 'sharing', 'tests')
 
-        inFile = os.path.join(dir, 'stateless.ics')
+        inFile = self.getTestResourcePath('stateless.ics')
+        dir = os.path.dirname(inFile)
         outFile = os.path.join(dir, 'tmp_stateless.ics')
 
 

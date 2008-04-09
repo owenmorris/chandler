@@ -27,29 +27,7 @@ from chandlerdb.item.Item import Item
 # other tests to use it.  So far sharing/tests/TestUIDMap uses it.
 # ~morgen
 
-class NRVTestCase(unittest.TestCase):
-
-    def setUp(self):
-        Globals.options = Utility.initOptions()
-        Utility.initLogging(Globals.options)
-        self.view = NullRepositoryView()
-        Utility.initTimezone(Globals.options, self.view)
-
-class SingleRepositoryTestCase(unittest.TestCase):
-
-    def setUp(self):
-        Globals.options = Utility.initOptions()
-        Globals.options.ramdb = True
-        Utility.initLogging(Globals.options)
-        self.view = Utility.initRepository("", Globals.options, True)
-        Utility.initTimezone(Globals.options, self.view)
-
-    def reopenRepository(self):
-        view = self.view
-        view.commit()
-        view.closeView()
-        view.openView(timezone=Default)
-        Utility.initTimezone(Globals.options, view)
+class BaseTestCase(unittest.TestCase):
 
     def getTestResourcePath(self, filename):
         """
@@ -64,6 +42,29 @@ class SingleRepositoryTestCase(unittest.TestCase):
             path = unicode(path, sys.getfilesystemencoding())
         return path
 
+class NRVTestCase(BaseTestCase):
+
+    def setUp(self):
+        Globals.options = Utility.initOptions()
+        Utility.initLogging(Globals.options)
+        self.view = NullRepositoryView()
+        Utility.initTimezone(Globals.options, self.view)
+
+class SingleRepositoryTestCase(BaseTestCase):
+
+    def setUp(self):
+        Globals.options = Utility.initOptions()
+        Globals.options.ramdb = True
+        Utility.initLogging(Globals.options)
+        self.view = Utility.initRepository("", Globals.options, True)
+        Utility.initTimezone(Globals.options, self.view)
+
+    def reopenRepository(self):
+        view = self.view
+        view.commit()
+        view.closeView()
+        view.openView(timezone=Default)
+        Utility.initTimezone(Globals.options, view)
 
 class SharedSandboxTestCase(SingleRepositoryTestCase):
     """
@@ -100,7 +101,7 @@ class SharedSandboxTestCase(SingleRepositoryTestCase):
         self.sandbox = self.view.findPath(path)
         del self.view
 
-class DualRepositoryTestCase(unittest.TestCase):
+class DualRepositoryTestCase(BaseTestCase):
 
     def setUp(self):
         Globals.options = Utility.initOptions()

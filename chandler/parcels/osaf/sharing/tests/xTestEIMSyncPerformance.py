@@ -35,8 +35,7 @@ class EIMSyncPerformanceTestCase(testcase.DualRepositoryTestCase):
 
     def PrepareData(self):
 
-        path = os.path.join(os.getenv('CHANDLERHOME') or '.',
-            'parcels', 'osaf', 'tests', 'office.dump')
+        inFile = self.getTestResourcePath('office.dump')
         collUUID = "5e4092b2-e79d-11db-9ba9-a51a3cf1b340"
         dumpreload.reload(self.views[0], path, testmode=True)
         self.coll0 = self.views[0].findUUID(collUUID)

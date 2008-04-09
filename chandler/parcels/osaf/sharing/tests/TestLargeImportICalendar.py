@@ -21,11 +21,8 @@ class TestLargeImport(RepositoryTestCase):
 
     def testImport(self):
         if os.environ.get('CHANDLER_PERFORMANCE_TEST'):
-            self.loadParcel("osaf.pim.calendar")
-            path = os.path.join(os.getenv('CHANDLERHOME') or '.',
-                                'parcels', 'osaf', 'sharing', 'tests')
-
-            sharing.importFile(self.view, os.path.join(path, u"3kevents.ics"))
+            path = self.getTestResourcePath('3kevents.ics')
+            sharing.importFile(self.view, path)
 
 if __name__ == "__main__":
     unittest.main()

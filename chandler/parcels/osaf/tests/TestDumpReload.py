@@ -558,8 +558,7 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
 
 
     def BackwardsCompatibility(self):
-        path = os.path.join(os.getenv('CHANDLERHOME') or '.',
-            'parcels', 'osaf', 'tests', 'compatibility.chex')
+        path = self.getTestResourcePath('compatibility.chex')
         view = self.views[0]
         dumpreload.reload(view, path, testmode=True)
         # check a loaded item
