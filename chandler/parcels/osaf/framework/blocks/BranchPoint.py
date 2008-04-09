@@ -141,6 +141,12 @@ class BranchPointBlock(BoxContainer):
             # eventually results in installTreeOfBlocks()
             widget.wxSynchronizeWidget ()
 
+
+    def onTriageEventUpdateUI(self, event):
+        # Only disable this event if it hasn't been enabled lower down in
+        # the active view hierarchy
+        event.arguments.setdefault('Enable', False)
+
     def installTreeOfBlocks(self, hints):
         """
         If necessary, replace our children with a tree of blocks appropriate

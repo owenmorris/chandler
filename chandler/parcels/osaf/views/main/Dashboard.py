@@ -91,6 +91,10 @@ class DashboardBlock(Table):
         if 'showSections' in names:
             self.synchronizeWidget()
 
+    def onTriageEventUpdateUI(self, event):
+        # cf Bug 11170: we are always enabled
+        event.arguments['Enable'] = True
+
     def onTriageEvent(self, event):
         #import hotshot
         #print 'triaging'

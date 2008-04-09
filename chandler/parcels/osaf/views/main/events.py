@@ -179,7 +179,7 @@ def makeMainEvents(parcel):
                         dispatchToBlockName = 'SidebarContainer').install(parcel)
 
     BlockEvent.template('Triage',
-                        dispatchToBlockName = 'DashboardSummaryView',
+                        dispatchEnum = 'ActiveViewBubbleUp',
                         commitAfterDispatch = True).install(parcel)
 
     ClassParameterizedEvent.template('ApplicationBarAll',
