@@ -17,8 +17,7 @@ __parcel__ = "osaf.framework.blocks"
 
 from application import schema
 import application.dialogs.RecurrenceDialog as RecurrenceDialog
-from osaf.pim.items import ContentItem
-from osaf.pim.collections import ContentCollection
+from osaf.pim import ContentItem, ContentCollection, isDead
 from osaf.usercollections import UserCollection
 from chandlerdb.item.Item import MissingClass
 import wx
@@ -80,7 +79,7 @@ def IgnoreSynchronizeWidget(syncValue, method, *args, **kwds):
         theApp.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
     return result
-    
+
 class Viewable(schema.Annotation):
     """Make ContentItems viewable"""
     schema.kindInfo(annotates=ContentItem)
@@ -246,6 +245,93 @@ class Block(schema.Item):
                 if len (list) == 0:
                     del dictionary [name]
 
+    idToBlock = {} # A mapping of wxWidget Ids to blocks, or sets of blocks
+                   # (sets of blocks for the case of standard wx block ids)
+    freeWXIds = [] # A list of unused wxWidgets Ids
+
+    @classmethod
+    def findBlockById(cls, id, hint=None):
+        if wx.ID_LOWEST <= id <= wx.ID_HIGHEST:
+            # Standard block ids can be duplicated. In this case,
+            # we allow a list of ids in the dict
+            blocks = cls.idToBlock.get(id, ())
+            if hint is not None:
+                root = hint.getRootBlock()
+            else:
+                root = Block.findBlockByName("MainViewRoot")
+
+            for block in blocks:
+                if isDead(block):
+                    import pdb; pdb.set_trace()
+                if block.getRootBlock() == root:
+                    return block
+            return None
+        else:
+            result = cls.idToBlock.get(id, None)
+            assert not isinstance(result, set)
+            return result
+
+    def getWidgetID(self):
+        """
+        wxWindows needs a integer for a id. Ids between wx.ID_LOWEST
+        and wx.ID_HIGHEST are reserved for wxWidgets. Calling wx.NewId
+        allocates incremental ids starting at 100. Passing -1 for new IDs
+        starting with -1 and decrementing. Some rogue dialogs use IDs
+        outside wx.ID_LOWEST and wx.ID_HIGHEST.
+
+        idToBlock is used to associate a block with an Id. Blocks contain
+        an attribute, wxId, that allow you to specify a particular id
+        for the block. It defaults to 0, which will use an unused unique
+        id -- See Bug #5219
+        """
+        id = self.wxId
+        if id == 0:
+            if len (self.freeWXIds) > 0:
+                id = self.freeWXIds.pop(0)
+            else:
+                id = wx.NewId()
+                assert id < wx.ID_LOWEST
+
+        assert id > 0
+
+        widget = getattr(self, 'widget', None)
+        assert self.findBlockById(id, self.parentBlock) in (self, None)
+
+        if wx.ID_LOWEST <= id <= wx.ID_HIGHEST:
+            blocks = self.idToBlock.setdefault(id, set())
+            
+            blocks.add(self)
+                
+            assert not set(b for b in blocks
+                               if b.getRootBlock() == self.getRootBlock() and
+                                   b is not self)
+        else:
+            self.idToBlock[id] = self
+
+        return id
+
+    def __unregisterWXId(self):
+        """
+        Remove the reference to the block in idToBlock and possibly add
+        the id to the list of free ids. If we don't remove the
+        reference to the block, it will be forced to be memory resident.
+        """
+        method = getattr(type(self.widget), 'GetId', lambda w: -1)
+        id = method (self.widget)
+
+        if wx.ID_LOWEST <= id <= wx.ID_HIGHEST:
+            blocks = self.idToBlock.setdefault(id, set())
+            
+            if self in blocks: blocks.remove(self)
+        elif id > 0:
+            del self.idToBlock[id]
+            if self.wxId == 0:
+                assert id not in self.freeWXIds
+                self.freeWXIds.append(id)
+        else:
+            assert (self.findBlockById(id) is None)
+
+
     @classmethod
     def template(theClass, itemName, blockName=None, **attrs):
         """
@@ -388,9 +474,9 @@ class Block(schema.Item):
                 if eventsForNamedLookup is not None:
                     oldCounts = []
                     for item in eventsForNamedLookup:
-                        list = Block.eventNameToItemUUID.get (item.blockName, None)
-                        assert list is not None
-                        oldCounts.append (list.count (item.itsUUID))
+                        uuids = Block.eventNameToItemUUID.get (item.blockName, [])
+                        assert self.itsUUID not in uuids
+                        oldCounts.append (uuids.count (item.itsUUID))
 
                 # Also, verify that the widget is deleted from it's parent
                 numberChildren = None
@@ -415,11 +501,8 @@ class Block(schema.Item):
                 # If the block has eventsForNamedLookup, make sure they are all gone
                 if eventsForNamedLookup is not None:
                     for item, oldCount in map (None, eventsForNamedLookup, oldCounts):
-                        list = Block.eventNameToItemUUID.get (item.blockName, None)
-                        if list is None:
-                            count = 0
-                        else:
-                            count = list.count (item.itsUUID)
+                        uuids = Block.eventNameToItemUUID.get (item.blockName, [])
+                        count = uuids.count (item.itsUUID)
                         assert count == oldCount - 1
 
                 # Also, verify that the widget is deleted from it's parent
@@ -603,8 +686,6 @@ class Block(schema.Item):
     def onItemNotification (self, notificationType, data):
         self.markDirty()
     
-    idToBlock = {}              # A dictionary mapping wxWidgets Ids to Blocks
-    freeWXIds = []              # A list of unused wxWidgets Ids
     dirtyBlocks = set()         # A set of blocks that need to be redrawn in OnIdle
 
     def markDirty(self):
@@ -648,22 +729,7 @@ class Block(schema.Item):
         self.removeFromNameToItemUUIDDictionary ([self],
                                                  Block.blockNameToItemUUID)
 
-        #Remove the reference to the block in idToBlock and add the
-        #id to the list of free ids. Also, if we don't remove the
-        #reference to the block, it will be forced to be memory resident.
-        method = getattr (type (self.widget), 'GetId', None)
-        if method is not None:
-            id = method (self.widget)
-        else:
-            id = -1
-
-        if id > 0:
-            del self.idToBlock[id]
-            if self.wxId == 0:
-                assert (not id in self.freeWXIds)
-                self.freeWXIds.append (id)
-        else:
-            assert (not self.idToBlock.has_key(id))
+        self.__unregisterWXId()
 
         delattr (self, 'widget')
         assert self.itsView.isRefCounted(), "repository must be opened with refcounted=True"
@@ -671,33 +737,6 @@ class Block(schema.Item):
         self.markClean() # Discard any pending notifications
 
         theApp.needsUpdateUI = True
-
-    def getWidgetID (self):
-        """
-        wxWindows needs a integer for a id. Ids between wx.ID_LOWEST
-        and wx.ID_HIGHEST are reserved for wxWidgets. Calling wx.NewId
-        allocates incremental ids starting at 100. Passing -1 for new IDs
-        starting with -1 and decrementing. Some rogue dialogs use IDs
-        outside wx.ID_LOWEST and wx.ID_HIGHEST.
-
-        idToBlock is used to associate a block with an Id. Blocks contain
-        an attribute, wxId, that allow you to specify a particular id
-        for the block. It defaults to 0, which will use an unused unique
-        id -- See Bug #5219
-        """
-        id = self.wxId
-        if id == 0:
-            if len (self.freeWXIds) > 0:
-                id = self.freeWXIds.pop(0)
-            else:
-                id = wx.NewId()
-                assert id < wx.ID_LOWEST
-
-        assert id > 0
-
-        assert not self.idToBlock.has_key (id)
-        self.idToBlock [id] = self
-        return id
 
     @classmethod
     def getFocusBlock (theClass):
@@ -966,6 +1005,7 @@ class BlockDispatchHook (DispatchHook):
                                       not child.eventBoundary))
 
         elif dispatchEnum == 'BroadcastEverywhere':
+            # @@@ [grant] Need to broadcast to all wxBlockFrameWindows!
             broadcast (Block.findBlockByName("MainView"),
                        methodName,
                        event,

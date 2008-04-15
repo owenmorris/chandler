@@ -21,9 +21,7 @@ from __future__ import with_statement
 
 from application import schema
 from osaf import Preferences
-from osaf.framework.blocks import (
-    Block, Table,  wxTable,
-    Styles)
+from osaf.framework.blocks import Block, Table,  wxTable, Styles
 from osaf import pim
 from osaf.sharing import isReadOnly
 from i18n import ChandlerMessageFactory as _
@@ -161,9 +159,22 @@ class DashboardBlock(Table):
             self.miniCalendar.previewArea.activeViewChanged()
             
 class wxDashboard(wxTable):
+    def __init__(self, *args, **kw):
+        super(wxDashboard, self).__init__(*args, **kw)
+        
+        self.GetGridWindow().Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
+        
     def OnItemDrag(self, event):
         if isReadOnly(self.blockItem.contentsCollection):
             event.Skip(False)
             wx.MessageBox(_(u'This collection is read-only. You cannot drag items out of read-only collections.'), _(u'Warning'), parent=self)
         else:
             return super(wxDashboard, self).OnItemDrag(event)
+
+    def OnDoubleClick(self, event):
+        event.Skip()
+        if not event.AltDown() and not event.ControlDown() :
+            for item in self.blockItem.contents.iterSelection():
+                event.Skip(False)
+                self.blockItem.postEventByName('EditItems', {'items': [item]})
+

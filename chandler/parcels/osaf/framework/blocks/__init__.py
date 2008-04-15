@@ -144,6 +144,9 @@ def installParcel(parcel, oldName=None):
             BlockEvent.template('SelectItemsBroadcast',
                                 dispatchEnum = 'BroadcastInsideMyEventBoundary',
                                 methodName='onSelectItemsEvent').install(parcel),
+
+            BlockEvent.template('FocusSelectItems',
+                                dispatchEnum = 'FocusBubbleUp').install(parcel),
             
             BlockEvent.template('SetContents',
                                 dispatchEnum = 'BroadcastInsideMyEventBoundary').install(parcel),

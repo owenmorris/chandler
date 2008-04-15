@@ -16,11 +16,12 @@
 import wx
 from osaf import sharing
 import osaf.pim.mail as Mail
+from osaf.pim.structs import SizeType
 from chandlerdb.item.Item import Item
 from osaf.pim import Modification, EventStamp, Note, ContentCollection, has_stamp
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
-from osaf.framework.blocks import Block, getProxiedItem
+from osaf.framework.blocks import Block, getProxiedItem, ContainerBlocks
 from application import schema
 from application.dialogs.RecurrenceDialog import (getProxy,
                                                   delayForRecurrenceDialog)
@@ -302,7 +303,7 @@ class FocusEventHandlers(Item):
         if item is not None:
             delayForRecurrenceDialog(item,
                                      self._replyOrForward, item, replyMethod)
-    
+
     def _replyOrForward(self, item, replyMethod):
         pim_ns = schema.ns('osaf.pim', self.itsView)
         main = schema.ns("osaf.views.main", self.itsView)
@@ -332,18 +333,20 @@ class FocusEventHandlers(Item):
 
             # Add the item to the current collection
             collection.add(replyMessage)
-
-            # select the last message replied/forwarded
-            main.MainView.selectItems([replyMessage])
+            
             # by default the "from" field is selected, which looks funny;
             # so switch focus to the message body, except for "Forward",
             # which goes to the "To" field
+            
+            # @@@ [grant] Fix this
             if replyMethod is not Mail.forwardMessage:
-                focusTarget = Block.Block.findBlockByName('NotesBlock')
+                focusBlockName = 'NotesBlock'
             else:
-                focusTarget = Block.Block.findBlockByName('EditMailTo')
-            if focusTarget is not None:
-                focusTarget.widget.SetFocus()
+                focusBlockName = 'EditMailTo'
+
+            main.MainView.postEventByName('FocusSelectItems',
+                                          {'items': [replyMessage],
+                                           'focus': focusBlockName }) 
 
     def onReplyOrForwardEventUpdateUI(self, event):
         selection = self.__getSelectedItems()

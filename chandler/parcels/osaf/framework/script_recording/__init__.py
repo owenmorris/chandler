@@ -423,7 +423,8 @@ class Controller (Block.Block):
                     # Translate events in wx.Grid's GridWindow to wx.Grid
                     sentToName = widgetToName (sentToWidget)
                     
-                    associatedBlock = Block.Block.idToBlock.get (event.GetId(), None)
+                    associatedBlock = self.findBlockById(event.GetId(),
+                                                         event.GetEventObject())
                     if associatedBlock is not None:
                         associatedBlockName = associatedBlock.blockName
                         values.append ("'associatedBlock':" + self.valueToString (associatedBlockName))

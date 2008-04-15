@@ -83,6 +83,8 @@ class MainThreadCallbackEvent(wx.PyEvent):
         self.lock = threading.Lock()
 
 class wxBlockFrameWindow (wx.Frame):
+    treeOfBlocks = None
+    
     def __init__(self, *arguments, **keywords):
         super (wxBlockFrameWindow, self).__init__(*arguments, **keywords)
 
@@ -91,9 +93,23 @@ class wxBlockFrameWindow (wx.Frame):
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_MOVE, self.OnMove)
         self.app = wx.GetApp()
+
+        self.icon = wx.Icon("Chandler.egg-info/resources/icons/Chandler_32.ico",
+                            wx.BITMAP_TYPE_ICO)
+        self.SetIcon(self.icon)
+
+        if wx.Platform == "__WXMSW__":
+            # if we're running on a Themed XP, and the display depth
+            # gives us enough bits to play with, then this mode gives
+            # us better looking toolbar icons, otherwise stick to the
+            # default behavior.
+            if wx.GetApp().GetComCtl32Version() >= 600 and wx.DisplayDepth() >= 32:
+                wx.SystemOptions.SetOptionInt("msw.remap", 2)
+            
+
  
     def ShowTreeOfBlocks (self, treeOfBlocks):
-        if hasattr (self, "treeOfBlocks"):
+        if self.treeOfBlocks:
             self.treeOfBlocks.unRender()
             self.SetSizer (None)
 
@@ -110,11 +126,11 @@ class wxBlockFrameWindow (wx.Frame):
                    wxRectangularChild.CalculateWXBorder(self.treeOfBlocks))
         sizer.Layout()
 
-    def OnClose (self, event):
-        if hasattr (self, "treeOfBlocks"):
+    def OnClose(self, event):
+        if self.treeOfBlocks is not None:
             self.treeOfBlocks.unRender()
             self.SetSizer (None)
-            event.Skip()
+        event.Skip()
 
     def OnSize(self, event):
         # Calling Skip causes wxWindows to continue processing the event, 
@@ -124,7 +140,9 @@ class wxBlockFrameWindow (wx.Frame):
             from osaf.pim.structs import SizeType
             # Our first child's block is the FrameWindow where we store size and position
             size = self.GetSize()
-            self.GetChildren()[0].blockItem.size = SizeType (size.x, size.y)
+            children = self.GetChildren()
+            if children:
+                children[0].blockItem.size = SizeType (size.x, size.y)
         event.Skip()
 
     def OnMove(self, event):
@@ -146,20 +164,6 @@ class wxMainFrame (wxBlockFrameWindow):
         # useful in debugging Mac background drawing problems
         #self.MacSetMetalAppearance(True)
 
-        self.icon = wx.Icon("Chandler.egg-info/resources/icons/Chandler_32.ico", wx.BITMAP_TYPE_ICO)
-        self.SetIcon(self.icon)
-
-        self.Bind(wx.EVT_CLOSE, self.OnClose)
-
-        if wx.Platform == "__WXMSW__":
-            # if we're running on a Themed XP, and the display depth
-            # gives us enough bits to play with, then this mode gives
-            # us better looking toolbar icons, otherwise stick to the
-            # default behavior.
-            if wx.GetApp().GetComCtl32Version() >= 600 and wx.DisplayDepth() >= 32:
-                wx.SystemOptions.SetOptionInt("msw.remap", 2)
-            
-
         if wx.Platform == '__WXMAC__':
             # Fix for Bug 4156: On the Mac, when the app activates,
             # un-minimize the main window if necessary
@@ -172,6 +176,7 @@ class wxMainFrame (wxBlockFrameWindow):
     def OnClose(self, event):
         """
         Main window is about to be closed when the application is quitting.
+        Override of wxBlockFrameWindow.OnClose().
         """
         wx.GetApp().shutdown()
 
@@ -436,7 +441,7 @@ class wxApplication (wx.App):
         if Globals.options.reload is not None:
             self.reload(splash)
 
-        mainViewRoot = schema.ns("osaf.views.main", self.UIRepositoryView).MainViewRoot
+        mainViewRoot = schema.ns("osaf.views.main", view).MainViewRoot
 
         # Fix for bug 3411: mainFrame gets resized when it is rendered
         # (particularly when the toolbar gets rendered), increasing the window's
@@ -474,6 +479,14 @@ class wxApplication (wx.App):
         self.RenderMainView(splash)
 
         self.Yield(True)
+
+        # Restore standalone detail view windows at launch
+        # @@@ no call to updateGauge
+        from osaf.views.detail import DetailFrameWindow
+        
+        for fw in DetailFrameWindow.iterItems(self.UIRepositoryView):
+            fw.show()
+
         
         if splash:
             splash.updateGauge('commit')
@@ -769,20 +782,23 @@ class wxApplication (wx.App):
         Our events have ids greater than wx.ID_HIGHEST
         Delay imports to avoid circular references.
         """
-        from osaf.framework.blocks.Block import Block
+        import osaf.framework.blocks.Block as Block
+        eventObject = event.GetEventObject()
         wxID = event.GetId()
-        block = Block.idToBlock.get (wxID, None)
+        block = Block.Block.findBlockById(wxID,
+                                          getattr(event, 'blockItem', None))
         if block is not None:
+            isMacMenuEvent = (wx.Platform == '__WXMAC__' and
+                              event.GetEventType() == wx.EVT_MENU.evtType[0])
 
             # Similar to below, when the Backspace key is used an as
             # accelerator on wxMac and the currently focused widget is
             # a textctrl then we *must* Skip the event otherwise the
             # text control will either do nothing, or will treat it as
             # a Delete key instead.
-            if wx.Platform == '__WXMAC__' and \
-                   event.GetEventType() == wx.EVT_MENU.evtType[0] and \
-                   getattr(block, 'accel', None) == "Back" and \
-                   isinstance(wxWindow_FindFocus(), (wx.TextCtrl, wx.ComboBox)):
+            if (isMacMenuEvent and
+                getattr(block, 'accel', None) == "Back" and
+                isinstance(wxWindow_FindFocus(), (wx.TextCtrl, wx.ComboBox))):
                 event.Skip()
                 return
 
@@ -809,20 +825,32 @@ class wxApplication (wx.App):
                 updateUIEvent = event.GetEventType() == wx.EVT_UPDATE_UI.evtType[0]
                 blockEvent = getattr (block, 'event', None)
                 # If a block doesn't have an event, it should be an updateUI event
-                assert (blockEvent != None or updateUIEvent)
+                assert (blockEvent is not None or updateUIEvent)
 
                 if blockEvent is not None:
                     arguments = {"wxEvent": event}
                     if updateUIEvent:
                         arguments ['UpdateUI'] = True
                     else:
-                        eventObject = event.GetEventObject()
                         if eventObject is not None:
                             method = getattr (eventObject, "GetToolState", None)
                             if method is not None:
                                 arguments ['buttonState'] = method (wxID)
 
-                    Block.post (blockEvent, arguments, block)
+                    # skip further processing if we're propagating to a different
+                    # top-level window. Maybe this should be done somewhere in
+                    # the Block posting hierarchy -- grant
+                    from osaf.framework.blocks import MenuItem
+                    
+                    if blockEvent.dispatchEnum == 'FocusBubbleUp':
+                        focusBlock = Block.Block.getFocusBlock()
+                        if (block.getRootBlock() is not focusBlock.getRootBlock()
+                            and not (wx.Platform == '__WXMAC__'
+                                    and isinstance(block, MenuItem))):
+                            event.Skip()
+                            return
+
+                    Block.Block.post (blockEvent, arguments, block)
 
                     if updateUIEvent:
                         check = arguments.get ('Check', None)
@@ -965,7 +993,9 @@ class wxApplication (wx.App):
 
         if self.needsUpdateUI:
             try:
-                self.mainFrame.UpdateWindowUI(wx.UPDATE_UI_FROMIDLE |
+                for window in wx.GetTopLevelWindows():
+                    if isinstance(window, wxBlockFrameWindow):
+                        window.UpdateWindowUI(wx.UPDATE_UI_FROMIDLE |
                                               wx.UPDATE_UI_RECURSE)
             finally:
                 self.needsUpdateUI = False

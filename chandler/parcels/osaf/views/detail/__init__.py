@@ -35,6 +35,7 @@ from detail import (
     CalendarStampButtonBlock,
     CalendarTimeAEBlock,
     CalendarTimeZoneAreaBlock,
+    DetailFrameWindow,
     DetailRootBlock, 
     DetailSynchronizedAttributeEditorBlock,
     DetailSynchronizedContentItemDetailBlock,

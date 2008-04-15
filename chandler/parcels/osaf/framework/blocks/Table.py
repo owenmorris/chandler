@@ -458,7 +458,7 @@ class wxTable(DragAndDrop.DraggableWidget,
                 if False:
                     evtType = event.GetEventType()
                     evtType = evtNames.get(evtType, evtType)
-                    logger.debug("wxDashboard.OnMouseEvents: %s, %s (was %s)", 
+                    logger.debug("wxTable.OnMouseEvents: %s, %s (was %s)", 
                                  evtType, cell, oldCell)
     
                 # If we were over a cell previously that wanted us to capture

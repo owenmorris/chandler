@@ -25,13 +25,14 @@ import re
 from application import schema
 from application.dialogs import ConflictDialog, RecurrenceDialog
 from osaf import pim
+from osaf.pim.structs import SizeType, RectType
 from osaf.framework.attributeEditors import (
      AttributeEditorMapping, DateAttributeEditor,
      EmailAddressAttributeEditor, TimeAttributeEditor, ChoiceAttributeEditor,
      StringAttributeEditor, StaticStringAttributeEditor)
 from osaf.framework.blocks import (
-     Block, ContainerBlocks, ControlBlocks,
-     FocusEventHandlers, BranchPoint, debugName)
+     Block, ContainerBlocks, ControlBlocks, Menu,
+     FocusEventHandlers, BranchPoint, ToolBar, debugName)
 from osaf import sharing
 import osaf.pim.mail as Mail
 import osaf.pim.notes as notes
@@ -60,11 +61,11 @@ from i18n import getLocale
 logger = logging.getLogger(__name__)
 
 # helper function
-def BroadcastSelect(item):
+def BroadcastSelect(block, item):
     selection = []
     if item is not None:
         selection.append(item)
-    sidebarBPB = Block.Block.findBlockByName("SidebarBranchPointBlock")
+    sidebarBPB = block.findBlockByName("SidebarBranchPointBlock")
     sidebarBPB.childBlocks.first().postEventByName(
        'SelectItemsBroadcast', {'items':selection}
     )
@@ -150,6 +151,20 @@ class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
 
         # make sure other UI is notified about the item changing
         wx.GetApp().needsUpdateUI = True
+
+    def onFocusSelectItemsEvent(self, event):
+        items = event.arguments['items']
+        if len(items) == 1:
+            self.getRootBlock().postEventByName(
+               'SelectItemsBroadcast', {'items': items}
+            )
+            focus = event.arguments.get('focus', None)
+            focusTarget = self.findBlockByName(focus)
+            if focusTarget is not None:
+                focusTarget.widget.SetFocus()
+
+        else:
+            event.arguments['continueBubbleUp'] = True
         
 
     def onSendShareItemEvent (self, event):
@@ -1822,7 +1837,7 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
         itemToSelect = getattr(itemToSelect, 'proxiedItem', itemToSelect)
 
         if itemToSelect is not item:
-            BroadcastSelect(itemToSelect)
+            BroadcastSelect(self.control.blockItem, itemToSelect)
 
     def GetControlValue(self, control):
         """
@@ -1889,7 +1904,8 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
         newValueString = valueString.replace('?','').strip()
         if len(newValueString) == 0 and hasattr(item, attributeName):
             delattr(item, attributeName)
-            BroadcastSelect(master.getRecurrenceID(recurrenceID).itsItem)
+            BroadcastSelect(self.control.blockItem,
+                            master.getRecurrenceID(recurrenceID).itsItem)
         else:
             try:
                 oldValue = getattr(item, attributeName, None)
@@ -1945,7 +1961,7 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
                         selection = master.getRecurrenceID(recurrenceID)
                         if selection is not None:
                             selection = selection.itsItem
-                        BroadcastSelect(selection)
+                        BroadcastSelect(self.control.blockItem, selection)
 
                 wx.CallAfter(changeRecurrenceEnd, self, item, value)
 
@@ -2179,3 +2195,179 @@ class EmptyPanelBlock(ControlBlocks.ContentItemDetail):
         widget.SetBackgroundColour(wx.WHITE)
         return widget
 
+class DetailFrameWindow(ContainerBlocks.FrameWindow):
+
+    @classmethod
+    def editItem(cls, item):
+        view = item.itsView
+        
+        for fw in cls.iterItems(view):
+            if item is getattr(fw, 'contents', None):
+                break
+        else:
+            parent = item.getDefaultParent(view)
+            stub = schema.ns(__parcel__, view).DetailRoot
+            delegate = DetailBranchPointDelegate(itsParent=parent,
+                                                  branchStub=stub)
+            block = BranchPoint.BranchPointBlock(
+                        itsParent=parent,
+                        delegate=delegate,
+                        blockName=u"fubar",
+                        border=RectType(0.0, 6.0, 0.0, 6.0),
+                    )
+            block.selectedItem = item
+
+            main = schema.ns("osaf.views.main", view)
+
+            def copy(block):
+                return block.copy(cloudAlias='copying', parent=parent)
+
+            childBlocks = [
+                ToolBar(
+                    itsParent=parent,
+                    blockName=u"SeparateDVToolBar",
+                    stretchFactor = 0.0,
+                    toolSize = SizeType(32, 32),
+                    buttonsLabeled = True,
+                    separatorWidth = 20,
+                    childBlocks=[copy(main.ApplicationBarSendButton)],
+                ),
+                block,
+            ]
+            
+            if wx.Platform != '__WXMAC__':
+
+                menuBar = Menu(
+                    setAsMenuBarOnFrame=True,
+                    itsParent=parent,
+                    blockName=u"SeparateDVMenuBar",
+                    stretchFactor = 0.0,
+                    toolSize = SizeType(32, 32),
+                    buttonsLabeled = True,
+                    separatorWidth = 20,
+                    childBlocks=[
+                        copy(main.EditMenu),
+                        copy(main.ItemMenu),
+                        copy(main.ToolsMenu),
+                        copy(main.HelpMenu),
+                    ],
+                )
+                
+                childBlocks.append(menuBar)
+
+            fw = cls(
+                    itsParent=parent,
+                    size=SizeType(300, 600),
+                    minimumSize=SizeType(300, 600),
+                    childBlocks=childBlocks,
+                    contents=item,
+                    windowTitle=item.displayName,
+                    eventsForNamedLookup=[main.SendMail],
+                    orientationEnum="Vertical",
+                )
+        
+        fw.show()
+
+
+    schema.initialValues(
+        blockName=lambda self: '%s-%s' % (type(self).__name__,
+                                          self.contents.itsUUID.str16()),
+        eventBoundary=lambda self: True
+    )
+
+    def show(self):
+        # @@@ [grant] imports are totally wonky
+        from application.Application import wxBlockFrameWindow
+        try:
+            window = self.widget.GetTopLevelParent()
+        except AttributeError:
+            window = wxBlockFrameWindow(
+                        None,
+                        -1, 
+                        self.windowTitle,
+                        pos=(self.position.x, self.position.y),
+                        size=(self.size.width, self.size.height),
+                        style=wx.DEFAULT_FRAME_STYLE)
+            window.Bind(wx.EVT_CLOSE, self.OnClose)
+            window.ShowTreeOfBlocks(self)
+            
+            # We have to wire up the detail root. There's probably a way to
+            # do the sizers better here ...
+            # There's probably a way to wire this up to both MainFrame and
+            # this top-level window, eh.
+            
+            window.MinSize = (self.minimumSize.width, self.minimumSize.height)
+
+            sizer = wx.BoxSizer(wx.HORIZONTAL)
+            window.SetSizer(sizer)
+            sizer.Add(self.widget,
+                   self.stretchFactor, 
+                   Block.wxRectangularChild.CalculateWXFlag(self), 
+                   Block.wxRectangularChild.CalculateWXBorder(self))
+            
+        window.Show()
+        window.Raise()
+
+    def onCloseEvent(self, event):
+        # Translate the Close BlockEvent into a wx Close event
+        window = self.getTopLevel()
+        if window:
+            window.Close()
+        
+    def getTopLevel(self):
+        try:
+            return self.widget.GetTopLevelParent()
+        except AttributeError:
+            pass
+
+    def OnClose(self, event):
+        if not pim.isDead(self):
+            window = self.getTopLevel()
+
+            if window:
+                window.OnClose(event)
+                if window.treeOfBlocks:
+                    del window.treeOfBlocks
+                         
+            def deleteIt(block):
+                for child in getattr(block, 'childBlocks', ()):
+                    deleteIt(child)
+                block.delete(recursive=True)
+                
+            deleteIt(self)
+                 
+            if not (self.itsView.itsStatus & self.itsView.COMMITTING):
+                self.itsView.commit()
+        
+
+    def getWatchList(self):
+        return [(self.contents, 'displayName'), # window title changes
+                (self.contents, 'itsKind'), # item deletion
+                (self.contents, pim.EventStamp.rruleset.name)] # recurrence
+
+    def onItemNotification(self, notificationType, data):
+        if pim.isDead(getattr(self, 'contents', None)):
+            window = self.getTopLevel()
+            if window:
+                wx.CallAfter(window.Close)
+        elif notificationType == 'itemChange':
+            op, uuid, attrs = data
+            if 'displayName' in attrs:
+                self.windowTitle = self.contents.displayName
+                self.markDirty()
+            if pim.EventStamp.rruleset.name in attrs:
+                event = pim.EventStamp(self.contents)
+                if event == event.getMaster() and event.rruleset is not None:
+                    occurrence = event.getFirstOccurrence()
+                    self.childBlocks.first().postEventByName(
+                       'SelectItemsBroadcast', {'items': [occurrence.itsItem]}
+                    )
+
+    def onSelectItemsEvent(self, event):
+        displayName = event.arguments['items'][0].displayName
+        self.windowTitle = displayName
+        self.markDirty()
+
+    def synchronizeWidget(self):
+        super(DetailFrameWindow, self).synchronizeWidget()
+        self.widget.GetTopLevelParent().Title = self.windowTitle

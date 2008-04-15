@@ -19,10 +19,11 @@ from Block import (
     Block, RectangularChild, wxRectangularChild,
     WithoutSynchronizeWidget, IgnoreSynchronizeWidget
 )
-from osaf.pim.structs import PositionType, SizeType
+from osaf.pim.structs import SizeType, PositionType, RectType
+from osaf.pim.types import LocalizableString
+from osaf.pim.reminders import isDead
 import MenusAndToolbars
 from application import schema
-from osaf.pim.types import LocalizableString
 import wx
 #import util.autolog
 
@@ -338,7 +339,6 @@ class FrameWindow (ViewContainer):
     Right now we special case MainFrame, but we should better work that
     into the block framework.
     """
-    position = schema.One(PositionType, initialValue = PositionType(-1, -1))
+    position = schema.One(PositionType,
+                          initialValue=PositionType(-1, -1))
     windowTitle = schema.One(LocalizableString, defaultValue = '')
-
-

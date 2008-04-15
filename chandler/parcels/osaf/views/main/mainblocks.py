@@ -181,6 +181,7 @@ def makeMainView(parcel):
             main.ApplicationBarTask,
             main.ApplicationBarAll,
             main.DisplayMailMessage,
+            main.EditItems,
             ],
         childBlocks = [
             main.MenuBar,

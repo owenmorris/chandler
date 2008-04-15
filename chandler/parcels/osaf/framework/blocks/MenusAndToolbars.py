@@ -447,8 +447,8 @@ class wxToolBarTool (wx.ToolBarTool):
                 if not tool.IsButton() or tool.GetKind() != wx.ITEM_RADIO:
                     break
                 # The tool returned by GetTool isn't our Python object with the blockItem attribute
-                # so we'll have to look it up by it's Id.
-                Block.Block.idToBlock[tool.GetId()].selected = False
+                # so we'll have to look it up by its Id.
+                Block.Block.findBlockById(tool.GetId(), toolBar.blockItem).selected = False
                 index -= 1
 
             #Select this ToolBarItem
@@ -463,7 +463,7 @@ class wxToolBarTool (wx.ToolBarTool):
                 if not tool.IsButton() or tool.GetKind() != wx.ITEM_RADIO:
                     break
                 # The tool returned by GetTool isn't our Python object with the blockItem attribute.
-                Block.Block.idToBlock[tool.GetId()].selected = False
+                Block.Block.findBlockById(tool.GetId(), toolBar.blockItem).selected = False
                 index += 1
                 
     def OnToolEvent (self, event):

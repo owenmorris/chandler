@@ -1394,7 +1394,8 @@ class SidebarBlock(Table):
                 for toolBarTool in toolBar.GetTools():
                     # The tool returned by GetTools isn't our Python object with the blockItem attribute
                     # so we'll have to look it up by it's Id.
-                    toolBarToolBlock = Block.Block.idToBlock[toolBarTool.GetId()]
+                    toolBarToolBlock = self.findBlockById(toolBarTool.GetId(),
+                                                          toolBar)
                     event = getattr (toolBarToolBlock, "event", None)
                     if event is not None:
                         buttonClass = getattr (event, "classParameter", None)

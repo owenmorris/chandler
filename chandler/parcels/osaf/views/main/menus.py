@@ -290,14 +290,29 @@ def makeMainMenus(parcel):
                         wxId = wx.ID_SAVE),
                     ])
 
-    if wx.Platform != '__WXMAC__':
-        fileMenu.attrs['childBlocks'].append(MenuItem.template('QuitItem',
-                                                        event=globalBlocks.Quit,
-                                                        title = _(u'&Quit'),
-                                                        # L10N: Keyboard shortcut to quit Chandler.
-                                                        accel = _(u'Ctrl+Q'),
-                                                        helpString = _(u'Quit Chandler'),
-                                                        wxId = wx.ID_EXIT))
+    fileChildren = fileMenu.attrs['childBlocks']
+    if wx.Platform == '__WXMAC__':
+        fileChildren[3:3] = (
+            MenuItem.template('CloseItem',
+                event = globalBlocks.Close,
+                title = _(u'Close Window'),
+                # L10N: Keyboard shortcut for "Close Window" on Mac
+                accel = _(u'Ctrl+W'),
+                wxId = wx.ID_CLOSE,
+            ),
+            MenuItem.template('FileSeparator99',
+                menuItemKind = 'Separator'
+            ),
+        )
+
+    else:
+        fileChildren.append(MenuItem.template('QuitItem',
+                                event=globalBlocks.Quit,
+                                title = _(u'&Quit'),
+                                # L10N: Keyboard shortcut to quit Chandler.
+                                accel = _(u'Ctrl+Q'),
+                                helpString = _(u'Quit Chandler'),
+                                wxId = wx.ID_EXIT))
 
     menubar = Menu.template('MenuBar',
         setAsMenuBarOnFrame = True,

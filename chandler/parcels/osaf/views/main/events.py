@@ -94,7 +94,6 @@ def makeMainEvents(parcel):
     BlockEvent.template('EnableTimezones',
                         commitAfterDispatch = True).install(parcel)
 
-    # "Item" menu events
     BlockEvent.template('FocusTogglePrivate',
                         dispatchEnum = 'FocusBubbleUp',
                         commitAfterDispatch = True).install(parcel)
@@ -245,6 +244,9 @@ def makeMainEvents(parcel):
     BlockEvent.template('EmptyTrash',
                         commitAfterDispatch = True).install(parcel)
 
+    e=BlockEvent.template('EditItems',
+                        commitAfterDispatch=True).install(parcel)
+
     BlockEvent.template('SyncWebDAV').install(parcel)
 
     BlockEvent.template('ImportICalendar').install(parcel)
@@ -272,11 +274,11 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('Search',
                         commitAfterDispatch = True,
-                        dispatchEnum = 'FocusBubbleUp').install(parcel)
+                        dispatchToBlockName = 'MainView').install(parcel)
                         
     BlockEvent.template('SwitchToQuickEntry',
                         commitAfterDispatch = True,
-                        dispatchEnum = 'FocusBubbleUp').install(parcel)
+                        dispatchToBlockName = 'MainView').install(parcel)
 
     BlockEvent.template('SendShareItem',
                         commitAfterDispatch = True,

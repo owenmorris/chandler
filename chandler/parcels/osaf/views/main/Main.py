@@ -130,6 +130,11 @@ class MainView(View):
         """
         about = AboutBox()
         return about
+        
+    def onEditItemsEvent(self, event):
+        from osaf.views.detail import DetailFrameWindow
+        for item in event.arguments['items']:
+            DetailFrameWindow.editItem(item)
 
     def onEmptyTrashEvent(self, event):
         trash = schema.ns("osaf.pim", self).trashCollection
@@ -273,7 +278,12 @@ class MainView(View):
         except NotImplementedError:
             pass
 
-        self.selectItems([newItem])
+        if Block.getFocusBlock().getRootBlock() is self.getRootBlock():
+            self.selectItems([newItem])
+        else:
+            # Maybe this should just be a method on the root block or
+            # something ... ?
+            self.postEventByName('EditItems', {'items': [newItem]})
 
         return newItem
 
@@ -288,6 +298,9 @@ class MainView(View):
         detailRoot = self.findBlockByName("DetailRoot")
         if detailRoot:
             detailRoot.focus()
+
+    def onFocusSelectItemsEvent(self, event):
+        self.selectItems(event.arguments['items'])
 
     # Disabling Print Preview in Chandler, since it seems to
     # fail on all platforms. Remove the following to re-enable.
@@ -317,7 +330,9 @@ class MainView(View):
             text = "/" + SearchCommand.command_names[0] + " "
 
         widget = quickEntryBlock.widget.GetControl()
+        widget.TopLevelParent.Raise()
         widget.SetFocus()
+
         quickEntryBlock.text = text
         quickEntryBlock.synchronizeWidget()
         end = len(text)
@@ -331,13 +346,14 @@ class MainView(View):
     def onSwitchToQuickEntryEvent (self, event):
         quickEntryBlock = self.findBlockByName("ApplicationBarQuickEntry")
         widget = quickEntryBlock.widget.GetControl()
+        widget.TopLevelParent.Raise()
         widget.SetFocus()
         quickEntryBlock.synchronizeWidget()
 
         start = 0
         end = len(quickEntryBlock.text)
         widget.SetSelection(start, end)
-
+        
     def onQuickEntryEvent (self, event):
         sidebar = self.findBlockByName("Sidebar")
         quickEntryBlock = self.findBlockByName("ApplicationBarQuickEntry")
