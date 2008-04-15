@@ -172,10 +172,26 @@ class FocusEventHandlers(Item):
 
             Block.Block.postEventByNameWithSender('SendMail', {'item': item})
 
+
+    def onMarkAsReadEventUpdateUI(self, event):
+        selectedItems = self.__getSelectedItems(event)
+        haveUnread = any(item for item in selectedItems if not item.read)
+        
+        event.arguments['Enable'] = len(selectedItems) > 0
+        
+        sender = event.arguments['sender']
+        if haveUnread:
+            event.arguments['Text'] = sender.title
+        else:
+            event.arguments['Text'] = sender.toggleTitle
+        
+
     def onMarkAsReadEvent(self, event):
         selectedItems = self.__getSelectedItems(event)
+        haveUnread = any(item for item in selectedItems if not item.read)
+
         for item in selectedItems:
-            EventStamp(item).getMaster().itsItem.read = True
+            EventStamp(item).getMaster().itsItem.read = haveUnread
 
     def onFocusTogglePrivateEvent(self, event):
         """
