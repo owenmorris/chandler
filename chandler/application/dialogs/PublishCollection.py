@@ -484,8 +484,8 @@ class PublishCollectionDialog(wx.Dialog):
             if isinstance(err, sharing.OfflineError):
                 self._showStatus(_(u"Chandler is offline."))
 
-            elif isinstance(err,
-                (sharing.CouldNotConnect, zanshin.error.ConnectionError)):
+            elif isinstance(err, (sharing.CouldNotConnect, sharing.NotAllowed,
+                                  zanshin.error.ConnectionError)):
                 logger.error("Connection error during publish")
 
                 # Note: do not localize the 'startswith' strings -- these need
