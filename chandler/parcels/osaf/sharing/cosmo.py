@@ -265,7 +265,9 @@ class CosmoAccount(accounts.SharingAccount):
                         altView).currentContact.item
                     schema.ns("osaf.app",
                         altView).sidebarCollection.add(share.contents)
-
+                    # Add the collection to the Dashboard (c.f. Bug 11717)
+                    schema.ns("osaf.pim",
+                        altView).mine.addSource(share.contents)
                     altView.commit(utility.mergeFunction)
                     subActivity.completed()
 
@@ -276,7 +278,8 @@ class CosmoAccount(accounts.SharingAccount):
                         subActivity.failed(e)
                         activity.failed(e)
                         logger.exception("Restore failed")
-                    self.requested.remove(uuid)
+                    if uuid in self.requested:
+                        self.requested.remove(uuid)
                     raise
 
 
