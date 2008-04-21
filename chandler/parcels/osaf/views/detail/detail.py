@@ -2257,7 +2257,7 @@ class DetailFrameWindow(ContainerBlocks.FrameWindow):
 
             fw = cls(
                     itsParent=parent,
-                    size=SizeType(300, 600),
+                    size=SizeType(600, 600),
                     minimumSize=SizeType(300, 600),
                     childBlocks=childBlocks,
                     contents=item,
