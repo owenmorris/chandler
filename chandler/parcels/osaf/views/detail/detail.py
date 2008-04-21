@@ -159,7 +159,7 @@ class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
                'SelectItemsBroadcast', {'items': items}
             )
             focus = event.arguments.get('focus', None)
-            focusTarget = self.findBlockByName(focus)
+            focusTarget = self.findBlockByName(focus, self)
             if focusTarget is not None:
                 focusTarget.widget.SetFocus()
 
@@ -195,7 +195,8 @@ class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
         # Currently, just set the focus to the Title/Headline/Subject
         # Later we may want to support the "preferred" block for
         #  focus within a tree of blocks.
-        titleBlock = self.findBlockByName('HeadlineBlock')
+        
+        titleBlock = self.findBlockByName('HeadlineBlock', hint=self)
         if titleBlock:
             titleBlock.widget.SetFocus()
             titleBlock.widget.SelectAll()
@@ -2212,7 +2213,7 @@ class DetailFrameWindow(ContainerBlocks.FrameWindow):
             block = BranchPoint.BranchPointBlock(
                         itsParent=parent,
                         delegate=delegate,
-                        blockName=u"fubar",
+                        blockName=u"SeparateDetailBranchPoint",
                         border=RectType(0.0, 6.0, 0.0, 6.0),
                     )
             block.selectedItem = item
@@ -2304,6 +2305,8 @@ class DetailFrameWindow(ContainerBlocks.FrameWindow):
                    self.stretchFactor, 
                    Block.wxRectangularChild.CalculateWXFlag(self), 
                    Block.wxRectangularChild.CalculateWXBorder(self))
+
+            self.findBlockByName("DetailRoot", self).focus()
             
         window.Show()
         window.Raise()

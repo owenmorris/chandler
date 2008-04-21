@@ -209,10 +209,18 @@ class Block(schema.Item):
     blockNameToItemUUID = {}           # A dictionary mapping rendered block names to block UUIDS
 
     @classmethod
-    def findBlockByName (theClass, name):
-        list = Block.blockNameToItemUUID.get (name, None)
-        if list is not None:
-            return theApp.UIRepositoryView.find (list[0])
+    def findBlockByName(cls, name, hint=None):
+        uuids = Block.blockNameToItemUUID.get (name, None)
+        if hint is not None:
+            hint = hint.getRootBlock()
+        if uuids is not None:
+            for uuid in uuids:
+                block = theApp.UIRepositoryView.find(uuid)
+                
+                if (hint is None or 
+                    (block is not None and block.getRootBlock() is hint)):
+                    return block
+            return theApp.UIRepositoryView.find (uuids[0])
         else:
             return None
 
