@@ -15,7 +15,9 @@
 
 """Dump and Reload module"""
 
-import logging, cPickle, sys, os, wx
+from __future__ import with_statement
+
+import logging, cPickle, sys, os, wx, tempfile
 from osaf import sharing
 from osaf.sharing.eim import uri_registry, RecordClass
 from application import schema
@@ -90,8 +92,7 @@ class PickleSerializer(object):
             uri_registry[uri] = rtype
             return rtype
 
-
-def dump(rv, filename, uuids=None, serializer=PickleSerializer,
+def dump(rv, path, uuids=None, serializer=PickleSerializer,
     activity=None, obfuscate=False):
     """
     Dumps EIM records to a file, file permissions 0600.
@@ -117,22 +118,29 @@ def dump(rv, filename, uuids=None, serializer=PickleSerializer,
     aliases.sort()
 
     trans.startExport()
+    
+    # Paths here:
+    #
+    #  temppath - a temporary path with a .temp extension. This helps avoid
+    #             the situation where we try to reload from a half-written
+    #             .chex file
+    #
+    #  completedpath - a temporary path with a .chex extension (actually, with
+    #       the same extension as the passed-in path). If there are problems
+    #       writing to the requested path, this at least leaves a complete
+    #       .chex file on disk as a backup.
+    #
+    dir, filename = os.path.split(path)
+    basename, ext = os.path.splitext(filename)
+    
+    fd, temppath = tempfile.mkstemp(ext + ".temp", basename, dir)
+    completedpath = None
+
+    # First, make the file read-only by the user.
+    os.chmod(temppath, 0600)
 
     try:
-        flags = os.O_EXCL | os.O_CREAT | os.O_WRONLY | os.O_BINARY
-    except AttributeError:
-        flags = os.O_EXCL | os.O_CREAT | os.O_WRONLY
-
-    try:
-        # Need to remove the file, otherwise we'll use existing permissions
-        os.remove(filename)
-    except OSError:
-        pass
-    # XXX This will fail if someone created the file after the remove but
-    # XXX before we got here, so the caller should be prepared to handle that.
-    output = os.fdopen(os.open(filename, flags, 0600), 'wb')
-    try:
-        try:
+        with os.fdopen(fd, 'wb') as output:
             dump = serializer.dumper(output)
 
             if activity:
@@ -162,15 +170,39 @@ def dump(rv, filename, uuids=None, serializer=PickleSerializer,
 
             dump(None)
             del dump
-        finally:
-            output.close()
 
         if activity:
             activity.update(msg=_(u"Exported %(total)d records") % {'total':count})
 
+        # Next, remove the .temp from the filename. This means that
+        # we have a complete, recoverable .chex file on disk (yay).
+        completedpath = os.path.splitext(temppath)[0]
+        os.rename(temppath, completedpath)
+        temppath = None
+        
+        # Now, on Windows, where a rename on top of an existing file
+        # will fail, remove the target file. At least we have a backup
+        # at this point ...
+        if wx.Platform == '__WXMSW__':
+            try:
+                os.remove(path)
+            except OSError, err:
+                if err.errno != 2:
+                    logger.exception("Unable to remove %s", path)
+                    raise
+
+        # Now, rename the temporary .chex file to the actual
+        os.rename(completedpath, path)
+        completedpath = None
+
     except:
         logger.exception("Error during export")
-        os.remove(filename)
+        if temppath is not None:
+            try:
+                os.remove(temppath)
+            except OSError:
+                logger.exception("Unable to remove %s -- ignoring", temppath)
+
         raise
 
 
