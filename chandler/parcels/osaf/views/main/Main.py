@@ -1003,6 +1003,8 @@ class MainView(View):
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
+        else:
+            path = None
         dlg.Destroy()
 
         if path:
