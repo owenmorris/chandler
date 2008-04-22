@@ -171,6 +171,7 @@ def dump(rv, filename, uuids=None, serializer=PickleSerializer,
     except:
         logger.exception("Error during export")
         os.remove(filename)
+        raise
 
 
 def reload(rv, filename, serializer=PickleSerializer, activity=None,

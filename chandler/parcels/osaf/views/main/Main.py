@@ -951,74 +951,68 @@ class MainView(View):
         event.arguments['Enable'] = schema.ns('osaf.app',
             self.itsView).prefs.isOnline and sharing.isOnline(self.itsView)
 
-    def _dumpFile(self, obfuscate=False, path=None):
+
+    def exportToChex(self, obfuscate=False, path=os.path.join(
+                                                Globals.options.profileDir,
+                                                'backup.chex')):
         from osaf.framework import MasterPassword
         MasterPassword.beforeBackup(self.itsView)
+        
+        prefs = schema.ns('osaf.app',
+                          wx.GetApp().UIRepositoryView).prefs
+        
+        def OnCheckBox(event):
+            prefs.backupOnQuit = event.EventObject.Value
+            prefs.itsView.commit()
+            event.Skip()
+        
+        def makeAuxiliary(parent):
+            checkBox = wx.CheckBox(parent)
+            checkBox.Label = _(u"Always back up my data when I quit Chandler.")
+            checkBox.Value = getattr(prefs, 'backupOnQuit', True)
+            checkBox.Bind(wx.EVT_CHECKBOX, OnCheckBox)
+            return checkBox
+        
+        activity = Activity("Export to %s" % path)
+        progress = Progress.Show(activity, parent=wx.GetApp().mainFrame,
+                                 makeAuxiliary=makeAuxiliary)
 
-        if path is None:
-            filename = "%s.chex" % strftime("%Y%m%d%H%M%S")
-            wildcard = "%s|*.chex|%s (*.*)|*.*" % (_(u"Chandler export files"), _(u"All files"))
-    
-            dlg = wx.FileDialog(wx.GetApp().mainFrame,
-                                _(u"Export Collections and Settings"), "", filename, wildcard,
-                                wx.SAVE|wx.OVERWRITE_PROMPT)
+        activity.started()
 
-            if dlg.ShowModal() == wx.ID_OK:
-                path = dlg.GetPath()
-            dlg.Destroy()
+        try:
+            dumpreload.dump(self.itsView, path, activity=activity,
+                            obfuscate=obfuscate)
+            activity.completed()
+            self.setStatusMessage(_(u'Items exported.'))
+        except ActivityAborted:
+            self.setStatusMessage(_(u'Export cancelled.'))
+        except Exception, e:
+            self.setStatusMessage(_(u"Export failed. Go to the Tools>>Logging>>Log Window... menu for details."))
+            logger.exception("Failed to export file")
+            activity.failed(exception=e)
+            raise
+
+    def _chooseExportFile(self, obfuscate):
+        
+        filename = "%s.chex" % strftime("%Y%m%d%H%M%S")
+        wildcard = "%s|*.chex|%s (*.*)|*.*" % (_(u"Chandler export files"), _(u"All files"))
+
+        dlg = wx.FileDialog(wx.GetApp().mainFrame,
+                            _(u"Export Collections and Settings"), "", filename, wildcard,
+                            wx.SAVE|wx.OVERWRITE_PROMPT)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+        dlg.Destroy()
 
         if path:
-            def timeoutCallback(activity, *args, **kw):
-                # returning True stops, False continues export
-                if not getattr(activity, 'timeoutOccurred', False):
-                    return False
-
-                timeoutListener.unregister()
-                
-                app = wx.GetApp()
-                prefs = schema.ns('osaf.app',
-                                  app.UIRepositoryView).prefs
-                if not hasattr(prefs, 'backupOnQuit'):
-                    from application.dialogs import autoexport
-                    dlg = autoexport.AutoExportDialog(parent)
-                    result = dlg.ShowModal()
-                    if result == wx.ID_NO:
-                        backup = prefs.backupOnQuit = False
-                    elif result == wx.ID_YES:
-                        backup = prefs.backupOnQuit = True
-                    elif result == wx.ID_OK:
-                        backup = True
-                    else:
-                        backup = False
-                    dlg.Destroy()
-                else:
-                    backup = prefs.backupOnQuit
-                    assert backup
-
-                return not backup
-            
-            activity = TimeoutActivity("Export to %s" % path, timeout=15)
-            timeoutListener = Listener(callback=timeoutCallback,
-                                       activity=activity)
-            parent = Progress.Show(activity)
-            activity.started()
-
-            try:
-                dumpreload.dump(self.itsView, path, activity=activity,
-                                obfuscate=obfuscate)
-                activity.completed()
-            except Exception, e:
-                logger.exception("Failed to export file")
-                activity.failed(exception=e)
-                raise
-
-            self.setStatusMessage(_(u'Items exported.'))
+            self.exportToChex(obfuscate, path)
 
     def onDumpToFileEvent(self, event):
-        self._dumpFile()
+        self._chooseExportFile(False)
 
     def onObfuscatedDumpToFileEvent(self, event):
-        self._dumpFile(obfuscate=True)
+        self._chooseExportFile(True)
 
     def onReloadFromFileEvent(self, event):
         if wx.MessageBox(_(u"Reloading will remove all data and replace it with data from the export file. Are you sure you want to reload?"),

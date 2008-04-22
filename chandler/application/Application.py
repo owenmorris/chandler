@@ -1088,8 +1088,7 @@ class wxApplication (wx.App):
 
         if backup:
             mainView = Block.findBlockByName("MainView")
-            mainView._dumpFile(path=os.path.join(Globals.options.profileDir,
-                                                 'backup.chex'))
+            mainView.exportToChex()
 
         # For some strange reason when there's an idle handler on the
         # application the mainFrame windows doesn't get destroyed, so
