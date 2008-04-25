@@ -1278,6 +1278,9 @@ class ColorEvent (BlockEvent):
     from osaf.pim.structs import ColorType
     color = schema.One(ColorType, required = True)
 
+class IntervalEvent(BlockEvent):
+    interval = schema.One(schema.TimeDelta, required=True)
+
 class ClassParameterizedEvent (BlockEvent):
     classParameter = schema.One(
         schema.Class,

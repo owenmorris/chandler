@@ -35,6 +35,7 @@ __all__ = [
     'checkForActiveShares',
     'getExistingResources',
     'extractLinks',
+    'blockingGetPage',
     'getPage',
     'isReadOnly',
     'getOldestVersion',
@@ -72,8 +73,10 @@ from zanshin.webdav import (
 from zanshin.util import PackElement
 from zanshin.ticket import Ticket, getTicketInfoNodes
 import zanshin.http
+import zanshin.error
 import zanshin.acl as acl
 import twisted.web.http as http
+from twisted.python.failure import Failure
 import xml.etree.cElementTree as ElementTree
 import M2Crypto
 
@@ -832,7 +835,7 @@ def getOPTIONS(rv, url, username=None, password=None):
 
 
 
-def getPage(rv, url, username=None, password=None):
+def blockingGetPage(rv, url, username=None, password=None):
     """
     Returns the body of a resource
     """
@@ -867,6 +870,77 @@ def getPage(rv, url, username=None, password=None):
     return resp.body
 
 
+def getPage(rv, url, **kw):
+    """
+    Similar to C{twisted.web.client.getPage}, except:
+    
+    (1) Does certificate matching.
+    (2) Respects Chandler HTTP proxy settings.
+    (3) Translates lower-level errors into L{osaf.sharing.error.Error}
+        objects.
+    """
+    
+    method = kw.pop('method', 'GET')
+    
+    username = kw.pop('username', None)
+    password = kw.pop('password', None)
+    body = kw.pop('body', None)
+    factory = kw.pop('factory', WebDAV.ChandlerServerHandle)
+
+    headers = dict(kw)
+    
+    parsedUrl = urlparse.urlsplit(url)
+    useSSL = (parsedUrl.scheme == "https")
+    if parsedUrl.port:
+        port = parsedUrl.port
+    elif useSSL:
+        port = 443
+    else:
+        port = 80
+
+    handle = factory(parsedUrl.hostname, port, username, password, useSSL, rv)
+
+    path = parsedUrl.path
+
+    if not path:
+        path = "/"
+    if parsedUrl.query:
+        path = "%s?%s" % (path, parsedUrl.query)
+
+    request = zanshin.http.Request('GET', path, headers, body)
+    
+    def got(response):
+        if response.status == http.OK:
+            return response.body
+        elif response.status == http.UNAUTHORIZED:
+            raise errors.NotAllowed(
+                      _(u"Please verify your username and password"),
+                      details="Received [%s]" % response.body
+                  )
+        else:
+            raise zanshin.http.HTTPError(status=response.status,
+                                         message=response.message)
+
+    def failed(failure, host):
+        logger.error("Error for url %s: %s", url, failure)
+        if failure.check(zanshin.error.ConnectionError, errors.CouldNotConnect):
+            # Note: do not localize the 'startswith' strings -- these need
+            # to match twisted error messages:
+            msg = failure.value.message
+            if msg.startswith("DNS lookup failed"):
+                msg = _(u"Unable to look up address '%(host)s via DNS. Check that your computer is correctly configured to access the internet.") % { 'host': host }
+            elif msg.startswith("Connection was refused"):
+                msg = _(u"The server '%(host)s' refused the connection.") % { 'host' : host }
+            
+            raise errors.CouldNotConnect(msg)
+
+        return failure
+
+    return handle.addRequest(request).addCallback(
+               got).addErrback(
+               failed, parsedUrl.hostname
+          )
+    
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 

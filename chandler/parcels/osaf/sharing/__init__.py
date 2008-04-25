@@ -680,9 +680,9 @@ def subscribe(view, url, activity=None, username=None, password=None,
 
     elif contentType == "text/html":
         # parse the webpage for embedded link to real url
-        text = getPage(view, url, username=username, password=password)
+        text = blockingGetPage(view, url, username=username, password=password)
 
-        # getPage needs to raise Forbidden exception, right?
+        # blockingGetPage needs to raise Forbidden exception, right?
 
         if text:
             links = extractLinks(text)

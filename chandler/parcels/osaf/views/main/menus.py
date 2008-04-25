@@ -18,6 +18,7 @@ import wx
 from colorsys import hsv_to_rgb
 from osaf.pim.structs import ColorType
 from osaf.framework.blocks import ColorEvent
+from datetime import timedelta
 
 def makeColorMenuItems (parcel, theClass, hues, prefix=""):
     """
@@ -56,7 +57,7 @@ def makeColorMenuItems (parcel, theClass, hues, prefix=""):
 
 def makeMainMenus(parcel):
 
-    from osaf.framework.blocks import Menu, MenuItem
+    from osaf.framework.blocks import Menu, MenuItem, IntervalEvent
     from osaf.framework.blocks.calendar import VisibleHoursEvent
     from i18n import ChandlerMessageFactory as _
     from osaf import messages
@@ -313,7 +314,104 @@ def makeMainMenus(parcel):
                                 accel = _(u'Ctrl+Q'),
                                 helpString = _(u'Quit Chandler'),
                                 wxId = wx.ID_EXIT))
+    helpChildren = [
+        MenuItem.template('AboutChandlerItem',
+            event = globalBlocks.About,
+            title = _(u'&About Chandler'),
+            helpString = _(u'About Chandler...'),
+            wxId = wx.ID_ABOUT),
+         MenuItem.template('GettingStartedMenuItem',
+            event = globalBlocks.GettingStarted,
+            title = _(u'Chandler Get &Started Guide'),
+            helpString =
+                 _(u'Open the Chandler Get Started Guide in your web browser')),
+         MenuItem.template('HelpMenuItem',
+            event = globalBlocks.Help,
+            title = _(u'Chandler &FAQ'),
+            helpString =
+                 _(u'Open the Chandler FAQ in your web browser'),
+            # L10N: Keyboard shortcut to open the Chandler FAQ in
+            #       a web browser.
+            accel = _(u'Ctrl+?')),
+         MenuItem.template('SubscribeUserMenuItem',
+            event = globalBlocks.SubscribeUser,
+            title = _(u'S&ubscribe to Chandler Users List'),
+            helpString =
+                 _(u'Subscribe to the Chandler Users mailing list to ask questions and give feedback')),
+         MenuItem.template('FileBugMenuItem',
+            event = globalBlocks.FileBug,
+            title = _(u'Report a &Bug'),
+            helpString =
+                 _(u'Open instructions on how to file a bug in your web browser')),
+         MenuItem.template('ShowTipMenuItem',
+            event = globalBlocks.ShowTip,
+            title = _(u'Show &Tips...'),
+            helpString =
+                 _(u'Learn more about how you can use Chandler!')),
+        ]
 
+    updateMenu = Menu.template('UpdateMenu',
+        title=_(u"Check for Updates"),
+        childBlocks=[
+            MenuItem.template(
+                'CheckForUpdatesNowItem',
+                title=_(u"&Now"),
+                event=IntervalEvent.update(
+                    parcel,
+                    'CheckForUpdatesNowEvent',
+                    interval=timedelta(0),
+                    dispatchToBlockName='MainView',
+                    methodName="onUpdateCheckEvent",
+                )
+            ),
+            MenuItem.template(
+                'UpdatesSeparator',
+                menuItemKind="Separator"
+            ),
+            MenuItem.template(
+                'CheckForUpdatesDailyItem',
+                title=_(u"Every &Day"),
+                menuItemKind = 'Check',
+                event=IntervalEvent.update(
+                    parcel,
+                    'CheckForUpdatesDailyEvent',
+                    interval=timedelta(days=1),
+                    dispatchToBlockName='MainView',
+                    methodName="onUpdateCheckEvent",
+                )
+            ),
+            MenuItem.template(
+                'CheckForUpdatesWeeklyItem',
+                title=_(u"Every &Week"),
+                menuItemKind = 'Check',
+                event=IntervalEvent.update(
+                    parcel,
+                    'CheckForUpdatesWeeklyEvent',
+                    interval=timedelta(days=7),
+                    dispatchToBlockName='MainView',
+                    methodName="onUpdateCheckEvent",
+                )
+            ),
+            MenuItem.template(
+                'CheckForUpdatesManuallyItem',
+                title=_(u"Don't Check &Automatically"),
+                menuItemKind = 'Check',
+                event=IntervalEvent.update(
+                    parcel,
+                    'CheckForUpdatesManuallyEvent',
+                    interval=timedelta(days=-1),
+                    dispatchToBlockName='MainView',
+                    methodName="onUpdateCheckEvent",
+                )
+            ),
+        ]
+    )
+        
+    if wx.Platform == '__WXMAC__':
+        fileChildren.insert(2, updateMenu)
+    else:
+        helpChildren.insert(1, updateMenu)
+                    
     menubar = Menu.template('MenuBar',
         setAsMenuBarOnFrame = True,
         childBlocks = [
@@ -831,44 +929,21 @@ def makeMainMenus(parcel):
                         helpString = _(u'Save a copy of the last search results in the sidebar')),
                     MenuItem.template('ToolsSeparator2',
                                       menuItemKind = 'Separator'),
+                    MenuItem.template(
+                        'CheckForTestUpdates',
+                        title=_(u"Check For &Test Updates"),
+                        event=IntervalEvent.update(
+                            parcel,
+                            'CheckForTestUpdatesEvent',
+                            interval=timedelta(0),
+                            dispatchToBlockName='MainView',
+                            methodName="onTestUpdateCheckEvent",
+                        )
+                    ),
                 ]),
             Menu.template('HelpMenu',
                 title = _(u'&Help'),
-                childBlocks = [
-                    MenuItem.template('AboutChandlerItem',
-                        event = globalBlocks.About,
-                        title = _(u'&About Chandler'),
-                        helpString = _(u'About Chandler...'),
-                        wxId = wx.ID_ABOUT),
-                     MenuItem.template('GettingStartedMenuItem',
-                        event = globalBlocks.GettingStarted,
-                        title = _(u'Chandler Get &Started Guide'),
-                        helpString =
-                             _(u'Open the Chandler Get Started Guide in your web browser')),
-                     MenuItem.template('HelpMenuItem',
-                        event = globalBlocks.Help,
-                        title = _(u'Chandler &FAQ'),
-                        helpString =
-                             _(u'Open the Chandler FAQ in your web browser'),
-                        # L10N: Keyboard shortcut to open the Chandler FAQ in
-                        #       a web browser.
-                        accel = _(u'Ctrl+?')),
-                     MenuItem.template('SubscribeUserMenuItem',
-                        event = globalBlocks.SubscribeUser,
-                        title = _(u'S&ubscribe to Chandler Users List'),
-                        helpString =
-                             _(u'Subscribe to the Chandler Users mailing list to ask questions and give feedback')),
-                     MenuItem.template('FileBugMenuItem',
-                        event = globalBlocks.FileBug,
-                        title = _(u'Report a &Bug'),
-                        helpString =
-                             _(u'Open instructions on how to file a bug in your web browser')),
-                     MenuItem.template('ShowTipMenuItem',
-                        event = globalBlocks.ShowTip,
-                        title = _(u'Show &Tips...'),
-                        helpString =
-                             _(u'Learn more about how you can use Chandler!')),
-                    ]) # Menu HelpMenu
+                childBlocks = helpChildren) # Menu HelpMenu
             ]).install (parcel) # Menu MenuBar
 
     Menu.template('SidebarContextMenu',

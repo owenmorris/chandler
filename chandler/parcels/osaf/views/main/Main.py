@@ -499,6 +499,34 @@ class MainView(View):
         prefs.showTip = wx.ShowTip(app.mainFrame, tp)
         prefs.tipIndex = tp.GetCurrentTip()
 
+    def onUpdateCheckEventUpdateUI(self, event):
+        task = schema.ns('osaf.app', self.itsView).updateCheckTask
+        zero = timedelta(0)
+
+        if event.interval < zero:
+            event.arguments['Check'] = task.stopped
+        elif event.interval > zero:
+            event.arguments['Check'] = (
+                (not task.stopped) and
+                (event.interval == task.interval)
+            )
+        event.arguments['Enable'] = True
+
+    def onUpdateCheckEvent(self, event):
+        task = schema.ns('osaf.app', self.itsView).updateCheckTask
+        zero = timedelta(0)
+        
+        if event.interval < zero:
+            task.stop()
+        elif event.interval == zero:
+            task.run_once(inform_user=True)
+        else:
+            task.reschedule(interval=event.interval)
+
+    def onTestUpdateCheckEvent(self, event):
+        task = schema.ns('osaf.app', self.itsView).updateCheckTask
+        task.run_once(inform_user=True, url=task.TEST_URL)
+
     def onQuitEvent (self, event):
         """
         Close all the windows. Close the mainFrame last since it's the

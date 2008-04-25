@@ -21,10 +21,10 @@ import wx
 
 from Block import (
     RectangularChild, BlockEvent, NewItemEvent, ChoiceEvent, ColorEvent,
-    ClassParameterizedEvent, AddToSidebarEvent, NewBlockWindowEvent, 
-    EventList, debugName, getProxiedItem, WithoutSynchronizeWidget,
-    IgnoreSynchronizeWidget, DispatchHook, DispatcHookList, BlockDispatchHook,
-    ViewEvent
+    ClassParameterizedEvent, AddToSidebarEvent, NewBlockWindowEvent,
+    ViewEvent, IntervalEvent, EventList, debugName, getProxiedItem,
+    WithoutSynchronizeWidget, IgnoreSynchronizeWidget,
+    DispatchHook, DispatcHookList, BlockDispatchHook,
 )
 
 from ContainerBlocks import (

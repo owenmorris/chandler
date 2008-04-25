@@ -710,6 +710,9 @@ u"""Directions...
                                         )
     newScript.set_file(u"PasteNewItem.py", Scripts.__file__)
 
+    from osaf.app import updates
+    updates.UpdateCheckTask.update(parcel, 'updateCheckTask',
+                                   interval=datetime.timedelta(days=7))
 
     # Compact task should come last
     from osaf.app import compact
