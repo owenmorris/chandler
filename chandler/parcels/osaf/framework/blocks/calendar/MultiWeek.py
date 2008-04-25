@@ -692,7 +692,8 @@ class wxMultiWeekCanvas(BaseWidget, wxCalendarCanvas):
             self.OnSelectItem(event.itsItem)
             view.commit()
         elif constant == CELL_EVENT:
-            self.blockItem.postEventByName('EditItems', {'items': [item]})
+            self.blockItem.postEventByName('EditItems',
+                                           {'items': [data.itsItem]})
 
     def OnMouseEvent(self, event):
         event.Skip()
