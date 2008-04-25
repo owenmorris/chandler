@@ -170,8 +170,10 @@ class wxMainFrame (wxBlockFrameWindow):
             wx.GetApp().Bind(wx.EVT_ACTIVATE_APP, self.OnAppActivate)
 
     def OnAppActivate(self, event):
-        if event.GetActive() and self.IsIconized():
-            self.Iconize(False)
+        # [Bug 12034] Only un-iconize if all app windows are iconized.
+        if event.GetActive() and all(win.IsIconized()
+                                         for win in wx.GetTopLevelWindows()):
+                self.Iconize(False)
 
     def OnClose(self, event):
         """
