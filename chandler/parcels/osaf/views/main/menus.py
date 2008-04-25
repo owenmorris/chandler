@@ -17,7 +17,7 @@ from application import schema
 import wx
 from colorsys import hsv_to_rgb
 from osaf.pim.structs import ColorType
-from osaf.framework.blocks import ColorEvent
+from osaf.framework.blocks import BlockEvent, ColorEvent
 from datetime import timedelta
 
 def makeColorMenuItems (parcel, theClass, hues, prefix=""):
@@ -314,14 +314,15 @@ def makeMainMenus(parcel):
                                 accel = _(u'Ctrl+Q'),
                                 helpString = _(u'Quit Chandler'),
                                 wxId = wx.ID_EXIT))
+
     helpChildren = [
         MenuItem.template('AboutChandlerItem',
-            event = globalBlocks.About,
+            event = BlockEvent.update(parcel, 'About'),
             title = _(u'&About Chandler'),
             helpString = _(u'About Chandler...'),
             wxId = wx.ID_ABOUT),
          MenuItem.template('GettingStartedMenuItem',
-            event = globalBlocks.GettingStarted,
+            event = BlockEvent.update(parcel, 'GettingStarted'),
             title = _(u'Chandler Get &Started Guide'),
             helpString =
                  _(u'Open the Chandler Get Started Guide in your web browser')),
@@ -333,18 +334,22 @@ def makeMainMenus(parcel):
             # L10N: Keyboard shortcut to open the Chandler FAQ in
             #       a web browser.
             accel = _(u'Ctrl+?')),
+         MenuItem.template('AskForHelpMenuItem',
+            event = BlockEvent.update(parcel, 'AskForHelp'),
+            title = _(u'As&k for Help ...'),
+            helpString = _(u'As&k for help from the Chandler Users List')),
          MenuItem.template('SubscribeUserMenuItem',
-            event = globalBlocks.SubscribeUser,
+            event = BlockEvent.update(parcel, 'SubscribeUser'),
             title = _(u'S&ubscribe to Chandler Users List'),
             helpString =
                  _(u'Subscribe to the Chandler Users mailing list to ask questions and give feedback')),
          MenuItem.template('FileBugMenuItem',
-            event = globalBlocks.FileBug,
+            event = BlockEvent.update(parcel, 'FileBug'),
             title = _(u'Report a &Bug'),
             helpString =
                  _(u'Open instructions on how to file a bug in your web browser')),
          MenuItem.template('ShowTipMenuItem',
-            event = globalBlocks.ShowTip,
+            event = BlockEvent.update(parcel, 'ShowTip'),
             title = _(u'Show &Tips...'),
             helpString =
                  _(u'Learn more about how you can use Chandler!')),

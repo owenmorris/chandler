@@ -1244,6 +1244,10 @@ class BlockEvent(schema.Item):
     blockName = schema.One(schema.Text)
     menuOrToolForEvent = schema.Sequence()
 
+    schema.initialValues(
+        blockName=lambda self: self.itsName
+    )
+
     schema.addClouds(
         copying = schema.Cloud(byRef=[destinationBlockReference, menuOrToolForEvent])
     )

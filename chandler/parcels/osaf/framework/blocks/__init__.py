@@ -120,21 +120,6 @@ def installParcel(parcel, oldName=None):
             BlockEvent.template('Help',
                                 dispatchEnum = 'FocusBubbleUp').install(parcel),
 
-            BlockEvent.template('About',
-                                dispatchEnum = 'FocusBubbleUp').install(parcel),
-
-            BlockEvent.template('GettingStarted',
-                                dispatchEnum = 'FocusBubbleUp').install(parcel),
-
-            BlockEvent.template('SubscribeUser',
-                                dispatchEnum = 'FocusBubbleUp').install(parcel),
-
-            BlockEvent.template('FileBug',
-                                dispatchEnum = 'FocusBubbleUp').install(parcel),
-            
-            BlockEvent.template('ShowTip',
-                                dispatchEnum = 'FocusBubbleUp').install(parcel),
-            
             BlockEvent.template('Close',
                                 dispatchEnum = 'FocusBubbleUp').install(parcel),
     

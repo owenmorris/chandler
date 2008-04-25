@@ -480,6 +480,19 @@ class MainView(View):
             'http://chandlerproject.org/guide'
         )
 
+    def onAskForHelpEvent(self, event):
+        try:
+            wx.LaunchDefaultBrowser("mailto:chandler-users@osafoundation.org", wx.BROWSER_NEW_WINDOW)
+        except:
+            wx.MessageBox(
+                _(u"Chandler was unable to locate your default mail client.\n\n"
+                  "For help, please send mail to "
+                  "chandler-users@osafoundation.org."),
+                _(u"Warning"),
+                wx.ICON_EXCLAMATION
+            )
+
+
     def onSubscribeUserEvent(self, event):
         self.openURLOrDialog(
             'http://lists.osafoundation.org/mailman/listinfo/chandler-users/'
