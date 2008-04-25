@@ -1022,7 +1022,7 @@ class MainView(View):
 
     def _chooseExportFile(self, obfuscate):
         
-        filename = "%s.chex" % strftime("%Y%m%d%H%M%S")
+        filename = "%s.chex" % strftime("%Y-%m-%d-%H%M.%S")
         wildcard = "%s|*.chex|%s (*.*)|*.*" % (_(u"Chandler export files"), _(u"All files"))
 
         dlg = wx.FileDialog(wx.GetApp().mainFrame,
