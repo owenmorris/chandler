@@ -334,7 +334,7 @@ class OOTBTestCase(testcase.SharedSandboxTestCase):
             item = self.getItem(itemName)
             self.failUnlessEqual(displayNames[index], item.displayName)
             
-        failUnlessItemMatches(u'Welcome to Chandler\u2122 Preview', 0)
+        failUnlessItemMatches(u'Welcome to Chandler\u2122', 0)
         failUnlessItemMatches(u'Next dentist appointment?', 1)
         failUnlessItemMatches(u'Tell a friend about Chandler',  2)
         failUnlessItemMatches(u'Write-up...', 3)

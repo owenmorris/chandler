@@ -115,7 +115,7 @@ def _getDefaultHTML():
     "ab":   "image:about.png",
     "ver":  _(u"Version %(versionNumber)s for %(platform)s") % {"versionNumber": version, "platform":Utility.getPlatformName()},
     "abt":  _(u"About Chandler"),
-    "ch":   (u"Chandler\u2122 Preview"),
+    "ch":   (u"Chandler\u2122"),
     "osa":  (u"Open Source Applications Foundation"),
     #L10N: The Chandler licensing information is displayed in an HTML page.
     #      The <br> tag represents a line break and should be preserved.

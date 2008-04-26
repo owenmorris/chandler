@@ -83,7 +83,7 @@ class Triageable(Remindable):
     # Should we autotriage when the user changes a date or when an alarm fires?
     # Normally yes, so starts True; no once the user has manually set triage
     # status.
-    # @@@ currently, never reset to yes; a post-Preview task will do this when
+    # @@@ currently, never reset to yes; possible a 1.0 task will do this when
     # triage is set (either manually, or by the user) to the value it would have
     # if autotriaged... or something like that.
     doAutoTriageOnDateChange = schema.One(schema.Boolean, defaultValue=True)

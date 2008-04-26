@@ -1496,7 +1496,7 @@ class StartupSplash(wx.Frame):
         sizer.Add(bitmap, 0, wx.ALIGN_CENTER, 0)
 
         # Add Chandler text
-        text1 = wx.StaticText(self, -1, (u"Chandler\u2122 Preview")) # Chandler TM
+        text1 = wx.StaticText(self, -1, (u"Chandler\u2122")) # Chandler TM
         text1.SetBackgroundColour(wx.WHITE)
         sizer.Add(text1, 1,  wx.ALIGN_CENTER)
         text1.SetFont(wx.Font(16, wx.SWISS, wx.NORMAL, wx.BOLD))

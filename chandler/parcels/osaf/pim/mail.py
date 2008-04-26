@@ -1112,7 +1112,7 @@ class OutgoingAccount(AccountBase):
 
 
 
-    #Commented out for Preview
+    #Commented out for 1.0
     #signature = schema.One(
     #    schema.Text,
     #    description =
@@ -1363,7 +1363,7 @@ class MailStamp(stamping.Stamp):
         MIMEContainer,
     )
 
-    #Commented out for Preview
+    #Commented out for 1.0
     #spamScore = schema.One(schema.Float, initialValue = 0.0)
     rfc2822Message = schema.One(schema.Lob, indexed=False)
 
@@ -1814,7 +1814,7 @@ class MailStamp(stamping.Stamp):
                            self.getRecipients(includeBcc=False,
                                               includeSender=True)
 
-        # For Preview we add all downloaded mail via POP and IMAP
+        # For 1.0 we add all downloaded mail via POP and IMAP
         # accounts to the Dashboard.
         schema.ns('osaf.pim', view).allCollection.add(self.itsItem)
 

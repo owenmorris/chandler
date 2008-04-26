@@ -1069,7 +1069,7 @@ class SharingTranslator(eim.Translator):
             if record.mimeContent not in noChangeOrInherit:
                 if record.mimeContent:
                     # There is no attachment support for
-                    # Preview. This is a place holder for
+                    # 1.0. This is a place holder for
                     # future enhancements
                     pass
 

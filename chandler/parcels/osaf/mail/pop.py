@@ -38,7 +38,7 @@ __all__ = ['POPClient']
 1. Add in AUTH LOGIN to twisted pop3client.py
 
 TO DO:
-1. Post preview find a better means to store the
+1. Post 1.0 find a better means to store the
    seenMessageUIDs then a dict on the account
 """
 
@@ -93,7 +93,7 @@ class _TwistedPOP3Client(pop3.POP3Client):
             #If we have already timed out then gracefully exit the function
             return defer.succeed(True)
 
-        # For Preview the optional UIDL command
+        # For 1.0 the optional UIDL command
         # is required. It is very hard to
         # determine what mail has already been
         # downloaded with out it.
@@ -293,7 +293,7 @@ class POPClient(base.AbstractDownloadClient):
 
             return self._actionCompleted()
 
-        # For Preview UIDL is required
+        # For 1.0 UIDL is required
         d = self.proto.listUID()
 
         if self.account.actionType == "CHANDLER_HEADERS":

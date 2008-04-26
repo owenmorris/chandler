@@ -30,7 +30,7 @@ NEXT:
 2. If good performance in step one then enable processing logic:
    processMail ever 100 messages commit every 500.
 
-Performance Ideas Post-Preview:
+Performance Ideas Post-1.0:
 ==================================
 1. Add in reactor.callLater throttling and higher timeout
    numbers that are caculated
@@ -50,7 +50,7 @@ Performance Ideas Post-Preview:
    efficiently in bulk instead of per item per attribute which
    is slow.
 
-Performance Profiling Post-Preview:
+Performance Profiling Post-1.0:
 ========================================
 1. previewQuickConvert and previewQuickParse
 2. MailStamp.incomingMessage

@@ -534,7 +534,7 @@ def convertFloatingEvents(view, newTZ):
     # applied only to non-Allday masters/non-recurring events.  That ought to be
     # faster and would more reliably handle recurrence issues like bug 10223
     # which were fixed in changeThisAndFuture but not here.  But that doesn't
-    # seem like the safest course for Preview, since the present code is mostly
+    # seem like the safest course for 1.0, since the present code is mostly
     # working ---jeffrey
     for item in list(pim_ns.floatingEvents):
         event = EventStamp(item)

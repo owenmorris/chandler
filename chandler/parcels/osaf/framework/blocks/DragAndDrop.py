@@ -474,7 +474,7 @@ class ItemClipboardHandler(_ClipboardHandler):
 
     def onCutEvent(self, event):
         result = self.onCopyEvent(event)
-        # @@@ For preview, work around bug 8019
+        # @@@ For 1.0, work around bug 8019
         try:
             self._clearItems(cutting=True)
         except NotImplementedError:

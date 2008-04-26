@@ -144,7 +144,7 @@ def installParcel(parcel, oldVersion=None):
 
     WelcomeEvent = pim.EventStamp.update(parcel, 'WelcomeEvent',
         # L10N: The Trademark symbol "TM" is represented in Unicode as U+2122
-        displayName=_(u'Welcome to Chandler\u2122 Preview'),
+        displayName=_(u'Welcome to Chandler\u2122'),
         startTime=noonToday,
         duration=datetime.timedelta(minutes=60),
         anyTime=False,
@@ -156,7 +156,7 @@ def installParcel(parcel, oldVersion=None):
     )
 
     # L10N: The Trademark symbol "TM" is represented in Unicode as U+2122
-    body = _(u"""Welcome to Chandler\u2122 Preview. Here is a list of resources to help you get started:
+    body = _(u"""Welcome to Chandler\u2122. Here is a list of resources to help you get started:
 
 1. Get a tour of Chandler (http://chandlerproject.org/getstarted).
 2. Sign up for a sharing account on Chandler Hub (http://hub.chandlerproject.org/signup).

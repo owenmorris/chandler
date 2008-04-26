@@ -172,7 +172,7 @@ def save(rv, filename):
                     cfg[section_name][fname][u"title"] = folder.displayName
                     cfg[section_name][fname][u"name"] = folder.folderName
                     cfg[section_name][fname][u"type"] = folder.folderType
-                    # Commented out for Preview. These features are not
+                    # Commented out for 1.0. These features are not
                     # supported in the Chandler UI. So leave them out
                     # of the ini files as well.
                     #cfg[section_name][fname][u"max"] = folder.downloadMax
@@ -477,16 +477,16 @@ def restore(rv, filename, testmode=False, newMaster=''):
                     folder.folderName = fcfg['name']
                     folder.folderType = fcfg['type']
                     # Since better performance has been established
-                    # for Preview the max download feature is disabled
+                    # for 1.0 the max download feature is disabled
                     #folder.downloadMax = fcfg.as_int('max')
 
-                    # To enable better performance for Preview the
+                    # To enable better performance for 1.0 the
                     # delete on download feature was temporarily disabled
                     #folder.deleteOnDownload = fcfg.as_bool('del')
 
                     account.folders.append(folder)
             else:
-                # This is an Alpha 4 ini file which predates the Preview IMAP
+                # This is an Alpha 4 ini file which predates the 1.0 IMAP
                 # foldering logic
                 account._addInbox()
 
@@ -534,7 +534,7 @@ def restore(rv, filename, testmode=False, newMaster=''):
             account.connectionSecurity = section[u"security"]
             account.isActive = True
 
-            # To enable better performance for Preview the
+            # To enable better performance for 1.0 the
             # delete on download feature was temporarily disabled
             #if section.has_key(u"del"):
             #    account.deleteOnDownload = section.as_bool(u"del")

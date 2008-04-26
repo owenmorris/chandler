@@ -460,7 +460,7 @@ def buildICSInfo(mailStamp, icsSummary, icsDesc):
     return u"\n".join(buffer)
 
 def previewQuickConvert(view, headers, body, eimml, ics):
-        # Preview Case
+        # 1.0 Case
         #  1. Standard mail message
         #      a. headers (build a decoded headers dict using m.keys())
         #      b. body
@@ -706,7 +706,7 @@ def kindToMessageObject(mailStamp):
     messageObject.attach(alternative)
 
 
-    #XXX There is no attachement support in Preview
+    #XXX There is no attachement support in 1.0
     #hasAttachments = mailStamp.getNumberOfAttachments() > 0
 
     if isEvent or isTask:
@@ -737,7 +737,7 @@ def kindToMessageObject(mailStamp):
         icsPayload.add_header("Content-Disposition", "attachment", filename=fname)
         messageObject.attach(icsPayload)
 
-    #XXX: There is no attachement support in Preview via
+    #XXX: There is no attachment support in 1.0 via
     # the MailStamp.mimeContent. Commenting out this code
     # for now.
     #

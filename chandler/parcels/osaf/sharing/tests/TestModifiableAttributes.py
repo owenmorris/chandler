@@ -49,7 +49,7 @@ class TestModifiableAttributes(testcase.NRVTestCase):
         # ...an attribute that is sometimes shared (based on filterAttributes)
         self.assert_(not e1.isAttributeModifiable(pim.Remindable.reminders.name))
 
-        ## disabling functionality (and thus tests) for Preview, bug 9448
+        ## disabling functionality (and thus tests) for 1.0, bug 9448
         ### ...an attribute which is pretty much never shared
         ##self.assert_(e1.isAttributeModifiable('read'))
 
@@ -66,7 +66,7 @@ class TestModifiableAttributes(testcase.NRVTestCase):
 
         # Test modifiability against...
 
-        ## changed tests to all use not for Preview, bug 9448
+        ## changed tests to all use not for 1.0, bug 9448
         # ...an attribute which is always shared
         self.assert_(not e1.isAttributeModifiable('displayName'))
 
