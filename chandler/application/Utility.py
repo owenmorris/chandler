@@ -34,7 +34,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "486" # grant: Bug 11575 ("Ask for Help" menu item)
+SCHEMA_VERSION = "487" # capps: Bug 11738 (tweaking import/export menu text)
 
 logger = None # initialized in initLogging()
 
