@@ -318,7 +318,7 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
         backupPrefs.backupOnQuit = True
 
         # tip of the day prefs
-        self.assertTrue(backupPrefs.showTip)
+        self.assertFalse(backupPrefs.showTip)
         self.assertEqual(backupPrefs.tipIndex, 0)
         backupPrefs.tipIndex = 1
 
@@ -547,7 +547,7 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assertTrue(backupPrefs1.backupOnQuit)
             
             # tip of the day prefs
-            self.assertTrue(backupPrefs1.showTip)
+            self.assertFalse(backupPrefs1.showTip)
             self.assertEqual(backupPrefs1.tipIndex, 1)
             
         finally:

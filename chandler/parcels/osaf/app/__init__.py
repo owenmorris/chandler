@@ -33,7 +33,7 @@ class ApplicationPrefs(preferences.Preferences):
 
     showTip = schema.One(
         schema.Boolean,
-        initialValue=True,
+        initialValue=False,
         doc = 'Should we show tip of the day on launch?'
     )
 

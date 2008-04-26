@@ -509,7 +509,7 @@ class MainView(View):
                           app.UIRepositoryView).prefs
         tp = wx.CreateFileTipProvider('application/tips.txt',
                                       prefs.tipIndex)
-        prefs.showTip = wx.ShowTip(app.mainFrame, tp)
+        prefs.showTip = wx.ShowTip(app.mainFrame, tp, prefs.showTip)
         prefs.tipIndex = tp.GetCurrentTip()
 
     def onUpdateCheckEventUpdateUI(self, event):
