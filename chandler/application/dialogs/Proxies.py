@@ -29,8 +29,7 @@ def Show(rv):
 class ProxiesDialog(wx.Dialog):
 
     def __init__(self, *args, **kwds):
-        self.rv = kwds['rv']
-        del kwds['rv']
+        self.rv = kwds.pop('rv')
         super(ProxiesDialog, self).__init__(*args, **kwds)
 
         self.proxy = sharing.getProxy(self.rv)
@@ -43,6 +42,7 @@ class ProxiesDialog(wx.Dialog):
 
         # Main sizer, vertical box
         self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.AddSpacer((280, 8))
 
         self.proxyCheckbox = wx.CheckBox(self.panel, -1, _(u"Use HTTP Proxy"))
         self.sizer.Add(self.proxyCheckbox, 0,
