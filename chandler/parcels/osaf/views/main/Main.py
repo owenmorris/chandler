@@ -996,9 +996,6 @@ class MainView(View):
     def exportToChex(self, obfuscate=False, path=os.path.join(
                                                 Globals.options.profileDir,
                                                 'backup.chex')):
-        from osaf.framework import MasterPassword
-        MasterPassword.beforeBackup(self.itsView)
-        
         prefs = schema.ns('osaf.app',
                           wx.GetApp().UIRepositoryView).prefs
         
@@ -1049,6 +1046,8 @@ class MainView(View):
         dlg.Destroy()
 
         if path:
+            from osaf.framework import MasterPassword
+            MasterPassword.beforeBackup(self.itsView)
             self.exportToChex(obfuscate, path)
 
     def onDumpToFileEvent(self, event):
