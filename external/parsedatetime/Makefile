@@ -1,5 +1,5 @@
 
-VERSION=0.8.5.1
+VERSION=0.8.6
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PDT=$(BUILD_ROOT)/parsedatetime
 SRC=$(PDT)/parsedatetime-$(VERSION)
