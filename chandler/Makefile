@@ -145,7 +145,7 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/logilab-astng-$(SNAP)-0.17.0-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/logilab-common-$(SNAP)-0.21.2-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.13.1-$(BP)2.tar.gz \
-    $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.8.5.1-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.8.6-$(BP)1.tar.gz \
     $(CONFIGOBJ) \
     $(DOCUTILS) \
     $(CHANDLERARCHIVES)/epydoc-$(SNAP)-3.0beta1-$(BP)2.tar.gz \
