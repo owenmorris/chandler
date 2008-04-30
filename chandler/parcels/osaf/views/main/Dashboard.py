@@ -157,6 +157,9 @@ class DashboardBlock(Table):
         if self.miniCalendar is not None:
             self.miniCalendar.activeViewChanged()
             self.miniCalendar.previewArea.activeViewChanged()
+
+    def onViewEventUpdateUI(self, event):
+        event.arguments['Check'] = (event.viewTemplatePath == 'Dashboard')
             
 class wxDashboard(wxTable):
     def __init__(self, *args, **kw):

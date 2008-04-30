@@ -1642,16 +1642,52 @@ class SidebarBlock(Table):
             (op == 'add' or op == 'refresh') and
             share.contents in self.contents):
             self.markDirty()
-   
 
+class SidebarBranchPointBlock(BranchPoint.BranchPointBlock):
+    def onTriageEventUpdateUI(self, event):
+        # Only disable this event if it hasn't been enabled lower down in
+        # the active view hierarchy
+        event.arguments.setdefault('Enable', False)
+
+    def onCalendarViewEventUpdateUI(self, event):
+        event.arguments['Check'] = event.arguments['Enable'] = False
+
+    def onViewEvent(self, event):
+        delegate = self.delegate
+
+        viewTemplatePath = event.viewTemplatePath
+        if viewTemplatePath == "Dashboard":
+            sidebar = Block.Block.findBlockByName("Sidebar")
+            if sidebar.showSearch:
+                viewTemplatePath = delegate.searchResultsTemplatePath
+            else:
+                viewTemplatePath = delegate.dashboardTemplatePath
+        elif viewTemplatePath == "Calendar":
+            viewTemplatePath = delegate.getCalendarTemplate(self.selectedItem)
+
+        # Delegate work to our delegate
+        delegate.setView(self.selectedItem, viewTemplatePath)
+        hints = {"event": event}
+        self.widget.wxSynchronizeWidget(hints)
+
+    def onCalendarViewEvent(self, event):
+        delegate = self.delegate
+        delegate.setView(self.selectedItem, event.viewTemplatePath)
+        delegate.setCalendarTemplate(self.selectedItem, event.viewTemplatePath)
+        hints = {"event": event}
+        self.widget.wxSynchronizeWidget(hints)
+        
 class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
 
     calendarTemplatePath = schema.One(schema.Text)
     dashboardTemplatePath = schema.One(schema.Text)
     searchResultsTemplatePath = schema.One(schema.Text)
 
-    # Dictionary of template paths for eachh cache key
+    # Dictionary of template paths for each cache key
     keyUUIDToViewTemplatePath = schema.Mapping(schema.Text, defaultValue = {})
+
+    # Dictionary of template paths for each cache key
+    keyUUIDToCalendarTemplatePath = schema.Mapping(schema.Text, defaultValue = {})
 
     # Dictionary of collections indexed by tuple key used as view cache key
     itemTupleKeyToCacheKey = schema.Mapping(schema.Item, initialValue = {})
@@ -1662,17 +1698,15 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
     schema.addClouds(
         copying = schema.Cloud(byRef=[itemTupleKeyToCacheKey])
     )
+    
+    def getCalendarTemplate(self, item):
+        keyUUID = self._mapItemToCacheKeyItem(item, {})
+        return self.keyUUIDToCalendarTemplatePath.get(keyUUID,
+                                                      self.calendarTemplatePath)
 
-    def getViewEventTemplate (self, event):
-        viewTemplatePath = event.viewTemplatePath
-        if viewTemplatePath == "Dashboard":
-            sidebar = Block.Block.findBlockByName ("Sidebar")
-            if sidebar.showSearch:
-                viewTemplatePath = self.searchResultsTemplatePath
-            else:
-                viewTemplatePath = self.dashboardTemplatePath
-
-        return viewTemplatePath
+    def setCalendarTemplate(self, item, templatePath):
+        keyUUID = self._mapItemToCacheKeyItem(item, {})
+        self.keyUUIDToCalendarTemplatePath[keyUUID] = templatePath
 
     def _mapItemToCacheKeyItem(self, item, hints):
         UC = UserCollection

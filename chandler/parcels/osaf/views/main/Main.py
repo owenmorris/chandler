@@ -289,7 +289,7 @@ class MainView(View):
 
     def selectItems(self, itemList):
         # Tell the summary view to select our new item
-        sidebarBPB = self.findBlockByName ("SidebarBranchPointBlock")
+        sidebarBPB = self.findBlockByName ("SidebarBranchPoint")
         sidebarBPB.childBlocks.first().postEventByName (
             'SelectItemsBroadcast',
             {'items':itemList})

@@ -292,26 +292,31 @@ def makeMainEvents(parcel):
         
     CalendarViewEvent.template('ViewAsDayCalendar',
                                viewTemplatePath = 'osaf.views.main.CalendarSummaryViewTemplate',
-                               methodName = 'onViewEvent',
+                               methodName = 'onCalendarViewEvent',
                                dayMode = 'day',
-                               dispatchToBlockName = 'SidebarBranchPointBlock').install(parcel)
+                               dispatchEnum = 'ActiveViewBubbleUp').install(parcel)
 
     CalendarViewEvent.template('ViewAsWeekCalendar',
                                viewTemplatePath = 'osaf.views.main.CalendarSummaryViewTemplate',
-                               methodName = 'onViewEvent',
+                               methodName = 'onCalendarViewEvent',
                                dayMode = 'week',
-                               dispatchToBlockName = 'SidebarBranchPointBlock').install(parcel)
+                               dispatchEnum = 'ActiveViewBubbleUp').install(parcel)
 
     CalendarViewEvent.template('ViewAsMultiWeek',
                        viewTemplatePath = 'osaf.views.main.MultiWeekViewTemplate',
-                       methodName = 'onViewEvent',
+                       methodName = 'onCalendarViewEvent',
                        dayMode = 'multiweek',
-                       dispatchToBlockName = 'SidebarBranchPointBlock').install(parcel)
+                       dispatchEnum = 'ActiveViewBubbleUp').install(parcel)
 
     ViewEvent.template('ViewAsDashboard',
                        viewTemplatePath = 'Dashboard',
                        methodName = 'onViewEvent',
-                       dispatchToBlockName = 'SidebarBranchPointBlock').install(parcel)
+                       dispatchEnum = 'ActiveViewBubbleUp').install(parcel)
+
+    ViewEvent.template('ViewAsCalendar',
+                       viewTemplatePath = 'Calendar',
+                       methodName = 'onViewEvent',
+                       dispatchEnum = 'ActiveViewBubbleUp').install(parcel)
 
     BlockEvent.template('DuplicateSidebarSelection',
                         methodName = 'onDuplicateEvent',

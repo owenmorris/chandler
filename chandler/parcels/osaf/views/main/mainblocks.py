@@ -231,7 +231,7 @@ def makeMainView(parcel):
                                     miniCal
                                     ]) # BoxContainer PreviewAndMiniCalendar
                             ]), # SplitterWindow SidebarContainer
-                    BranchPointBlock.template('SidebarBranchPointBlock',
+                    SidebarBranchPointBlock.template('SidebarBranchPoint',
                         delegate = SidebarBranchPointDelegateInstance,
                         detailItem = initialSelectedCollection,
                         selectedItem = initialSelectedCollection,

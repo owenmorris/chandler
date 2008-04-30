@@ -170,7 +170,7 @@ class RecurrenceDialog(wx.Dialog):
                 (changeType == 'add' and 
                  change[2] is schema.ns("osaf.pim", view).trashCollection)):
                 from osaf.framework.blocks import Block
-                bpb = Block.Block.findBlockByName("SidebarBranchPointBlock")
+                bpb = Block.Block.findBlockByName("SidebarBranchPoint")
                 if bpb is not None:
                     view = bpb.childBlocks.first()
                     view.postEventByName("SelectItemsBroadcast", {'items':[]})

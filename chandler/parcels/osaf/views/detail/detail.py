@@ -65,7 +65,7 @@ def BroadcastSelect(block, item):
     selection = []
     if item is not None:
         selection.append(item)
-    sidebarBPB = block.findBlockByName("SidebarBranchPointBlock")
+    sidebarBPB = block.findBlockByName("SidebarBranchPoint")
     sidebarBPB.childBlocks.first().postEventByName(
        'SelectItemsBroadcast', {'items':selection}
     )
@@ -239,7 +239,7 @@ class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
     def selectionEmptiedAfterDelete (self, selectedCollection, oldIndex):
         # when the last item in the selection is deleted, ask the sidebar
         # to select the next item
-        sbpb = Block.Block.findBlockByName('SidebarBranchPointBlock')
+        sbpb = Block.Block.findBlockByName('SidebarBranchPoint')
         sbpb.childBlocks.first().postEventByName("SelectItemsBroadcast",
                              {'items': [],
                               'collection': selectedCollection })

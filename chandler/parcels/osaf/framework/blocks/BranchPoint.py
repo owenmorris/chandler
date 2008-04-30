@@ -102,22 +102,6 @@ class BranchPointBlock(BoxContainer):
 
     def instantiateWidget(self):
         return wxBranchPointBlock(self.parentBlock.widget)
-    
-    def onViewEvent (self, event):
-        # Delegate work to our delegate
-        delegate = self.delegate
-        delegate.setView (self.selectedItem, delegate.getViewEventTemplate (event))
-        hints = {"event": event}
-        self.widget.wxSynchronizeWidget(hints)
-
-    def onViewEventUpdateUI (self, event):
-        delegate = self.delegate
-        checked = event.arguments ['Check'] = (delegate.getView (self.selectedItem) ==
-                                               delegate.getViewEventTemplate (event))
-        if checked:
-            treeController = getattr (self.childBlocks.first(), "treeController", None)
-            if treeController is not None:
-                treeController.onViewEventUpdateUI (event)
 
     def onSelectItemsEvent (self, event):
         # for the moment, multiple selection means, "select nothing"
@@ -141,11 +125,6 @@ class BranchPointBlock(BoxContainer):
             # eventually results in installTreeOfBlocks()
             widget.wxSynchronizeWidget ()
 
-
-    def onTriageEventUpdateUI(self, event):
-        # Only disable this event if it hasn't been enabled lower down in
-        # the active view hierarchy
-        event.arguments.setdefault('Enable', False)
 
     def installTreeOfBlocks(self, hints):
         """
@@ -256,9 +235,6 @@ class BranchPointDelegate(schema.Item):
 
     # Dictionary of trees of blocks indexed by cache key UUID
     keyUUIDToBranch = schema.Mapping(Block, initialValue = {})
-
-    def getViewEventTemplate (self, event):
-        return event.viewTemplatePath
 
     def getBranchForKeyItem(self, keyItem):
         """
