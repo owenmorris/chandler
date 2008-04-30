@@ -722,6 +722,24 @@ def makeMarkupBar(parcel, oldVersion):
                                     stretchFactor=0.0,
                                     minimumSize=SizeType(30, 18))
 
+    markupSpacer5 = NewDetailSpacer.template('MarkupSpacer5',
+                                stretchFactor=1.0,
+                                title=u'')
+    newDetailViewButton = NewDetailViewButton.template('NewDetailView',
+                                title=u'',
+                                icon='MarkupWindow',
+                                helpString=_(u'Edit Item Details in Separate Window'),
+                                stretchFactor=0.0,
+                                aligmentEnum='alignTopRight',
+                                minimumSize=SizeType(30, 18),
+                                event=schema.ns("osaf.framework.blocks", parcel.itsView).InspectSelection
+                            )
+    markupSpacer6 = NewDetailSpacer.template('MarkupSpacer6',
+                                stretchFactor=0.0,
+                                title=u'',
+                                minimumSize=SizeType(8, 15),
+                            )
+
     markupBar = ControlBlocks.ContentItemDetail.template('MarkupBar',
                                     childBlocks=[triageStamp,
                                                     markupSpacer1,
@@ -733,7 +751,11 @@ def makeMarkupBar(parcel, oldVersion):
                                                     # hidden per bug 8999
                                                     #privateSwitchButton,
                                                     #markupSpacer4,
-                                                    readOnlyIcon],
+                                                    readOnlyIcon,
+                                                    markupSpacer5,
+                                                    newDetailViewButton,
+                                                    markupSpacer6,
+                                                 ],
                                     position=0.09,
                                     toolSize=SizeType(30, 18),
                                     separatorWidth=16,

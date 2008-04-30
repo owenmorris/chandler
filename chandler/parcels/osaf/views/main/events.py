@@ -244,7 +244,7 @@ def makeMainEvents(parcel):
     BlockEvent.template('EmptyTrash',
                         commitAfterDispatch = True).install(parcel)
 
-    e=BlockEvent.template('EditItems',
+    BlockEvent.template('EditItems',
                         commitAfterDispatch=True).install(parcel)
 
     BlockEvent.template('SyncWebDAV').install(parcel)

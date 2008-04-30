@@ -132,6 +132,9 @@ def installParcel(parcel, oldName=None):
 
             BlockEvent.template('FocusSelectItems',
                                 dispatchEnum = 'FocusBubbleUp').install(parcel),
+
+            BlockEvent.template('InspectSelection',
+                                 dispatchEnum='FocusBubbleUp').install(parcel),
             
             BlockEvent.template('SetContents',
                                 dispatchEnum = 'BroadcastInsideMyEventBoundary').install(parcel),

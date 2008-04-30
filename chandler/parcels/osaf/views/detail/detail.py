@@ -642,6 +642,7 @@ class PrivateSwitchButtonBlock(DetailSynchronizedBehavior,
         enable = item is not None and item.isAttributeModifiable('displayName')
         event.arguments ['Enable'] = enable
 
+
 class ReadOnlyIconBlock(DetailSynchronizedBehavior, ControlBlocks.StampButton):
     """
     "Read Only" icon in the Markup Bar.
@@ -671,6 +672,47 @@ class ReadOnlyIconBlock(DetailSynchronizedBehavior, ControlBlocks.StampButton):
         button that gets hidden in most cases.
         """
         event.arguments ['Enable'] = True
+
+class NewDetailConditionalBehavior(Item):
+    def shouldShow(self, item):
+        return self.getRootBlock().blockName == u'MainViewRoot'
+
+class NewDetailSpacer(NewDetailConditionalBehavior, ControlBlocks.StaticText):
+    pass
+    
+class NewDetailViewButton(NewDetailConditionalBehavior,
+                          DetailSynchronizedBehavior, ControlBlocks.Button):
+    """
+    "New Detail View" in the markup bar
+    """
+    def instantiateWidget(self):
+        id = self.getWidgetID()
+        parentWidget = self.parentBlock.widget
+
+        # for a stamp button, we use "self.icon" as the base name of all bitmaps and look for:
+        #
+        #   {icon}Normal, {icon}Stamped, {icon}Rollover, {icon}Pressed, {icon}Disabled
+        #
+        # From these we build two states suffixed "unstamped" and "stamped", which can
+        # be used the toggle the appearance of the button.
+        #
+        assert len(self.icon) > 0
+        bminfo = MultiStateButton.BitmapInfo()
+        bminfo.normal   = "%sNormal" % self.icon
+        bminfo.rollover = "%sRollover" % self.icon
+        bminfo.selected = "%sMousedown" % self.icon
+        button = ControlBlocks.wxChandlerMultiStateButton(parentWidget, 
+                            id, 
+                            wx.DefaultPosition,
+                            (self.minimumSize.width, self.minimumSize.height),
+                            helpString = self.helpString,
+                            multibitmaps=(bminfo,))
+        button.Bind(wx.EVT_BUTTON, self.buttonPressed)
+
+        return button
+
+    def buttonPressed(self, event):
+        self.post(self.event, { 'items' : [self.contents] })
 
 # @@@ Needs to be rewritten as an attribute editor when attachments become important again.
 #class AttachmentAreaBlock(DetailSynchronizedContentItemDetailBlock):

@@ -295,6 +295,18 @@ class FocusEventHandlers(Item):
             else:
                 event.arguments['Text'] = sender.title
 
+    def onInspectSelectionEventUpdateUI(self, event):
+        selected = self.__getSelectedItems()
+        
+        event.arguments['Enable'] = (
+            len(selected) > 0 and
+            self.getRootBlock().blockName == 'MainViewRoot' and
+            all(not isinstance(item, ContentCollection) for item in selected)
+        )
+
+    def onInspectSelectionEvent(self, event):
+        selectedItems = self.__getSelectedItems()
+        self.postEventByName('EditItems', {'items': selectedItems})
 
     def CanReplyOrForward(self, selectedItem):
         # We used to test for whether the message had ever been
