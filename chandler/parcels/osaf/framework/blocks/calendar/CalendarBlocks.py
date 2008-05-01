@@ -658,20 +658,17 @@ class wxPreviewArea(CalendarNotificationHandler, wx.Panel):
         elif item is None:
             return
 
-        if not event.AltDown() and not event.ControlDown():
-            self.blockItem.postEventByName('EditItems', {'items': [item]})
-        else:
-            self._avoidDrawing = True
+        self._avoidDrawing = True
             
-            # Select the calendar filter
-            self.blockItem.postEventByName ('ApplicationBarEvent', {})
- 
-            goto = schema.ns('osaf.framework.blocks.calendar',
-                             self.blockItem.itsView).GoToCalendarItem
-            # Set the calendar to the clicked day
-            self.blockItem.post(goto, {'item': item})
+        # Select the calendar filter
+        self.blockItem.postEventByName ('ApplicationBarEvent', {})
 
-            self._avoidDrawing = False
+        goto = schema.ns('osaf.framework.blocks.calendar',
+                         self.blockItem.itsView).GoToCalendarItem
+        # Set the calendar to the clicked day
+        self.blockItem.post(goto, {'item': item})
+
+        self._avoidDrawing = False
 
     def OnClick(self, event):
         item = self._getItem(event)

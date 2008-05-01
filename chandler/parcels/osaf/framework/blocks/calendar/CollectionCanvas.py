@@ -429,7 +429,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             self.SetCursor(c)
             self.cursor = c
 
-    def _handleDoubleClick(self, unscrolledPosition, modifierDown):
+    def _handleDoubleClick(self, unscrolledPosition):
         """
         Handle a double click on the canvas somewhere. Checks to see
         if we hit an item, and if not, creates one
@@ -441,13 +441,8 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
         hitBox = self.GetCanvasItemAt(unscrolledPosition)
         if hitBox:
-            if modifierDown:
-                # In-place editing of title if a modifier is down
-                self.OnEditItem(hitBox)
-            else:
-                # Otherwise, separate detail view window.
-                self.blockItem.postEventByName('EditItems',
-                                               {'items': [hitBox.item]})
+            # In-place editing of title if a modifier is down
+            self.OnEditItem(hitBox)
         elif self.blockItem.CanAdd():
             with self.blockItem.itsView.commitDeferred():
                 self.OnCreateItem(unscrolledPosition)
@@ -695,8 +690,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             if self.dragState is not None:
                 self.dragState.HandleDragEnd()
                 self.dragState = None
-            modifierDown = event.AltDown() or event.ControlDown()
-            self._handleDoubleClick(unscrolledPosition, modifierDown)
+            self._handleDoubleClick(unscrolledPosition)
 
         elif event.LeftDown():
             self._handleLeftClick(unscrolledPosition,

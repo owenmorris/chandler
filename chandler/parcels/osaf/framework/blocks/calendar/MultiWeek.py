@@ -20,7 +20,7 @@ from operator import add
 
 from application import styles
 from i18n import ChandlerMessageFactory as _
-from osaf.framework.blocks import Block, Styles
+from osaf.framework.blocks import Block, Styles, ContainerBlocks
 from osaf.pim import EventStamp
 from CalendarCanvas import (CalendarContainer, wxCalendarContainer, IS_MAC,
                             IS_GTK, nth, wxCalendarControl, CalendarControl,

@@ -220,7 +220,7 @@ def makeMainMenus(parcel):
                                 menuItemKind = 'Separator'),
                             MenuItem.template('SyncManagerItem',
                                 event = main.SyncManager,
-                                title = _(u'S&nc Mana&ger...'),
+                                title = _(u'Sy&nc Mana&ger...'),
                                 helpString = _(u'Open the Sync Manager dialog')),
                             MenuItem.template('SyncPrefsItem',
                                 event = main.SyncPrefs,
