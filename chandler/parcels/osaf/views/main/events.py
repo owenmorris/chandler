@@ -42,6 +42,10 @@ def makeMainEvents(parcel):
                         blockName = 'NewMailMessage',
                         classParameter = osaf.pim.mail.MailStamp)
 
+    NewItemEvent.update(parcel, 'NewStarredNote',
+                        blockName = 'NewStarredNote',
+                        classParameter = osaf.pim.mail.TaskStamp)
+
     NewItemEvent.update(parcel, 'NewCalendar',
                         blockName = 'NewCalendar',
                         classParameter = osaf.pim.calendar.Calendar.EventStamp)

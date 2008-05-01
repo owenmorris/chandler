@@ -72,7 +72,7 @@ def installParcel(parcel, version=None):
     # Add a separator to the "Experimental" menu ...
     evdbMenu = blocks.Menu.update(parcel, 'EVDBDemoMenu',
                                   blockName = 'EVDBDemoMenu',
-                                  title = _(u'EVDB'),
+                                  title = _(u'&EVDB'),
                                   helpString = _(u'Download EVDB Events'),
                                   childrenBlocks = [ ],
                                   parentBlock = main.ExperimentalMenu)

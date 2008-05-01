@@ -356,7 +356,7 @@ def makeMainMenus(parcel):
         ]
 
     updateMenu = Menu.template('UpdateMenu',
-        title=_(u"Check for &Updates"),
+        title=_(u"Chec&k for Updates"),
         childBlocks=[
             MenuItem.template(
                 'CheckForUpdatesNowItem',
@@ -510,7 +510,7 @@ def makeMainMenus(parcel):
                     MenuItem.template('ViewSeparator1.5',
                         menuItemKind = 'Separator'),
                     Menu.template('ViewCalendarMenu',
-                        title=_(u"C&alendar"),
+                        title=_(u"Calen&dar"),
                         childBlocks=[
                             MenuItem.template('ViewAsCalendarIteminWeekView',
                                 event = main.ViewAsWeekCalendar,
@@ -597,6 +597,12 @@ def makeMainMenus(parcel):
                                 # L10N: Keyboard shortcut to create a new Note.
                                 accel = _(u'Ctrl+Shift+N'),
                                 helpString = _(u'Create a new Note')),
+                            MenuItem.template('NewStarredNoteItem',
+                                event = main.NewStarredNote,
+                                title = _(u'New &Starred Note'),
+                                # L10N: Keyboard shortcut to create a new Starred Note (a.k.a Task).
+                                accel = _(u'Ctrl+Shift+S'),
+                                helpString = _(u'Create a new Starred Note')),
                             MenuItem.template('NewMessageItem',
                                 event = main.NewMailMessage,
                                 title = _(u'New &Message'),
@@ -1044,7 +1050,7 @@ def makeMainMenus(parcel):
                 helpString = _(u'Publish the selected collection')),
             MenuItem.template('SidebarUnpublishCollectionItem',
                 event = main.UnpublishCollection,
-                title = _(u'U&npublish'),
+                title = _(u'Unpu&blish'),
                 helpString = _(u'Remove the selected shared collection from the server')),
             MenuItem.template('SidebarManageSidebarCollectionItem',
                 event = main.ManageSidebarCollection,
@@ -1069,6 +1075,12 @@ def makeMainMenus(parcel):
                         # L10N: Keyboard shortcut to create a new Note.
                         accel = _(u'Ctrl+Shift+N'),
                         helpString = _(u'Create a new note')),
+                    MenuItem.template('ItemContextNewStarredNoteItem',
+                        event = main.NewStarredNote,
+                        title = _(u'New &Starred Note'),
+                        # L10N: Keyboard shortcut to create a new Starred Note (a.k.a Task).
+                        accel = _(u'Ctrl+Shift+S'),
+                        helpString = _(u'Create a new Starred Note')),
                     MenuItem.template('ItemContextNewMessageItem',
                         event = main.NewMailMessage,
                         title = _(u'&Message'),
@@ -1090,7 +1102,7 @@ def makeMainMenus(parcel):
                 title = messages.COPY),
             MenuItem.template('ItemContextDuplicateItem',
                 event = main.DuplicateInActiveView,
-                title = _(u'Du&plicate'),
+                title = _(u'D&uplicate'),
                 helpString = _(u'Duplicate the selected item')),
             MenuItem.template('ItemContextPasteItem',
                 event = main.PasteInActiveView,
@@ -1109,15 +1121,15 @@ def makeMainMenus(parcel):
                 menuItemKind = 'Separator'),
             MenuItem.template('ItemContextMarkAsReadItem',
                 event = main.MarkAsRead,
-                title = _(u"Mark As &Read"),
-                toggleTitle = _(u"Mark As &Unread"),
+                title = _(u"&Mark As Read"),
+                toggleTitle = _(u"&Mark As Unread"),
                 helpString = _(u"Mark all selected items as 'Read' or 'Unread'")),
             MenuItem.template('ItemContextSeparator1',
                 menuItemKind = 'Separator'),
             MenuItem.template('ItemContextStampMessageItem',
                 event = main.FocusStampMessage,
-                title = _(u"A&ddress Item"),
-                toggleTitle = _(u"Remove &Addresses"),
+                title = _(u"Addr&ess Item"),
+                toggleTitle = _(u"Remove Addr&esses"),
                 helpString = messages.STAMP_MAIL_HELP),
             MenuItem.template('ItemContextStampTaskItem',
                 event = main.FocusStampTask,

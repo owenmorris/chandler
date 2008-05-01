@@ -104,7 +104,7 @@ def makeMeMenu(parcel, sharingMenu):
 
     MenuItem.update(parcel, None,
                     blockName='_debug_EditMyName',
-                    title=_(u'&Edit "Me" name...'),
+                    title=_(u'Edit "Me" &name...'),
                     helpString=_(u'Edit your name'),
                     event=editMyNameEvent,
                     parentBlock=sharingMenu)

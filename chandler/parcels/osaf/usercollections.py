@@ -24,7 +24,7 @@ from application import styles
 
 # These colors are duplicated from application/styles.conf so gettext knows they
 # need to be localized.
-(_(u'&Blue'), _(u'&Green'), _(u'&Red'), _(u'&Orange'), _(u'G&old'), _(u'&Plum'), 
+(_(u'&Blue'), _(u'&Green'), _(u'&Red'), _(u'&Orange'), _(u'Go&ld'), _(u'&Plum'), 
  _(u'&Turquoise'), _(u'&Fuchsia'), _(u'&Indigo'))
 
 # Collection colors in the form ('Name', localizedName, 360-degree based hue)

@@ -163,7 +163,7 @@ def installParcel(parcel, oldVersion=None):
     # Add a separator to the "Collection" menu ...
     feedsMenu = blocks.Menu.update(parcel, "feedsDemoMenu",
                                    blockName = "feedsDemoMenu",
-                                   title = _(u'Feeds'),
+                                   title = _(u'&Feeds'),
                                    helpString = _(u'RSS reader'),
                                    childrenBlocks = [ ],
                                    parentBlock = main.ExperimentalMenu)

@@ -36,7 +36,7 @@ def installParcel(parcel, version=None):
 
     amazonMenu = blocks.Menu.update(parcel, 'AmazonDemoMenu',
                                     blockName = 'AmazonDemoMenu',
-                                    title = _(u'Amazon'),
+                                    title = _(u'Ama&zon'),
                                     helpString = _(u'Download wishlists from Amazon'),
                                     childrenBlocks = [ ],
                                     parentBlock = main.ExperimentalMenu)

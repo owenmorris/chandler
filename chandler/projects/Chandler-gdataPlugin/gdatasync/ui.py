@@ -171,7 +171,7 @@ def makeGdataMenu(parcel, parentMenu):
         destinationBlockReference=handler)
 
     gdataMenu = Menu.update(parcel, None, blockName='_gdata_gdataMenu',
-        title="Google",
+        title="&Google",
         parentBlock=parentMenu)
 
     MenuItem.update(parcel, None, blockName='_gdata_ShowCalendarListItem',
