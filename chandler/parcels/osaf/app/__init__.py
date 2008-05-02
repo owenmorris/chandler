@@ -156,19 +156,28 @@ def installParcel(parcel, oldVersion=None):
     )
 
     # L10N: The Trademark symbol "TM" is represented in Unicode as U+2122
-    body = _(u"""Welcome to Chandler\u2122. Here is a list of resources to help you get started:
+    body = _(u"""Welcome to Chandler\u2122 %(version)s. Here is a list of resources to help you get started:
 
-1. Get a tour of Chandler (http://chandlerproject.org/getstarted).
-2. Sign up for a sharing account on Chandler Hub (http://hub.chandlerproject.org/signup).
-3. Consult our FAQ (http://chandlerproject.org/faq).
-4. Read about known issues (http://chandlerproject.org/knownissuesdesktop-0.7).
-5. Ask questions and give us feedback by joining the Chandler-Users mailing list (http://chandlerproject.org/mailinglists).
-6. Learn more about the project on our wiki (http://chandlerproject.org/).
-7. Get involved and contribute to the project (http://chandlerproject.org/getinvolved).
+1. Get a tour of Chandler
+(http://chandlerproject.org/tour).
+
+2. Learn how to import calendars and set up Chandler to back up and share
+(http://chandlerproject.org/getstarted).
+
+3. Back up your data and Share by signing up for a Chandler Hub account
+(http://hub.chandlerproject.org/signup).
+
+4. Ask for help by sending mail to mailto:chandler-users@osafoundation.org.
+
+5. Learn more about the project on our wiki
+(http://chandlerproject.org/wikihome).
+
+6. Get involved and contribute to the project
+(http://chandlerproject.org/getinvolved).
 
 Thank you for trying Chandler!
 
-The Chandler Team""")
+The Chandler Team""") % { 'version' : version.version }
 
     WelcomeEvent.body = body
     WelcomeEvent.changeEditState(pim.Modification.created)

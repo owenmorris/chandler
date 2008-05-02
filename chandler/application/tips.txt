@@ -13,6 +13,8 @@
 #   limitations under the License.
 
 # The tip of the day strings, to be shown at startup
-_("The Getting Started with Chandler is a great tutorial that helps you to learn Chandler: http://chandlerproject.org/getstarted")
-_("Do you learn best by watching someone show how it is done? Then watch some Chandler movies: http://chandlerproject.org/Projects/PreviewDemos")
-_("There is a web version of Chandler, and it is free too! Sign up here: https://hub.chandlerproject.org/")
+_("Get a tour of Chandler (http://chandlerproject.org/tour).")
+_("Learn how to import calendars and set up Chandler to back up and share (http://chandlerproject.org/getstarted).")
+_("Ask for help by sending mail to chandler-users@osafoundation.org.")
+_("Learn more about the project on our wiki (http://chandlerproject.org/wikihome).")
+_("Get involved and contribute to the project (http://chandlerproject.org/getinvolved).")
