@@ -143,7 +143,7 @@ class PublishCollectionDialog(wx.Dialog):
 
         wx.xrc.XRCCTRL(self, "TEXT_COLLNAME").SetLabel(collName)
         self.CheckboxShareAlarms = wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS")
-        self.CheckboxShareAlarms.SetValue(False)
+        self.CheckboxShareAlarms.SetValue(True)
         self.CheckboxShareStatus = wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS")
         self.CheckboxShareStatus.SetValue(True)
         self.CheckboxShareTriage = wx.xrc.XRCCTRL(self, "CHECKBOX_TRIAGE")
@@ -699,8 +699,6 @@ class PublishCollectionDialog(wx.Dialog):
         self.mySizer.Layout()
         self.mySizer.SetSizeHints(self)
         self.mySizer.Fit(self)
-
-
 
 def ShowPublishDialog(view=None, collection=None, modal=False, name=None,
                       account=None):

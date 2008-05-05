@@ -101,7 +101,6 @@ class SubscribeDialog(wx.Dialog):
     def getFilters(self):
         if self.filters is None:
             filters = set()
-            filters.add('cid:reminders-filter@osaf.us')
             filters.add('cid:needs-reply-filter@osaf.us')
             filters.add('cid:bcc-filter@osaf.us')
             return filters
