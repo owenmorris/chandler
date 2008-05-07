@@ -198,8 +198,14 @@ class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
         
         titleBlock = self.findBlockByName('HeadlineBlock', hint=self)
         if titleBlock:
-            titleBlock.widget.SetFocus()
-            titleBlock.widget.SelectAll()
+            # Defer the set focus and select-all ... otherwise,
+            # on Windows, you get the text scrolled all the
+            # way over to the right (probably a sizing issue?)
+            # c.f.https://bugzilla.osafoundation.org/attachment.cgi?id=5063&action=edit
+            def setFocus(block):
+                block.widget.SetFocus()
+                block.widget.SelectAll()
+            wx.CallAfter(setFocus, titleBlock)
 
     def synchronizeWidgetDeep(self):
         """ Do synchronizeWidget recursively, depth-first. """
