@@ -94,6 +94,16 @@ class CanvasPrintout(wx.Printout):
         # resize the calendar canvas to the size of the printed page
         oldSize = canvas.GetSize()
         canvas.SetSize(dc.GetSize())
+        
+        ppiPaper = self.GetPPIPrinter()
+        ppiScreen = self.GetPPIScreen()
+
+        # c.f. wxPython In Action, Chapter 17. Unclear why
+        # this is unnecessary, e.g., on the Mac.     
+        if wx.Platform == '__WXMSW__' and ppiPaper != ppiScreen:
+            dc.SetUserScale(ppiPaper[0]/ppiScreen[0],
+                            ppiPaper[1]/ppiScreen[1])
+        
         # print everything
         canvas.PrintCanvas(dc)
         # restore the calendar canvas' old size

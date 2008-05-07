@@ -305,22 +305,65 @@ class wxMultiWeekCanvas(BaseWidget, wxCalendarCanvas):
         dc.EndDrawing()
 
     def PrintCanvas(self, dc):
-        dc.BeginDrawing()
-        w, h = dc.GetSize()
-        # We need to create a 24-bit bitmap to work around a win32 bitmap bug
-        bitmap = wx.EmptyBitmap(w, h, -1)
-        mdc = wx.MemoryDC(bitmap)
-        mdc.SetBackground(wx.WHITE_BRUSH)
-        mdc.Clear()
-        gc = wx.GraphicsContext.Create(mdc)
+        scale = dc.GetUserScale()[1]
+        
+        # [grant] This is a bit of a cheesy hack ... Basically, in cases where
+        # we are scaling to print, we want to be able to adjust our internal
+        # metrics, fonts, etc as needed, and then reset them all when we're
+        # done (i.e. when we're going back to displaying on-screen). So, we
+        # temporary replace __setattr__ on our class so as to detect all
+        # attribute changes, and then restore them (and __setattr__!) in a
+        # finally block.
+        originalValues = {}
+        originalSetattr = type(self).__setattr__
+        
+        def saveAndSet(obj, key, value):
+            # Store to originalValues only if this is the first setting
+            # of this attribute!
+            if obj is self and not key in originalValues and hasattr(self, key):
+                originalValues[key] = getattr(self, key)
+            # Make sure to set the value, eh :)
+            originalSetattr(obj, key, value)
+            
+        type(self).__setattr__ = saveAndSet
 
-        self._shouldCalculateColumnPositions = True
-        self.DrawBackground(gc)
-        self.DrawWeeks(gc)
-        self._shouldCalculateColumnPositions = False
+        try:
+            # Pixel-sized fonts don't work if we're scaled which is on
+            # the one hand logical, and on the other, kind of dumb. Hm.
+            # cf Bug 11917.
+            if scale != 1.0:
+                for attr in ('_font', '_timeFont', '_textFont',
+                             '_superscriptFont'):
+                    font = getattr(self, attr)
+                    if font.IsUsingSizeInPixels():
+                        font = wx.Font(font.PointSize * scale, font.Family, font.Style, font.Weight, font.Underlined, font.FaceName, font.Encoding)
+                        setattr(self, attr, font)
+                # Now, redo our calculations based on the real font sizes.
+                self.measure = wx.ClientDC(self)
+                self.measure.SetFont(self._font)
+                self.doDrawingCalculations()
+        
 
-        dc.DrawBitmap(bitmap, 0, 0)
-        dc.EndDrawing()
+            dc.BeginDrawing()
+            w, h = dc.GetSize()
+            # We need to create a 24-bit bitmap to work around a win32 bitmap bug
+            bitmap = wx.EmptyBitmap(w, h, -1)
+            mdc = wx.MemoryDC(bitmap)
+            mdc.SetBackground(wx.WHITE_BRUSH)
+            mdc.Clear()
+            gc = wx.GraphicsContext.Create(mdc)
+    
+            self._shouldCalculateColumnPositions = True
+            self.DrawBackground(gc)
+            self.DrawWeeks(gc)
+            self._shouldCalculateColumnPositions = False
+    
+            dc.DrawBitmap(bitmap, 0, 0)
+            dc.EndDrawing()
+        finally:
+            type(self).__setattr__ = originalSetattr
+            for attr, value in originalValues.iteritems():
+                setattr(self, attr, value)
 
     def doDrawingCalculations(self):
         self.dateWidth, self.stringHeight = self.measure.GetTextExtent("31")
