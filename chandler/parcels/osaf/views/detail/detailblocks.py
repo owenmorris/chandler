@@ -420,10 +420,12 @@ def makeCalendarArea(parcel, oldVersion):
                         'format': 'occurs',
                         # These choices must match the enumerated indexes in the
                         # RecurrenceAttributeEditor python code
-                        'choices': [_(u'Once'), _(u'Daily'), _(u'Weekly'),
-                                    _(u'Weekdays'),
-                                    _(u'Biweekly'), _(u'Monthly'), _(u'Yearly'),
-                                    _(u'Custom...')]},
+                        'choices': [
+                            _(u'Once'), _(u'Daily'), _(u'Weekdays'),
+                            _(u'Weekly'), _(u'Biweekly'), _(u'Monthly'),
+                            _(u'Yearly'), _(u'Custom...')
+                        ]
+                    },
                     stretchFactor=0.0,
                     minimumSize=SizeType(100, -1))])
 
