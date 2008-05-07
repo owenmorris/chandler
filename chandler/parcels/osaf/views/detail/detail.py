@@ -1726,7 +1726,7 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
     # Note that biweekly is not, in fact, a valid FrequencyEnum frequency, it's a
     # special case.
     # These should not be localized!
-    menuFrequencies = [ 'once', 'daily', 'weekly', 'weekdaily', 'biweekly', 'monthly', 'yearly', 'custom']
+    menuFrequencies = [ 'once', 'daily', 'weekdaily', 'weekly', 'biweekly', 'monthly', 'yearly', 'custom']
     onceIndex = menuFrequencies.index('once')
     customIndex = menuFrequencies.index('custom')
     weekdailyIndex = menuFrequencies.index('weekdaily')
