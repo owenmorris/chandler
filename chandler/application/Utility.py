@@ -34,7 +34,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "493" # grant: Bug 12062 (correct order for occurrence dropdown)
+SCHEMA_VERSION = "494" # grant: Bug 12020 (DragAndDropTextCtrl context menu needs IDs)
 logger = None # initialized in initLogging()
 
 def createProfileDir(profileDir):

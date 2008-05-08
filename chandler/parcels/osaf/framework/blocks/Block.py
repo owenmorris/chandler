@@ -303,16 +303,11 @@ class Block(schema.Item):
         assert id > 0
 
         widget = getattr(self, 'widget', None)
-        assert self.findBlockById(id, self.parentBlock) in (self, None)
 
         if wx.ID_LOWEST <= id <= wx.ID_HIGHEST:
             blocks = self.idToBlock.setdefault(id, set())
             
             blocks.add(self)
-                
-            assert not set(b for b in blocks
-                               if b.getRootBlock() == self.getRootBlock() and
-                                   b is not self)
         else:
             self.idToBlock[id] = self
 
