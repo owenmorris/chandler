@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 wxWindow_FindFocus = wx.Window_FindFocus
 
-# SCHEMA_VERSION has moved to Utility.py
+# SCHEMA_VERSION is now app_version in version.py
 
 #@@@Temporary testing tool written by Morgen -- DJA
 import util.timing

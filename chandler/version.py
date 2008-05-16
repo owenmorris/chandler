@@ -20,6 +20,14 @@ _version = { 'release':    '0.7.7',
 #                             checkpoint = None
 #                             revision = None
 
+# Increment this value whenever the schema changes, and replace the comment
+# with your name (and some helpful text). The comment's really there just to
+# cause Subversion to warn you of a conflict when you update, in case someone 
+# else changes it at the same time you do (that's why it's on the same line).
+app_version = "494" # grant: Bug 12020 (DragAndDropTextCtrl context menu needs IDs)
+
+
+
 _template = '%(release)s'
 
 if _version['build']:

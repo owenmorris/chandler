@@ -30,11 +30,6 @@ from PyICU import ICUtzinfo
 
 import version
 
-# Increment this value whenever the schema changes, and replace the comment
-# with your name (and some helpful text). The comment's really there just to
-# cause Subversion to warn you of a conflict when you update, in case someone 
-# else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "494" # grant: Bug 12020 (DragAndDropTextCtrl context menu needs IDs)
 logger = None # initialized in initLogging()
 
 def createProfileDir(profileDir):
@@ -811,13 +806,13 @@ def verifySchema(view):
 
     # Fetch the top-level parcel item to check schema version info
     parcelRoot = view.getRoot('parcels')
-    version = getattr(parcelRoot, 'version', None)
+    parcelVersion = getattr(parcelRoot, 'version', None)
 
-    if parcelRoot is not None and version != SCHEMA_VERSION:
-        logger.error("Schema version of repository (%s) doesn't match application's (%s)", version, SCHEMA_VERSION)
-        return False, version, SCHEMA_VERSION
+    if parcelRoot is not None and parcelVersion != version.app_version:
+        logger.error("Schema version of repository (%s) doesn't match application's (%s)", parcelVersion, version.app_version)
+        return False, parcelVersion, version.app_version
 
-    return True, version, SCHEMA_VERSION
+    return True, parcelVersion, version.app_version
 
 
 def initParcelEnv(options, chandlerDirectory):
@@ -911,8 +906,7 @@ def initParcels(options, view, path, namespaces=None):
 
     # Record the current schema version into the repository
     parcelRoot = view.getRoot("parcels")
-    if getattr(parcelRoot, 'version', None) != SCHEMA_VERSION:
-        parcelRoot.version = SCHEMA_VERSION
+    parcelRoot.version = version.app_version
     
 
 def initPlugins(options, view, plugin_env, eggs):
