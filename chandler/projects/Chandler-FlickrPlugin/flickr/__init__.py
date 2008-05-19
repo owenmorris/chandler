@@ -319,7 +319,7 @@ def installParcel(parcel, oldVersion=None):
     flickrMenu = Menu.update(
         parcel, 'FlickrDemoMenu',
         blockName = 'FlickrDemoMenu',
-        title = _(u'Flickr'),
+        title = _(u'F&lickr'),
         helpString = _(u'Download Flickr photos'),
         childrenBlocks = [ ],
         parentBlock = demoMenu)

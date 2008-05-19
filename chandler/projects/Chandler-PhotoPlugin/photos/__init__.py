@@ -48,7 +48,7 @@ def installParcel(parcel, old_version=None):
     photosMenu = Menu.update(
         parcel, 'PhotosDemoMenu',
         blockName = 'PhotosDemoMenuItem',
-        title = _(u'Photos'),
+        title = _(u'&Photos'),
         helpString = _(u'Import photos'),
         childrenBlocks = [ ],
         parentBlock = schema.ns('osaf.views.main', parcel).ExperimentalMenu)
