@@ -332,12 +332,13 @@ class wxMultiWeekCanvas(BaseWidget, wxCalendarCanvas):
             # the one hand logical, and on the other, kind of dumb. Hm.
             # cf Bug 11917.
             if scale != 1.0:
-                for attr in ('_font', '_timeFont', '_textFont',
+                """for attr in ('_font', '_timeFont', '_textFont',
                              '_superscriptFont'):
                     font = getattr(self, attr)
                     if font.IsUsingSizeInPixels():
                         font = wx.Font(font.PointSize * scale, font.Family, font.Style, font.Weight, font.Underlined, font.FaceName, font.Encoding)
-                        setattr(self, attr, font)
+                        setattr(self, attr, font)"""
+
                 # Now, redo our calculations based on the real font sizes.
                 self.measure = wx.ClientDC(self)
                 self.measure.SetFont(self._font)
