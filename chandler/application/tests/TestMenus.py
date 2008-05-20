@@ -162,7 +162,7 @@ class MenuTestCase(unittest.TestCase):
         # sorted modifiers
         # the key
         VALID_MODIFIERS = ('Shift', 'Ctrl', 'Alt')
-        VALID_MULTIKEYS = ('Back', 'Left', 'Right', 'Up', 'Down') + tuple(
+        VALID_MULTIKEYS = ('Back', 'Del', 'Left', 'Right', 'Up', 'Down') + tuple(
                               'F%d' % i for i in range(1, 13, 1))
         shortcutsToItems = {}
 
