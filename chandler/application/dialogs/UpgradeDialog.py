@@ -50,7 +50,7 @@ class MigrationDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         if backup is not None:
-            lastMod = os.path.getctime(backup)
+            lastMod = os.path.getmtime(backup)
             format = DateFormat.createDateTimeInstance(DateFormat.kFull,
                                                        DateFormat.kFull)
             lastMod = format.format(lastMod)
