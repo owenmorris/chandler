@@ -76,7 +76,6 @@ import zanshin.http
 import zanshin.error
 import zanshin.acl as acl
 import twisted.web.http as http
-from twisted.python.failure import Failure
 import xml.etree.cElementTree as ElementTree
 import M2Crypto
 
@@ -393,18 +392,15 @@ def deleteShare(share):
 
 
 def getUrls(share):
-    if isSharedByMe(share):
-        url = share.getLocation()
-        readWriteUrl = share.getLocation(privilege='readwrite')
-        readOnlyUrl = share.getLocation(privilege='readonly')
-        if url == readWriteUrl:
-            # Not using tickets
-            return [url]
-        else:
-            return [readWriteUrl, readOnlyUrl]
+    url = share.getLocation()
+    result = [share.getLocation(privilege=priv)
+                 for priv in ('readwrite', 'readonly')]
+    result = [u for u in result if u != url]
+
+    if result:
+        return result
     else:
-        url = share.getLocation(privilege='subscribed')
-        return [url]
+        return [share.getLocation(privilege='subscribed')]
 
 
 VIEW_AND_EDIT_STR = _(u"View and Edit")

@@ -183,5 +183,11 @@ class HTTPMixin(BaseConduit):
         elif privilege == 'subscribed':
             if self.ticket:
                 url = url + u"?ticket=%s" % self.ticket
+        elif privilege == 'ticketdiscovery':
+            for attr in 'ticketReadWrite', 'ticketReadOnly', 'ticket':
+                ticket = getattr(self, attr, None)
+                if ticket:
+                    url = url + u"?ticket=%s" % ticket
+                    break
 
         return url

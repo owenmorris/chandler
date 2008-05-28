@@ -1411,7 +1411,8 @@ class MainView(View):
         if collection is not None:
             share = sharing.getShare(collection)
             if share is not None:
-                Invite.Show(collection=collection)
+                Invite.Show(collection=collection,
+                            parent=wx.GetApp().mainFrame)
 
     def onCollectionInviteEventUpdateUI(self, event):
         enable = False

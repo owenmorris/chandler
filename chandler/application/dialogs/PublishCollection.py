@@ -173,8 +173,8 @@ class PublishCollectionDialog(wx.Dialog):
 
         self.Bind(wx.EVT_BUTTON, self.OnManageDone, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
-        self.Bind(wx.EVT_BUTTON, self.OnCopy,
-                  id=wx.xrc.XRCID("BUTTON_CLIPBOARD"))
+        self.Bind(wx.EVT_BUTTON, self.OnInvite,
+                  id=wx.xrc.XRCID("BUTTON_INVITE"))
         self.Bind(wx.EVT_BUTTON, self.OnUnPubSub,
                   id=wx.xrc.XRCID("BUTTON_UNPUBLISH"))
 
@@ -588,12 +588,6 @@ class PublishCollectionDialog(wx.Dialog):
 
         share = sharing.getShare(self.collection)
 
-
-        msg = _(u"Give out the URLs below to invite others to subscribe to:")
-        self._showStatus("\n" + msg + "\n")
-        urlString = "\n\n".join(sharing.getLabeledUrls(share))
-        self._showStatus("\n%s\n" % urlString)
-
         self.buttonPanel.Hide()
         self.mySizer.Detach(self.buttonPanel)
         self.buttonPanel = self.resources.LoadPanel(self,
@@ -602,8 +596,8 @@ class PublishCollectionDialog(wx.Dialog):
 
         self.Bind(wx.EVT_CLOSE,  self.OnPublishDone)
         self.Bind(wx.EVT_BUTTON, self.OnPublishDone, id=wx.ID_OK)
-        self.Bind(wx.EVT_BUTTON, self.OnCopy,
-                  id=wx.xrc.XRCID("BUTTON_CLIPBOARD"))
+        self.Bind(wx.EVT_BUTTON, self.OnInvite,
+                  id=wx.xrc.XRCID("BUTTON_INVITE"))
         self._resize()
 
         return True
@@ -646,14 +640,9 @@ class PublishCollectionDialog(wx.Dialog):
     def OnReplace(self, evt):
         self.PublishCollection(overwrite=True)
 
-    def OnCopy(self, evt):
-        gotClipboard = wx.TheClipboard.Open()
-        if gotClipboard:
-            share = sharing.getShare(self.collection)
-
-            urlString = (os.linesep * 2).join(sharing.getLabeledUrls(share))
-            wx.TheClipboard.SetData(wx.TextDataObject(unicode(urlString)))
-            wx.TheClipboard.Close()
+    def OnInvite(self, evt):
+        import Invite
+        Invite.Show(self.collection, self)
 
     def _showErrorPanel(self):
         if not self.errorPanel.IsShown():

@@ -53,6 +53,32 @@ def formatException(exception):
 
     return summary, extended
 
+def formatFailure(failure):
+    summary = []
+    extended = []
+
+    # Turn the stack and exception into a string
+    stack = failure.getBriefTraceback()
+
+    if hasattr(failure, 'annotations'):
+        # This failure has been annotated along the way
+        for brief, details in failure.annotations[::-1]:
+            summary.append(brief)
+            extended.append(details)
+    else:
+        summary.append(str(failure.getErrorMessage() or failure.type))
+        details = getattr(failure, 'debugMessage', None)
+        if details:
+            extended.append(str(details))
+
+    summary = " | ".join(summary)
+
+    extended.append(stack)
+
+    extended = "\n--\n".join(extended)
+
+    return summary, extended
+
 
 
 class SharingError(ChandlerException):

@@ -61,19 +61,40 @@ class Task(object):
         triggerID = reactor.addSystemEventTrigger('before', 'shutdown',
             self.shutdownCallback)
 
-        try:
-            result = self.run()
-            self._success(result)
-        except Exception, e:
-            if not isinstance(e, activity.ActivityAborted):
-                logger.exception("Task failed")
-            summary, extended = sharing.errors.formatException(e)
-            self._error( (e, summary, extended) )
+        def _failure(f):
+            if not f.check(activity.ActivityAborted):
+                logger.error("Task failed:\n%s\n", f.getTraceback())
 
-        if self.shutdownDeferred:
-            self.shutdownDeferred.callback(None)
+            summary, extended = sharing.errors.formatFailure(f)
+            err = f.value
+            if not isinstance(err, Exception):
+                err = f.type(f.value)
+            self.callInMainThread(self.error, (err, summary, extended),
+                                  done=True)
 
-        reactor.removeSystemEventTrigger(triggerID)
+            return f
+
+        def _success(result):
+            self.callInMainThread(self.success, result, done=True)
+            return result
+        
+        def _cleanup(what):
+            if self.shutdownDeferred:
+                self.shutdownDeferred.callback(None)
+            reactor.removeSystemEventTrigger(triggerID)
+            
+            return what
+
+        defer.maybeDeferred(self.run).addCallback(
+            _success).addErrback(
+            _failure).addBoth(
+            _cleanup)
+        
+            
+                
+
+
+
 
     def shutdownCallback(self):
         self.shutdownDeferred = defer.Deferred()

@@ -558,19 +558,7 @@ def deleteTicket(share, ticket):
 
 
 
-
-
-def subscribe(view, url, activity=None, username=None, password=None,
-    filters=None):
-
-    if not isOnline(view):
-        raise OfflineError(_(u"Could not perform request. Sharing is offline."))
-
-    if not url:
-        raise URLParseError(_(u"No URL provided."))
-
-    logger.info("Subscribing to URL: %s", url)
-
+def getAccountInfo(view, url, username=None, password=None):
     try:
         (scheme, useSSL, host, port, path, query, fragment, ticket, parentPath,
             shareName) = splitUrl(url)
@@ -613,11 +601,40 @@ def subscribe(view, url, activity=None, username=None, password=None,
                 if tail != "":
                     shareName = tail + "/" + shareName
 
+    return dict(account=account, username=username, password=password,
+                shareName=shareName, view=view, scheme=scheme,
+                useSSL=useSSL, host=host, port=port, path=path, query=query,
+                fragment=fragment, ticket=ticket, parentPath=parentPath)
+
+def subscribe(view, url, activity=None, username=None, password=None,
+    filters=None):
+
+    if not isOnline(view):
+        raise OfflineError(_(u"Could not perform request. Sharing is offline."))
+
+    if not url:
+        raise URLParseError(_(u"No URL provided."))
+
+    logger.info("Subscribing to URL: %s", url)
+
+
     inspection = inspect(view, url, username=username, password=password)
 
     logger.info("Inspection results for %s: %s", url, inspection)
-
-
+    
+    info = getAccountInfo(view, url, username, password)
+    account = info['account']
+    username = info['username']
+    password = info['password']
+    shareName = info['shareName']
+    scheme = info['scheme']
+    useSSL = info['useSSL']
+    host = info['host']
+    port = info['port']
+    path = info['path']
+    ticket = info['ticket']
+    parentPath = info['parentPath'] 
+   
     for share in Share.iterItems(view):
         if url == share.getLocation("subscribed"):
             raise AlreadySubscribed(_(u"You are already subscribed to this collection."))

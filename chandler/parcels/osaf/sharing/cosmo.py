@@ -27,6 +27,7 @@ import zanshin, M2Crypto
 import urlparse, urllib
 import logging
 import time
+import re
 from i18n import ChandlerMessageFactory as _
 from osaf.framework.twisted import waitForDeferred
 from xml.etree.cElementTree import fromstring
@@ -487,8 +488,6 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
                         self.ticketReadOnly = ticket
                     if mode == 'read-write':
                         self.ticketReadWrite = ticket
-            if not self.ticketReadOnly or not self.ticketReadWrite:
-                raise errors.SharingError("Tickets not returned from server")
 
 
     def raiseCosmoError(self, xmlText):
@@ -580,9 +579,6 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
 
         extraHeaders['Content-Type'] = 'application/eim+xml'
 
-        if methodName == 'PUT':
-            extraHeaders['X-MorseCode-TicketType'] = 'read-only read-write'
-
         request = zanshin.http.Request(methodName, path, extraHeaders, body)
 
         try:
@@ -602,6 +598,8 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         except twisted.internet.error.ConnectionLost, err:
             raise errors.CouldNotConnect(_(u"Lost connection to server: %(error)s") % {'error' : err})
 
+    TICKET_RE = re.compile('(^|/)(pim|mc)/collection($|/)')
+
     def getLocation(self, privilege=None, morsecode=False):
         """
         Return the user-facing url of the share
@@ -613,6 +611,19 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
             f = self._getSettings
 
         (host, port, path, username, password, useSSL) = f(withPassword=False)
+
+        if privilege == 'ticketdiscovery':
+            # Make sure pim/collection or mc/collection in the
+            # path get replaced with dav/collection ... this allows
+            # us to do a ticketdiscovery PROPFIND on the URL to
+            # find any existing tickets. 
+            match = self.TICKET_RE.search(path)
+            
+            if match is not None:
+                start, end = match.start(0), match.end(0)
+                path = "%s%s%s" % (path[:start],
+                                   match.expand("\\1dav/collection\\3"),
+                                   path[end:])
 
         if useSSL:
             scheme = u"https"
@@ -640,6 +651,9 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         elif privilege == 'subscribed':
             if self.ticket:
                 url = url + u"?ticket=%s" % self.ticket
+        elif privilege == 'ticketdiscovery':
+            if self.ticket:
+                url = url + u"?ticket=%s" % self.ticket            
 
         return url
 

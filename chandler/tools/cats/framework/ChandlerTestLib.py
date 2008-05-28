@@ -21,7 +21,7 @@ __version__=  '0.2'
 
 from tools.QALogger import *
 from datetime import datetime, timedelta, time
-from time import mktime, strptime
+from time import mktime, strptime, sleep
 from osaf import pim
 from osaf.framework.twisted import waitForDeferred
 import osaf.pim.mail as Mail
@@ -36,6 +36,7 @@ from itertools import chain
 from i18n.tests import uw
 from osaf.framework.blocks.Block import Block
 from application.dialogs.PublishCollection import ShowPublishDialog
+import application.dialogs.Invite as Invite
 import application.dialogs.SubscribeCollection as SubscribeCollection
 from chandlerdb.item.Item import MissingClass
 
@@ -131,20 +132,25 @@ def publishSubscribe(testClass):
             return
 
         testClass.logger.endAction(True)
-
-        # Get a read-write ticket to the published collection
-        # XXX This is ripped from PublishCollection
-        share = sharing.getShare(win.collection)
-        urls = sharing.getUrls(share)
-        if len(urls) == 1:
-            urlString = urls[0]
-        else:
-            urlString = urls[0] # read-write
         
         #Done button call
         win.OnPublishDone(None)
         application.Yield(True)
 
+        testClass.logger.startAction('Get tickets')
+        win = Invite.Show(collection)
+        # Get a read-write ticket to the published collection
+        share = sharing.getShare(win.collection)
+        urls = sharing.getUrls(share)
+        while len(sharing.getUrls(share)) < 2:
+            sleep(0.1)
+            application.Yield(True)
+            urls = sharing.getUrls(share)
+        if len(urls) == 2:
+            urlString = sharing.getUrls(share)[0] # read-write
+        win.Close()
+        win.Destroy()
+        
         # Unsubscribe and delete the (local) collection we just published so
         # that we can subscribe to it below.
         sharing.unsubscribe(collection)
