@@ -737,7 +737,7 @@ class wxApplication (wx.App):
 
     imageCache = {}
 
-    def GetRawImage (self, name, copy=True):
+    def GetRawImage(self, name, copy=True):
         """
         Return None if image isn't found, otherwise return the raw image.
         Also look first for platform specific images.
@@ -760,7 +760,7 @@ class wxApplication (wx.App):
                 wxApplication.imageCache[name] = [None]
                 return None
 
-        image = wx.ImageFromStream (cStringIO.StringIO(file.read()))
+        image = wx.ImageFromStream(cStringIO.StringIO(file.read()))
         wxApplication.imageCache[name] = [image]
         if copy:
             image = image.Copy()
@@ -1059,29 +1059,35 @@ class wxApplication (wx.App):
             10. Checkpoints the Repository
             11. Stops the Feedback Runtime log
         """
-        def displayInfoWhileProcessing (message, method, *args, **kwds):
-            busyInfo = wx.BusyInfo (message, self.mainFrame)
-            self.Yield(True)
-            result = method(*args, **kwds)
-            del busyInfo
-            return result
-
-        def commit(view):
-            try:
-                view.commit()
-            except VersionConflictError, e:
-                logger.exception(e)
-
+        
         # Finish any edits in progress.
         from osaf.framework.blocks.Block import Block
         Block.finishEdits()
 
         # Optionally save a backup.chex so that automatic migration will work
+        from application.dialogs.Shutdown import ShutdownDialog
+        
+        # Optionally save a backup.chex so that automatic migration will work
         
         # Do not backup when running tests to save time; also prevents
         # the dialog from stopping tests.
         # There's also no reason to export if we are restarting.
-        if Globals.options.catch in ('tests', 'never') or restarting:
+        if (Globals.options.catch == 'tests') or restarting:
+            backup = False
+        else:
+            prefs = schema.ns("osaf.app",
+                              self.UIRepositoryView).prefs
+            backup = getattr(prefs, 'backupOnQuit', True)
+
+        dialog = ShutdownDialog(self.mainFrame, -1, rv=self.UIRepositoryView)
+        dialog.CenterOnParent()
+        dialog.Show()
+        
+        
+        # Do not backup when running tests to save time; also prevents
+        # the dialog from stopping tests.
+        # There's also no reason to export if we are restarting.
+        if Globals.options.catch in ('tests') or restarting:
             backup = False
         else:
             prefs = schema.ns("osaf.app",
@@ -1089,8 +1095,8 @@ class wxApplication (wx.App):
             backup = getattr(prefs, 'backupOnQuit', True)
 
         if backup:
-            mainView = Block.findBlockByName("MainView")
-            mainView.exportToChex()
+            path = os.path.join(Globals.options.profileDir, "backup.chex")
+            dialog.RunBackup(path)
 
         # For some strange reason when there's an idle handler on the
         # application the mainFrame windows doesn't get destroyed, so
@@ -1102,40 +1108,43 @@ class wxApplication (wx.App):
             self.Bind(wx.EVT_ACTIVATE_APP, None)
 
         if __debug__ and repositoryCheck:
-            displayInfoWhileProcessing (_(u"Checking repository..."),
-                                        self.UIRepositoryView.check)
+            dialog.Process(_(u"Verifying data..."), self.UIRepositoryView.check)
 
         if Globals.mailService is not None:
             # Ensure that the Globals.mailService has been initialized before
             # calling shutdown.
-            displayInfoWhileProcessing (_(u"Shutting down mail service..."),
-                                        Globals.mailService.shutdown)
+            dialog.Process(_(u"Shutting down mail..."),
+                           Globals.mailService.shutdown)
 
 
-        displayInfoWhileProcessing (_(u"Stopping wakeup service..."),
-                                    Utility.stopWakeup)
+        dialog.Process(_(u"Shutting down wakeup service..."),
+                       Utility.stopWakeup)
 
         from osaf import sharing
-        displayInfoWhileProcessing (_(u"Stopping sharing..."),
-                                    sharing.interrupt, graceful=False)
+        dialog.Process(_(u"Shutting down sharing..."),
+                       sharing.interrupt, graceful=False)
 
-        displayInfoWhileProcessing (_(u"Stopping twisted..."),
-                                    Utility.stopTwisted)
+        dialog.Process(_(u"Shutting down networking..."), Utility.stopTwisted)
 
         # Since Chandler doesn't have a save command and commits typically happen
         # only when the user completes a command that changes the user's data, we
         # need to add a final commit when the application quits to save data the
         # state of the user's world, e.g. window location and size.
 
-        displayInfoWhileProcessing (_(u"Committing repository..."),
-                                    commit, self.UIRepositoryView)
+        def commit(view):
+            try:
+                view.commit()
+            except VersionConflictError, e:
+                logger.exception(e)
 
-        displayInfoWhileProcessing (_(u"Stopping crypto..."),
-                                    Utility.stopCrypto, Globals.options.profileDir)
+        dialog.Process(_(u"Saving data..."), commit, self.UIRepositoryView)
+
+        dialog.Process(_(u"Shutting down encryption..."),
+                       Utility.stopCrypto, Globals.options.profileDir)
 
         if repositoryCheckPoint:
-            displayInfoWhileProcessing (_(u"Checkpointing repository..."),
-                                        self.UIRepositoryView.repository.checkpoint)
+            dialog.Process(_(u"Checkpointing data..."),
+                           self.UIRepositoryView.repository.checkpoint)
 
         feedback.stopRuntimeLog(Globals.options.profileDir)
 

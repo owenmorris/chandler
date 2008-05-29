@@ -87,7 +87,7 @@ class MigrationDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.AddSpacer((0, 3))
         
-        logo = wx.GetApp().GetImage("ChandlerLogo.png")
+        logo = wx.GetApp().GetImage("Chandler_128.png")
         bitmap = wx.StaticBitmap(self, -1, logo)
         sizer.Add(bitmap, 0, wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, 15)
 

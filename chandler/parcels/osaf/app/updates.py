@@ -25,7 +25,7 @@ class UpdateDialog(wx.Dialog):
         self.download = download
         self.Sizer = wx.BoxSizer(wx.VERTICAL)
 
-        logo = wx.GetApp().GetImage("ChandlerLogo.png")
+        logo = wx.GetApp().GetImage("Chandler_128.png")
         bitmap = wx.StaticBitmap(self, -1, logo)
         self.Sizer.Add(bitmap, 0, wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, 15)
         

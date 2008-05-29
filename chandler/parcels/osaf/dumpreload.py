@@ -98,6 +98,7 @@ def dump(rv, path, uuids=None, serializer=PickleSerializer,
     Dumps EIM records to a file, file permissions 0600.
     """
 
+    activity.started()
     translator = getTranslator()
 
 
@@ -164,7 +165,7 @@ def dump(rv, path, uuids=None, serializer=PickleSerializer,
             for record in trans.finishExport():
                 if activity:
                     count += 1
-                    activity.update(msg=_(u"Exporting additional record"))
+                    activity.update(msg=_(u"Exporting additional record..."))
 
                 dump(record)
 
@@ -194,6 +195,8 @@ def dump(rv, path, uuids=None, serializer=PickleSerializer,
         # Now, rename the temporary .chex file to the actual
         os.rename(completedpath, path)
         completedpath = None
+        
+        activity.completed()
 
     except:
         logger.exception("Error during export")

@@ -993,34 +993,10 @@ class MainView(View):
             self.itsView).prefs.isOnline and sharing.isOnline(self.itsView)
 
 
-    def exportToChex(self, obfuscate=False, path=os.path.join(
-                                                Globals.options.profileDir,
-                                                'backup.chex')):
-        prefs = schema.ns('osaf.app',
-                          wx.GetApp().UIRepositoryView).prefs
-        
-        def OnCheckBox(event):
-            prefs.backupOnQuit = event.EventObject.Value
-            prefs.itsView.commit()
-            event.Skip()
-        
-        def makeAuxiliary(parent):
-            checkBox = wx.CheckBox(parent)
-            checkBox.Label = _(u"Always back up my data when I quit Chandler.")
-            checkBox.Value = getattr(prefs, 'backupOnQuit', True)
-            checkBox.Bind(wx.EVT_CHECKBOX, OnCheckBox)
-            return checkBox
-        
-        activity = Activity("Export to %s" % path)
-        progress = Progress.Show(activity, parent=wx.GetApp().mainFrame,
-                                 makeAuxiliary=makeAuxiliary)
-
-        activity.started()
-
+    def exportToChex(self, activity, path, obfuscate=False):
         try:
             dumpreload.dump(self.itsView, path, activity=activity,
                             obfuscate=obfuscate)
-            activity.completed()
             self.setStatusMessage(_(u'Items exported.'))
         except ActivityAborted:
             self.setStatusMessage(_(u'Export cancelled.'))
@@ -1047,8 +1023,27 @@ class MainView(View):
 
         if path:
             from osaf.framework import MasterPassword
+            prefs = schema.ns('osaf.app', self.itsView).prefs
+
             MasterPassword.beforeBackup(self.itsView)
-            self.exportToChex(obfuscate, path)
+        
+            def OnCheckBox(event):
+                prefs.backupOnQuit = event.EventObject.Value
+                prefs.itsView.commit()
+                event.Skip()
+        
+            def makeAuxiliary(parent):
+                checkBox = wx.CheckBox(parent)
+                checkBox.Label = _(u"Always back up my data when I quit Chandler.")
+                checkBox.Value = getattr(prefs, 'backupOnQuit', True)
+                checkBox.Bind(wx.EVT_CHECKBOX, OnCheckBox)
+                return checkBox
+        
+            activity = Activity("Export to %s" % path)
+            progress = Progress.Show(activity, parent=wx.GetApp().mainFrame,
+                                     makeAuxiliary=makeAuxiliary)
+
+            self.exportToChex(activity, path, obfuscate)
 
     def onDumpToFileEvent(self, event):
         self._chooseExportFile(False)
