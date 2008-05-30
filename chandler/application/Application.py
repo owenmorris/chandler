@@ -404,7 +404,15 @@ class wxApplication (wx.App):
                 splash.fixedMessage(_(u"Reloading collections and settings..."))
             elif (options.create or newRepo):
                 splash.fixedMessage(_(u"Constructing database..."))
-        
+
+        # Bug 11818: Quick start guide when starting up Chandler for the
+        #            first time
+        # Only do this if it's a new repository (and also double-check that
+        # we're not reloading, and that we're not in test mode).
+        if newRepo and (options.reload is None) and (options.catch != 'tests'):
+            wx.LaunchDefaultBrowser("http://chandlerproject.org/getstarted",
+                                    wx.BROWSER_NEW_WINDOW)
+
         # Load Parcels
         if splash:
             splash.updateGauge('parcels')
