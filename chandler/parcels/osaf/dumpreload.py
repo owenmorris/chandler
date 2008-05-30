@@ -98,7 +98,8 @@ def dump(rv, path, uuids=None, serializer=PickleSerializer,
     Dumps EIM records to a file, file permissions 0600.
     """
 
-    activity.started()
+    if activity is not None:
+        activity.started()
     translator = getTranslator()
 
 
@@ -144,7 +145,7 @@ def dump(rv, path, uuids=None, serializer=PickleSerializer,
         with os.fdopen(fd, 'wb') as output:
             dump = serializer.dumper(output)
 
-            if activity:
+            if activity is not None:
                 count = len(aliases)
                 activity.update(msg=_(u"Exporting %(total)d records") % {'total':count}, totalWork=count)
 
@@ -155,15 +156,15 @@ def dump(rv, path, uuids=None, serializer=PickleSerializer,
                 for record in trans.exportItem(item):
                     dump(record)
                 i += 1
-                if activity:
+                if activity is not None:
                     activity.update(msg=_(u"Exported %(number)d of %(total)d items") % \
                                     {'number':i, 'total':count}, work=1)
 
-            if activity:
+            if activity is not None:
                 activity.update(totalWork=None) # we don't know upcoming total work
 
             for record in trans.finishExport():
-                if activity:
+                if activity is not None:
                     count += 1
                     activity.update(msg=_(u"Exporting additional record..."))
 
@@ -172,7 +173,7 @@ def dump(rv, path, uuids=None, serializer=PickleSerializer,
             dump(None)
             del dump
 
-        if activity:
+        if activity is not None:
             activity.update(msg=_(u"Exported %(total)d records") % {'total':count})
 
         # Next, remove the .temp from the filename. This means that
@@ -196,7 +197,8 @@ def dump(rv, path, uuids=None, serializer=PickleSerializer,
         os.rename(completedpath, path)
         completedpath = None
         
-        activity.completed()
+        if activity is not None:
+            activity.completed()
 
     except:
         logger.exception("Error during export")
@@ -221,7 +223,7 @@ def reload(rv, filename, serializer=PickleSerializer, activity=None,
         oldMaster = ''
         newMaster = 'secret'
 
-    if activity:
+    if activity is not None:
         activity.update(totalWork=None, msg=_(u"Counting records..."))
         input = open(filename, "rb")
         load = serializer.loader(input)
@@ -248,10 +250,10 @@ def reload(rv, filename, serializer=PickleSerializer, activity=None,
                 break
             trans.importRecord(record)
             i += 1
-            if activity:
+            if activity is not None:
                 activity.update(msg=_(u"Imported %(total)d records") % {'total':i}, work=1)
             if i % 1000 == 0: # Commit every 1,000 records
-                if activity:
+                if activity is not None:
                     activity.update(msg=_(u"Saving..."))
                 rv.commit()
 
@@ -261,7 +263,7 @@ def reload(rv, filename, serializer=PickleSerializer, activity=None,
 
     trans.finishImport()
 
-    if activity:
+    if activity is not None:
         activity.update(msg=_(u"Saving..."))
     rv.commit()
 
@@ -325,7 +327,7 @@ def reload(rv, filename, serializer=PickleSerializer, activity=None,
 def convertToTextFile(fromPath, toPath, serializer=PickleSerializer,
     activity=None):
 
-    if activity:
+    if activity is not None:
         activity.update(totalWork=None, msg=_(u"Counting records..."))
         input = open(fromPath, "rb")
         load = serializer.loader(input)
@@ -351,7 +353,7 @@ def convertToTextFile(fromPath, toPath, serializer=PickleSerializer,
             output.write(str(record))
             output.write("\n\n")
             i += 1
-            if activity:
+            if activity is not None:
                 activity.update(msg=_(u"Converted %(total)d records") % {'total':i}, work=1)
 
         del load
