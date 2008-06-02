@@ -1014,8 +1014,6 @@ def fromICalendarDateTime(view, text, multivalued=False):
         allDay = not anyTime
         start = [TimeZone.forceToDateTime(view, dt) for dt in start]
     else:
-        # this parameter is broken, this should be fixed in vobject, at which
-        # point this will break
         tzid = line.params.get('X-VOBJ-ORIGINAL-TZID')
         if tzid is None:
             # RDATEs and EXDATEs won't have an X-VOBJ-ORIGINAL-TZID
@@ -1025,6 +1023,10 @@ def fromICalendarDateTime(view, text, multivalued=False):
         elif tzid is None:
             tzinfo = view.tzinfo.floating
         else:
+            # this parameter was broken, fixed in vobject 0.6.6, handle either
+            # a string or take the first element of a list
+            if not isinstance(tzid, basestring):
+                tzid = tzid[0]
             tzinfo = view.tzinfo.getInstance(tzid)
         start = [dt.replace(tzinfo=tzinfo) for dt in start]
     if not multivalued:
