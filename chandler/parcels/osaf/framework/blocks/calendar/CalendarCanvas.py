@@ -1066,6 +1066,7 @@ class CalendarNotificationHandler(object):
                 elif change == 'changed':
                     changed.add(itemOrEvent)
 
+        changed.difference_update(removed)
         
         self.ClearPendingEventChanges()
         
