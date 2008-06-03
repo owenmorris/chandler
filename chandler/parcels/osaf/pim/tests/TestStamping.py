@@ -18,7 +18,7 @@ Unit test for stamping
 
 import unittest, doctest
 
-import osaf.pim.tests.TestDomainModel as TestDomainModel
+import util.testcase as testcase
 from osaf import pim
 from application import schema
 import osaf.pim.mail as Mail
@@ -47,7 +47,7 @@ class SavedAttrs:
     """
     pass
 
-class StampingTest(TestDomainModel.DomainModelTestCase):
+class StampingTest(testcase.SharedSandboxTestCase):
 
     """ Test Stamping in the Domain Model """
     def setAttributes(self, item, doWho=True):
@@ -63,7 +63,7 @@ class StampingTest(TestDomainModel.DomainModelTestCase):
         item.displayName = displayName
         savedAttrs.displayName = displayName
         
-        item.createdOn = self.savedAttrs[item.itsName].createdOn = datetime.now()
+        item.createdOn = self.savedAttrs[item.itsName].createdOn = datetime.now(item.itsView.tzinfo.default)
     
         if has_stamp(item, pim.TaskStamp):
             task = pim.TaskStamp(item)
@@ -128,12 +128,7 @@ class StampingTest(TestDomainModel.DomainModelTestCase):
                 self.failUnless(has_stamp(item, stampClass))
 
     def testStamping(self):
-        # Make sure the domain model is loaded.
-        self.loadParcel("osaf.pim")
-        # @@@ Also make sure the default imap account is loaded, in order to
-        # have a "me" EmailAddress
-        self.loadParcel("osaf.mail")
-        view = self.view
+        view = self.sandbox.itsView
         
         # Get the stamp kinds
         mailStamp = Mail.MailStamp
@@ -142,7 +137,7 @@ class StampingTest(TestDomainModel.DomainModelTestCase):
         noteKind = pim.Note.getKind(view)
 
         # start out with a Note
-        aNote = pim.Note("noteItem1", itsView=view)
+        aNote = pim.Note("noteItem1", itsParent=self.sandbox)
         self.setAttributes(aNote, doWho=False)
         self.assertAttributes(aNote)
         add = 'add'
@@ -166,7 +161,7 @@ class StampingTest(TestDomainModel.DomainModelTestCase):
         self.assertAttributes(aNote)
 
         # Create a Task, and do all kinds of stamping on it
-        aTask = pim.Task("aTask", itsView=view).itsItem
+        aTask = pim.Task("aTask", itsParent=self.sandbox).itsItem
         self.setAttributes(aTask)
 
         self.traverseStampSquence(aTask, ((add, eventStamp),
@@ -210,7 +205,7 @@ class StampingTest(TestDomainModel.DomainModelTestCase):
         self.failUnless(has_stamp(aTask, taskStamp))
 
         # check stamping on an Event
-        anEvent = Calendar.CalendarEvent("anEvent", itsView=view).itsItem
+        anEvent = Calendar.CalendarEvent("anEvent", itsParent=self.sandbox).itsItem
         self.setAttributes(anEvent)
 
         # round-robin its Kind back to event
@@ -223,7 +218,7 @@ class StampingTest(TestDomainModel.DomainModelTestCase):
         self.failUnless(has_stamp(anEvent, eventStamp))
 
         # check stamping on a Mail Message
-        aMessage = Mail.MailMessage("aMessage", itsView=view).itsItem
+        aMessage = Mail.MailMessage("aMessage", itsParent=self.sandbox).itsItem
         self.setAttributes(aMessage)
         self.traverseStampSquence(aMessage, ((add, eventStamp),
                                              (add, taskStamp),
@@ -260,7 +255,7 @@ class StampingTest(TestDomainModel.DomainModelTestCase):
         # Test some failure cases
         # These cases should produce suitable warning messages in Chandler.log
         if testFailureCases:
-            anotherEvent = Calendar.CalendarEvent("anotherEvent", itsView=view).itsItem
+            anotherEvent = Calendar.CalendarEvent("anotherEvent", itsParent=self.sandbox).itsItem
             self.setAttributes(anotherEvent)
             self.failUnless(has_stamp(anotherEvent, eventStamp))
             # Could use assertRaises here, but it's syntax with respect to parameters is
@@ -285,7 +280,7 @@ class StampingTest(TestDomainModel.DomainModelTestCase):
             # from the all collection if they're unstamped
             #
             # Make an email ...
-            aMessage = Mail.MailMessage("aNewMessage", itsView=view)
+            aMessage = Mail.MailMessage("aNewMessage", itsParent=self.sandbox)
             self.setAttributes(aMessage.itsItem)
 
             # Make sure it's in "Out"
@@ -314,6 +309,84 @@ class StampingTest(TestDomainModel.DomainModelTestCase):
         self.failUnlessEqual(list(stampedWelcome.mimeContent.mimeParts), [])
         self.failUnlessEqual(stampedWelcome.mimeContent.mimeType,
                              'message/rfc822')
+
+class S1(pim.Stamp):
+    schema.kindInfo(annotates=pim.ContentItem)
+
+class S2(pim.Stamp):
+    schema.kindInfo(annotates=pim.ContentItem)
+
+class S3(pim.Stamp):
+    schema.kindInfo(annotates=pim.ContentItem)
+
+class StampMergeTestCase(testcase.SharedSandboxTestCase):
+
+    def setUp(self):
+        super(StampMergeTestCase, self).setUp()
+        item = pim.ContentItem(itsParent=self.sandbox, displayName=u'Item')
+        schema.itemFor(S1, self.sandbox.itsView)
+        self.view.commit()
+        self.view2 = self.view.repository.createView('Woo')
+        self.uuid = item.itsUUID
+
+    def tearDown(self):
+        self.view2.cancel()
+        super(StampMergeTestCase, self).tearDown()
+
+    def testAdd(self):
+        item1 = self.view.find(self.uuid)
+        item2 = self.view2.find(self.uuid)
+        
+        S1(item1).add()
+        item1.itsView.commit()
+        
+        S2(item2).add()
+        item2.itsView.commit()
+        
+        self.failUnlessEqual(
+            set(pim.Stamp(item2).stamp_types),
+            set([S1, S2])
+        )
+
+    def testRemove(self):
+        item1 = self.view.find(self.uuid)
+        item2 = self.view2.find(self.uuid)
+        
+        S1(item1).add()
+        S2(item1).add()
+        item1.itsView.commit()
+        item2.itsView.refresh()
+
+        S1(item1).remove()
+        item1.itsView.commit()
+
+        S2(item2).remove()
+        item2.itsView.commit()
+        
+        self.failUnlessEqual(
+            set(pim.Stamp(item2).stamp_types),
+            set(),
+        )
+
+    def testRemoveAdd(self):
+        item1 = self.view.find(self.uuid)
+        item2 = self.view2.find(self.uuid)
+        
+        S1(item1).add()
+        S2(item1).add()
+        item1.itsView.commit()
+        item2.itsView.refresh()
+
+        S3(item1).add()
+        item1.itsView.commit()
+
+        S2(item2).remove()
+        item2.itsView.commit()
+        
+        self.failUnlessEqual(
+            set(pim.Stamp(item2).stamp_types),
+            set([S1, S3])
+        )
 
 def additional_tests():
     return unittest.TestSuite(

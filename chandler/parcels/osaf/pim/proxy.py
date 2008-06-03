@@ -98,7 +98,14 @@ class Container(object):
                     break
                     
         if values is None:
-            values = getattr(self.proxy.proxiedItem, self.descriptor.descriptor.name, ())
+            values = getattr(self.proxy.proxiedItem,
+                             self.descriptor.descriptor.name, ())
+        if getattr(values, 'isDeferred', lambda: False)():
+            try:
+                values = getattr(self.proxy.proxiedItem.inheritFrom,
+                                 self.descriptor.descriptor.name, ())
+            except AttributeError:
+                pass
             
         for value in values:
             if not value in removed:
@@ -189,16 +196,19 @@ class StampContainer(Container):
         
     def remove(self, val):
         self.proxy.appendChange(self.descriptor, 'removeStamp', val)
+
+    def isDeferred(self):
+        return False
     
-class StampTypesValue(MultiValue):
+class StampCollectionsValue(MultiValue):
     containerFactory = StampContainer
 
     def addStamp(self, item, val):
-        val(item).add() 
+        val.stamp_type(item).add() 
         return stamping.Stamp.stamp_types.name  
         
     def removeStamp(self, item, val):
-        val(item).remove()
+        val.stamp_type(item).remove() 
         return stamping.Stamp.stamp_types.name  
         
 
@@ -300,8 +310,8 @@ class UserChangeProxy(object):
                 pass
 
         if isinstance(descriptor, schema.Descriptor):
-            if attr == stamping.Stamp.stamp_types.name:
-                attrStore = StampTypesValue(descriptor)
+            if attr == stamping.Stamp.stampCollections.name:
+                attrStore = StampCollectionsValue(descriptor)
             elif getattr(descriptor, 'cardinality', 'single') == 'single':
                 attrStore = SimpleValue(descriptor)
             else:
@@ -545,14 +555,14 @@ class CHANGE_ALL(Changer):
                 item for item in event.modifications
                     if not stamping.has_stamp(item, change[2])
             )
-            event.addStampToAll(change[2])
+            event.addStampToAll(change[2].stamp_type)
             return stamping.Stamp.stamp_types.name
         elif changeType == 'removeStamp':
             self._updateEdited(
                 item for item in event.modifications
                     if stamping.has_stamp(item, change[2])
             )
-            event.removeStampFromAll(change[2])
+            event.removeStampFromAll(change[2].stamp_type)
             return stamping.Stamp.stamp_types.name
         elif changeType in ('add', 'remove', 'append'):
             attr = change[0].descriptor.name
@@ -582,10 +592,11 @@ class CHANGE_ALL(Changer):
     def markProxyEdited(self, proxy, attrs):
         if self.editedItems:
             for item in self.editedItems:
-                with EventStamp(item).noRecurrenceChanges():
-                    for attr in self.EDIT_ATTRIBUTES:
-                        if item.hasLocalAttributeValue(attr):
-                            delattr(item, attr)
+                if not reminders.isDead(item):
+                    with EventStamp(item).noRecurrenceChanges():
+                        for attr in self.EDIT_ATTRIBUTES:
+                            if item.hasLocalAttributeValue(attr):
+                                delattr(item, attr)
         
             del self.editedItems
         

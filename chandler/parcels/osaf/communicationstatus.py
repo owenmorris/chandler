@@ -77,11 +77,12 @@ class CommunicationStatus(schema.Annotation):
             view = itemOrUUID.itsView
             itemOrUUID = getattr(itemOrUUID, 'proxiedItem', itemOrUUID)
 
-        modifiedFlags, lastMod, stampTypes, fromMe, \
+        modifiedFlags, lastMod, stampCollections, fromMe, \
         toMe, needsReply, read, error, conflictingStates = \
             view.findInheritedValues(itemOrUUID,
                                      *CommunicationStatus.attributeValues)
 
+        stampTypes = set(collection.stamp_type for collection in stampCollections)
         result = 0
 
         # error
@@ -153,7 +154,7 @@ class CommunicationStatus(schema.Annotation):
     attributeValues = (
         (ContentItem.modifiedFlags, frozenset()),
         (ContentItem.lastModification, None),
-        (Stamp.stamp_types, frozenset()),
+        (Stamp.stampCollections, frozenset()),
         (MailStamp.fromMe, False),
         (MailStamp.toMe, False),
         (ContentItem.needsReply, False),

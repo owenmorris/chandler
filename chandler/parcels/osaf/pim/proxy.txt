@@ -182,7 +182,7 @@ The proxy will buffer changes to ``Stamp`` additions and removals:
 
 >>> eventProxy.add()
 >>> eventProxy.itsItem.changes
-[(..., 'addStamp', <class 'osaf.pim.calendar.Calendar.EventStamp'>)]
+[(..., 'addStamp', ...<class 'osaf.pim.calendar.Calendar.EventStamp'>...)]
 >>> list(pim.Stamp(eventProxy).stamps)
 [EventStamp(<UserChangeProxy at ... for <Note ...>>)]
 >>> list(pim.Stamp(note).stamps)
@@ -519,14 +519,14 @@ Got change: (..., 'set', 'displayName', u'This will not happen')
 >>> proxiedEvent.anyTime = False
 Got change: (..., 'set', 'osaf.pim.calendar.EventStamp.anyTime', False)
 >>> pim.TaskStamp(proxiedEvent).add()
-Got change: (..., 'addStamp', <class 'osaf.pim.tasks.TaskStamp'>)
+Got change: (..., 'addStamp', ...<class 'osaf.pim.tasks.TaskStamp'>...)
 >>> changes = proxiedEvent.itsItem.changes
 >>> len(changes)
 2
 >>> changes[0]
 (..., 'set', 'osaf.pim.calendar.EventStamp.anyTime', False)
 >>> changes[1]
-(..., 'addStamp', <class 'osaf.pim.tasks.TaskStamp'>)
+(..., 'addStamp', ...<class 'osaf.pim.tasks.TaskStamp'>...)
 
 In general, the ``change`` ``tuple`` will consist of:
 

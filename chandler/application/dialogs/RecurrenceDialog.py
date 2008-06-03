@@ -271,7 +271,7 @@ class ChandlerProxy(RecurrenceProxy):
         # Short-circuit adding the MailStamp to change all events,
         # no matter what.
         if args[1] in ('addStamp', 'removeStamp'):
-            if args[2] == MailStamp:
+            if args[2].stamp_type == MailStamp:
                 allChange = CHANGE_ALL(MailStamp(self.proxiedItem))
                 if args[1] == 'addStamp':
                     allChange.add()

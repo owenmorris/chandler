@@ -1471,7 +1471,7 @@ class RecurringEventTest(testcase.SharedSandboxTestCase):
         second.unmodify()
         self.assertEqual(second.itsItem._triageStatus, TriageEnum.done)
         self.failIf(second.itsItem.hasLocalAttributeValue('displayName'))
-        self.failIf(second.itsItem.hasLocalAttributeValue(Stamp.stamp_types.name))
+        self.failIf(second.itsItem.hasModifiedAttribute(Stamp.stampCollections.name))
         self.failIf(second.itsItem.collections)
         self.failIf(second.itsItem.hasLocalAttributeValue('appearsIn'))
 
@@ -1500,7 +1500,7 @@ class RecurringEventTest(testcase.SharedSandboxTestCase):
         second.unmodify()
         self.assertEqual(second.itsItem._triageStatus, TriageEnum.done)
         self.failUnlessEqual(second.startTime, secondStart)
-        self.failIf(second.itsItem.hasLocalAttributeValue(Stamp.stamp_types.name))
+        self.failIf(second.itsItem.hasModifiedAttribute(Stamp.stampCollections.name))
         # check that our unmodified aren't in any stamp collections
         for stamp in EventStamp, MailStamp:
             self.failIf(second.itsItem in stamp.getCollection(self.view))

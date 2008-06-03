@@ -34,26 +34,16 @@ class StampNotPresentError(ValueError):
     present in the item to be unstamped.
     """
 
-class StampCollection(ContentCollection):
-    """
-    A C{ContentCollection} to store the collection of items that have a
-    particular C{Stamp}. Used in favor of C{ListCollection} because there
-    is code (in recurrence, for example) that manipulates
-    C{ContentItem.collections}, the inverse of C{ListCollection.inclusions}
-    in a way that breaks stamp collection membership.
-    """
-    __metaclass__ = schema.CollectionClass
-    __collection__ = 'items'
-
-    items = schema.Sequence(ContentItem)
-
 class StampItem(schema.AnnotationItem):
-    """The item that's created in the repository for each Stamp subclass
-       you declare."""
+    """
+    The item that's created in the repository for each Stamp subclass
+    you declare.
+    """
        
-    _stampedItems = schema.One(StampCollection)
+    _collection = schema.One()
+    stampClass = schema.One(schema.Class)
 
-    # stampedItems is a property because we can't create a ListCollection
+    # collection is a property because we can't create a StampCollection
     # at schema init time (due to dependency issues), but delaying its
     # creation (via a callback from StampClass._init_schema_item) is too
     # late, because osaf.pim's installParcel() wants to access this collection.
@@ -61,10 +51,10 @@ class StampItem(schema.AnnotationItem):
     # schema init callback, or parcel installation calling Stamp.getCollection.
 
     @property
-    def stampedItems(self):
-        if not self.hasLocalAttributeValue('_stampedItems'):
-            self._stampedItems = StampCollection(itsView=self.itsView, items=[])
-        return self._stampedItems
+    def collection(self):
+        if not self.hasLocalAttributeValue('_collection'):
+            self._collection = StampCollection(itsView=self.itsView, schemaItem=self)
+        return self._collection
 
 class StampClass(schema.AnnotationClass):
     """Metaclass for stamp types"""
@@ -81,7 +71,7 @@ class StampClass(schema.AnnotationClass):
         cls.__all_ivs__, cls.__setup__ = schema._initializers_for(cls)
 
     def _create_schema_item(cls, view):
-        return StampItem(None, view['Schema'])
+        return StampItem(None, view['Schema'], stampClass=cls)
         
         
     def _init_schema_item(cls,item,view):
@@ -90,7 +80,7 @@ class StampClass(schema.AnnotationClass):
             def newCallback():
                 if callback is not None: callback()
                 # Make sure we create the collection!
-                item.stampedItems
+                item.collection
             return newCallback
         return callback
 
@@ -101,15 +91,14 @@ class Stamp(schema.Annotation):
      # should be Note? or even Item? Or leave it up to subclasses?
     schema.kindInfo(annotates=ContentItem)
     
-    stamp_types = schema.Many(schema.Class, defaultValue=Empty)
-    _stampCollections = schema.Sequence(StampCollection, inverse=StampCollection.items)
+    stampCollections = schema.Sequence(defaultValue=Empty)
 
     __use_collection__ = False
     
     @classmethod
     def getCollection(cls, repoView):
         if cls.__use_collection__:
-            return schema.itemFor(cls, repoView).stampedItems
+            return schema.itemFor(cls, repoView).collection
         else:
             return None
 
@@ -123,22 +112,54 @@ class Stamp(schema.Annotation):
     def collection(self): # @@@ [grant] is this used anywhere
         return type(self).getCollection(self.itsItem.itsView)
 
+    def get_stamp_types(self, allowInherit=True):
+        stampCollections = self.stampCollections
+        if (allowInherit and
+            stampCollections is not Empty and
+            stampCollections.isDeferred()):
+            try:
+                stampCollections = getattr(self.itsItem.inheritFrom,
+                                           Stamp.stampCollections.name)
+            except AttributeError:
+                stampCollections = Empty
+
+        return frozenset(coll.schemaItem.stampClass
+                             for coll in stampCollections)
+
+    def set_stamp_types(self, values):
+        old = self.get_stamp_types(allowInherit=False)
+        
+        for cls in old:
+            if not cls in values:
+                cls(self).remove()
+
+        for cls in values:
+            if not cls in old:
+                cls(self).add()
+
+    stamp_types = schema.Calculated(schema.Set, basedOn=stampCollections,
+                                    fset=set_stamp_types, fget=get_stamp_types)
+
     @property
     def stamps(self):
         for t in self.stamp_types:
             yield t(self)
             
     def add(self):
+        item = self.itsItem
         stampClass = self.__class__
-        if self.stamp_types is Empty:
-            self.stamp_types = set([stampClass])
-        else:
-            if stampClass in self.stamp_types:
-                raise StampAlreadyPresentError, \
-                    "Item %r already has stamp %r" % (self.itsItem, self)
-            self.stamp_types.add(stampClass)
-            
-        if not self.itsItem.isProxy:
+        stampCollection = schema.itemFor(stampClass, item.itsView).collection
+
+        if stampCollection in self.stampCollections:
+            raise StampAlreadyPresentError, \
+                "Item %r already has stamp %r" % (item, self)
+        
+        if (not self.itsItem.isProxy and
+            not self.itsItem.hasLocalAttributeValue(Stamp.stampCollections.name)):
+            self.stampCollections = []
+        self.stampCollections.add(stampCollection)
+        
+        if not item.isProxy:
         
             for attr, callback in stampClass.__all_ivs__:
                 if not hasattr(self, attr):
@@ -149,21 +170,19 @@ class Stamp(schema.Annotation):
                 for attr, val in getattr(cls,'__initialValues__',()):
                     if not hasattr(self, attr):
                         setattr(self, attr, val)
-            
-            if self.__use_collection__:
-                stamped = schema.itemFor(stampClass,
-                                         self.itsItem.itsView).stampedItems
-                stamped.add(self.itsItem)
 
     def remove(self):
-        try:
-            self.stamp_types.remove(self.__class__)
-        except KeyError:
+        item = self.itsItem
+        stampClass = self.__class__
+        stampCollection = schema.itemFor(stampClass, item.itsView).collection
+
+        if not stampCollection in self.stampCollections:
             raise StampNotPresentError, \
-                  "Item %r doesn't have stamp %r" % (self.itsItem, self)
+                  "Item %r doesn't have stamp %r" % (item, self)
+
+        addBack = None
         
-        if not self.itsItem.isProxy:
-            item = self.itsItem
+        if not item.isProxy:
             
             # This is gross, and was in the old stamping code.
             # Some items, like Mail messages, end up in the
@@ -171,15 +190,16 @@ class Stamp(schema.Annotation):
             # explicitly re-add the item to all after unstamping
             # if necessary.
             all = schema.ns("osaf.pim", item.itsView).allCollection
-            inAllBeforeStamp = item in all
+            if item in all:
+                addBack = all
     
-            if self.__use_collection__:
-                stamped = schema.itemFor(self.__class__,
-                                         self.itsItem.itsView).stampedItems
-                stamped.remove(item)
-    
-            if inAllBeforeStamp and not item in all:
-                all.add(item)
+            if not self.itsItem.hasLocalAttributeValue(Stamp.stampCollections.name):
+                self.stampCollections = list(self.stampCollections)
+
+        self.stampCollections.remove(stampCollection)
+
+        if addBack is not None and not item in addBack:
+            addBack.add(item)
 
     def isAttributeModifiable(self, attribute):
         # A default implementation which sub-classes can override if necessary
@@ -216,10 +236,33 @@ class Stamp(schema.Annotation):
         fullName = getattr(type(self), attrName).name
         return self.itsItem.hasLocalAttributeValue(fullName)
         
-    @schema.observer(stamp_types)
+    @schema.observer(stampCollections)
     def onStampTypesChanged(self, op, attr):
         self.itsItem.updateDisplayDate(op, attr)
         self.itsItem.updateDisplayWho(op, attr)
+
+class StampCollection(ContentCollection):
+    """
+    A C{ContentCollection} to store the collection of items that have a
+    particular C{Stamp}. Used in favor of C{ListCollection} because there
+    is code (in recurrence, for example) that manipulates
+    C{ContentItem.collections}, the inverse of C{ListCollection.inclusions}
+    in a way that breaks stamp collection membership.
+    """
+    __metaclass__ = schema.CollectionClass
+    __collection__ = 'stampedItems'
+    
+    schemaItem = schema.One(StampItem, inverse=StampItem._collection)
+    stampedItems = schema.Sequence(Stamp, inverse=Stamp.stampCollections,
+                                   initialValue=[])
+
+    @property
+    def stamp_type(self):
+        return self.schemaItem.stampClass
+    
+    def __repr__(self):
+        return "<%s(%s): %s>" % (type(self).__name__, self.schemaItem.stampClass,
+                                 self.itsUUID.str16())
 
 def has_stamp(item, stampClass):
     try:

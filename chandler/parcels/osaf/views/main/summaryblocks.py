@@ -126,13 +126,15 @@ class DelegatingIndexDefinition(pim.MethodIndexDefinition):
     
 class TaskColumnIndexDefinition(DelegatingIndexDefinition):
     findParams = [
-        (pim.Stamp.stamp_types.name, Nil),
+        (pim.Stamp.stampCollections.name, Nil),
         ('displayName', u''),
     ]
     def getCompareTuple(self, uuid):
-        stamp_types, displayName = \
+        stampCollections, displayName = \
             self.itsView.findInheritedValues(uuid, *self.findParams)
-        return (pim.TaskStamp in stamp_types, displayName)
+        hasTaskStamp = any(coll.stamp_type is pim.TaskStamp
+                           for coll in stampCollections)
+        return (hasTaskStamp, displayName)
 
 
 class CommunicationColumnIndexDefinition(DelegatingIndexDefinition):
@@ -142,14 +144,16 @@ class CommunicationColumnIndexDefinition(DelegatingIndexDefinition):
     
 class CalendarColumnIndexDefinition(DelegatingIndexDefinition):
     findParams = (
-        (pim.Stamp.stamp_types.name, Nil),
+        (pim.Stamp.stampCollections.name, Nil),
         (pim.Remindable.reminders.name, None),
         ('displayDate', pim.Reminder.farFuture),
     )
 
     def getCompareTuple(self, uuid):
-        stamp_types, reminders, displayDate = \
+        stampCollections, reminders, displayDate = \
             self.itsView.findInheritedValues(uuid, *self.findParams)
+            
+        stamp_types = set(coll.stamp_type for coll in stampCollections)
             
         # We need to do this:
         #   hasUserReminder = item.getUserReminder(expiredToo=True) is not None

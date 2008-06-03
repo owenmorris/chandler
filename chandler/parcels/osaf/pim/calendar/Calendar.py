@@ -1086,12 +1086,6 @@ class EventStamp(Stamp):
                 stampClass(obj).remove()
         self._changeAllStamps(removeIt)
 
-
-    def _restoreStamps(self, clonedEvent):
-        with self.noRecurrenceChanges():
-            for stampClass in Stamp(self).stamp_types:
-                stampClass(clonedEvent).add()
-
     def _createOccurrence(self, recurrenceID):
         """
         Generate an occurrence for recurrenceID, return it.
@@ -1143,7 +1137,7 @@ class EventStamp(Stamp):
             # doAutoTriageOnDateChange, regardless of what this was set to on the
             # master
             item.doAutoTriageOnDateChange = True
-
+            
         return event
 
     def makeOrphan(self):
@@ -1178,8 +1172,8 @@ class EventStamp(Stamp):
         # above. However, we actually need to call .add() on each
         # Stamp, since that's part of the API of stamping, and also
         # how Stamp classes maintain their collections.
-        Stamp(orphan).stamp_types = set()
-        self._restoreStamps(orphanEvent)
+        with orphanEvent.noRecurrenceChanges():
+            orphanEvent.stamp_types = self.stamp_types
 
         self._safeDelete()
         return orphan
@@ -1740,11 +1734,11 @@ class EventStamp(Stamp):
                 # accordingly.
                  # Exclude stamps, since add() does something good here
                 newMasterItem = first.itsItem.clone(None, None,
-                                     ('collections', Stamp.stamp_types.name, 'reminders'))
+                                     ('collections', Stamp.stampCollections.name, 'reminders'))
                 newMaster = EventStamp(newMasterItem)
                 
                 with newMaster.noRecurrenceChanges():
-                    first._restoreStamps(newMaster)
+                    Stamp(newMasterItem).stamp_types = Stamp(first).stamp_types
                 
                     newMaster.updateRecurrenceEnd()
                     
@@ -1896,18 +1890,9 @@ class EventStamp(Stamp):
                 # Need to copy over the master's stamps ... ew
                 with self.noRecurrenceChanges():
 
-                    if not self.itsItem.hasLocalAttributeValue(Stamp.stamp_types.name):
-                        Stamp(self).stamp_types = set()
-                    stamp_types = Stamp(first).stamp_types
-                    if stamp_types is not None:
-                        for stamp in list(stamp_types):
-                            if not stamp in iter(Stamp(self).stamp_types):
-                                stamp(self).add()
-                    stamp_types = Stamp(first).stamp_types
-                    if stamp_types is not None:
-                        for stamp in list(Stamp(self).stamp_types):
-                            if not stamp in Stamp(first).stamp_types:
-                                stamp(self).remove()
+                    if not self.itsItem.hasLocalAttributeValue(Stamp.stampCollections.name):
+                        Stamp(self).stampCollections = []
+                        Stamp(self).stamp_types = Stamp(first).stamp_types
                     self._copyCollections(first, self)
 
                         
@@ -2151,7 +2136,7 @@ class EventStamp(Stamp):
                         self.itsItem.setTriageStatus(triage)
                 elif attr == EventStamp.startTime.name:
                     self.startTime = self.recurrenceID
-                elif attr == Stamp.stamp_types.name:
+                elif attr == Stamp.stampCollections.name:
                     # don't delete the local set of stamps; we handle
                     # this below in the non-partial case (and for
                     # partial, we don't want to remove them).
@@ -2161,17 +2146,9 @@ class EventStamp(Stamp):
 
             master = EventStamp(self.modificationFor)
             if partial:
-                desiredStamps = list(Stamp(master).stamp_types)
+                Stamp(self).stamp_types = Stamp(master).stamp_types
             else:
-                desiredStamps = (EventStamp,)
-
-            for stampClass in desiredStamps:
-                if not has_stamp(self, stampClass):
-                    stampClass(self).add()
-
-            for stampClass in list(Stamp(self).stamp_types):
-                if stampClass not in desiredStamps:
-                    stampClass(self).remove()
+                Stamp(self).stamp_types = (EventStamp,)
 
             if partial:
                 # Commenting this assert out as a workaround for bug 10340.
@@ -2183,14 +2160,13 @@ class EventStamp(Stamp):
             else:
                 self.isGenerated = True
                 del self.modificationFor
-                del Stamp(self).stamp_types
+                del Stamp(self).stampCollections
                 if self.itsItem.hasLocalAttributeValue('appearsIn'):
                     del self.itsItem.appearsIn
 
-
     @schema.observer(
         ContentItem.displayName, ContentItem.body, ContentItem.lastModified,
-        startTime, duration, location, allDay, rruleset, Stamp.stamp_types,
+        startTime, duration, location, allDay, rruleset, Stamp.stampCollections,
     )
     def onEventChanged(self, op, name):
         """
@@ -2218,6 +2194,14 @@ class EventStamp(Stamp):
             # current token later
             self.updateTriageStatus()
         else:
+            if (name == Stamp.stampCollections.name and
+                op == 'remove' and
+                not self.itsItem.hasLocalAttributeValue(name)):
+                # Ignore stampCollections removals that are happening
+                # because we are doing a (probably deferred) delete of
+                # the stampCollections reflist
+                return
+
             if DEBUG:
                 logger.debug("about to changeThis in onEventChanged(name=%s) for %s", name, str(self))
                 logger.debug("value is: %s", getattr(self, name, Nil))
@@ -2703,7 +2687,6 @@ class Occurrence(Note):
         ContentItem.excludedBy.name, ContentItem.lastModifiedBy.name,
         ContentItem.lastModification.name, ContentItem.lastModified.name,
         ContentItem.createdOn.name, ContentItem.modifiedFlags.name,
-        Stamp._stampCollections.name,
     )
     
     IGNORE_ATTRIBUTE_PREFIXES = ('osaf.framework',
@@ -2724,10 +2707,14 @@ class Occurrence(Note):
         if attr == Remindable.reminders.name:
             return masterItem.getUserReminder() is not self.getUserReminder()
         
-        if attr == Stamp.stamp_types.name:
+        if attr == Stamp.stampCollections.name:
+            # If stampCollections is (deferred) deleted, don't
+            # flag as modified
+            if getattr(self, attr).isDeferred():
+                return False
             # Ignore SharedItem stamp
-            my_stamps = set(Stamp(self).stamp_types)
-            master_stamps = set(Stamp(masterItem).stamp_types)
+            my_stamps = Stamp(self).stamp_types
+            master_stamps = Stamp(masterItem).stamp_types
             changes = my_stamps.symmetric_difference(master_stamps)
             real_stamp_change = False
             for stamp in changes:
@@ -3010,7 +2997,8 @@ class TriageStatusReminder(RelativeReminder):
             if possibleNewNextEvent is not None:
                 for attr in ('effectiveStartTime', 'effectiveEndTime'):
                     time = getattr(possibleNewNextEvent, attr)
-                    if self.prevPoll < time < self.nextPoll:
+                    if (time is not None and
+                        self.prevPoll < time < self.nextPoll):
                         self.nextPoll = time
                         break
 

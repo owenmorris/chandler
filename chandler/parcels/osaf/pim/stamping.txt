@@ -328,4 +328,44 @@ However, if the stamp isn't present, the ``onItemDelete()`` hook isn't called:
 >>> stampedDeleteMeToo = CustomDeleteStamp(deleteMeToo)
 >>> deleteMeToo.delete()
 
+Modifying ``stamp_types`` directly
+----------------------------------
 
+For technical reasons, ``stamp_types`` is actually a computed property. Under
+the covers, what is really stored in the repository is a ``list`` of stamp
+collections that the item belongs to. It's possible to assign any iterable
+value to ``stamp_types`` directly. In this case the stamping code makes sure
+that the correct ``add()`` and ``remove()`` calls are made on any new or removed
+``Stamp`` classes.
+
+To see how this works, let's use the following test ``Stamp`` subclass:
+
+>>> class TestStamp(Stamp):
+...     schema.kindInfo(annotates=ContentItem)
+...
+...     def add(self):
+...         print 'Adding TestStamp to %r' % (self.itsItem,)
+...         super(TestStamp, self).add()
+...
+...     def remove(self):
+...         print 'Removing TestStamp from %r' % (self.itsItem,)
+...         super(TestStamp, self).remove()
+
+When you add a ``Stamp`` by assigning ``stamp_types``, the stamping code
+makes sure to call ``add()`` on the new ``Stamp``:
+
+>>> exampleItem = ExampleItem(itsView=repoView, displayName=u"example")
+>>> Stamp(exampleItem).stamp_types = [TestStamp]
+Adding TestStamp to <ExampleItem: example>
+
+Similarly, removing a ``Stamp`` results in a call to the ``remove()`` method:
+
+>>> Stamp(exampleItem).stamp_types = set()
+Removing TestStamp from <ExampleItem: example>
+
+Note that you can only assign ``stamp_types``:
+
+>>> Stamp(exampleItem).stamp_types.add(TestStamp)
+Traceback (most recent call last):
+...
+AttributeError: 'frozenset' object has no attribute 'add'

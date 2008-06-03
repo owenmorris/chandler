@@ -24,7 +24,7 @@ _version = { 'release':    '0.7.7',
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-app_version = "494" # grant: Bug 12020 (DragAndDropTextCtrl context menu needs IDs)
+app_version = "495" # grant: Bug 11596 (Recorded scripts TestMulti replacement fails on mac and linux)
 
 
 

@@ -545,7 +545,7 @@ class DetailStampButtonBlock(DetailSynchronizedBehavior,
 
     def getWatchList(self):
         # Tell us if this item's stamps change.
-        return [ (self.item, pim.Stamp.stamp_types.name) ]
+        return [ (self.item, pim.Stamp.stampCollections.name) ]
 
     @property
     def stampClass(self):
@@ -839,7 +839,7 @@ class StampConditionalBehavior(Item):
 
     def getWatchList(self):
         watchList = super(StampConditionalBehavior, self).getWatchList()
-        watchList.extend(((self.item, pim.Stamp.stamp_types.name),),)
+        watchList.extend(((self.item, pim.Stamp.stampCollections.name),),)
         return watchList
 
 class MailConditionalBehavior(StampConditionalBehavior):
@@ -1058,7 +1058,7 @@ class ReminderTypeAreaBlock(ReminderConditionalBehavior,
                             DetailSynchronizedContentItemDetailBlock):
     def getWatchList(self):
         watchList = super(ReminderTypeAreaBlock, self).getWatchList()
-        watchList.append((self.item, pim.Stamp.stamp_types.name))
+        watchList.append((self.item, pim.Stamp.stampCollections.name))
         return watchList
 
 class ReminderRelativeAreaBlock(ReminderConditionalBehavior,
@@ -1079,7 +1079,7 @@ class ReminderAEBlock(ReminderConditionalBehavior,
         watchList = super(ReminderAEBlock, self).getWatchList()
         watchList.extend([(self.item, pim.Remindable.reminders.name),
                           (self.item, pim.EventStamp.rruleset.name),
-                          (self.item, pim.Stamp.stamp_types.name)])
+                          (self.item, pim.Stamp.stampCollections.name)])
         return watchList
         
 class AbsoluteReminderAEBlock(ReminderAEBlock):
@@ -2028,7 +2028,7 @@ class BylineConditionalBehavior(Item):
     def getWatchList(self):
         watchList = super(BylineConditionalBehavior, self).getWatchList()
         tzPrefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
-        watchList.extend(((self.item, pim.Stamp.stamp_types.name),
+        watchList.extend(((self.item, pim.Stamp.stampCollections.name),
                           (self.item, pim.MailStamp.fromMe.name),
                           (self.item, ContentItem.lastModification.name),
                           (self.item, pim.MailStamp.fromAddress.name),
