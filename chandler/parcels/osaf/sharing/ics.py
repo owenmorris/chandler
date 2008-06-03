@@ -403,7 +403,8 @@ class ICSSerializer(object):
     @classmethod
     def serialize(cls, view, recordSets, **extra):
         cal = cls.recordSetsToVObject(view, recordSets, **extra)
-        return cal.serialize().encode('utf-8')
+        # vobject's serialize() automatically encodes as utf-8
+        return cal.serialize()
     
     @classmethod
     def recordSetsToVObject(cls, view, recordSets, **extra):
