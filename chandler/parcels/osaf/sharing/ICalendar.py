@@ -365,11 +365,11 @@ def itemsToFreeBusy(view, start, end, calname = None):
             else:
                 free.value.append([toUTC(event.effectiveStartTime),
                                    event.effectiveEndTime])
-                
-    # change the freebusy periods to their canonical form, dt/period instead of
-    # dt/dt
-    vfree.serialize()
-    
+
+    # once upon a time serialize would convert (date, date) to (date, period)
+    # but no longer.  So there's no need to serialize
+    # vfree.serialize()
+
     return cal
 
 def makeNaiveteMatch(view, dt, tzinfo):

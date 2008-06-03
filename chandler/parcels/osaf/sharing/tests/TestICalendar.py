@@ -128,7 +128,8 @@ class ICalendarTestCase(SharedSandboxTestCase):
         end = start + datetime.timedelta(2)
 
         cal = ICalendar.itemsToFreeBusy(self.view, start, end)
-        self.assertEqual(cal.vfreebusy.freebusy.value[0][1], datetime.timedelta(1))
+        busy_start, busy_end = cal.vfreebusy.freebusy.value[0]
+        self.assertEqual(busy_end - busy_start, datetime.timedelta(1))
 
     def testICSSerializer(self):
         """Tests serialization of items to icalendar streams."""
