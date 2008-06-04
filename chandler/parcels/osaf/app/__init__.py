@@ -209,6 +209,9 @@ The Chandler Team""") % { 'version' : version.version }
         work = makeCollection(_(u"Work"), True, u'Blue')
         home = makeCollection(_(u"Home"), True, u'Red')
         fun = makeCollection(_(u"Fun"), False, u'Plum')
+        
+        # OOTB shared collection: U.S. Holidays
+        holidays = makeCollection(_(u"U.S. Holidays"), True, u'Green')
 
         dashboard = schema.ns("osaf.pim", parcel.itsView).allCollection
 
@@ -591,6 +594,29 @@ u"""Directions...
         done15 = done15.replace(second=0, microsecond=0)
         changeTriage(note15, pim.TriageEnum.done)
         note15.changeEditState(pim.Modification.edited, when=done15)
+        
+        # Set up sharing for holidays
+        share = sharing.Share(itsView=parcel.itsView, mode='get',
+                              contents=holidays, established=True)
+        filters = set(['cid:needs-reply-filter@osaf.us', 
+                    'cid:bcc-filter@osaf.us', 'cid:triage-filter@osaf.us', 'cid:reminders-filter@osaf.us'])
+        ticket = '01q75n1sy0'
+        share.conduit = sharing.CosmoConduit(itsParent=share,
+                            host=u'hub.chandlerproject.org',
+                            port=443,
+                            sharePath=u'pim/collection',
+                            morsecodePath=u'mc/collection',
+                            shareName=u'7febe2f4-324c-11dd-d9e4-0016cbca6aed',
+                            useSSL=True,
+                            ticket=ticket,
+                            ticketReadOnly=ticket,
+                            filters=filters,
+                            translator=sharing.SharingTranslator,
+                            serializer=sharing.EIMMLSerializer)
+        share.conduit.ticketReadOnly = share.conduit.ticket
+        sharing.SharedItem(share.contents).add()
+        sharing.SharedItem(share.contents).shares.append(share)
+
 
     # Set up the main web server
     from osaf import webserver

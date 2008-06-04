@@ -1,5 +1,6 @@
 import application.schema as schema
 import osaf.pim as pim
+import osaf.sharing as sharing
 import util.testcase as testcase
 from i18n import ChandlerSafeTranslationMessageFactory as translate
 from datetime import *
@@ -63,8 +64,20 @@ class OOTBTestCase(testcase.SharedSandboxTestCase):
         self.failUnless(i.next() is self.getCollection(u"Work"))
         self.failUnless(i.next() is self.getCollection(u"Home"))
         self.failUnless(i.next() is self.getCollection(u"Fun"))
-        
+        self.failUnless(i.next() is self.getCollection(u"U.S. Holidays"))
+
         self.failUnlessRaises(StopIteration, i.next)
+
+    def testHolidays(self):
+        holidays = self.getCollection(u"U.S. Holidays")
+        
+        self.failUnless(pim.has_stamp(holidays, sharing.SharedItem))
+        self.failUnlessEqual(len(list(sharing.SharedItem(holidays).shares)), 1)
+
+        share = sharing.SharedItem(holidays).shares.first()
+        self.failUnless(share.established)
+        self.failUnless(isinstance(share.conduit, sharing.CosmoConduit))
+
 
     def testWelcomeEvent(self):
         
