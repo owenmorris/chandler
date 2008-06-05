@@ -13,6 +13,7 @@ class ShutdownDialog(wx.Dialog):
         kw.setdefault('style', wx.SIMPLE_BORDER)
         
         self.view = kw.pop('rv', None)
+        showCheckbox = kw.pop('showCheckbox', True)
 
         super(ShutdownDialog, self).__init__(*args, **kw)
         
@@ -56,17 +57,21 @@ class ShutdownDialog(wx.Dialog):
         note.SetSize((ir.GetWidth(), ir.GetHeight()))
         
 
-        doBackup = getattr(self._prefs, 'backupOnQuit', True)
-        checkbox = wx.CheckBox(self, -1, "Back up data when quitting Chandler")
-        checkbox.Font = getFont(size=11.0)
-        checkbox.Value = doBackup
-        
-        self.cancel = wx.Button(self, wx.ID_CANCEL, _(u"Skip Back up"))
-        self.cancel.SetWindowVariant(wx.WINDOW_VARIANT_SMALL)
-        self.cancel.Enabled = doBackup
-        
-        checkbox.Bind(wx.EVT_CHECKBOX, self.OnCheck)
-        self.cancel.Bind(wx.EVT_BUTTON, self.OnSkipBackup)
+        if not showCheckbox:
+            checkbox = self.cancel = None
+        else:
+            doBackup = getattr(self._prefs, 'backupOnQuit', True)
+            checkbox = wx.CheckBox(self, -1,
+                                   _(u"Back up data when quitting Chandler"))
+            checkbox.Font = getFont(size=11.0)
+            checkbox.Value = doBackup
+            
+            self.cancel = wx.Button(self, wx.ID_CANCEL, _(u"Skip Back up"))
+            self.cancel.SetWindowVariant(wx.WINDOW_VARIANT_SMALL)
+            self.cancel.Enabled = doBackup
+            
+            checkbox.Bind(wx.EVT_CHECKBOX, self.OnCheck)
+            self.cancel.Bind(wx.EVT_BUTTON, self.OnSkipBackup)
         
         topSizer = wx.BoxSizer(wx.HORIZONTAL)
         topSizer.Add(bitmap, 0, wx.ALIGN_TOP|wx.TOP|wx.LEFT|wx.RIGHT, 20)
@@ -80,8 +85,10 @@ class ShutdownDialog(wx.Dialog):
         topSizer.Add(topRightSizer, 0, wx.EXPAND|wx.BOTTOM, 30)
 
         bottomSizer = wx.BoxSizer(wx.HORIZONTAL)
-        bottomSizer.Add(checkbox, 1, wx.ALIGN_BOTTOM, 0)
-        bottomSizer.Add(self.cancel, 0, wx.ALIGN_BOTTOM |wx.LEFT, 40)
+        if checkbox is not None:
+            bottomSizer.Add(checkbox, 1, wx.ALIGN_BOTTOM, 0)
+        if self.cancel is not None:
+            bottomSizer.Add(self.cancel, 0, wx.ALIGN_BOTTOM |wx.LEFT, 40)
 
         self.Sizer = wx.BoxSizer(wx.VERTICAL)
         self.Sizer.Add(topSizer, 0, wx.ALIGN_LEFT|wx.ALIGN_TOP, 0)
@@ -100,7 +107,8 @@ class ShutdownDialog(wx.Dialog):
         if 'status' in kwds:
             status = kwds['status']
             if status in (STATUS_ABORTED, STATUS_FAILED, STATUS_COMPLETE):
-                self.cancel.Enabled = False
+                if self.cancel is not None:
+                    self.cancel.Enabled = False
                 return
 
         if 'msg' in kwds:

@@ -63,7 +63,7 @@ class UpdateDialog(wx.Dialog):
 
             buttonSizer.Add(hyper, 0, wx.GROW|wx.ALIGN_LEFT|wx.LEFT, 15)
             
-        default = wx.Button(self, wx.ID_OK, u"Download")
+        default = wx.Button(self, wx.ID_OK, u"Upgrade")
         buttonSizer.AddButton(default)
         buttonSizer.AddButton(wx.Button(self, wx.ID_CANCEL, _(u"Later")))
         default.SetDefault()
@@ -81,6 +81,8 @@ class UpdateDialog(wx.Dialog):
         
         if result == wx.ID_OK:
             wx.LaunchDefaultBrowser(self.download, wx.BROWSER_NEW_WINDOW)
+            self.Hide()
+            wx.GetApp().shutdown(forceBackup=True)
 
 def parseRelease(xmlElement):
     release = None
@@ -154,7 +156,8 @@ def iterVersions(xmlData):
            if t[0] is not None: yield t
 
 class UpdateCheckTask(startup.DurableTask):
-    TEST_URL = "http://builds.osafoundation.org/chandler/test-chandler.html"
+    #TEST_URL = "http://builds.osafoundation.org/chandler/test-chandler.html"
+    TEST_URL = "http://localhost/test-chandler.html"
     MAIN_URL = "http://downloads.osafoundation.org/latest-chandler.html"
 
     stopped = schema.One(schema.Boolean, defaultValue=False)

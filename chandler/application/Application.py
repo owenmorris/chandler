@@ -1050,7 +1050,7 @@ class wxApplication (wx.App):
             self.spawnNewChandler(self.CHANDLER_RESTART_ARGS)
 
     def shutdown(self, repositoryCheck=True, repositoryCheckPoint=True,
-                 restarting=False):
+                 restarting=False, forceBackup=False):
         """
         Shuts down Chandler Services and the Repository.
 
@@ -1087,7 +1087,8 @@ class wxApplication (wx.App):
                               self.UIRepositoryView).prefs
             backup = getattr(prefs, 'backupOnQuit', True)
 
-        dialog = ShutdownDialog(self.mainFrame, -1, rv=self.UIRepositoryView)
+        dialog = ShutdownDialog(self.mainFrame, -1, rv=self.UIRepositoryView,
+                                showCheckbox=not forceBackup)
         dialog.CenterOnParent()
         dialog.Show()
         
@@ -1097,6 +1098,8 @@ class wxApplication (wx.App):
         # There's also no reason to export if we are restarting.
         if Globals.options.catch in ('tests') or restarting:
             backup = False
+        elif forceBackup:
+            backup = True
         else:
             prefs = schema.ns("osaf.app",
                               self.UIRepositoryView).prefs
