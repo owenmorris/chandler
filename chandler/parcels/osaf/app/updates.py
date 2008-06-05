@@ -156,8 +156,7 @@ def iterVersions(xmlData):
            if t[0] is not None: yield t
 
 class UpdateCheckTask(startup.DurableTask):
-    #TEST_URL = "http://builds.osafoundation.org/chandler/test-chandler.html"
-    TEST_URL = "http://localhost/test-chandler.html"
+    TEST_URL = "http://builds.osafoundation.org/chandler/test-chandler.html"
     MAIN_URL = "http://downloads.osafoundation.org/latest-chandler.html"
 
     stopped = schema.One(schema.Boolean, defaultValue=False)
