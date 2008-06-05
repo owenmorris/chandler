@@ -357,14 +357,10 @@ class wxApplication (wx.App):
             from application.dialogs.StartupOptionsDialog import StartupOptionsDialog            
             StartupOptionsDialog.run()
 
-        # Splash Screen:
-        # don't show the splash screen when nosplash is set
-        splash = None
-        if not options.nosplash:
-            splashBitmap = self.GetImage("splash.png")
-            splash = StartupSplash(None, splashBitmap)
-            splash.Show()
-            splash.Update()  # Force the window to refresh right now
+        splashBitmap = self.GetImage("splash.png")
+        splash = StartupSplash(None, splashBitmap)
+        splash.Show()
+        splash.Update()  # Force the window to refresh right now
 
         # Crypto initialization
         if splash:
@@ -403,7 +399,7 @@ class wxApplication (wx.App):
             if options.reload is not None:
                 splash.fixedMessage(_(u"Reloading collections and settings..."))
             elif (options.create or newRepo):
-                splash.fixedMessage(_(u"Constructing database..."))
+                splash.fixedMessage(_(u"Configuring data..."))
 
         # Bug 11818: Quick start guide when starting up Chandler for the
         #            first time
@@ -598,17 +594,26 @@ class wxApplication (wx.App):
         
         return True    # indicates we succeeded with initialization
 
-    def reload(self, parentWin):
-        from osaf.activity import Activity, ActivityAborted
+    def reload(self, splash):
+        from osaf.activity import Activity, ActivityAborted, Listener
         from osaf import dumpreload
         from osaf.framework.blocks.Block import Block
-        from application.dialogs import Progress
+
+        def update(activity, *args, **kwds):
+            # Can be called from any thread; will msg to main thread
+            # if need be.
+    
+            if threading.currentThread().getName() != "MainThread":
+                self.PostAsyncEvent(update, *args, **kwds)
+            else:
+                if 'msg' in kwds:
+                    splash.fixedMessage(kwds['msg'])
+                    self.Yield(True)
 
         activity = Activity(_(u"Reloading from %(path)s...") % {'path': unicode(Globals.options.reload, sys.getfilesystemencoding())})
-        # We need to assign self.mainFrame here, or else the MasterPassword
-        # dialog will potentially get upset. Probably this could be refactored
-        # -- grant.
-        self.mainFrame = Progress.Show(activity, parentWin)
+        listener = Listener(activity=activity, callback=update)
+
+        self.mainFrame = splash
         activity.started()
 
         # Don't show the timezone dialog during reload.
@@ -1488,22 +1493,22 @@ class StartupSplash(wx.Frame):
         #                    name            weight      text
         
         self.statusTable = { #L10N: Starting the SSL and password encryption services
-                            'crypto'      : ( 10, _(u"Starting cryptographic services...")),
+                            'crypto'      : ( 10, _(u"Starting encryption...")),
                             # L10N: Opening the Chandler Repository
-                            'repository'  : ( 10, _(u"Opening the database...")),
+                            'repository'  : ( 10, _(u"Opening data...")),
                             # L10N: Loading the Chandler code modules (parcels)
-                            'parcels'     : ( 15, _(u"Loading parcels...")),
-                            'twisted'     : ( 10, _(u"Starting network...")),
+                            'parcels'     : ( 15, _(u"Loading plugins...")),
+                            'twisted'     : ( 10, _(u"Starting networking...")),
                             # L10N: The main view is the core piece of UI that represents
                             #       the majority of the widgets displayed on the screen.
-                            'mainview'    : ( 10, _(u"Building the main view...")),
+                            'mainview'    : ( 10, _(u"Building application view...")),
                             # L10N: The main view is the core piece of UI that represents
                             #       the majority of the widgets displayed on the screen.
-                            'layout'      : ( 15, _(u"Laying out the main view...")),
-                            'commit'      : ( 10, _(u"Committing the database...")),
+                            'layout'      : ( 15, _(u"Building application view...")),
+                            'commit'      : ( 10, _(u"Saving changes...")),
                             # L10N: There are a number of background services that Chandler
                             #       runs for Sharing, Mail, etc
-                            'services'    : ( 10, _(u"Starting services...")),
+                            'services'    : ( 10, _(u"Starting mail and sharing...")),
                             }
 
         # Font to be used for the progress text
@@ -1537,7 +1542,7 @@ class StartupSplash(wx.Frame):
         # The progress text is in 2 parts: a text indicating the section being initialized
         # and a percent number indicating an approximate value of the total being done
         # Create the text box for the section initialized text
-        self.progressText = wx.StaticText(self, -1)
+        self.progressText = wx.StaticText(self, -1, style=wx.TE_CENTER)
         self.progressText.SetBackgroundColour(wx.WHITE)
 
         progressSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -1547,6 +1552,8 @@ class StartupSplash(wx.Frame):
         progressSizer.Add((padding, padding), 1)
         progressSizer.Add(self.progressText, 0, wx.ALIGN_CENTER_HORIZONTAL)
         self.progressText.SetFont(font)
+        self.progressText.MinSize = (self.progressWrap,
+                                     self.progressText.MinSize.height)
         self.progressText.Wrap(self.progressWrap)
 
         # Create the text box for the "%" display
@@ -1563,29 +1570,25 @@ class StartupSplash(wx.Frame):
 
         self.workingTicks = 0
         self.completedTicks = 0
-        self.message = None
         
         sizer.SetSizeHints(self)
         self.Layout()
         
     def fixedMessage(self, message):
-        self.message = message
+        self.progressText.SetLabel(message)
+        self.Update()
+        wx.GetApp().Yield(True)
 
     def updateGauge(self, type):
         self.completedTicks += self.workingTicks
         self.workingTicks = self.statusTable[type][0]
-        if self.message is None:
-            message = self.statusTable[type][1]
-        else:
-            message = self.message
-        self.progressText.SetLabel(message)
+        self.progressText.SetLabel(self.statusTable[type][1])
         percentString = u"%d%%" % self.completedTicks
         self.progressPercent.SetLabel(percentString)
         self.progressText.Wrap(self.progressWrap)
 
         self.Layout()
-        if wx.Platform == '__WXMSW__':
-            self.Update()
+        self.Update()
         wx.GetApp().Yield(True)
 
 

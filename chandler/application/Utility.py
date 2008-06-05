@@ -290,7 +290,6 @@ COMMAND_LINE_OPTIONS = {
     'locale':     ('-l', '--locale',     's', None,  None, 'Set the default locale'),
     'expand':      ('',   '--expand',      's', '0', None, 'Expands the length of localized strings by the percentage specified between 0 and 100'),
     'encrypt':    ('-S', '--encrypt',    'b', False, None, 'Request prompt for password for repository encryption'),
-    'nosplash':   ('-N', '--nosplash',   'b', False, 'CHANDLERNOSPLASH', ''),
     'logging':    ('-L', '--logging',    's', 'logging.conf',  'CHANDLERLOGCONFIG', 'The logging config file'),
     'verbose':    ('-v', '--verbose',    'b', False, None, 'Verbosity option (currently just for run_tests.py)'),
     'quiet':      ('-q', '--quiet',      'b', False, None, 'Quiet option (currently just for run_tests.py)'),
