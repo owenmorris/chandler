@@ -269,8 +269,6 @@ class Block(schema.Item):
                 root = Block.findBlockByName("MainViewRoot")
 
             for block in blocks:
-                if isDead(block):
-                    import pdb; pdb.set_trace()
                 if block.getRootBlock() == root:
                     return block
             return None
@@ -1023,6 +1021,8 @@ class BlockDispatchHook (DispatchHook):
             don't always have block counterparts, get a crack at handling events.
             """
             blockOrWidget = wx.Window_FindFocus()
+            if blockOrWidget is None:
+                blockOrWidget = getattr(theApp, '_focusForContextMenu', None)
             if blockOrWidget is None or blockOrWidget.IsTopLevel():
                 blockOrWidget = Block.findBlockByName("MainView")
             bubbleUpCallMethod (blockOrWidget, methodName, event)
@@ -1135,8 +1135,17 @@ class BaseWidget(object):
             
             # We don't display the context menus while playing back scripts because 
             # context menus block the event loop while they are up
-            if not wx.GetApp().PlaybackEventPending():
-                wx.Window.PopupMenu (menuBlock.parentBlock.widget, menu)
+            if not theApp.PlaybackEventPending():
+                # We need to stash away the current focus, because once
+                # we're processing the event, wx.Window_FindFocus() will
+                # return None. (i.e. once we have called PopupMenu). See
+                # the processing of FocusBubbleUp events, where this attribute
+                # is used.
+                theApp._focusForContextMenu = wx.Window_FindFocus()
+                try:
+                    wx.Window.PopupMenu (menuBlock.parentBlock.widget, menu)
+                finally:
+                   del theApp._focusForContextMenu
 
 # These are the mappings looked up by wxRectangularChild.CalculateWXFlag, below
 _wxFlagMappings = {

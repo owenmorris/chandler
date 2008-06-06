@@ -899,7 +899,7 @@ class wxApplication (wx.App):
         event.Skip()
 
     def OnContextMenu(self, event):
-        window = wx.FindWindowAtPointer()
+        window = event.GetEventObject()
         while window is not None:
             blockItem = getattr (window, "blockItem", None)
             if blockItem is not None:
