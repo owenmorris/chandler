@@ -37,6 +37,20 @@ class DragAndDropTextCtrl(BaseWidget,
         self.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
         self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
         self.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClick)
+        self.Bind(wx.EVT_KEY_UP, self.OnDoDelete)
+
+    def OnDoDelete(self, evt):
+        if evt.GetKeyCode() == wx.WXK_DELETE:
+            text = self
+            if text.GetChildren():
+                text = text.GetChildren()[0]
+            f, t = text.GetSelection()
+            if f == t:
+                t += 1
+            text.Remove(f, t)
+            evt.Skip(True)
+        else:
+            evt.Skip(False)
                       
     def OnMouseEvents(self, event):
         # trigger a Drag and Drop if we're a single line and all selected
