@@ -8,9 +8,10 @@ from application import schema
 
 class ShutdownDialog(wx.Dialog):
     _cancelled = False
+    DEFAULT_STYLE = wx.DOUBLE_BORDER if wx.Platform == '__WXGTK__' else wx.SIMPLE_BORDER
     
     def __init__(self, *args, **kw):
-        kw.setdefault('style', wx.SIMPLE_BORDER)
+        kw.setdefault('style', self.DEFAULT_STYLE)
         
         self.view = kw.pop('rv', None)
         showCheckbox = kw.pop('showCheckbox', True)

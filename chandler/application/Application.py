@@ -1473,6 +1473,7 @@ class TransportWrapper (object):
             return item
 
 class StartupSplash(wx.Frame):
+    DEFAULT_STYLE = wx.DOUBLE_BORDER if wx.Platform == '__WXGTK__' else wx.SIMPLE_BORDER
     def __init__(self, parent, bmp):
         padding = 7     # padding under and right of the progress percent text (in pixels)
         fontsize = 10   # font size of the progress text (in pixels)
@@ -1480,7 +1481,7 @@ class StartupSplash(wx.Frame):
         
         super(StartupSplash, self).__init__(parent=parent,
                                             title=_(u'Starting Chandler...'),
-                                            style=wx.SIMPLE_BORDER)
+                                            style=self.DEFAULT_STYLE)
         sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(sizer)
         self.CenterOnScreen()
