@@ -48,9 +48,8 @@ class DragAndDropTextCtrl(BaseWidget,
             if f == t:
                 t += 1
             text.Remove(f, t)
-            evt.Skip(True)
         else:
-            evt.Skip(False)
+            evt.Skip()
                       
     def OnMouseEvents(self, event):
         # trigger a Drag and Drop if we're a single line and all selected
