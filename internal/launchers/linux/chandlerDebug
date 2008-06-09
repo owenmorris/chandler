@@ -2,7 +2,7 @@
 
 if [ "$CHANDLERHOME" = "" ]
 then
-    CHANDLERHOME=`dirname $0`
+    CHANDLERHOME=$(dirname $(readlink -f "$0"))
 fi
 
 if [ "$CHANDLERBIN" = "" ]
