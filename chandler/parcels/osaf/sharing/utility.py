@@ -76,6 +76,7 @@ import zanshin.http
 import zanshin.error
 import zanshin.acl as acl
 import twisted.web.http as http
+from twisted.python.failure import Failure
 import xml.etree.cElementTree as ElementTree
 import M2Crypto
 

@@ -2,7 +2,7 @@ README
 ======
 
 $ cd internal/installers/deb
-$ mv /path/to/the/chandler/dir usr/local/chandler
+$ mv /path/to/the/chandler/dir usr/lib/chandler
 
 Edit the DEBIAN/control file to contain the correct version and size.
 

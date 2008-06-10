@@ -1,0 +1,107 @@
+Chandler (0.7.7.dev) gutsy; urgency=low
+
+  * Bugs fixed in this release (tracker @ http://bugzilla.osafoundation.org):
+    - Bug#11448 Improve the Upgrade experience
+    - Bug#11596 Recorded scripts TestMulti replacement fails on mac and linux
+    - Bug#11735 KeyError and Dangling Ref on when deleted events still appear in sidebar notification area after empyting trash
+    - Bug#11818 Quick start guide when starting up Chandler for the first time
+    - Bug#11844 Generate a pair of tickets when invoking Share>>Invite...
+    - Bug#11901 Discover existing tickets on a collection
+    - Bug#12012 Make "shutting down" dialog friendlier
+    - Bug#11917 Month view printouts are garbled on Windows
+    - Bug#12096 .7.6 asks to reload data from a really old backup
+    - Bug#12098 Delete key inactive in Item View opened in New Window
+    - Bug#12102 "Separate Item Window" context menu doesn't work on Linux
+    - Bug#12117 Integrate reload dialog into Splashscreen
+    - Bug#10629 some context menu items do not work in Linux
+
+ -- Grant Baillie <grant@osafoundation.org>  Mon, 10 Jun 2008 13:39:08 -0700
+
+Chandler (0.7.6) gutsy; urgency=low
+
+  * Bugs fixed in this release (tracker @ http://bugzilla.osafoundation.org):
+    - Bug#603 Chandler should notify user a software update is available
+    - Bug#6371 Support for a multiple detail view
+    - Bug#10820 Mark All As Read menu enabling, and other minor cleanup
+    - Bug#11516 Proxy dialog title cut off
+    - Bug#11575 Easy way for users to send help questions to users-list
+    - Bug#11717 Syncing published shares makes them all 'Not-Mine'
+    - Bug#11737 Simplify migration/reload when auto-exported backup.chex available
+    - Bug#11738 Rationalize Import/Export .ics menu items
+    - Bug#11815 Make default auto-sync every 15 minutes
+    - Bug#11816 Clicking "Test" in Accounts dialog can cause exceptions
+    - Bug#11842 Cancelling export deletes backup.chex
+    - Bug#11892 Detail view refuses all date changes
+    - Bug#11926 Publish to bogus account sends traceback
+    - Bug#11934 "Purge now" button should be grayed or invisible when purge is in progress
+    - Bug#11961 Typing string in QE field invoked search
+    - Bug#11983 Add the ability to Cleanup (triage) when in a search view
+    - Bug#11987 Move "Month/Week/Day" View selector back to View menu
+    - Bug#11997 Allow "Every weekday" as a recurrence option
+    - Bug#12001 Manual dump times out, puts success in status bar
+    - Bug#12011 Don't pop-up master password / tip of the day by default
+    - Bug#12013 Fix alarm icon in Dashboard
+    - Bug#12016 Make default DV 600pixels
+    - Bug#12017 Popping up separate detail auto-selects the Byline text
+    - Bug#12019 "tomorow" in task
+    - Bug#12020 Context Menu > Paste not working into note field in separate DV window
+    - Bug#12031 Enable double-click on multiweek calendar canvas
+    - Bug#12034 Main window not remaining minimized
+    - Bug#12035 Remove "Preview" from application
+    - Bug#12043 Open new window with markup bar icon
+    - Bug#12045 Update copy in Welcome Note / Tips
+    - Bug#12047 Add "Cmd/Ctrl - Shift - S" to create "New Starred Note" in Menus (File/Context)
+    - Bug#12048 By default, share Alarms when publishing/subscribing to Collections
+    - Bug#12062 Weekdays should appear before Weekly
+
+ -- Grant Baillie <grant@osafoundation.org>  Thu, 15 May 2008 14:45:53 -0700
+
+Chandler (0.7.5.1) gutsy; urgency=low
+
+  * Addresses two bugs found in 0.7.5 texting:
+    - Bug#11718 Auto Reload fails...thinks repository is already in use
+    - Bug#11916 Exception subscribing to Google Calendar
+
+ -- Grant Baillie <grant@osafoundation.org>  Wed, 26 Mar 2008 13:50:29 -0700
+
+Chandler (0.7.5) gutsy; urgency=low
+
+  * Bugs fixed in this release (tracker @ http://bugzilla.osafoundation.org):
+    - Bug#5058 Add the ability to reorder collections in the sidebar
+    - Bug#7024 Improvements to divider in the sidebar
+    - Bug#11013 Plug read-only security hole
+    - Bug#11238 Reminder popup prevents to use Chandler
+    - Bug#11239 Using delete via context menu deletes wrong user item - no indication to user
+    - Bug#11429 Re-organize the File menu
+    - Bug#10785 Tab key press doesn't end lozenge edit on Ubuntu
+    - Bug#10997 Bad dependency on tools/ dir
+    - Bug#11290 Rename Triage button
+    - Bug#11605 gtk_check_menu_item_set_active assertion
+    - Bug#11676 Added a new collection on the hub & Chandler desktop hung
+    - Bug#11678 make the links in the 'Tip of the day' clickable
+    - Bug#11684 Add "Show Tips" to the Help menu
+    - Bug#11689 Chandler crashed on linux with X window System error
+    - Bug#11705 Need to be able to tell if a reflist attribute has been deleted or not
+    - Bug#11729 Generate items from dialog
+    - Bug#11770 Strip down UI
+    - Bug#11771 Change task stamp to star stamp
+    - Bug#11772 Fill-in OOTB items
+    - Bug#11783 Traceback when making 'Future' edit on recurring series
+    - Bug#11814 Change hint text in quick entry bar to: Create a new note
+    - Bug#11819 Leopard Desktop releases show "Python" not "Chandler" for name
+    - Bug#11823 Couldn't migrate 0.7.3 to 0.7.4 on MacOSX
+    - Bug#11831 German translation's key-bindings (at least on Mac) are bad
+    - Bug#11836 Change Copy URLs to Clipboard text to...
+    - Bug#11838 Language Switch doesn't work
+    - Bug#11880 Disallow adding read-only items to other collections
+    - Bug#11884 Better sharing error messaging
+    - Bug#11887 Exception changing visible hours in multiweek (month) view
+    - Bug#11900 Change View>>Triage to View>>Clean up
+    - Bug#11903 Traceback after upgrading
+    - Bug#11911 D-click to mark item as 2-triage statuses away
+    - Bug#11914 Drags to read-only collections succeed
+    - Bug#11919 Can't cancel publishing a collection
+    - Bug#11954 Re-order collection doesn't work: application Internal Program Error
+
+ -- Grant Baillie <grant@osafoundation.org>  Thu, 15 May 2008 14:45:53 -0700
+

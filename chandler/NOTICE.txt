@@ -561,7 +561,7 @@ external/pylint
     #
     # You should have received a copy of the GNU General Public License along with
     # this program; if not, write to the Free Software Foundation, Inc.,
-    # 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+    # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 
 external/pylint/astng
@@ -577,8 +577,7 @@ external/pylint/astng
     #
     # You should have received a copy of the GNU General Public License along with
     # this program; if not, write to the Free Software Foundation, Inc.,
-    # 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
+    # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 external/pylint/common
 
@@ -593,7 +592,7 @@ external/pylint/common
     #
     # You should have received a copy of the GNU General Public License along with
     # this program; if not, write to the Free Software Foundation, Inc.,
-    # 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+    # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
     """ Copyright (c) 2000-2002 LOGILAB S.A. (Paris, FRANCE).
      http://www.logilab.fr/ -- mailto:contact@logilab.fr
  
@@ -723,8 +722,8 @@ external/readline (OS X)
 
        The GNU General Public License is often shipped with GNU software, and
        is generally kept in a file called COPYING or LICENSE.  If you do not
-       have a copy of the license, write to the Free Software Foundation,
-       59 Temple Place, Suite 330, Boston, MA 02111 USA. */
+       have a copy of the license, write to the Free Software Foundation, Inc.,
+       51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA. */
 
 
 external/twisted
@@ -866,8 +865,8 @@ external/wx
 
     You should have received a copy of the GNU Library General Public Licence
     along with this software, usually in a file named COPYING.LIB.  If not,
-    write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
-    Boston, MA 02111-1307 USA.
+    write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
+    Boston, MA 02110-1301, USA.
 
     EXCEPTION NOTICE
 
