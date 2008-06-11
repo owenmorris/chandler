@@ -727,7 +727,7 @@ def kindToMessageObject(mailStamp):
         # don't use method REQUEST because it will cause Apple iCal to treat
         # the ics attachment as iMIP
         calendar.add('method').value="PUBLISH"
-        ics = calendar.serialize().encode('utf-8')
+        ics = calendar.serialize() # returns a UTF-8 encoded str
 
         # Attach the ICalendar object
         icsPayload = MIMEBase64Encode(ics, 'text', 'calendar', method='PUBLISH')

@@ -119,7 +119,7 @@ class sidebar(FUSE):
                             return False
 
                         cal = ICalendar.itemsToVObject(self.view, c)
-                        data = cal.serialize().encode('utf-8')
+                        data = cal.serialize()
                         self.openFiles[path] = [data, 1, flags]
                         return True
 
