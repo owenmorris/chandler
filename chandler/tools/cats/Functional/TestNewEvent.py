@@ -85,7 +85,7 @@ class TestNewEvent(ChandlerTestCase):
             CalendarLocation=(True, uw("Club101")),
             EditTransparency=(True, "FYI"),
             NotesBlock=(True, uw("This is a birthday party invitation")),
-            EditTimeZone=(False, "Floating")) # Not visible with timezones off
+            EditTimeZone=(False, "None")) # Not visible with timezones off
     
         # Toggle allday, then make sure the right changes happened.
         event.SetAttr("Setting allDay", allDay=True)    

@@ -1118,7 +1118,12 @@ class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
         if True: # existingValue != value or control.GetCount() != (isEvent and 4 or 2):
             # rebuild the list of choices
             control.Clear()
-            control.Append(_(u"None"), 'none')
+            # L10N: Entry in the 'alarm' drop-down menu in the detail view
+            # L10N: when an item has no alarm. In English, this is translated
+            # L10N: as "None", but I didn't want to use "None" in a msgid
+            # L10N: because that could be used in other contexts (e.g. the
+            # L10N: "timezone" dropdown).
+            control.Append(_(u"None (alarm)"), 'none')
             if isEvent:
                 control.Append(_(u"Before event"), 'before')
                 control.Append(_(u"After event"), 'after')

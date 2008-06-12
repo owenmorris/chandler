@@ -179,7 +179,13 @@ class TimeZoneInfo(schema.Item):
                 yield (ChandlerMessageFactory(name), tzinfo)
 
         if withFloating:
-            yield ChandlerMessageFactory(u"Floating"), floating
+            # L10N: Entry in the 'timezone' drop-down menu in the detail view
+            # L10N: when an event has no time zone (also known as "Floating"
+            # L10N: time). In English, this is translated as "None", but I
+            # L10N: didn't want to use "None" in a msgid because that could
+            # L10N: be used in other context (e.g. "alarm" dropdown).
+            _ = ChandlerMessageFactory # we want this translated
+            yield _(u"None (timezone)"), floating
 
 
 class TZPrefs(Preferences):
