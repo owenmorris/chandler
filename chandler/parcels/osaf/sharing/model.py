@@ -223,6 +223,10 @@ class MailMessageRecord(eim.Record):
 
 # From here on down, the record types are not shared with Cosmo  ----------
 
+class ClientIDRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/application/client_id/0"
+    clientID = eim.field(eim.BytesType(size=64))
+
 class PrivateItemRecord(eim.Record):
     URI = "http://osafoundation.org/eim/pim/private/0"
     uuid = eim.key(ItemRecord.uuid)
@@ -562,3 +566,10 @@ class ApplicationPrefsRecord(eim.Record):
     
     showTip = eim.field(eim.IntType, default=1) # 0 = False, 1 = True    
     tipIndex = eim.field(eim.IntType, default=0)
+
+class UpdateCheckPrefsRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/preferences/updates/0"
+    
+    numDays = eim.field(eim.IntType)
+    
+    

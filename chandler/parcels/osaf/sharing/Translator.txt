@@ -690,7 +690,7 @@ The following are covered in TestDumpReload.py:
 
 MailAccountRecord, IMAPAccountFoldersRecord, SMTPAccountRecord,
 SMTPAccountQueueRecord, IMAPAccountRecord, POPAccountRecord,
-IMAPFolderRecord, MailPrefsRecord
+IMAPFolderRecord, MailPrefsRecord, UpdateCheckPrefsRecord, ClientIDRecord
 
 
 

@@ -534,6 +534,7 @@ class MainView(View):
         elif event.interval == zero:
             task.run_once(inform_user=True)
         else:
+            task.stopped = False
             task.reschedule(interval=event.interval)
 
     def onTestUpdateCheckEvent(self, event):

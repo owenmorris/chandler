@@ -22,6 +22,7 @@ from osaf import pim, messages, startup, sharing, preferences
 from osaf.framework import scripting, password
 from osaf.framework.blocks.calendar import CalendarUtility
 from osaf.usercollections import UserCollection
+import hashlib
 
 class ApplicationPrefs(preferences.Preferences):
     isOnline = schema.One(schema.Boolean, defaultValue=True)
@@ -43,6 +44,16 @@ class ApplicationPrefs(preferences.Preferences):
         doc = 'Index of tip of the day to show.'
     )
 
+class ClientIdentifier(pim.ContentItem):
+    clientID = schema.One(
+        schema.Bytes,
+        doc='Used to identify different running instances of Chandler'
+    )
+    
+    schema.initialValues(clientID=lambda self:
+        hashlib.sha256(self.itsUUID.str16()).hexdigest()
+    )
+
 
 def installParcel(parcel, oldVersion=None):
 
@@ -51,6 +62,8 @@ def installParcel(parcel, oldVersion=None):
 
     pim_ns = schema.ns('osaf.pim', parcel)
     sharing_ns = schema.ns('osaf.sharing', parcel)
+    
+    ClientIdentifier.update(parcel, 'clientID')
 
     ApplicationPrefs.update(parcel, 'prefs')
 
@@ -746,8 +759,14 @@ u"""Directions...
     newScript.set_file(u"PasteNewItem.py", Scripts.__file__)
 
     from osaf.app import updates
-    updates.UpdateCheckTask.update(parcel, 'updateCheckTask',
-                                   interval=datetime.timedelta(days=7))
+    
+    # Subtract 15 minutes from lastRun so that in a week's
+    # time we don't conflict with the "compact" trask.
+    updates.UpdateCheckTask.update(
+        parcel, 'updateCheckTask',
+        interval=datetime.timedelta(days=1),
+        lastRun=datetime.datetime.now() - datetime.timedelta(minutes=15)
+    )
 
     # Compact task should come last
     from osaf.app import compact

@@ -165,7 +165,9 @@ class UpdateCheckTask(startup.DurableTask):
         return lambda task: task
 
     def run(self, inform_user=False, url=MAIN_URL):
-        d = sharing.getPage(self.itsView, url)
+        clientID = schema.ns("osaf.app", self.itsView).clientID.clientID
+        d = sharing.getPage(self.itsView, url,
+                            **{'X-OSAF-Client-ID': clientID})
         
         d.addCallback(
             self._gotData, url, inform_user
@@ -179,8 +181,8 @@ class UpdateCheckTask(startup.DurableTask):
         super(UpdateCheckTask, self).stop()
 
     def reschedule(self, *args, **kw):
-        if self.stopped: del self.stopped
-        super(UpdateCheckTask, self).reschedule(*args, **kw)
+        if not self.stopped:
+            super(UpdateCheckTask, self).reschedule(*args, **kw)
 
     def _showDialog(self, release, download, announcement, feature):
         dialog = UpdateDialog(release, download, announcement, feature)

@@ -920,6 +920,16 @@ class SharingTranslator(eim.Translator):
             salt=record.salt,
         )
 
+    @model.PasswordRecord.importer
+    def import_password(self, record):
+        self.withItemForUUID(
+            record.uuid,
+            Password,
+            ciphertext=record.ciphertext,
+            iv=record.iv,
+            salt=record.salt,
+        )
+
     @eim.exporter(Password)
     def export_password(self, password):
 
@@ -969,6 +979,40 @@ class SharingTranslator(eim.Translator):
                                         protect)
         for record in self.export_password(dummyPassword):
             yield record
+
+    # ClientIDRecord
+    @model.ClientIDRecord.importer
+    def import_client_id(self, record):
+        client_id = schema.ns("osaf.app", self.rv).clientID
+        client_id.clientID = record.clientID
+        
+    # Called from finishExport()
+    def export_client_id(self):
+        client_id = schema.ns("osaf.app", self.rv).clientID
+        yield model.ClientIDRecord(client_id.clientID)
+        
+
+    # UpdateCheckPrefsRecord
+    @model.UpdateCheckPrefsRecord.importer
+    def import_update_prefs(self, record):
+        updateTask = schema.ns("osaf.app", self.rv).updateCheckTask
+        if record.numDays < 0:
+            updateTask.stop()
+        else:
+            interval = timedelta(days=record.numDays)
+            updateTask.stopped = False
+            if updateTask.interval != interval:
+                updateTask.reschedule(interval)
+
+    # Called from finishExport()
+    def export_update_prefs(self):
+        updateTask = schema.ns("osaf.app", self.rv).updateCheckTask
+        if updateTask.stopped:
+            numDays = -1
+        else:
+            numDays = updateTask.interval.days
+        yield model.UpdateCheckPrefsRecord(numDays)
+
 
     #MailMessageRecord
     @model.MailMessageRecord.importer
@@ -2893,9 +2937,6 @@ class DumpTranslator(SharingTranslator):
         yield model.SharePrefsRecord(1 if prefs.isOnline else 0)
 
 
-
-
-
     # - - Finishing up - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     def finishImport(self):
@@ -2947,6 +2988,15 @@ class DumpTranslator(SharingTranslator):
             # application prefs
             for record in self.export_application_prefs():
                 yield record
+
+            # update prefs
+            for record in self.export_update_prefs():
+                yield record
+
+            # client id
+            for record in self.export_client_id():
+                yield record
+
 
 
 def test_suite():
