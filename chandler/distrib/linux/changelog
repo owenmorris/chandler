@@ -1,19 +1,24 @@
 Chandler (0.7.7.dev) gutsy; urgency=low
 
   * Bugs fixed in this release (tracker @ http://bugzilla.osafoundation.org):
-    - Bug#11448 Improve the Upgrade experience
-    - Bug#11596 Recorded scripts TestMulti replacement fails on mac and linux
-    - Bug#11735 KeyError and Dangling Ref on when deleted events still appear in sidebar notification area after empyting trash
-    - Bug#11818 Quick start guide when starting up Chandler for the first time
-    - Bug#11844 Generate a pair of tickets when invoking Share>>Invite...
-    - Bug#11901 Discover existing tickets on a collection
-    - Bug#12012 Make "shutting down" dialog friendlier
-    - Bug#11917 Month view printouts are garbled on Windows
-    - Bug#12096 .7.6 asks to reload data from a really old backup
-    - Bug#12098 Delete key inactive in Item View opened in New Window
-    - Bug#12102 "Separate Item Window" context menu doesn't work on Linux
-    - Bug#12117 Integrate reload dialog into Splashscreen
-    - Bug#10629 some context menu items do not work in Linux
+     - Bug#10629 some context menu items do not work in Linux
+     - Bug#11448 Improve the Upgrade experience
+     - Bug#11596 Recorded scripts TestMulti replacement fails on mac and linux
+     - Bug#11735 KeyError and Dangling Ref on when deleted events still appear in sidebar notification area after empyting trash
+     - Bug#11740 .deb MUST NOT install to /usr/local
+     - Bug#11741 .deb has numerous errors
+     - Bug#11818 Quick start guide when starting up Chandler for the first time
+     - Bug#11844 Generate a pair of tickets when invoking Share>>Invite...
+     - Bug#11901 Discover existing tickets on a collection
+     - Bug#11917 Month view printouts are garbled on Windows
+     - Bug#12012 Make "shutting down" dialog friendlier
+     - Bug#12052 Change "Floating" time zone to "None"
+     - Bug#12096 .7.6 asks to reload data from a really old backup
+     - Bug#12097 Update new-chandler-check frequency to daily
+     - Bug#12098 Delete key inactive in Item View opened in New Window
+     - Bug#12102 "Separate Item Window" context menu doesn't work on Linux
+     - Bug#12117 Integrate reload dialog into Splashscreen
+     - Bug#12148 Error sending email of recurring event that has a lot of edits 
 
  -- Grant Baillie <grant@osafoundation.org>  Mon, 10 Jun 2008 13:39:08 -0700
 
