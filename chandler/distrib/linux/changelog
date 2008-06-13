@@ -18,9 +18,10 @@ Chandler (0.7.7.dev) gutsy; urgency=low
      - Bug#12098 Delete key inactive in Item View opened in New Window
      - Bug#12102 "Separate Item Window" context menu doesn't work on Linux
      - Bug#12117 Integrate reload dialog into Splashscreen
-     - Bug#12148 Error sending email of recurring event that has a lot of edits 
+     - Bug#12148 Error sending email of recurring event that has a lot of edits
+     - Bug#12157 InstallPlugin not installed
 
- -- Grant Baillie <grant@osafoundation.org>  Mon, 10 Jun 2008 13:39:08 -0700
+ -- Grant Baillie <grant@osafoundation.org>  Fri 13 Jun 2008 10:45:49 -0700
 
 Chandler (0.7.6) gutsy; urgency=low
 
