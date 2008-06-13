@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>ChandlerApp</string>
 	<key>CFBundleGetInfoString</key>
-	<string>Chandler 0.7.7.dev from the Open Source Applications Foundation</string>
+	<string>Chandler 1.0.dev from the Open Source Applications Foundation</string>
 	<key>CFBundleIconFile</key>
 	<string>Chandler.icns</string>
 	<key>CFBundleInfoDictionaryVersion</key>
