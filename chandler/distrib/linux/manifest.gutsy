@@ -77,6 +77,8 @@ chandler
 src=chandler/release
 dest=release
 RunPython
+# InstallPlugin script
+InstallPlugin
 
 # Grab localization eggs
 src=chandler/plugins

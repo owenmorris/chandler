@@ -78,6 +78,8 @@ chandlerDebug
 src=chandler/debug
 dest=debug
 RunPython
+# InstallPlugin script
+InstallPlugin
 
 # Grab localization eggs
 src=chandler/plugins

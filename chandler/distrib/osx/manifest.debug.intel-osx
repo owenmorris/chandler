@@ -107,6 +107,8 @@ ChandlerApp
 src=chandler/debug
 dest=Contents/Resources/debug
 RunPython
+# InstallPlugin script
+InstallPlugin
 
 src=chandler/debug/Library/Frameworks/Python.framework
 dest=Contents/Resources/Library/Frameworks/Python.framework

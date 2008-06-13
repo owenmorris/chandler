@@ -116,6 +116,8 @@ pythonw_d.exe.manifest
 src=chandler/debug
 dest=debug
 RunPython.bat
+# InstallPlugin script
+InstallPlugin.bat
 
 # Grab localization eggs
 src=chandler/plugins

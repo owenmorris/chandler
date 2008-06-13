@@ -95,6 +95,8 @@ ChandlerApp
 src=chandler/release
 dest=Contents/Resources/release
 RunPython
+# InstallPlugin script
+InstallPlugin
 
 # Grab localization eggs
 src=chandler/plugins
