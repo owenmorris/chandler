@@ -166,8 +166,8 @@ class UpdateCheckTask(startup.DurableTask):
 
     def run(self, inform_user=False, url=MAIN_URL):
         clientID = schema.ns("osaf.app", self.itsView).clientID.clientID
-        d = sharing.getPage(self.itsView, url,
-                            **{'X-OSAF-Client-ID': clientID})
+        url = "%s?client_id=%s" % (url, clientID)
+        d = sharing.getPage(self.itsView, url)
         
         d.addCallback(
             self._gotData, url, inform_user
