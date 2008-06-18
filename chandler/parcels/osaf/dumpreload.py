@@ -144,9 +144,9 @@ def dump(rv, path, uuids=None, serializer=PickleSerializer,
     try:
         with os.fdopen(fd, 'wb') as output:
             dump = serializer.dumper(output)
+            count = len(aliases)
 
             if activity is not None:
-                count = len(aliases)
                 activity.update(msg=_(u"Exporting %(total)d items") % {'total':count}, totalWork=count)
 
             recordCount = 0
