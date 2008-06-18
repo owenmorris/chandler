@@ -147,25 +147,25 @@ def dump(rv, path, uuids=None, serializer=PickleSerializer,
 
             if activity is not None:
                 count = len(aliases)
-                activity.update(msg=_(u"Exporting %(total)d records") % {'total':count}, totalWork=count)
+                activity.update(msg=_(u"Exporting %(total)d items") % {'total':count}, totalWork=count)
 
-            i = 0
+            recordCount = 0
             for alias in aliases:
                 uuid = trans.getUUIDForAlias(alias)
                 item = rv.findUUID(uuid)
                 for record in trans.exportItem(item):
+                    recordCount += 1
                     dump(record)
-                i += 1
                 if activity is not None:
-                    activity.update(msg=_(u"Exported %(number)d of %(total)d items") % \
-                                    {'number':i, 'total':count}, work=1)
+                    activity.update(msg=_(u"Exported %(number)d records") % \
+                                    {'number':recordCount}, work=1)
 
             if activity is not None:
                 activity.update(totalWork=None) # we don't know upcoming total work
 
             for record in trans.finishExport():
                 if activity is not None:
-                    count += 1
+                    recordCount += 1
                     activity.update(msg=_(u"Exporting additional record..."))
 
                 dump(record)
@@ -173,8 +173,9 @@ def dump(rv, path, uuids=None, serializer=PickleSerializer,
             dump(None)
             del dump
 
+        logger.info("Exported %d records from %d items", recordCount, count)
         if activity is not None:
-            activity.update(msg=_(u"Exported %(total)d records") % {'total':count})
+            activity.update(msg=_(u"Exported %(total)d records") % {'total':recordCount})
 
         # Next, remove the .temp from the filename. This means that
         # we have a complete, recoverable .chex file on disk (yay).
@@ -256,6 +257,8 @@ def reload(rv, filename, serializer=PickleSerializer, activity=None,
                 if activity is not None:
                     activity.update(msg=_(u"Saving..."))
                 rv.commit()
+
+        logger.info("Imported %d records", i)
 
         del load
     finally:
