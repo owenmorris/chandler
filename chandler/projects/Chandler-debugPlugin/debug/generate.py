@@ -26,7 +26,10 @@ import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim import Modification
 import osaf.pim.mail as Mail
 import i18n
-from i18n.tests import uw
+try:
+    from i18n.tests import uw
+except ImportError:
+    uw = lambda _:_ # make uw a no-op
 from application import schema
 
 TEST_I18N = i18n.getLocaleSet() and 'test' in i18n.getLocaleSet()
