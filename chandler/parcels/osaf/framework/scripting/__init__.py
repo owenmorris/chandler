@@ -24,7 +24,7 @@ from osaf.usercollections import UserCollection
 from i18n import ChandlerMessageFactory as _
 
 # these are all the sub-modules that come together here
-from script import cats_profiler, hotkey_script, \
+from script import cats_profiler, \
      run_script_with_symbols, run_startup_script_with_symbols, \
      Script, script_file
 import User
@@ -41,7 +41,7 @@ This is the main module for scripting, and ties in multiple scripting components
 
 
 __all__ = [
-    'app_ns', 'cats_profiler', 'hotkey_script',
+    'app_ns', 'cats_profiler',
     'run_script', 'run_startup_script', 'Script', 'script_file',
     'User'
 ]

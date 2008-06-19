@@ -262,7 +262,6 @@ COMMAND_LINE_OPTIONS = {
     'pluginPath': (''  , '--pluginPath', 's', 'plugins',  None, 'Plugin search path, relative to CHANDLERHOME and PROFILEDIR'),
     'webserver':  ('-W', '--webserver',  'v', [], 'CHANDLERWEBSERVER', 'Activate the built-in webserver'),
     'profileDir': ('-P', '--profileDir', 's', '',  'PROFILEDIR', 'location of the Chandler user profile directory (relative to CHANDLERHOME)'),
-    'testScripts':('-t', '--testScripts','b', False, None, 'run all test scripts'),
     'scriptFile': ('-f', '--scriptFile', 's', None,  None, 'script file to execute after startup'),
     'chandlerTests': ('', '--chandlerTests', 's', None, None, 'file:TestClass,file2:TestClass2 to be executed by new framework'),
     'chandlerTestSuite': ('-T', '--chandlerTestSuite', 'b', False, None, 'run the functional test suite'),

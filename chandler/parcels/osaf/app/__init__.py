@@ -19,7 +19,7 @@ from application import schema, Globals
 from application.Parcel import Reference
 from i18n import ChandlerMessageFactory as _
 from osaf import pim, messages, startup, sharing, preferences
-from osaf.framework import scripting, password
+from osaf.framework import password
 from osaf.framework.blocks.calendar import CalendarUtility
 from osaf.usercollections import UserCollection
 import hashlib
@@ -56,9 +56,6 @@ class ClientIdentifier(pim.ContentItem):
 
 
 def installParcel(parcel, oldVersion=None):
-
-    import scripts as Scripts
-    from osaf.framework import scripting
 
     pim_ns = schema.ns('osaf.pim', parcel)
     sharing_ns = schema.ns('osaf.sharing', parcel)
@@ -689,74 +686,6 @@ u"""Directions...
             ),
         ]
     )
-
-    """
-    Scripts.  These files are located in our Scripts parcel.
-    """
-    # Script to create a new user script item
-    newScript = scripting.Script.update(parcel, 'New Script',
-                                        displayName=_(u"F1 - Create a new script"),
-                                        fkey= u"F1",
-                                        creator = osafDev
-                                        )
-    newScript.set_file(u"NewScript.py", Scripts.__file__)
-
-    # Block Inspector
-    scripting.Script.update(parcel, 'Block Inspector',
-                            displayName=_(u"F2 - Block under cursor"),
-                            fkey= u"F2",
-                            creator = osafDev, body=scripting.script_file(u"BlockInspector.py", Scripts.__file__)
-                            )
-
-    # Item Inspector
-    scripting.Script.update(parcel, 'Item Inspector',
-                            displayName=_(u"F3 - Item selected"),
-                            fkey= u"F3",
-                            creator = osafDev,
-                            body=scripting.script_file(u"ItemInspector.py", Scripts.__file__)
-                            )
-
-    # Browse selected item
-    scripting.Script.update(parcel, 'Browse Selected',
-                            displayName=_(u"F4 - Browse selected item"),
-                            fkey= u"F4",
-                            creator = osafDev,
-                            body=scripting.script_file(u"BrowseSelected.py", Scripts.__file__)
-                            )
-
-    scripting.Script.update(parcel, 'Event Timing',
-                            displayName=_(u"Test - Event timing example"),
-                            test=True,
-                            creator = osafDev,
-                            body=scripting.script_file(u"EventTiming.py", Scripts.__file__)
-                            )
-
-    # The cleanup script, run after all the test scripts
-    scripting.Script.update(parcel, 'CleanupAfterTests',
-                            displayName=_(u"Clean up after tests"),
-                            creator = osafDev,
-                            body=scripting.script_file(u"CleanupAfterTests.py", Scripts.__file__)
-                            )
-
-    #
-    # F5 reserved for triage
-    #
-
-    # Print selected item to stdout
-    scripting.Script.update(parcel, 'Print Selected to stdout',
-                            displayName=_(u"F6 - Print selected item to stdout"),
-                            fkey= u"F6",
-                            creator = osafDev,
-                            body=scripting.script_file(u"StdoutSelected.py", Scripts.__file__)
-                            )
-
-    # Script to paste the clipboard into a new menu item
-    newScript = scripting.Script.update(parcel, 'Paste New Item',
-                                        displayName=_(u"F7 - Paste new item"),
-                                        fkey= u"F7",
-                                        creator = osafDev
-                                        )
-    newScript.set_file(u"PasteNewItem.py", Scripts.__file__)
 
     from osaf.app import updates
     

@@ -31,8 +31,7 @@ script is, and provides some basic functions for running them.
 """
 
 __all__ = [
-    'cats_profiler', 'hotkey_script',
-    'Script', 'script_file'
+    'cats_profiler', 'Script', 'script_file'
 ]
 
 class Script(pim.ContentItem):
@@ -185,38 +184,6 @@ def run_script_with_symbols(scriptText, fileName=u"", profiler=None, builtIns=No
         raise            
 
 
-def hotkey_script(event, view):
-    """
-    Check if the event is a hot key to run a script.
-    Returns True if it does trigger a script to run, False otherwise.
-    """
-    keycode = event.GetKeyCode()
-    # for now, we just allow function keys to be hot keys.
-    if (wx.WXK_F1 <= keycode <= wx.WXK_F24
-            and not event.AltDown()
-            and not event.CmdDown()
-            and not event.ControlDown()
-            and not event.MetaDown()
-            and not event.ShiftDown()):
-        # try to find the corresponding Script
-        targetFKey = u"F%(FunctionKeyNumber)s" % {'FunctionKeyNumber':unicode(keycode-wx.WXK_F1+1)}
-
-        # maybe we have an existing script?
-        script = _findHotKeyScript(targetFKey, view)
-        if script:
-            wx.CallAfter(script.execute)
-            return True
-
-    # not a hot key
-    return False
-
-def _findHotKeyScript(targetFKey, view):
-    # find a script that starts with the given name
-    for aScript in Script.iterItems(view):
-        if aScript.fkey == targetFKey:
-            return aScript
-    return None
-
 def run_startup_script_with_symbols(view, builtIns):
     # On Linux at the time we reach this point the screen has not
     # been updated, i.e. drawn -- and when the screen isn't drawn
@@ -230,14 +197,6 @@ def run_startup_script_with_symbols(view, builtIns):
     app.Yield(True)
 
     global global_cats_profiler
-    if Globals.options.testScripts:
-        try:
-            for aScript in Script.iterItems(view):
-                if aScript.test:
-                    aScript.execute()
-        finally:
-            # run the cleanup script
-            schema.ns('osaf.app', view).CleanupAfterTests.execute()
 
     # Execute new framework if chandlerTests option is called
     

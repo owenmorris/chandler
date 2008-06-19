@@ -21,7 +21,6 @@ from debug.DebugMenu import makeDebugMenu
 from debug.MeMenu import makeMeMenu
 from debug.SharingMenu import makeSharingMenu
 
-
 def installParcel(parcel, version=None):
 
     toolsMenu = schema.ns('osaf.views.main', parcel).ToolsMenu
@@ -48,3 +47,5 @@ def installParcel(parcel, version=None):
                     parentBlock=sharingMenu)
 
     makeSharingMenu(parcel, sharingMenu)
+
+    schema.parcel_for_module("debug.scripts", parcel.itsView)

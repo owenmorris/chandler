@@ -29,26 +29,6 @@ repository view, ``rv``::
     >>> from chandlerdb.persistence.RepositoryView import NullRepositoryView
     >>> rv = NullRepositoryView()
 
-Use hotkey_script to run a script in response to a function key pressed.
-Normally the event would come in to your key event handler.  For testing
-purposes, we'll just create a key event.  Only F-keys can be hot keys.
-If a script is found whose fkey attribute is "Fx" where x is the
-number of the F-key pressed, True will be returned, and the script will be
-executed.  Otherwise False is returned and your event handler should
-call the event's Skip() method to keep looking for a handler::
-
-    >>> import wx
-    >>> event = wx.KeyEvent() 
-    >>> print Scripting.hotkey_script(event, view=rv)
-    False
-
-There is an APIs to run scripts based on options passed in to Chandler
-on the command line.  It checks the global options for a script to run.
-There's also an option to run the test scripts at Chandler 
-startup.  The test scripts any script that has True in its "test" attribute.
-Some day we'll launch Chandler here, so we can test these features.
-
-
 script_file function
 --------------------
 The script_file function makes it easy to read in the text of a script
@@ -59,7 +39,7 @@ to pass in a complete path, using __file__, and then read the
 sibling from the same directory the sibling is in.  We use this
 to bring scripts in to our application from the "scripts" directory::
 
-    >>> import osaf.app.scripts as Scripts
+    >>> import debug.scripts as Scripts
     >>> script_text = Scripting.script_file(u"NewScript.py", Scripts.__file__)
     >>> "Script" in script_text
     True

@@ -432,7 +432,6 @@ class wxApplication (wx.App):
         self.Bind(wx.EVT_UPDATE_UI, self.OnCommand, id=-1)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroyWindow, id=-1)
         self.Bind(wx.EVT_SHOW, self.OnShow, id=-1)
-        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
 
         # The Twisted Reactor should be started before other Managers
@@ -1024,13 +1023,6 @@ class wxApplication (wx.App):
         event.Skip()
 
     StartupScriptDone = False
-
-    def OnKeyDown(self, event):
-        import osaf.framework.scripting as Scripting
-        if Scripting.hotkey_script(event, self.UIRepositoryView):
-            pass # consume the keystroke (the script is now running)
-        else:
-            event.Skip() # pass the key along to another widget
 
     def OnExit(self):
         """
