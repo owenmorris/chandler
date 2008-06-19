@@ -17,7 +17,7 @@ from setuptools import setup
 
 setup(
     name = "Chandler-debugPlugin",
-    version = "0.7.5",
+    version = "1.0.dev",
     description = "Debugging and Test Tools for Chandler",
     author = "OSAF",
     test_suite = "tests",
