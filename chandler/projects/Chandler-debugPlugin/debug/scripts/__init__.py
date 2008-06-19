@@ -25,15 +25,15 @@ def installParcel(parcel, oldVersion=None):
     newScript = scripting.Script.update(parcel, 'New Script',
                                         displayName=u"Shift+F1 - Create a new script",
                                         fkey= u"F1",
-                                        creator = osafDev
+                                        creator = osafDev,
+                                        body=scripting.script_file(u"NewScript.py", __name__)
                                         )
-    newScript.set_file(u"NewScript.py", __file__)
 
     # Block Inspector
     scripting.Script.update(parcel, 'Block Inspector',
                             displayName=u"Shift+F2 - Block under cursor",
                             fkey= u"F2",
-                            creator = osafDev, body=scripting.script_file(u"BlockInspector.py", __file__)
+                            creator = osafDev, body=scripting.script_file(u"BlockInspector.py", __name__)
                             )
 
     # Item Inspector
@@ -41,7 +41,7 @@ def installParcel(parcel, oldVersion=None):
                             displayName=u"Shift+F3 - Item selected",
                             fkey= u"F3",
                             creator = osafDev,
-                            body=scripting.script_file(u"ItemInspector.py", __file__)
+                            body=scripting.script_file(u"ItemInspector.py", __name__)
                             )
 
     # Browse selected item
@@ -49,14 +49,14 @@ def installParcel(parcel, oldVersion=None):
                             displayName=u"Shift+F4 - Browse selected item",
                             fkey= u"F4",
                             creator = osafDev,
-                            body=scripting.script_file(u"BrowseSelected.py", __file__)
+                            body=scripting.script_file(u"BrowseSelected.py", __name__)
                             )
 
     scripting.Script.update(parcel, 'Event Timing',
                             displayName=u"Test - Event timing example",
                             test=True,
                             creator = osafDev,
-                            body=scripting.script_file(u"EventTiming.py", __file__)
+                            body=scripting.script_file(u"EventTiming.py", __name__)
                             )
 
     #
@@ -68,16 +68,16 @@ def installParcel(parcel, oldVersion=None):
                             displayName=u"Shift+F6 - Print selected item to stdout",
                             fkey= u"F6",
                             creator = osafDev,
-                            body=scripting.script_file(u"StdoutSelected.py", __file__)
+                            body=scripting.script_file(u"StdoutSelected.py", __name__)
                             )
 
     # Script to paste the clipboard into a new menu item
     newScript = scripting.Script.update(parcel, 'Paste New Item',
                                         displayName=u"Shift+F7 - Paste new item",
                                         fkey= u"F7",
-                                        creator = osafDev
+                                        creator = osafDev,
+                                        body=scripting.script_file(u"PasteNewItem.py", __name__)
                                         )
-    newScript.set_file(u"PasteNewItem.py", __file__)
 
     startup.Startup.update(parcel, "installKeyHandler",
         invoke=__name__ + ".installKeyHandler"

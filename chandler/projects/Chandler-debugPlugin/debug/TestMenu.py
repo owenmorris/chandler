@@ -23,7 +23,7 @@ from debug.generate import GenerateAllItems
 from debug.GenerateItemsFromFile import GenerateItems
 from debug.mail import loadMailTests
 from wx import xrc
-import generate_dialog.ItemGenerator as itemGenerator
+import debug.generate_dialog.ItemGenerator as itemGenerator
 
 _ = MessageFactory("Chandler-debugPlugin")
 

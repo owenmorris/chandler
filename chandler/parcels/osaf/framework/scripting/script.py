@@ -23,6 +23,7 @@ from osaf import pim
 from osaf import messages
 from i18n import ChandlerMessageFactory as _
 from datetime import datetime
+import pkg_resources
 import os, sys
 
 """
@@ -250,21 +251,33 @@ global_cats_profiler = None # remember the CATS profiler here
 def cats_profiler():
     return global_cats_profiler
 
-def script_file(fileName, siblingPath=None):
+def script_file(fileName, module=None):
     """
     Return the script from the file, given a file name
-    and a path to a sibling file.
+    and optionally a python module where the file (resource)
+    can be located.
+    
+    @param fileName: Either a path component (like 'MyScript.py'),
+                     or a full path to an on-disk script.
+    @type fileName: C{basestring}
+    
+    @param module: A python module, used to locate the resource. The reason
+                   we pass a module is that this makes it possible to store
+                   scripts in zipped python eggs.
+    @type module: C{str}
     """
 
     if isinstance(fileName, unicode):
         fileName = fileName.encode('utf8')
+    
+    if module is not None:
+        return pkg_resources.resource_string(module, fileName)
+    else:
 
-    if siblingPath is not None:
-        fileName = os.path.join(os.path.dirname(siblingPath), fileName)
-    # read the script from a file, and return it.
-    scriptFile = open(fileName, 'rt')
-    try:
-        scriptText = scriptFile.read(-1)
-    finally:
-        scriptFile.close()
-    return scriptText
+        # read the script from a file, and return it.
+        scriptFile = open(fileName, 'rt')
+        try:
+            scriptText = scriptFile.read(-1)
+        finally:
+            scriptFile.close()
+        return scriptText

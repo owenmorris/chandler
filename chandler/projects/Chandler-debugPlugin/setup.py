@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name = "Chandler-debugPlugin",
@@ -21,7 +21,7 @@ setup(
     description = "Debugging and Test Tools for Chandler",
     author = "OSAF",
     test_suite = "tests",
-    packages = ["debug"],
+    packages = find_packages(),
     include_package_data = True,
     entry_points = {
         "chandler.parcels": ["debug = debug"]

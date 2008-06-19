@@ -34,13 +34,13 @@ script_file function
 The script_file function makes it easy to read in the text of a script
 from a file.  This doesn't actually do anything script-specific, so
 it can go away once there's an equivalent facility elsewhere in our
-utilities.  It uses an optional sibling parameter to make it easy
-to pass in a complete path, using __file__, and then read the
-sibling from the same directory the sibling is in.  We use this
-to bring scripts in to our application from the "scripts" directory::
+utilities.  It uses an optional module parameter to make it easy
+to pass in a python module, using __module__, and then read the
+script from alongside the code in the module.  We use this
+to bring scripts in to our application from the "debug.scripts" module::
 
     >>> import debug.scripts as Scripts
-    >>> script_text = Scripting.script_file(u"NewScript.py", Scripts.__file__)
+    >>> script_text = Scripting.script_file(u"NewScript.py", "debug.scripts")
     >>> "Script" in script_text
     True
     
