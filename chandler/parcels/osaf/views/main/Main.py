@@ -50,6 +50,24 @@ from application.dialogs import ImportExport
 from application.dialogs.RecurrenceDialog import delayForRecurrenceDialog
 logger = logging.getLogger(__name__)
 
+def forwardToActiveView(method):
+    """
+    Decorator that forwards event handling from MainView to
+    the active view. Used in cases like Bug 12049, where the
+    focus is outside the active view, but we still want the
+    event to be processed.
+    """
+    def wrappedMethod(self, event):
+        activeView = wx.GetApp().activeView
+        # If the active view can process this, pass it on, else
+        # call the original method.
+        activeMethod = getattr(activeView, method.__name__, None)
+        if activeMethod is not None:
+            return activeMethod(event)
+        else:
+            return method(self, event)
+    return wrappedMethod
+
 class MainView(View):
     """
     Main Chandler view contains event handlers for Chandler.
@@ -1670,11 +1688,76 @@ class MainView(View):
             window.ShowTreeOfBlocks (rootBlock)
             window.Show (True)
 
+    @forwardToActiveView
     def onNeedsUpdateEvent(self, event):
         pass
 
     def onNeedsUpdateUpdateUI(self, event):
         pass
+
+    @forwardToActiveView
+    def onMarkAsReadEventUpdateUI(self, event):
+        event.arguments['Enable'] = False
+
+    @forwardToActiveView
+    def onMarkAsReadEvent(self, event):
+        pass
+
+    @forwardToActiveView
+    def onFocusStampEventUpdateUI(self, event):
+        event.arguments['Enable'] = False
+
+    @forwardToActiveView
+    def onFocusStampEvent(self, event):
+        pass
+
+    @forwardToActiveView
+    def onInspectSelectionEventUpdateUI(self, event):
+        event.arguments['Enable'] = False
+
+    @forwardToActiveView
+    def onInspectSelectionEvent(self, event):
+        pass
+
+    @forwardToActiveView
+    def onReplyEvent(self, event):
+        pass
+
+    @forwardToActiveView
+    def onReplyEventUpdateUI(self, event):
+        event.arguments['Enable'] = False
+
+    @forwardToActiveView
+    def onReplyAllEvent(self, event):
+        pass
+
+    @forwardToActiveView
+    def onReplyAllEventUpdateUI(self, event):
+        event.arguments['Enable'] = False
+
+    @forwardToActiveView
+    def onForwardEvent(self, event):
+        pass
+
+    @forwardToActiveView
+    def onForwardEventUpdateUI(self, event):
+        event.arguments['Enable'] = False
+
+    @forwardToActiveView
+    def onDeleteEvent(self, event):
+        pass
+
+    @forwardToActiveView
+    def onDeleteEventUpdateUI(self, event):
+        event.arguments['Enable'] = False
+
+    @forwardToActiveView
+    def onRemoveEvent(self, event):
+        pass
+
+    @forwardToActiveView
+    def onRemoveEventUpdateUI(self, event):
+        event.arguments['Enable'] = False
 
 # these quickentry commands probably shouldn't live in Main, but I don't know
 # what a better place would be...
