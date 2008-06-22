@@ -14,6 +14,7 @@
 
 import  wx
 from i18n import ChandlerMessageFactory as _
+import Utility
 
 class Printing(object):
     def __init__(self, frame, canvas):
@@ -94,9 +95,10 @@ class CanvasPrintout(wx.Printout):
         ppiPaper = self.GetPPIPrinter()
         ppiScreen = self.GetPPIScreen()
 
-        # c.f. wxPython In Action, Chapter 17. Unclear why
-        # this is unnecessary, e.g., on the Mac.
-        if wx.Platform == '__WXMSW__' and ppiPaper != ppiScreen:
+        # c.f. wxPython In Action, Chapter 17. On Mac OS X 10.5, ppiPaper
+        # is being returned as (0, 0) which seems weird, but it turns out that
+        # not scaling works in that case.
+        if ppiPaper != ppiScreen and not 0 in ppiPaper:
             userScale = tuple(ppiPaper[i]/ppiScreen[i] for i in (0,1))
             dc.SetUserScale(*userScale)
         else:
@@ -111,17 +113,6 @@ class CanvasPrintout(wx.Printout):
         oldSize = canvas.GetSize()
         canvas.SetSize(canvasSize)
 
-        
-        
-        ppiPaper = self.GetPPIPrinter()
-        ppiScreen = self.GetPPIScreen()
-
-        # c.f. wxPython In Action, Chapter 17. Unclear why
-        # this is unnecessary, e.g., on the Mac.     
-        if wx.Platform == '__WXMSW__' and ppiPaper != ppiScreen:
-            dc.SetUserScale(ppiPaper[0]/ppiScreen[0],
-                            ppiPaper[1]/ppiScreen[1])
-        
         # print everything
         canvas.PrintCanvas(dc)
         # restore the calendar canvas' old size

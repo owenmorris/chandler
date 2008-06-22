@@ -305,8 +305,6 @@ class wxMultiWeekCanvas(BaseWidget, wxCalendarCanvas):
         dc.EndDrawing()
 
     def PrintCanvas(self, dc):
-        scale = dc.GetUserScale()[1]
-        
         # [grant] This is a bit of a cheesy hack ... Basically, in cases where
         # we are scaling to print, we want to be able to adjust our internal
         # metrics, fonts, etc as needed, and then reset them all when we're
@@ -328,18 +326,8 @@ class wxMultiWeekCanvas(BaseWidget, wxCalendarCanvas):
         type(self).__setattr__ = saveAndSet
 
         try:
-            # Pixel-sized fonts don't work if we're scaled which is on
-            # the one hand logical, and on the other, kind of dumb. Hm.
-            # cf Bug 11917.
-            if scale != 1.0:
-                """for attr in ('_font', '_timeFont', '_textFont',
-                             '_superscriptFont'):
-                    font = getattr(self, attr)
-                    if font.IsUsingSizeInPixels():
-                        font = wx.Font(font.PointSize * scale, font.Family, font.Style, font.Weight, font.Underlined, font.FaceName, font.Encoding)
-                        setattr(self, attr, font)"""
-
-                # Now, redo our calculations based on the real font sizes.
+            if dc.GetUserScale()[1] != 1.0:
+                # Redo our calculations based on the real font sizes.
                 self.measure = wx.ClientDC(self)
                 self.measure.SetFont(self._font)
                 self.doDrawingCalculations()
