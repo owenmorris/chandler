@@ -302,12 +302,14 @@ class ChandlerProxy(RecurrenceProxy):
             changeType = change[1]
 
             if changeType == 'addStamp':
-                if change[2] == TaskStamp:
+                stampClass = change[2].schemaItem.stampClass
+                if stampClass == TaskStamp:
                     questionFmt = _(u'"%(displayName)s" is a recurring event. Do you want to add to the Task list:')
             elif changeType == 'removeStamp':
-                if change[2] == TaskStamp:
+                stampClass = change[2].schemaItem.stampClass
+                if stampClass == TaskStamp:
                     questionFmt = _(u'"%(displayName)s" is a recurring event. Do you want to remove from the Task list:')
-                elif change[2] == EventStamp:
+                elif stampClass == EventStamp:
                     questionFmt = _(u'"%(displayName)s" is a recurring event. Removing it from the Calendar will remove all occurrences. Do you want to remove:')
                     disabled.update(('future', 'this'))
             elif changeType == 'add':
