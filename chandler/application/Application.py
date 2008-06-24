@@ -898,15 +898,16 @@ class wxApplication (wx.App):
         event.Skip()
 
     def OnContextMenu(self, event):
-        self._focusForContextMenu = event.GetEventObject()
-        if self._focusForContextMenu is None:
-            self._focusForContextMenu = wx.Window_FindFocus()
-        
+        window = event.GetEventObject()
+        if window is None:
+            window = wx.Window_FindFocus()
+
+        self._focusForContextMenu = window        
         try:
             while window is not None:
                 blockItem = getattr (window, "blockItem", None)
                 if blockItem is not None:
-                    if hasattr (blockItem, "contextMenu"):
+                    if hasattr(blockItem, "contextMenu"):
                         blockItem.widget.displayContextMenu(event)
                         return
                 window = window.GetParent()
