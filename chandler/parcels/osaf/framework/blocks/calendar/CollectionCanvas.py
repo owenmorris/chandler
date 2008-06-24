@@ -715,7 +715,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                         self.dragState.StopDragTimer()
                     self.dragState = None
         
-        elif event.RightUp():
+        elif event.RightDown():
             # select the right clicked item before popping up a context menu
             self._handleClick(unscrolledPosition, False)
             self.Refresh()

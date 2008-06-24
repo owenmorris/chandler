@@ -1141,11 +1141,7 @@ class BaseWidget(object):
                 # return None. (i.e. once we have called PopupMenu). See
                 # the processing of FocusBubbleUp events, where this attribute
                 # is used.
-                theApp._focusForContextMenu = wx.Window_FindFocus()
-                try:
-                    wx.Window.PopupMenu (menuBlock.parentBlock.widget, menu)
-                finally:
-                   del theApp._focusForContextMenu
+                wx.Window.PopupMenu (menuBlock.parentBlock.widget, menu)
 
 # These are the mappings looked up by wxRectangularChild.CalculateWXFlag, below
 _wxFlagMappings = {

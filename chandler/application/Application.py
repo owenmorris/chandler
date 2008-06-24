@@ -898,15 +898,21 @@ class wxApplication (wx.App):
         event.Skip()
 
     def OnContextMenu(self, event):
-        window = event.GetEventObject()
-        while window is not None:
-            blockItem = getattr (window, "blockItem", None)
-            if blockItem is not None:
-                if hasattr (blockItem, "contextMenu"):
-                    blockItem.widget.displayContextMenu(event)
-                    return
-            window = window.GetParent()
-        event.Skip()
+        self._focusForContextMenu = event.GetEventObject()
+        if self._focusForContextMenu is None:
+            self._focusForContextMenu = wx.Window_FindFocus()
+        
+        try:
+            while window is not None:
+                blockItem = getattr (window, "blockItem", None)
+                if blockItem is not None:
+                    if hasattr (blockItem, "contextMenu"):
+                        blockItem.widget.displayContextMenu(event)
+                        return
+                window = window.GetParent()
+            event.Skip()
+        finally:
+            del self._focusForContextMenu
 
     def OnDestroyWindow(self, event):
         from osaf.framework.blocks.Block import Block
