@@ -51,7 +51,7 @@ def prepareVobj(view, uuid, recordSet, vobjs):
     """
     master_uuid, recurrenceID = translator.splitUUID(view, uuid)
     if recurrenceID is None:
-        task, event = hasTaskAndEvent(recordSet)
+        note, event = hasNoteOrEvent(recordSet)
     else:
         if vobjs.get(master_uuid).name.lower() == 'vevent':
             task, event = False, True
@@ -62,12 +62,10 @@ def prepareVobj(view, uuid, recordSet, vobjs):
         vevent = vobject.newFromBehavior('vevent')
         vevent.isNative = True
         vobjs[uuid] = vevent
-    elif task:
+    else: # @@@ assert note?
         vtodo = vobject.newFromBehavior('vtodo')
         vtodo.isNative = True
         vobjs[uuid] = vtodo
-    else:
-        raise ICalendarExportError(_(u"Item is neither a Task nor an Event."))
 
 def getVobj(record, vobjs):
     uuid = record.uuid
@@ -204,6 +202,11 @@ def readNoteRecord(view, noteRecord, vobjs):
             icalUID = vobjs[uuid].uid.value
 
     vobj.add('uid').value = icalUID
+
+def readTaskRecord(view, taskRecord, vobjs):
+    vobj = getVobj(taskRecord, vobjs)
+    vobj.add('x_osaf_starred').value = u'TRUE'
+
 
 top_level_understood = ['vtimezone', 'version', 'calscale', 'x-wr-calname', 
                         'prodid', 'method', 'vevent', 'vtodo']
@@ -383,19 +386,20 @@ recordHandlers = {model.EventRecord : readEventRecord,
                   model.ItemRecord  : readItemRecord,
                   model.DisplayAlarmRecord : readAlarmRecord,
                   model.NoteRecord  : readNoteRecord,
+                  model.TaskRecord: readTaskRecord,
                  }
 
 
-def hasTaskAndEvent(recordSet):
-    task = event = False
+def hasNoteOrEvent(recordSet):
+    note = event = False
     for rec in recordSet.inclusions:
         if type(rec) == model.EventRecord:
             event = True
-        elif type(rec) == model.TaskRecord:
-            task = True
-        if task and event:
+        elif type(rec) == model.NoteRecord:
+            note = True
+        if note and event:
             break
-    return task, event
+    return note, event
 
 
 class ICSSerializer(object):
@@ -417,8 +421,8 @@ class ICSSerializer(object):
         # masters need to be handled first, so modifications have access to them
         for uuid, recordSet in recordSets.iteritems():
             # skip over record sets with neither an EventRecord nor a TaskRecord
-            task, event = hasTaskAndEvent(recordSet)
-            if task or event:
+            note, event = hasNoteOrEvent(recordSet)
+            if note or event:
                 uid, recurrenceID = translator.splitUUID(view, uuid)
                 if recurrenceID is None:
                     masterRecordSets.append( (uuid, recordSet) )
@@ -520,9 +524,12 @@ class ICSSerializer(object):
 
                 start_obj = getattr(vobj, 'dtstart', None)
 
-                emitTask = (vobj.name == 'VTODO')
+                isVtodo = (vobj.name == 'VTODO')
+                osafStarred = vobj.getChildValue('x_osaf_starred')
+                if osafStarred:
+                    osafStarred = (u"TRUE" == osafStarred.upper())
 
-                if dtstart is None or emitTask:
+                if dtstart is None or isVtodo:
                     # due takes precedence over dtstart
                     due = vobj.getChildValue('due')
                     if due is not None:
@@ -673,7 +680,7 @@ class ICSSerializer(object):
                 triage = eim.NoChange
                 needsReply = eim.NoChange
                 
-                if emitTask and status is not eim.NoChange:
+                if isVtodo and status is not eim.NoChange:
                     status = status.lower()
                     code = vtodo_status_to_triage_code.get(status, "100")
                     completed = vobj.getChildValue('completed')
@@ -694,7 +701,7 @@ class ICSSerializer(object):
                     status = eim.NoChange
                 
                 icalExtra = eim.NoChange
-                if not emitTask:
+                if not isVtodo:
                     # not processing VTODOs
                     icalExtra = extractUnrecognized(calendar, vobj)
                     if icalExtra is None:
@@ -729,7 +736,7 @@ class ICSSerializer(object):
                                             status,                # status
                                             eim.NoChange    # lastPastOccurrence
                                             ))
-                if emitTask:
+                if osafStarred:
                     records.append(model.TaskRecord(uuid))
                            
                 if valarm is not None:

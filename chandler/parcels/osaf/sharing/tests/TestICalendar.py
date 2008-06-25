@@ -647,10 +647,35 @@ class ImportTodoTestCase(SharingTestCase):
         self.failUnlessEqual(1, len(self.items))
         
         item = self.items[0]
+        
+        self.failIf(pim.has_stamp(item, pim.TaskStamp))
+        self.failUnless(pim.has_stamp(item, pim.EventStamp))
+        self.failUnlessEqual(item.displayName, u"A ToDo")
+        self.failUnlessEqual(item.triageStatus, pim.TriageEnum.now)
+        self.failIf(item.needsReply)
+
+    def testStarred(self):
+        self.runImport(
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH",
+            "BEGIN:VTODO",
+            "X-OSAF-STARRED:TRUE",
+            "DTSTART:20060213T000000",
+            "SUMMARY:A Starred Note",
+            "UID:4A7707B5-6E87-49ED-8871-7A0BD37F0355",
+            "SEQUENCE:26",
+            "DTSTAMP:20080227T163229Z",
+            "END:VTODO",
+            "END:VCALENDAR"
+        )
+        item = self.items[0]
         task = pim.TaskStamp(item)
         
         self.failUnless(pim.has_stamp(task, pim.TaskStamp))
-        self.failUnlessEqual(task.summary, u"A ToDo")
+        self.failUnless(pim.has_stamp(task, pim.EventStamp))
+        self.failUnlessEqual(item.displayName, u"A Starred Note")
         self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.now)
         self.failIf(task.itsItem.needsReply)
 
@@ -675,14 +700,13 @@ class ImportTodoTestCase(SharingTestCase):
         self.failUnlessEqual(1, len(self.items))
         
         item = self.items[0]
-        task = pim.TaskStamp(item)
         
-        self.failUnless(pim.has_stamp(task, pim.TaskStamp))
-        self.failUnless(pim.has_stamp(task, pim.EventStamp))
-        self.failUnlessEqual(task.summary, u"Deferred ToDo")
-        self.failUnlessEqual(pim.EventStamp(task).startTime.date(),
+        self.failIf(pim.has_stamp(item, pim.TaskStamp))
+        self.failUnless(pim.has_stamp(item, pim.EventStamp))
+        self.failUnlessEqual(item.displayName, u"Deferred ToDo")
+        self.failUnlessEqual(pim.EventStamp(item).startTime.date(),
                              datetime.date(2007, 1, 21))
-        self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.later)
+        self.failUnlessEqual(item.triageStatus, pim.TriageEnum.later)
 
     def testStatus(self):
         self.runImport(
@@ -730,11 +754,10 @@ class ImportTodoTestCase(SharingTestCase):
         self.failUnlessEqual(1, len(self.items))
         
         item = self.items[0]
-        task = pim.TaskStamp(item)
         
-        self.failUnless(pim.has_stamp(task, pim.TaskStamp))
-        self.failUnlessEqual(task.summary, u"ToDone")
-        self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.done)
+        self.failIf(pim.has_stamp(item, pim.TaskStamp))
+        self.failUnlessEqual(item.displayName, u"ToDone")
+        self.failUnlessEqual(item.triageStatus, pim.TriageEnum.done)
 
     def testNeedsAction(self):
         self.runImport(
@@ -743,6 +766,7 @@ class ImportTodoTestCase(SharingTestCase):
             "CALSCALE:GREGORIAN",
             "METHOD:PUBLISH",
             "BEGIN:VTODO",
+            "X-OSAF-STARRED:TRUE",
             "DTSTART:20060213T000000",
             "SUMMARY:Really\, do this right away",
             "DTSTAMP:20060227T203912Z",
@@ -783,12 +807,11 @@ class ImportTodoTestCase(SharingTestCase):
         self.failUnlessEqual(1, len(self.items))
         
         item = self.items[0]
-        task = pim.TaskStamp(item)
         
-        self.failUnless(pim.has_stamp(task, pim.TaskStamp))
-        self.failUnlessEqual(task.summary, u"I'm busy!")
-        self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.now)
-        self.failIf(task.itsItem.needsReply)
+        self.failIf(pim.has_stamp(item, pim.TaskStamp))
+        self.failUnlessEqual(item.displayName, u"I'm busy!")
+        self.failUnlessEqual(item.triageStatus, pim.TriageEnum.now)
+        self.failIf(item.needsReply)
 
     def testCompleted(self):
         self.runImport(
@@ -813,7 +836,7 @@ class ImportTodoTestCase(SharingTestCase):
         item = self.items[0]
         task = pim.TaskStamp(item)
         
-        self.failUnless(pim.has_stamp(task, pim.TaskStamp))
+        self.failIf(pim.has_stamp(task, pim.TaskStamp))
         self.failUnlessEqual(task.summary, u"ToDoneAndWhen")
         self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.done)
         expectedTSC = datetime.datetime(2006, 3, 1, 1, 0, 0, 0, self.utc)
@@ -831,6 +854,7 @@ class ImportTodoTestCase(SharingTestCase):
             "SEQUENCE:7",
             "STATUS:COMPLETED",
             "SUMMARY:To Do",
+            "X-OSAF-STARRED:true",
             "COMPLETED:20060227T080000Z",
             "DESCRIPTION:This is a very important TODO:\\n\\n\xe2\x80\xa2 Do one thing\\n\xe2\x80\xa2 Do somet",
             " hing else",
@@ -873,6 +897,7 @@ class ImportTodoTestCase(SharingTestCase):
             "BEGIN:VTODO",
             "DTSTART:20060214T000000",
             "SUMMARY:To Do (Initial)",
+            "X-OSAF-STARRED:TRUE",
             "UID:ED5CAC89-4BEE-4903-8DE8-1AEF6FC1D431",
             "DTSTAMP:20060227T233332Z",
             "SEQUENCE:12",
@@ -908,12 +933,15 @@ class ExportTodoTestCase(SharingTestCase):
         we've generated, so that we can check that it's
         what we expect.
         """
-        task = pim.Task(itsView=self.view)
-        task.InitOutgoingAttributes() # simulate creation in the Chandler UI
-        for attr, value in todoParams.iteritems():
-            setattr(task.itsItem, attr, value)
+        create = todoParams.pop('create', pim.Task)
+        new = create(itsView=self.view)
+        new.InitOutgoingAttributes() # simulate creation in the Chandler UI
         
-        iCalendarContent = serialize(self.view, [task.itsItem],
+        item = getattr(new, 'itsItem', new)
+        for attr, value in todoParams.iteritems():
+            setattr(item, attr, value)
+        
+        iCalendarContent = serialize(self.view, [item],
                                      translator.SharingTranslator,
                                      ics.ICSSerializer)
 
@@ -931,18 +959,22 @@ class ExportTodoTestCase(SharingTestCase):
         # We expect exactly one child component ...
         self.failUnlessEqual(len(list(calendar.components())), 1)
         
-        vtodo = calendar.vtodo_list[0]
-        self.failUnlessEqual(task.itsItem.itsUUID.str16(),
-                             vtodo.getChildValue('uid'))
+        vobj = list(calendar.components())[0]
+        self.failUnlessEqual(item.itsUUID.str16(),
+                             vobj.getChildValue('uid'))
         
-        return (task, vtodo)
+        return (item, vobj)
 
 
 
     def testSimple(self):
-        item, vtodo = self.getExportedTodoComponent(displayName=u'Important')
-
-        self.failUnlessEqual(u'Important', vtodo.getChildValue('summary'))
+        item, vobj = self.getExportedTodoComponent(displayName=u'Important')
+        
+        self.failUnlessEqual(vobj.name.lower(), 'vtodo')
+        self.failUnless(pim.has_stamp(item, pim.TaskStamp))
+        self.failUnlessEqual(vobj.getChildValue('x_osaf_starred').lower(),
+                            'true')
+        self.failUnlessEqual(u'Important', vobj.getChildValue('summary'))
         
 
     def testDueDate(self):
@@ -953,46 +985,73 @@ class ExportTodoTestCase(SharingTestCase):
                              vtodo.getChildValue('summary'))
         
     def testStatus(self):
-        task, vtodo = self.getExportedTodoComponent(
+        task, vobj = self.getExportedTodoComponent(
+                create=pim.Note,
                 displayName=u'Some completed stupid task',
                 _triageStatus=pim.TriageEnum.done,
                 needsReply=True)
-        
+
+        self.failUnlessEqual(vobj.name.lower(), 'vtodo')
+        self.failUnlessEqual(vobj.getChildValue('x_osaf_starred', self), self)        
         self.failUnlessEqual(u'Some completed stupid task',
-                             vtodo.getChildValue('summary'))
+                             vobj.getChildValue('summary'))
         
-        self.failUnlessEqual(vtodo.getChildValue('status').lower(), 'completed')
+        self.failUnlessEqual(vobj.getChildValue('status').lower(), 'completed')
 
     def testLaterStatus(self):
-        task, vtodo = self.getExportedTodoComponent(
+        task, vobj = self.getExportedTodoComponent(
+                create=pim.Note,
                 displayName=u'Some deferred task',
                 _triageStatus=pim.TriageEnum.later)
-                        
         self.failUnlessEqual(u'Some deferred task',
-                             vtodo.getChildValue('summary'))
-        
-        self.failUnlessEqual(vtodo.getChildValue('status').lower(),
+                             vobj.getChildValue('summary'))
+
+        self.failUnlessEqual(vobj.name.lower(), 'vtodo')
+        self.failUnlessEqual(vobj.getChildValue('x_osaf_starred', '').lower(),
+                             '')
+        self.failUnlessEqual(vobj.getChildValue('status').lower(),
                              u'cancelled')
+
+    def testTaskEvent(self):
+        item, vobj = self.getExportedTodoComponent(
+                **{'create': pim.Note,
+                   'displayName': u'Some deferred task',
+                   '_triageStatus': pim.TriageEnum.later,
+                   pim.Stamp.stamp_types.name: set([pim.EventStamp, pim.TaskStamp]),
+                })
+                        
+        self.failUnlessEqual(vobj.name.lower(), 'vevent')
+        self.failUnlessEqual(vobj.getChildValue('x_osaf_starred').lower(),
+                             'true')
+        self.failUnlessEqual(u'Some deferred task',
+                             vobj.getChildValue('summary'))
         
     def testNeedsReplyStatus(self):
-        task, vtodo = self.getExportedTodoComponent(
+        item, vobj = self.getExportedTodoComponent(
                 displayName=u'Very important, Bob',
                 _triageStatus=pim.TriageEnum.now,
                 needsReply=True)
                 
+        self.failUnlessEqual(vobj.name.lower(), 'vtodo')
+        self.failUnlessEqual(vobj.getChildValue('x_osaf_starred').lower(),
+                             'true')
         self.failUnlessEqual(u'Very important, Bob',
-                             vtodo.getChildValue('summary'))
+                             vobj.getChildValue('summary'))
         self.failUnlessEqual(u'needs-action',
-                             vtodo.getChildValue('status').lower())
+                             vobj.getChildValue('status').lower())
         
     def testDescription(self):
         body = u"This is a great \u201cdescription\u201d\n"
         
-        task, vtodo = self.getExportedTodoComponent(
-            displayName = u'Who cares',
-            body = body)
+        item, vobj = self.getExportedTodoComponent(
+            create=pim.Note,
+            displayName=u'Who cares',
+            body=body)
             
-        self.failUnlessEqual(vtodo.getChildValue('description'), body)
+        self.failUnlessEqual(vobj.name.lower(), 'vtodo')
+        self.failUnlessEqual(vobj.getChildValue('x_osaf_starred', '').lower(),
+                             '')
+        self.failUnlessEqual(vobj.getChildValue('description'), body)
 
 
 class ICalUIDTestCase(NRVTestCase):
