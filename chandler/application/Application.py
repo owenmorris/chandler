@@ -797,10 +797,24 @@ class wxApplication (wx.App):
         Delay imports to avoid circular references.
         """
         import osaf.framework.blocks.Block as Block
-        eventObject = event.GetEventObject()
+
         wxID = event.GetId()
-        block = Block.Block.findBlockById(wxID,
-                                          getattr(event, 'blockItem', None))
+        # Our goal here is to find the rendered block whose Id matches wxID.
+        # In the case of our IDs, there's no problem, because they're unique.
+        # For standard wx IDs (like wx.ID_COPY, for example) we need to make
+        # sure we look in the correct top-level frame. To do this, we pass
+        # in a non-None second argument to Block.findBlockById, which is used
+        # as a hint to resolve which frame we want.
+        
+        # For menus, eventObject will be the frame the menu belongs to.
+        eventObject = event.GetEventObject()
+        # If the event has a blockItem, that is for sure the hint we want ...
+        eventBlock = getattr(event, 'blockItem', None)
+        # Otherwise, try the top-level block of a wxBlockFrameWindow, if
+        # it exists.
+        if eventBlock is None:
+            eventBlock = getattr(eventObject, 'treeOfBlocks', None)
+        block = Block.Block.findBlockById(wxID, eventBlock)
         if block is not None:
             isMacMenuEvent = (wx.Platform == '__WXMAC__' and
                               event.GetEventType() == wx.EVT_MENU.evtType[0])
