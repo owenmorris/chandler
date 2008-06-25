@@ -17,7 +17,7 @@ from osaf import pim
 from osaf.pim import mail
 from osaf.sharing import (
     eim, model, shares, utility, accounts, conduits, cosmo, webdav_conduit,
-    recordset_conduit, eimml, ootb, MailMessageRecord, NoteRecord
+    recordset_conduit, eimml, ootb
 )
 from utility import (splitUUID, fromICalendarDateTime, getDateUtilRRuleSet,
     code_to_triagestatus, triagestatus_to_code, getMasterAlias)
@@ -412,11 +412,11 @@ class SharingTranslator(eim.Translator):
 
 
     ignoreFields = {
-        MailMessageRecord :
+        model.MailMessageRecord :
             ("fromAddress", "headers", "messageId", "inReplyTo", "references",
              "dateSent"),
-        NoteRecord :
-            ("icalExtra", "icalUid"),
+        model.NoteRecord :
+            ("icalExtra", "icalUid", "icalProperties", "icalParameters"),
     }
 
     def isMajorChange(self, diff):

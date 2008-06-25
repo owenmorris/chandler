@@ -23,6 +23,7 @@ from osaf.framework import password
 from osaf.framework.blocks.calendar import CalendarUtility
 from osaf.usercollections import UserCollection
 import hashlib
+import pkg_resources
 
 class ApplicationPrefs(preferences.Preferences):
     isOnline = schema.One(schema.Boolean, defaultValue=True)
@@ -222,6 +223,11 @@ The Chandler Team""") % { 'version' : version.version }
         
         # OOTB shared collection: U.S. Holidays
         holidays = makeCollection(_(u"U.S. Holidays"), True, u'Green')
+
+        holidaysPath = pkg_resources.resource_filename(__name__,
+                                                       "us_holidays.ics")
+        sharing.importFile(parcel.itsView, holidaysPath, collection=holidays)
+
 
         dashboard = schema.ns("osaf.pim", parcel.itsView).allCollection
 
@@ -609,20 +615,18 @@ u"""Directions...
         share = sharing.Share(itsView=parcel.itsView, mode='get',
                               contents=holidays, established=True)
         filters = set(['cid:needs-reply-filter@osaf.us', 
-                    'cid:bcc-filter@osaf.us', 'cid:triage-filter@osaf.us', 'cid:reminders-filter@osaf.us'])
-        ticket = '01q75n1sy0'
-        share.conduit = sharing.CosmoConduit(itsParent=share,
+                       'cid:read-filter@osaf.us', 'cid:bcc-filter@osaf.us',
+                       'cid:triage-filter@osaf.us',
+                       'cid:reminders-filter@osaf.us'])
+        share.conduit = sharing.WebDAVMonolithicRecordSetConduit(itsParent=share,
                             host=u'hub.chandlerproject.org',
                             port=443,
-                            sharePath=u'pim/collection',
-                            morsecodePath=u'mc/collection',
-                            shareName=u'7febe2f4-324c-11dd-d9e4-0016cbca6aed',
+                            sharePath=u'webcal/collection',
+                            shareName=u'7febe2f4-324c-11dd-d9e4-0016cbca6aed?ticket=01q75n1sy0',
                             useSSL=True,
-                            ticket=ticket,
-                            ticketReadOnly=ticket,
                             filters=filters,
                             translator=sharing.SharingTranslator,
-                            serializer=sharing.EIMMLSerializer)
+                            serializer=sharing.ICSSerializer)
         share.conduit.ticketReadOnly = share.conduit.ticket
         sharing.SharedItem(share.contents).add()
         sharing.SharedItem(share.contents).shares.append(share)

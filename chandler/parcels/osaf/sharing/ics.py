@@ -748,6 +748,14 @@ class ICSSerializer(object):
                                              remDuration,
                                              remRepeat
                                              ))
+                else:
+                    records.append(
+                        model.DisplayAlarmRecord(
+                            uuid,
+                            None,
+                            None,
+                            None,
+                            None))
 
                 recordSets[uuid] = RecordSet(records)
 

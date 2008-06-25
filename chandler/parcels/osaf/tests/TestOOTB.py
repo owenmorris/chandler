@@ -4,6 +4,14 @@ import osaf.sharing as sharing
 import util.testcase as testcase
 from i18n import ChandlerSafeTranslationMessageFactory as translate
 from datetime import *
+import pkg_resources
+
+def findCollection(view, name):
+    sidebar = schema.ns("osaf.app", view).sidebarCollection
+    name = translate(name) # search for the localized name
+    for coll in sidebar:
+        if coll.displayName == name:
+            return coll
 
 class OOTBTestCase(testcase.SharedSandboxTestCase):
     """
@@ -33,13 +41,13 @@ class OOTBTestCase(testcase.SharedSandboxTestCase):
 
         
     def getCollection(self, name):
-        sidebar = schema.ns("osaf.app", self.view).sidebarCollection
-        name = translate(name) # search for the localized name
-        for coll in sidebar:
-            if coll.displayName == name:
-                return coll
+        result = findCollection(self.view, name)
         
-        self.fail("Couldn't find collection %s in sidebar" % (name,))
+        if result is None:
+            self.fail("Couldn't find collection %s in sidebar" % (name,))
+        
+        return result
+
 
     def getItem(self, name):
         all = schema.ns("osaf.pim", self.view).allCollection
@@ -76,7 +84,52 @@ class OOTBTestCase(testcase.SharedSandboxTestCase):
 
         share = sharing.SharedItem(holidays).shares.first()
         self.failUnless(share.established)
-        self.failUnless(isinstance(share.conduit, sharing.CosmoConduit))
+        self.failUnless(isinstance(share.conduit,
+                                   sharing.WebDAVMonolithicRecordSetConduit))
+    
+    def failUnlessHolidayMatches(self, uid, year, month, day):
+        holidays = self.getCollection(u"U.S. Holidays")
+        event = pim.EventStamp(sharing.findUID(self.view, uid))
+        
+        self.failUnless(event.itsItem in holidays)
+        
+        targetDate = date(year, month, day)
+        d = datetime.combine(targetDate,
+                             time(0, tzinfo=self.view.tzinfo.default))
+        matches = event.getOccurrencesBetween(d - timedelta(days=1),
+                                              d + timedelta(days=1))
+        self.failUnlessEqual(len(matches), 1)
+        matchEvent = matches[0]
+        self.failUnlessEqual(matchEvent.startTime.date(), targetDate)
+        self.failUnless(matchEvent.allDay)
+    
+    def testChristmas(self):
+        self.failUnlessHolidayMatches('2acc9d0a-aedd-57e9-e251-7acd12b6f495',
+                                      2012, 12, 25)
+
+    def testFathersDay(self):
+        self.failUnlessHolidayMatches('7b9f9601-66a0-3a19-6b01-4c58cab06f0e',
+                                      2008, 6, 15)
+
+    def testThanksgiving(self):
+        self.failUnlessHolidayMatches('7539adcf-2264-2608-c0be-9dcea56e638b',
+                                      2008, 11, 27)
+        self.failUnlessHolidayMatches('7539adcf-2264-2608-c0be-9dcea56e638b',
+                                      2044, 11, 24)
+
+    def testYearly(self):
+        for eventItem in self.getCollection(u"U.S. Holidays"):
+            start = datetime.combine(date(2011, 1, 1),
+                                     time(0, tzinfo=self.view.tzinfo.default))
+            end = datetime.combine(date(2012, 1, 1),
+                                   time(0, tzinfo=self.view.tzinfo.default))
+
+            # Skip inauguration day, which is the only non-annual event in there
+            if eventItem.icalUID != 'e25af817-2b0c-928e-30b6-bd3feab7db72':
+                master = pim.EventStamp(eventItem)
+                events = master.getOccurrencesBetween(start, end)
+                self.failUnlessEqual(len(events), 1)
+                                        
 
 
     def testWelcomeEvent(self):
@@ -357,6 +410,25 @@ class OOTBTestCase(testcase.SharedSandboxTestCase):
         # ... as well as the very last item
         failUnlessItemMatches(u'Download Chandler!', -1)
         
+
+class SyncHolidaysTestCase(testcase.SingleRepositoryTestCase):
+    """
+    A test case for Bug 12158: It simulates what happens when
+    we sync the U.S. Holidays collection from the server.
+    """
+    def testSync(self):
+        def get():
+            return pkg_resources.resource_string("osaf.app", "us_holidays.ics")
+        holidays = findCollection(self.view, u"U.S. Holidays")
+        share = sharing.SharedItem(holidays).shares.first()
+        
+        # Override get on the conduit so we can simulate getting
+        # back exactly the same data from the server
+        share.conduit.get = get
+        share.sync()
+
+        for item in holidays:
+            self.failIf(not item.read, "Item %s is unread" % (item,))
 
 if __name__ == "__main__":
     import unittest
