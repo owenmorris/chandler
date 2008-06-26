@@ -576,19 +576,26 @@ class CustomYesNoLabelDialog(wx.Dialog):
         outerSizer.Add(text, 0, wx.ALIGN_CENTER|wx.ALL, 20)
 
         sizer = wx.StdDialogButtonSizer()
+        def addButton(wxId):
+            title = textTable.get(wxId)
+            if title:
+                button = wx.Button(self, wxId, title)
+            else:
+                button = wx.Button(self, wxId)
+            sizer.AddButton(button)
+            if wxId in (wx.ID_YES, wx.ID_OK):
+                button.SetDefault()
         if flags & wx.YES_NO:
-            sizer.AddButton(wx.Button(self, wx.ID_YES))
-            sizer.AddButton(wx.Button(self, wx.ID_NO))
+            addButton(wx.ID_YES)
+            addButton(wx.ID_NO)
         elif flags & wx.OK:
-            sizer.AddButton(wx.Button(self, wx.ID_OK))
+            addButton(wx.ID_OK)
             
         if flags & wx.CANCEL:
-            sizer.AddButton(wx.Button(self, wx.ID_CANCEL))
+            addButton(wx.ID_CANCEL)
         
         sizer.Realize()
-        for id, text in textTable.iteritems():
-            self.FindWindowById(id).SetLabel(text)        
-        
+
         outerSizer.Add(sizer, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT|wx.ALIGN_CENTER, 10)
 
         self.SetSizer(outerSizer)
@@ -601,7 +608,8 @@ class CustomYesNoLabelDialog(wx.Dialog):
             self.Bind(wx.EVT_BUTTON, self.End, id=wx.ID_OK)
             
         if flags & wx.CANCEL:
-            self.Bind(wx.EVT_BUTTON, self.End, id=wx.ID_CANCEL) 
+            self.Bind(wx.EVT_BUTTON, self.End, id=wx.ID_CANCEL)
+        self.CenterOnScreen()
 
     def End(self, event):
         self.EndModal(event.GetId())

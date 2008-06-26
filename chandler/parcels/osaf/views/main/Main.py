@@ -1281,6 +1281,33 @@ class MainView(View):
     def onManageSidebarCollectionEvent(self, event):
         self._onShareOrManageSidebarCollectionEvent(event)
 
+    def _showOOTBPublishWarning(self):
+        if sharing.isSharingSetUp(self.itsView):
+            wx.MessageBox(
+                _(u"Currently, you cannot publish the Dashboard, In, Out and Trash collections."),
+                _(u"Cannot Publish Collection"),
+                style=wx.OK|wx.ICON_WARNING
+            )
+        else:
+            textTable = {
+                wx.ID_CANCEL: _(u"Set up Sharing Account..."),
+            }
+            if wx.ID_CANCEL == application.dialogs.Util.ShowMessageDialog(
+                _(u"Currently, you cannot publish the Dashboard, In, Out and Trash collections.\n\nNote: To publish collections, you must first set up a sharing account."),
+                _(u"Cannot Publish Collection"),
+                wx.OK|wx.CANCEL|wx.ICON_WARNING,
+                textTable=textTable
+            ):
+                create = account = None
+                accounts = list(sharing.SharingAccount.iterItems(self.itsView))
+                if len(accounts) == 0:
+                    create = "SHARING_HUB"
+                else:
+                    account = accounts[0]
+
+                AccountPreferences.ShowAccountPreferencesDialog(
+                    account=account, rv=self.itsView, create=create)
+    
     def _onShareOrManageSidebarCollectionEvent(self, event):
         """
         Share the collection selected in the Sidebar.
@@ -1290,16 +1317,25 @@ class MainView(View):
         """
 
         collection = self.getSidebarSelectedCollection()
-        if (collection is not None and
-            schema.ns('osaf.app', self.itsView).prefs.isOnline and
-            sharing.isOnline(self.itsView) and
-            not UserCollection(collection).outOfTheBoxCollection):
 
-            if (not sharing.isShared(collection) and
-                not sharing.ensureAccountSetUp(self.itsView, sharing=True)):
-                return
+        if collection is None:
+            return
 
-            PublishCollection.ShowPublishDialog(view=self.itsView, collection=collection)
+        if UserCollection(collection).outOfTheBoxCollection:
+            self._showOOTBPublishWarning()
+            return
+
+        if not (schema.ns('osaf.app', self.itsView).prefs.isOnline and
+            sharing.isOnline(self.itsView)):
+            return
+            
+                
+
+        if (not sharing.isShared(collection) and
+            not sharing.ensureAccountSetUp(self.itsView, sharing=True)):
+            return
+
+        PublishCollection.ShowPublishDialog(view=self.itsView, collection=collection)
 
     def onPublishCollectionEventUpdateUI (self, event):
         """
@@ -1309,7 +1345,6 @@ class MainView(View):
         event.arguments['Enable'] = (collection is not None and
              schema.ns('osaf.app', self.itsView).prefs.isOnline and
              sharing.isOnline(self.itsView) and
-             not UserCollection(collection).outOfTheBoxCollection and
              not sharing.isShared(collection))
 
     def onManageSidebarCollectionEventUpdateUI (self, event):
