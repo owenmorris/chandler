@@ -29,6 +29,7 @@ CHANDLER_HEADER_PREFIX = "X-Chandler-"
 #    when switching languages. For information see
 #    bug 11430.
 CHANDLER_MAIL_FOLDER = u"Chandler Mail"
+CHANDLER_STARRED_FOLDER = u"Chandler Starred"
 CHANDLER_TASKS_FOLDER = u"Chandler Tasks"
 CHANDLER_EVENTS_FOLDER = u"Chandler Events"
 

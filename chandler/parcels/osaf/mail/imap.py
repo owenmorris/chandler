@@ -334,7 +334,7 @@ class IMAPClient(base.AbstractDownloadClient):
 
     def _cbRemoveChandlerFolders(self, status):
         m = status[constants.CHANDLER_MAIL_FOLDER]
-        t = status[constants.CHANDLER_TASKS_FOLDER]
+        t = status[constants.CHANDLER_STARRED_FOLDER]
         e = status[constants.CHANDLER_EVENTS_FOLDER]
 
         d = defer.succeed(1)
@@ -372,21 +372,20 @@ class IMAPClient(base.AbstractDownloadClient):
         if __debug__:
             trace("_getChandlerFoldersStatus")
 
-        m = constants.CHANDLER_MAIL_FOLDER
-        t = constants.CHANDLER_TASKS_FOLDER
-        e = constants.CHANDLER_EVENTS_FOLDER
-
-        status = {
-            #pos 0: The Unicode name of the folder on the IMAP Server.
-            #       The values in m, t, and e are of type i18n.Message.
-            #       They need to be converted to Unicode to be saved in
-            #       the IMAPFolder.folderName attribute of type schema.Text.
-            #pos 1: Boolean whether to folder exists on the server already
-            #pos 2: Boolean whether the folder is currently subscribe to already
-            m: [unicode(m), False, False],
-            t: [unicode(t), False, False],
-            e: [unicode(e), False, False]
-        }
+        #pos 0: The Unicode name of the folder on the IMAP Server.
+        #       The values in m, t, and e are of type i18n.Message.
+        #       They need to be converted to Unicode to be saved in
+        #       the IMAPFolder.folderName attribute of type schema.Text.
+        #pos 1: Boolean whether to folder exists on the server already
+        #pos 2: Boolean whether the folder is currently subscribe to already
+        status = dict((val, [unicode(val), False, False])
+                     for val in (
+                        constants.CHANDLER_MAIL_FOLDER,
+                        constants.CHANDLER_TASKS_FOLDER,
+                        constants.CHANDLER_STARRED_FOLDER,
+                        constants.CHANDLER_EVENTS_FOLDER
+                     )
+                )
 
         d = self.proto.list("", "INBOX")
         d.addCallback(self._cbGetChandlerFolderStatus, status)
@@ -418,9 +417,12 @@ class IMAPClient(base.AbstractDownloadClient):
             return self.proto._raiseException(
                    errors.IMAPException(constants.INBOX_LIST_ERROR))
 
-        m = constants.CHANDLER_MAIL_FOLDER
-        t = constants.CHANDLER_TASKS_FOLDER
-        e = constants.CHANDLER_EVENTS_FOLDER
+        keys = (
+            constants.CHANDLER_MAIL_FOLDER,
+            constants.CHANDLER_TASKS_FOLDER,
+            constants.CHANDLER_STARRED_FOLDER,
+            constants.CHANDLER_EVENTS_FOLDER,
+        )
 
         if not ("\\noinferiors" in folderFlags or \
            "\\noselect" in folderFlags or \
@@ -432,7 +434,7 @@ class IMAPClient(base.AbstractDownloadClient):
 
         dList = []
 
-        for key in (m, t, e):
+        for key in keys:
             d = self.proto.list("", status[key][0])
             d.addCallback(self._updateStatus, status, 0, key)
             dList.append(d)
@@ -465,11 +467,23 @@ class IMAPClient(base.AbstractDownloadClient):
             trace("_createChandlerFolders")
 
         d = self._getChandlerFoldersStatus()
-        d.addCallback(self._cbCreateChandlerFolders)
+        d.addCallback(self._cbCreateChandlerFolders).addErrback(self.catchErrors)
         return None
+
+    def _cbRenameSucceeded(self, result, status):
+        import pdb; pdb.set_trace()
 
     def _cbCreateChandlerFolders(self, status):
         d = defer.succeed(1)
+        
+        starredStatus = status[constants.CHANDLER_STARRED_FOLDER]
+        tasksStatus = status[constants.CHANDLER_TASKS_FOLDER]
+        
+        if tasksStatus[1] and not starredStatus[1]:
+            d = self.proto.rename(tasksStatus[0], starredStatus[0])
+            d.addCallback(self._cbRenameSucceeded, status)
+        else:
+            d = defer.succeed(1)
 
         d.addCallback(self._createOrSubscribe, status, 0)
         d.addCallback(self._createOrSubscribe, status, 1)
@@ -481,42 +495,34 @@ class IMAPClient(base.AbstractDownloadClient):
     def _createOrSubscribe(self, results, status, type):
         #type 0: list
         #type 1: lsub
-        m = status[constants.CHANDLER_MAIL_FOLDER]
-        t = status[constants.CHANDLER_TASKS_FOLDER]
-        e = status[constants.CHANDLER_EVENTS_FOLDER]
-
+        folderStatuses = [status[folder] for folder in (
+                                constants.CHANDLER_MAIL_FOLDER,
+                                constants.CHANDLER_STARRED_FOLDER,
+                                constants.CHANDLER_EVENTS_FOLDER,
+                            )]
         dList = []
 
         if type:
-            if not m[2]:
-                dList.append(self.proto.subscribe(m[0]))
-
-            if not t[2]:
-                dList.append(self.proto.subscribe(t[0]))
-
-            if not e[2]:
-                dList.append(self.proto.subscribe(e[0]))
+            dList = list(self.proto.subscribe(stat[0])
+                        for stat in folderStatuses if not stat[2])
         else:
-            if not m[1]:
-                dList.append(self.proto.create(m[0]))
+            dList = list(self.proto.create(stat[0])
+                        for stat in folderStatuses if not stat[1])
 
-            if not t[1]:
-                dList.append(self.proto.create(t[0]))
-
-            if not e[1]:
-                dList.append(self.proto.create(e[0]))
-
-
-        if len(dList):
+        if dList:
             d = defer.DeferredList(dList)
             d.addErrback(self.catchErrors)
-
-        return None
+            return d
+        else:
+            return None
 
     def _folderingFinished(self, results, status):
-        m = status[constants.CHANDLER_MAIL_FOLDER]
-        t = status[constants.CHANDLER_TASKS_FOLDER]
-        e = status[constants.CHANDLER_EVENTS_FOLDER]
+        import pdb; pdb.set_trace()
+        folderStatuses = [status[folder] for folder in (
+                                constants.CHANDLER_MAIL_FOLDER,
+                                constants.CHANDLER_STARRED_FOLDER,
+                                constants.CHANDLER_EVENTS_FOLDER,
+                            )]
 
         # Store the value of the calback locally since
         # actionCompleted will set self.callback to None
@@ -527,12 +533,14 @@ class IMAPClient(base.AbstractDownloadClient):
         # caller.
         created = False
 
-        for (name, exists, subscribed) in (m, t, e):
+        for (name, exists, subscribed) in folderStatuses:
             if not exists or not subscribed:
                 created = True
                 break
 
-        callMethodInUIThread(cb, ( 1, (m[0], t[0], e[0], created)))
+        resultTuple = tuple(s[0] for s in folderStatuses) + (created,)
+
+        callMethodInUIThread(cb, ( 1, resultTuple))
 
     def _loginClient(self):
         """

@@ -70,10 +70,10 @@ CREATE_FOLDERS_TITLE = _(u"Configure Chandler Folders")
 CREATE_FOLDERS = _(u"""Chandler will attempt to create the following IMAP folders in your account on '%(host)s':
 
     %(ChandlerMailFolder)s
-    %(ChandlerTasksFolder)s
+    %(ChandlerStarredFolder)s
     %(ChandlerEventsFolder)s
 
-If you have already set up Chandler folders in your account, no new folders will be created.
+If you have already set up Chandler folders in your account, no new folders will be created. If you have an existing folder named %(ChandlerTasksFolder)s, it will be renamed to %(ChandlerStarredFolder)s.
 
 Folders may take a while to show up in your email application.""")
 
@@ -82,7 +82,7 @@ REMOVE_FOLDERS_TITLE = _(u"Remove Chandler Folders")
 REMOVE_FOLDERS = _(u"""Chandler will now attempt to remove the following IMAP folders on '%(host)s':
 
     %(ChandlerMailFolder)s
-    %(ChandlerTasksFolder)s
+    %(ChandlerStarredFolder)s
     %(ChandlerEventsFolder)s
 
 Would you like to proceed?""")
@@ -1576,6 +1576,7 @@ class AccountPreferencesDialog(wx.Dialog):
                                     "host": account.host,
                                     "ChandlerMailFolder": constants.CHANDLER_MAIL_FOLDER,
                                     "ChandlerTasksFolder": constants.CHANDLER_TASKS_FOLDER,
+                                    "ChandlerStarredFolder": constants.CHANDLER_STARRED_FOLDER,
                                     "ChandlerEventsFolder": constants.CHANDLER_EVENTS_FOLDER,
                                    },
                                   self)
@@ -1587,7 +1588,7 @@ class AccountPreferencesDialog(wx.Dialog):
                                   REMOVE_FOLDERS % {
                                     "host": account.host,
                                     "ChandlerMailFolder": constants.CHANDLER_MAIL_FOLDER,
-                                    "ChandlerTasksFolder": constants.CHANDLER_TASKS_FOLDER,
+                                    "ChandlerStarredFolder": constants.CHANDLER_STARRED_FOLDER,
                                     "ChandlerEventsFolder": constants.CHANDLER_EVENTS_FOLDER,
                                    },
                                   self)
@@ -2333,7 +2334,7 @@ class AccountPreferencesDialog(wx.Dialog):
             name = folder.displayName
 
             if name == constants.CHANDLER_MAIL_FOLDER or \
-               name == constants.CHANDLER_TASKS_FOLDER or \
+               name == constants.CHANDLER_STARRED_FOLDER or \
                name == constants.CHANDLER_EVENTS_FOLDER:
                 found += 1
 
@@ -2341,20 +2342,23 @@ class AccountPreferencesDialog(wx.Dialog):
         return found == 3
 
     def addChandlerFolders(self, account, folderNames):
-        m = Mail.IMAPFolder(itsView=account.itsView)
-        m.displayName = constants.CHANDLER_MAIL_FOLDER
-        m.folderName  = folderNames[0]
-        m.folderType  = "MAIL"
+        m = Mail.IMAPFolder(itsView=account.itsView,
+                displayName=constants.CHANDLER_MAIL_FOLDER,
+                folderName=folderNames[0],
+                folderType="MAIL",
+            )
 
-        t = Mail.IMAPFolder(itsView=account.itsView)
-        t.displayName = constants.CHANDLER_TASKS_FOLDER
-        t.folderName = folderNames[1]
-        t.folderType = "TASK"
+        t = Mail.IMAPFolder(itsView=account.itsView,
+                displayName=constants.CHANDLER_STARRED_FOLDER,
+                folderName=folderNames[1],
+                folderType="TASK",
+            )
 
-        e = Mail.IMAPFolder(itsView=account.itsView)
-        e.displayName = constants.CHANDLER_EVENTS_FOLDER
-        e.folderName = folderNames[2]
-        e.folderType = "EVENT"
+        e = Mail.IMAPFolder(itsView=account.itsView,
+                displayName=constants.CHANDLER_EVENTS_FOLDER,
+                folderName=folderNames[2],
+                folderType="EVENT"
+            )
 
         account.folders.extend([m,e,t])
 
@@ -2363,7 +2367,7 @@ class AccountPreferencesDialog(wx.Dialog):
             name = folder.displayName
 
             if name == constants.CHANDLER_MAIL_FOLDER or \
-               name == constants.CHANDLER_TASKS_FOLDER or \
+               name == constants.CHANDLER_STARRED_FOLDER or \
                name == constants.CHANDLER_EVENTS_FOLDER:
                 account.folders.remove(folder)
                 folder.delete()

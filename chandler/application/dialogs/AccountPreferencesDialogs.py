@@ -240,7 +240,7 @@ The following folders have been created in your account:
 
 %(ChandlerMailFolder)s - Add messages to this folder to add them to your Mail Dashboard.
 
-%(ChandlerTasksFolder)s - Add messages to this folder to add them to your Tasks Dashboard.
+%(ChandlerStarredFolder)s - Add messages to this folder to add them to your Tasks Dashboard.
 
 %(ChandlerEventsFolder)s - Add messages to this folder to add them to your Calendar Dashboard. Chandler will do its best to makes sense of any date and time information in the message.
 
@@ -248,7 +248,7 @@ All messages added to Chandler folders will show up in your All Dashboard.
 
 Note: Chandler folders may take a while to appear in your email application.""") % {
    "ChandlerMailFolder": constants.CHANDLER_MAIL_FOLDER,
-   "ChandlerTasksFolder": constants.CHANDLER_TASKS_FOLDER,
+   "ChandlerStarredFolder": constants.CHANDLER_STARRED_FOLDER,
    "ChandlerEventsFolder": constants.CHANDLER_EVENTS_FOLDER,
    }
 
