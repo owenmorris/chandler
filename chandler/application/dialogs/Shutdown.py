@@ -63,11 +63,12 @@ class ShutdownDialog(wx.Dialog):
         else:
             doBackup = getattr(self._prefs, 'backupOnQuit', True)
             checkbox = wx.CheckBox(self, -1,
-                                   _(u"Back up data when quitting Chandler"))
+                                   _(u"&Back up data when quitting Chandler"))
             checkbox.Font = getFont(size=11.0)
             checkbox.Value = doBackup
+            checkbox.SetFocus()
             
-            self.cancel = wx.Button(self, wx.ID_CANCEL, _(u"Skip Back up"))
+            self.cancel = wx.Button(self, wx.ID_CANCEL, _(u"&Skip Back up"))
             self.cancel.SetWindowVariant(wx.WINDOW_VARIANT_SMALL)
             self.cancel.Enabled = doBackup
             
