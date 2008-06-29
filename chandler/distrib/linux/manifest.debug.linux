@@ -76,6 +76,17 @@ recursive=yes
 glob=*
 site-packages
 
+# Grab python config files for distutil's benefit ...
+# ... (1) Makefile
+src=chandler/debug/lib/python2.5/config
+dest=debug/lib/python2.5/config
+Makefile
+
+# ... (2) pyconfig.h
+src=chandler/debug/include/python2.5pyconfig.h
+dest=debug/include/python2.5
+pyconfig.h
+
 # Grab the DB libraries
 dest=debug/db/lib
 src=chandler/debug/db/lib
