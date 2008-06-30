@@ -1834,6 +1834,11 @@ for ep in pkg_resources.iter_entry_points('chandler.quick_entry'):
         quick_entry_objects[name.lower()] = cls
 
 def get_quick_entry(partial_name):
+    # Try an exact match first.
+    cls = quick_entry_objects.get(partial_name)
+    if cls is not None:
+        return cls
+
     for name, cls in quick_entry_objects.iteritems():
         if name.startswith(partial_name):
             return cls
