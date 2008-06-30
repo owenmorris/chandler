@@ -83,7 +83,7 @@ dest=debug/lib/python2.5/config
 Makefile
 
 # ... (2) pyconfig.h
-src=chandler/debug/include/python2.5pyconfig.h
+src=chandler/debug/include/python2.5
 dest=debug/include/python2.5
 pyconfig.h
 

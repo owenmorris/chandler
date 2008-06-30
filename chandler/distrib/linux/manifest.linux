@@ -82,7 +82,7 @@ dest=release/lib/python2.5/config
 Makefile
 
 # ... (2) pyconfig.h
-src=chandler/release/include/python2.5pyconfig.h
+src=chandler/release/include/python2.5
 dest=release/include/python2.5
 pyconfig.h
 
