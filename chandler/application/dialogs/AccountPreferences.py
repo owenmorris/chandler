@@ -70,10 +70,10 @@ CREATE_FOLDERS_TITLE = _(u"Configure Chandler Folders")
 CREATE_FOLDERS = _(u"""Chandler will attempt to create the following IMAP folders in your account on '%(host)s':
 
     %(ChandlerMailFolder)s
-    %(ChandlerTasksFolder)s
+    %(ChandlerStarredFolder)s
     %(ChandlerEventsFolder)s
 
-If you have already set up Chandler folders in your account, no new folders will be created.
+If you have already set up Chandler folders in your account, no new folders will be created. If you have an existing folder named %(ChandlerTasksFolder)s, it will be renamed to %(ChandlerStarredFolder)s.
 
 Folders may take a while to show up in your email application.""")
 
@@ -82,7 +82,7 @@ REMOVE_FOLDERS_TITLE = _(u"Remove Chandler Folders")
 REMOVE_FOLDERS = _(u"""Chandler will now attempt to remove the following IMAP folders on '%(host)s':
 
     %(ChandlerMailFolder)s
-    %(ChandlerTasksFolder)s
+    %(ChandlerStarredFolder)s
     %(ChandlerEventsFolder)s
 
 Would you like to proceed?""")
@@ -978,12 +978,13 @@ class AccountPreferencesDialog(wx.Dialog):
 
                         if action == "ADD" and not \
                            self.hasChandlerFolders(item):
-                            folderNames = values[field]["folderNames"]
-                            self.addChandlerFolders(item, folderNames)
+                            folderChanges = values[field]["folderChanges"]
+                            self.updateChandlerFolders(item, *folderChanges)
 
                         elif action == "REMOVE" and \
                             self.hasChandlerFolders(item):
-                            self.removeChandlerFolders(item)
+                            folderChanges = values[field]["folderChanges"]
+                            self.updateChandlerFolders(item, *folderChanges)
 
                     elif desc['type'] == 'password':
                         try:
@@ -1053,11 +1054,12 @@ class AccountPreferencesDialog(wx.Dialog):
                 action = values['INCOMING_FOLDERS'].get("action", None)
 
                 if action == "ADD" and not self.hasChandlerFolders(item):
-                    folderNames = values['INCOMING_FOLDERS']["folderNames"]
-                    self.addChandlerFolders(item, folderNames)
+                    folderChanges = values['INCOMING_FOLDERS']["folderChanges"]
+                    self.updateChandlerFolders(item, *folderChanges)
 
                 elif action == "REMOVE" and self.hasChandlerFolders(item):
-                    self.removeChandlerFolders(item)
+                    folderChanges = values['INCOMING_FOLDERS']["folderChanges"]
+                    self.updateChandlerFolders(item, *folderChanges)
 
         for item in list(self.creations):
             if hasattr(item, 'password'):
@@ -1291,7 +1293,7 @@ class AccountPreferencesDialog(wx.Dialog):
                     val = control.GetClientData(index)
 
             elif valueType == "chandlerFolders":
-                # The action and folderNames have
+                # The action and folderChanges have
                 # already been stored via callbacks
                 # so do not do anything here
                 continue
@@ -1576,6 +1578,7 @@ class AccountPreferencesDialog(wx.Dialog):
                                     "host": account.host,
                                     "ChandlerMailFolder": constants.CHANDLER_MAIL_FOLDER,
                                     "ChandlerTasksFolder": constants.CHANDLER_TASKS_FOLDER,
+                                    "ChandlerStarredFolder": constants.CHANDLER_STARRED_FOLDER,
                                     "ChandlerEventsFolder": constants.CHANDLER_EVENTS_FOLDER,
                                    },
                                   self)
@@ -1587,7 +1590,7 @@ class AccountPreferencesDialog(wx.Dialog):
                                   REMOVE_FOLDERS % {
                                     "host": account.host,
                                     "ChandlerMailFolder": constants.CHANDLER_MAIL_FOLDER,
-                                    "ChandlerTasksFolder": constants.CHANDLER_TASKS_FOLDER,
+                                    "ChandlerStarredFolder": constants.CHANDLER_STARRED_FOLDER,
                                     "ChandlerEventsFolder": constants.CHANDLER_EVENTS_FOLDER,
                                    },
                                   self)
@@ -1597,7 +1600,7 @@ class AccountPreferencesDialog(wx.Dialog):
                     self.OnFolderRemoval)
 
     def OnFolderCreation(self, result):
-        statusCode, folderNames = result
+        statusCode, value = result
 
         # Failure
         if statusCode == 0:
@@ -1614,12 +1617,12 @@ class AccountPreferencesDialog(wx.Dialog):
 
         data['INCOMING_FOLDERS']['create'] = False
         data['INCOMING_FOLDERS']['action'] = "ADD"
-        data['INCOMING_FOLDERS']['folderNames'] = folderNames
+        data['INCOMING_FOLDERS']['folderChanges'] = value
         data['INCOMING_FOLDERS']['hasFolders'] = True
 
 
     def OnFolderRemoval(self, result):
-        statusCode, folderNames = result
+        statusCode, value = result
         button = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_FOLDERS")
 
         # Failure
@@ -1635,7 +1638,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
         data['INCOMING_FOLDERS']['create'] = True
         data['INCOMING_FOLDERS']['action'] = "REMOVE"
-        data['INCOMING_FOLDERS']['folderNames'] = folderNames
+        data['INCOMING_FOLDERS']['folderChanges'] = value
         data['INCOMING_FOLDERS']['hasFolders'] = False
 
     def OnAutoDiscovery(self, account):
@@ -2332,41 +2335,87 @@ class AccountPreferencesDialog(wx.Dialog):
         for folder in account.folders:
             name = folder.displayName
 
-            if name == constants.CHANDLER_MAIL_FOLDER or \
-               name == constants.CHANDLER_TASKS_FOLDER or \
-               name == constants.CHANDLER_EVENTS_FOLDER:
+            if name in constants.CURRENT_IMAP_FOLDERS:
                 found += 1
 
         # All three folders are in the account.folders list
         return found == 3
 
-    def addChandlerFolders(self, account, folderNames):
-        m = Mail.IMAPFolder(itsView=account.itsView)
-        m.displayName = constants.CHANDLER_MAIL_FOLDER
-        m.folderName  = folderNames[0]
-        m.folderType  = "MAIL"
+    def updateChandlerFolders(self, account, completed, nameToPathDict):
+        # Here, we update account.folders to match the operations that
+        # are reported in completed.
+        #
+        # completed is a list of tuples. For folder creation, these
+        # have the form:
+        #
+        #   ('created', name)
+        #   ('renamed', oldName, newName)
+        #   ('exists', name)
+        #
+        # while for deletion, they look like:
+        #
+        #   ('deleted', name)
+        #   ('nonexistent', name)
+        #
+        # Here the "name" arguments are one of the names that appear in
+        # constants.CHANDLER_xxx_FOLDER. The nameToPathDict argument
+        # maps these names to IMAP folder paths on the server.
+        #
+        folderNameToType = {
+            constants.CHANDLER_MAIL_FOLDER: "MAIL",
+            constants.CHANDLER_STARRED_FOLDER: "TASK",
+            constants.CHANDLER_EVENTS_FOLDER: "EVENT"
+        }
+        
+        def getFolderByName(name):
+            folderName = nameToPathDict[name]
+            for folder in account.folders:
+                if folder.folderName == folderName:
+                    return folder
+            # otherwise return None
+                    
+        def createOrUpdateFolder(folder, name):
+            # if folder is None, we will create a new folder of the
+            # correct type, server path, displayName. Otherwise, we
+            # will change folder.
+            changes = dict(
+                displayName=name,
+                folderName=nameToPathDict[name],
+                type=folderNameToType[name]
+            )
+            if folder is None:
+                folder = Mail.IMAPFolder(itsView=account.itsView, **changes)
+                account.folders.append(folder)
+            else:
+                for key, value in changes.iteritems():
+                    setattr(folder, key, value)
+            return folder
 
-        t = Mail.IMAPFolder(itsView=account.itsView)
-        t.displayName = constants.CHANDLER_TASKS_FOLDER
-        t.folderName = folderNames[1]
-        t.folderType = "TASK"
-
-        e = Mail.IMAPFolder(itsView=account.itsView)
-        e.displayName = constants.CHANDLER_EVENTS_FOLDER
-        e.folderName = folderNames[2]
-        e.folderType = "EVENT"
-
-        account.folders.extend([m,e,t])
-
-    def removeChandlerFolders(self, account):
-        for folder in account.folders:
-            name = folder.displayName
-
-            if name == constants.CHANDLER_MAIL_FOLDER or \
-               name == constants.CHANDLER_TASKS_FOLDER or \
-               name == constants.CHANDLER_EVENTS_FOLDER:
+        def deleteFolder(folder):
+            # if folder is not None, remove it from account.folders and
+            # also delete it from the repository.
+            if folder is not None:
                 account.folders.remove(folder)
-                folder.delete()
+                folder.delete(recursive=True)
+        
+        for t in completed:
+            if t[0] in ('created', 'exists'):
+                createOrUpdateFolder(getFolderByName(t[1]), t[1])
+ 
+            elif t[0] == 'renamed':
+                oldFolder = getFolderByName(t[1])
+                newFolder = getFolderByName(t[2])
+
+                if newFolder is not None:
+                    createOrUpdateFolder(newFolder, t[2])
+                    deleteFolder(oldFolder)
+                else:
+                    createOrUpdateFolder(oldFolder, t[2])
+                
+            elif t[0] in ('deleted', 'nonexistent'):
+                oldFolder = getFolderByName(t[1])
+                deleteFolder(oldFolder)
+                    
 
 def ShowAccountPreferencesDialog(account=None, rv=None, modal=True,
     create=None):

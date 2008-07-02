@@ -264,7 +264,7 @@ class IMAPClient(base.AbstractDownloadClient):
     clientType   = "IMAPClient"
     factoryType  = IMAPClientFactory
     defaultPort  = 143
-
+    
     def createChandlerFolders(self, callback, reconnect):
         if __debug__:
             trace("createChandlerFolders")
@@ -326,72 +326,115 @@ class IMAPClient(base.AbstractDownloadClient):
     def _removeChandlerFolders(self, results):
         if __debug__:
             trace("_removeChandlerFolders")
+            
+        completed = []
+        # completed stores a list of successfully completed operations. Each
+        # item is a tuple that will look something like:
+        #
+        # ('deleted', 'Chandler Mail')
+        # ('nonexistent', 'Chandler Events')
 
         d = self._getChandlerFoldersStatus()
-        d.addCallback(self._cbRemoveChandlerFolders)
+        d.addCallback(
+            self._cbRemoveChandlerFolders, completed
+        ).addErrback(
+            self.catchErrors
+        )
 
         return None
 
-    def _cbRemoveChandlerFolders(self, status):
-        m = status[constants.CHANDLER_MAIL_FOLDER]
-        t = status[constants.CHANDLER_TASKS_FOLDER]
-        e = status[constants.CHANDLER_EVENTS_FOLDER]
+    def _cbDeleted(self, folder, completed):
+        def cb(imap_goop):
+            completed.append(('deleted', folder))
+        return cb
 
+    def _addDeleteCallback(self, d, folderPath):
+        msgSet = imap4.MessageSet(1, None)
+        d.addCallback(lambda x: self.proto.select(folderPath))
+        d.addCallback(lambda x: 
+                self.proto.addFlags(msgSet, ("\\Deleted",), uid=True))
+        d.addCallback(lambda x: self.proto.expunge())
+        d.addCallback(lambda x: self.proto.close())
+        d.addCallback(lambda x: self.proto.delete(folderPath))
+        
+    def _deleteOrUnsubscribe(self, responses, status, type, completed):
+        #type 0: list
+        #type 1: lsub
+        d = defer.succeed(1)
+ 
+        for folder in constants.CURRENT_IMAP_FOLDERS:
+            folderPath, exists,  subscribed = status[folder]
+            
+            if type == 0: # LIST output
+                if not exists:
+                    completed.append(('nonexistent', folder))
+                else:
+                    self._addDeleteCallback(d, folderPath)
+                    d.addCallback(lambda x: self._cbDeleted(folder, completed))
+            else:
+                if subscribed:
+                    d.addCallback(lambda x: self.proto.unsubscribe(folderPath))
+
+        return d
+
+    def _cbRemoveChandlerFolders(self, status, completed):
         d = defer.succeed(1)
 
-        self._addFolderToDeferred(m, d)
-        self._addFolderToDeferred(t, d)
-        self._addFolderToDeferred(e, d)
+        d.addCallback(self._deleteOrUnsubscribe, status, 0, completed)
+        
+        # When the above callback is done, we want to LSUB the current folders
+        # and UNSUBSCRIBE as necessary. Hence the lambda: we will only call
+        # self._getListingDeferredList() once the previous callback is done.
+        d.addCallback(lambda result: self._getListingDeferredList(
+                                            constants.CURRENT_IMAP_FOLDERS, 1, status))
 
+        d.addCallback(self._deleteOrUnsubscribe, status, 1, completed)
+        d.addCallback(lambda result: completed)
         d.addCallback(self._folderingFinished, status)
         d.addErrback(self.catchErrors)
 
         return None
 
-    def _addFolderToDeferred(self, folder, d):
-        name, exists, subscribed = folder
-
-        if exists:
-            #XXX This logic can be refined to first do a status on the
-            # folder and determine if there are any messages in the folder.
-            # If no messages then just do a delete otherwise select the
-            # folder, add the \Deleted flag on all messages, expunge,
-            # close, and then delete folder.
-
-            msgSet = imap4.MessageSet(1, None)
-            d.addCallback(lambda x: self.proto.select(folder[0]))
-            d.addCallback(lambda x: self.proto.addFlags(msgSet, ("\\Deleted",), uid=True))
-            d.addCallback(lambda x: self.proto.expunge())
-            d.addCallback(lambda x: self.proto.close())
-            d.addCallback(lambda x: self.proto.delete(folder[0]))
-
-        if subscribed:
-            d.addCallback(lambda x: self.proto.unsubscribe(folder[0]))
-
     def _getChandlerFoldersStatus(self):
         if __debug__:
             trace("_getChandlerFoldersStatus")
 
-        m = constants.CHANDLER_MAIL_FOLDER
-        t = constants.CHANDLER_TASKS_FOLDER
-        e = constants.CHANDLER_EVENTS_FOLDER
-
-        status = {
-            #pos 0: The Unicode name of the folder on the IMAP Server.
-            #       The values in m, t, and e are of type i18n.Message.
-            #       They need to be converted to Unicode to be saved in
-            #       the IMAPFolder.folderName attribute of type schema.Text.
-            #pos 1: Boolean whether to folder exists on the server already
-            #pos 2: Boolean whether the folder is currently subscribe to already
-            m: [unicode(m), False, False],
-            t: [unicode(t), False, False],
-            e: [unicode(e), False, False]
-        }
+        #pos 0: The Unicode name of the folder on the IMAP Server.
+        #       The values in ALL_IMAP_FOLDERS are of type i18n.Message.
+        #       They need to be converted to Unicode to be saved in
+        #       the IMAPFolder.folderName attribute of type schema.Text.
+        #pos 1: Boolean whether to folder exists on the server already
+        #pos 2: Boolean whether the folder is currently subscribe to already
+        status = dict((val, [unicode(val), False, False])
+                         for val in constants.ALL_IMAP_FOLDERS)
 
         d = self.proto.list("", "INBOX")
         d.addCallback(self._cbGetChandlerFolderStatus, status)
         d.addErrback(self.catchErrors)
 
+        return d
+
+    def _getListingDeferredList(self, folders, type, status):
+        if type == 0:
+            method = self.proto.list
+        else:
+            method = self.proto.lsub
+            
+        def getDeferred(key):
+            mailboxPath = status[key][0]
+            return method("", mailboxPath).addCallback(
+                        self._updateStatus, status, type, key
+                    )
+
+        deferreds = map(getDeferred, folders)
+
+        d = defer.DeferredList(
+                deferreds
+            ).addCallback(
+                lambda x: status
+            ).addErrback(
+                self.catchErrors
+            )
         return d
 
     def _cbGetChandlerFolderStatus(self, result, status):
@@ -418,121 +461,129 @@ class IMAPClient(base.AbstractDownloadClient):
             return self.proto._raiseException(
                    errors.IMAPException(constants.INBOX_LIST_ERROR))
 
-        m = constants.CHANDLER_MAIL_FOLDER
-        t = constants.CHANDLER_TASKS_FOLDER
-        e = constants.CHANDLER_EVENTS_FOLDER
-
         if not ("\\noinferiors" in folderFlags or \
            "\\noselect" in folderFlags or \
            folderDelim is None or \
            folderDelim.lower() == "nil"):
             # The folder can be created under the INBOX
-            for key in (m, t, e):
+            for key in constants.ALL_IMAP_FOLDERS:
                status[key][0] = u"INBOX%s%s" % (folderDelim, key)
 
-        dList = []
-
-        for key in (m, t, e):
-            d = self.proto.list("", status[key][0])
-            d.addCallback(self._updateStatus, status, 0, key)
-            dList.append(d)
-
-            d1 = self.proto.lsub("", status[key][0])
-            d1.addCallback(self._updateStatus, status, 1, key)
-            dList.append(d1)
-
-        d = defer.DeferredList(dList)
-        d.addCallback(lambda x: status)
-        d.addErrback(self.catchErrors)
-
-        return d
-
+        return self._getListingDeferredList(constants.ALL_IMAP_FOLDERS, 0, status)
 
     def _updateStatus(self, results, status, type, key):
         #type 0: list
         #type 1: lsub
+        
         folder = status[key]
 
-        if results:
-            if type:
-                folder[2] = True
-            else:
-                folder[1] = True
+        if type:
+            folder[2] = bool(results) # i.e. results non-empty
+        else:
+            folder[1] = bool(results)
 
 
     def _createChandlerFolders(self, results):
         if __debug__:
             trace("_createChandlerFolders")
 
+        # completed stores a list of successfully completed operations. Each
+        # item is a tuple that will look like one of:
+        #
+        # ('created', 'Chandler Events') # created this mailbox
+        # ('renamed', 'Chandler Tasks', 'Chandler Starred') # renamed a mailbox
+        # ('exists', 'Chandler Mail') # no action taken b/c mailbox exists already
+        completed = []
+
         d = self._getChandlerFoldersStatus()
-        d.addCallback(self._cbCreateChandlerFolders)
+        d.addCallback(
+            self._cbCreateChandlerFolders, completed,
+        ).addErrback(
+            self.catchErrors
+        )
         return None
 
-    def _cbCreateChandlerFolders(self, status):
-        d = defer.succeed(1)
+    def _renameSucceeded(self, responses, status, src, dest, completed):
+        completed.append(('renamed', src, dest))
+        # Change the 'created' flags of the mailboxes so that don't attempt
+        # to recreate them in self._createOrSubscribe
+        status[src][1] = False
+        status[dest][1] = True
 
-        d.addCallback(self._createOrSubscribe, status, 0)
-        d.addCallback(self._createOrSubscribe, status, 1)
+    def _cbCreateChandlerFolders(self, status, completed):
+        d = defer.succeed(1)
+        
+        starredStatus = status[constants.CHANDLER_STARRED_FOLDER]
+        tasksStatus = status[constants.CHANDLER_TASKS_FOLDER]
+        
+        if tasksStatus[1] and not starredStatus[1]:
+            d = self.proto.rename(tasksStatus[0], starredStatus[0])
+            d.addCallback(self._renameSucceeded, status, 
+                            constants.CHANDLER_TASKS_FOLDER,
+                            constants.CHANDLER_STARRED_FOLDER,
+                            completed)
+
+        d.addCallback(self._createOrSubscribe, status, 0, completed)
+        
+        # When the above callback is done, we want to LSUB the current
+        # folders and subscribe to them as necessary. Hence the lambda: we
+        # will only call self._getListingDeferredList() once the previous
+        # callback is done.
+        d.addCallback(lambda result: self._getListingDeferredList(
+                                            constants.CURRENT_IMAP_FOLDERS, 1, status))
+
+        d.addCallback(self._createOrSubscribe, status, 1, completed)
+        d.addCallback(lambda result: completed)
         d.addCallback(self._folderingFinished, status)
         d.addErrback(self.catchErrors)
 
         return None
 
-    def _createOrSubscribe(self, results, status, type):
+    def _cbCreated(self, folder, completed):
+        def cb(imap_goop):
+            completed.append(('created', folder))
+        return cb
+        
+    def _createOrSubscribe(self, responses, status, type, completed):
         #type 0: list
         #type 1: lsub
-        m = status[constants.CHANDLER_MAIL_FOLDER]
-        t = status[constants.CHANDLER_TASKS_FOLDER]
-        e = status[constants.CHANDLER_EVENTS_FOLDER]
-
         dList = []
+        
+        for folder in constants.CURRENT_IMAP_FOLDERS:
+            folderPath, exists,  subscribed = status[folder]
+            
+            if type == 0: # LIST output
+                if exists:
+                    if not any(t[-1] == folder for t in completed):
+                        # bypass the case where we renamed this folder already.
+                        completed.append(('exists', folder))
+                else:
+                    dList.append(
+                        self.proto.create(
+                            folderPath
+                        ).addCallback(
+                            self._cbCreated(folder, completed)
+                        )
+                    )
+            else:
+                if not subscribed:
+                    dList.append(self.proto.subscribe(folderPath))
 
-        if type:
-            if not m[2]:
-                dList.append(self.proto.subscribe(m[0]))
-
-            if not t[2]:
-                dList.append(self.proto.subscribe(t[0]))
-
-            if not e[2]:
-                dList.append(self.proto.subscribe(e[0]))
-        else:
-            if not m[1]:
-                dList.append(self.proto.create(m[0]))
-
-            if not t[1]:
-                dList.append(self.proto.create(t[0]))
-
-            if not e[1]:
-                dList.append(self.proto.create(e[0]))
-
-
-        if len(dList):
+        if dList:
             d = defer.DeferredList(dList)
             d.addErrback(self.catchErrors)
+            return d
+        else:
+            return None
 
-        return None
-
-    def _folderingFinished(self, results, status):
-        m = status[constants.CHANDLER_MAIL_FOLDER]
-        t = status[constants.CHANDLER_TASKS_FOLDER]
-        e = status[constants.CHANDLER_EVENTS_FOLDER]
-
+    def _folderingFinished(self, completed, status):
         # Store the value of the calback locally since
         # actionCompleted will set self.callback to None
         cb = self.callback
         self._actionCompleted()
 
-        # Pass the IMAP server folder names back to the
-        # caller.
-        created = False
-
-        for (name, exists, subscribed) in (m, t, e):
-            if not exists or not subscribed:
-                created = True
-                break
-
-        callMethodInUIThread(cb, ( 1, (m[0], t[0], e[0], created)))
+        nameDict = dict((key, value[0]) for key, value in status.iteritems())
+        callMethodInUIThread(cb, ( 1, (completed, nameDict)))
 
     def _loginClient(self):
         """

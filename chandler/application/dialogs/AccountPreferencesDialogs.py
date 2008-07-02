@@ -227,33 +227,77 @@ class ChandlerIMAPFoldersDialog(ProgressDialog):
         return _(u"Configuring folders in your account...")
 
     def getSuccessText(self, statusValue):
-        created = statusValue[3]
+        descriptions = {
+            constants.CHANDLER_MAIL_FOLDER: _(u"Add messages to this folder to add them to your Mail Dashboard."),
+            constants.CHANDLER_STARRED_FOLDER: _(u"Add messages to this folder to add them to your Starred Items Dashboard."),
+            constants.CHANDLER_EVENTS_FOLDER: _(u"Add messages to this folder to add them to your Calendar.")
+        }
+        
+        formatArgNames = {
+            constants.CHANDLER_MAIL_FOLDER: "%(ChandlerMailFolder)s",
+            constants.CHANDLER_TASKS_FOLDER: "%(ChandlerTasksFolder)s",
+            constants.CHANDLER_STARRED_FOLDER: "%(ChandlerStarredFolder)s",
+            constants.CHANDLER_EVENTS_FOLDER: "%(ChandlerEventsFolder)s",
+        }
+        
+        created = ""
+        renamed = ""
+        unchanged = ""
+        
+        for t in statusValue[0]:
+            if t[0] == 'created':
+                created += "%s - %s\n\n" % (
+                            formatArgNames[t[1]],
+                            descriptions[t[1]]
+                        )
+            elif t[0] == 'renamed':
+                desc = _(u"%(oldMailboxName)s has been renamed to %(newMailboxName)s") % {
+                    'oldMailboxName': formatArgNames[t[1]],
+                    'newMailboxName': formatArgNames[t[2]]
+                }
+                renamed += "%s - %s\n\n" % (
+                            desc,
+                            descriptions[t[2]]
+                        )
+            elif t[0] == 'exists':
+                unchanged += "%s - %s\n\n" % (
+                            formatArgNames[t[1]],
+                            descriptions[t[1]]
+                        )
 
-        if created:
-            # The -1 length argument lets the wx layer
-            # determine the correct length based on the
-            # the localized text.
-            self.SUCCESS_TEXT_SIZE = (525, -1)
-
-            return _(u"""\
-The following folders have been created in your account:
-
-%(ChandlerMailFolder)s - Add messages to this folder to add them to your Mail Dashboard.
-
-%(ChandlerTasksFolder)s - Add messages to this folder to add them to your Tasks Dashboard.
-
-%(ChandlerEventsFolder)s - Add messages to this folder to add them to your Calendar Dashboard. Chandler will do its best to makes sense of any date and time information in the message.
-
-All messages added to Chandler folders will show up in your All Dashboard.
-
-Note: Chandler folders may take a while to appear in your email application.""") % {
-   "ChandlerMailFolder": constants.CHANDLER_MAIL_FOLDER,
-   "ChandlerTasksFolder": constants.CHANDLER_TASKS_FOLDER,
-   "ChandlerEventsFolder": constants.CHANDLER_EVENTS_FOLDER,
-   }
-
-        else:
+        if not created and not renamed:
             return _(u"You have already set up Chandler folders in this account. No new folders were created.")
+            
+        successText = ""
+        if created:
+            successText = _(u"The following folder(s) have been created in your account:\n\n") + created
+
+        if unchanged:
+            if successText:
+                successText += '\n'
+            successText += _(u"The following existing folder(s) in your account were left unchanged:\n\n") + unchanged
+
+        if renamed:
+            if successText:
+                successText += '\n'
+            successText += renamed
+
+        successText += _(
+u"""\nAll messages added to Chandler folders will show up in your All Dashboard.
+
+Note: Chandler folders may take a while to appear in your email application.""")
+
+        # The -1 length argument lets the wx layer
+        # determine the correct length based on the
+        # the localized text.
+        self.SUCCESS_TEXT_SIZE = (525, -1)
+
+        return successText % {
+           "ChandlerMailFolder": constants.CHANDLER_MAIL_FOLDER,
+           "ChandlerTasksFolder": constants.CHANDLER_TASKS_FOLDER,
+           "ChandlerStarredFolder": constants.CHANDLER_STARRED_FOLDER,
+           "ChandlerEventsFolder": constants.CHANDLER_EVENTS_FOLDER,
+       }
 
     def getErrorText(self, statusValue):
         return constants.MAIL_PROTOCOL_ERROR % \
