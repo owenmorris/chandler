@@ -228,9 +228,9 @@ class ChandlerIMAPFoldersDialog(ProgressDialog):
 
     def getSuccessText(self, statusValue):
         descriptions = {
-            constants.CHANDLER_MAIL_FOLDER: _(u"Add messages to this folder to add them to your Mail Dashboard."),
-            constants.CHANDLER_STARRED_FOLDER: _(u"Add messages to this folder to add them to your Starred Items Dashboard."),
-            constants.CHANDLER_EVENTS_FOLDER: _(u"Add messages to this folder to add them to your Calendar.")
+            constants.CHANDLER_MAIL_FOLDER: _(u"Add messages here to download them into Chandler as mail."),
+            constants.CHANDLER_STARRED_FOLDER: _(u"Add messages here to download them into Chandler as starred messages."),
+            constants.CHANDLER_EVENTS_FOLDER: _(u"Add messages here to download them into Chandler as events.")
         }
         
         formatArgNames = {
@@ -283,9 +283,9 @@ class ChandlerIMAPFoldersDialog(ProgressDialog):
             successText += renamed
 
         successText += _(
-u"""\nAll messages added to Chandler folders will show up in your All Dashboard.
+u"""\nMessages added to these Chandler IMAP folders will appear in your Dashboard.
 
-Note: Chandler folders may take a while to appear in your email application.""")
+Note: Folders may take a while to appear in your email application.""")
 
         # The -1 length argument lets the wx layer
         # determine the correct length based on the
