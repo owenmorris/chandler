@@ -149,7 +149,8 @@ rdate_field = eim.subtype(text32K)
 def sort_factory(separator, start_sort):
     def sort(s):
         begin = u''
-        if start_sort: begin, x, s = s.partition(unicode(start_sort))
+        if start_sort:
+            begin, start_sort, s = s.rpartition(unicode(start_sort))
         return begin + start_sort + separator.join(sorted(s.split(separator)))
     return sort
 
