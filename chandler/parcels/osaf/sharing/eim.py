@@ -33,7 +33,6 @@ from osaf import pim
 from twisted.internet.defer import Deferred
 import errors
 import logging
-import sys
 logger = logging.getLogger(__name__)
 
 
@@ -622,8 +621,6 @@ def _constructor_for(name, cdict, fields):
         "\n    %s = get_converter(cls.%s)(%s)" % (f.name,f.name,f.name)
         for f in fields
     )
-    for f in fields:
-        if f.init: conversions+='\n    %s = %s(locals())' % (f.name, f.init)
     nc_check = ' is '.join(f.name for f in fields if not isinstance(f,key))
     if nc_check: conversions+='\n    if '+nc_check+' is NoChange: return NoChange'
     source = (
@@ -661,9 +658,7 @@ class RecordClass(type):
         fields.sort()
         cdict['__slots__'] = ()
         cdict['__fields__'] = tuple(fields)
-        g = sys.modules[cdict['__module__']].__dict__.copy()
-        g.update(NoChange=NoChange, get_converter=get_converter)
-        exec _constructor_for(name, cdict, fields) in g, cdict
+        exec _constructor_for(name, cdict, fields) in globals(), cdict
 
         cls = type.__new__(meta, name, bases, cdict)
         defaults = []
@@ -704,8 +699,8 @@ class RecordClass(type):
 _field_num = 1
 
 class field(object):
-    __slots__ = "owner", "name", "type", "typeinfo", "seq", "offset", "filters", "title", "default", "init"
-    def __init__(self, type, title=None, formatter=None, filters=(), default=NOT_GIVEN, init=None):
+    __slots__ = "owner", "name", "type", "typeinfo", "seq", "offset", "filters", "title", "default"
+    def __init__(self, type, title=None, formatter=None, filters=(), default=NOT_GIVEN):
         global _field_num
         self.owner = self.name = None
         self.title = title
@@ -715,7 +710,6 @@ class field(object):
         self.seq = _field_num = _field_num + 1
         if filters or not hasattr(self, 'filters'):
             self.filters = filters
-        self.init = init
 
     def __setattr__(self, attr, val):
         if hasattr(self,'offset'):
