@@ -548,33 +548,39 @@ class Conflict(object):
 
         # generate records for local item
         translator = self.state.getTranslator()
-        rs = eim.RecordSet(translator.exportItem(self.item))
 
-        if self.change.exclusions: # the conflict is a record removal
-            change = list(self.change.exclusions)[0]
-            # search rs for matching key
-            for r in rs.inclusions:
-                if r.getKey() == change.getKey():
-                    # record still applies to local item, still a conflict
-                    return True
+        items = [self.item]
+        if self.item.hasLocalAttributeValue('inheritFrom'):
+            # need to check if the conflict is actually on the master
+            items.append(self.item.inheritFrom)
 
-            # didn't find a match, so the record has been removed on the
-            # item, thus this is no longer a conflict
+        for item in items:
+            rs = eim.RecordSet(translator.exportItem(item))
+            if self.change.exclusions: # the conflict is a record removal
+                change = list(self.change.exclusions)[0]
+                # search rs for matching key
+                for r in rs.inclusions:
+                    if r.getKey() == change.getKey():
+                        # record still applies to local item, still a conflict
+                        return True
 
-        else: # the conflict is on a field change
-            change = list(self.change.inclusions)[0]
-            for r in rs.inclusions:
-                if r.getKey() == change.getKey():
-                    # found matching record, now see if local values match
-                    # pending change
-                    for field in type(r).__fields__:
-                        changedField = getattr(change, field.name)
-                        if changedField != nc:
-                            if getattr(r, field.name) != changedField:
-                                # mismatch, conflict still valid
-                                return True
+                # didn't find a match, so the record has been removed on the
+                # item, thus this is no longer a conflict
 
-            # pending changes all match local item, no more conflict
+            else: # the conflict is on a field change
+                change = list(self.change.inclusions)[0]
+                for r in rs.inclusions:
+                    if r.getKey() == change.getKey():
+                        # found matching record, now see if local values match
+                        # pending change
+                        for field in type(r).__fields__:
+                            changedField = getattr(change, field.name)
+                            if changedField != nc:
+                                if getattr(r, field.name) != changedField:
+                                    # mismatch, conflict still valid
+                                    return True
+
+                # pending changes all match local item, no more conflict
 
         self.discard()
         return False
