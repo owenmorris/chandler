@@ -117,6 +117,24 @@ def registerTZID(view, vobj):
     if tzid is not None and vobject.icalendar.getTzid(tzid) is None:
         vobject.icalendar.registerTzid(tzid, view.tzinfo.getInstance(tzid))
 
+def freq_first(rrule):
+    """Put the FREQ component first.
+
+    EIM will sort rrule components alphabetically.  That's fine for most things,
+    but it's ugly if FREQ doesn't come first.
+    """
+    if not rrule: return rrule
+    components = rrule.split(';')
+    normal = []
+    freq = ""
+    for comp in components:
+        if comp.upper().startswith("FREQ"):
+            freq = comp
+        else:
+            normal.append(comp)
+    normal.insert(0, freq)
+    return ";".join(normal)
+
 def readEventRecord(view, eventRecord, vobjs):
     vevent = getVobj(eventRecord, vobjs)
     master = None
@@ -173,6 +191,7 @@ def readEventRecord(view, eventRecord, vobjs):
         record_value = getattr(eventRecord, rule_name)
         if record_value not in translator.emptyValues:
             for rule_value in record_value.split(':'):
+                rule_value = freq_first(rule_value)
                 # EIM concatenates multiple rules with :
                 rules.append(textLineToContentLine(rule_name + ":" + rule_value))
         vevent.contents[rule_name] = rules

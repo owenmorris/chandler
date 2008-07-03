@@ -35,7 +35,8 @@ import vobject
 import cStringIO
 from PyICU import ICUtzinfo, FloatingTZ
 from dateutil import tz
-from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
+from osaf.pim.calendar.Recurrence import (RecurrenceRule, RecurrenceRuleSet,
+                                          WeekdayAndPositionStruct)
 from i18n.tests import uw
 
 def getVObjectData(view, events):
@@ -363,9 +364,11 @@ class ICalendarTestCase(SharedSandboxTestCase):
                              datetime.datetime(2006, 9, 25, 8,
                                     tzinfo=self.view.tzinfo.getInstance('America/Los_Angeles')))
 
-    def _makeRecurrenceRuleSet(self, until=None, freq='daily'):
+    def _makeRecurrenceRuleSet(self, until=None, freq='daily', byweekday=None):
         ruleItem = RecurrenceRule(None, itsView=self.view)
         ruleItem.freq = freq
+        if byweekday is not None:
+            ruleItem.byweekday = byweekday
         if until is not None:
             ruleItem.until = until
         ruleSetItem = RecurrenceRuleSet(None, itsView=self.view)
@@ -393,7 +396,8 @@ class ICalendarTestCase(SharedSandboxTestCase):
 
         event.rruleset = self._makeRecurrenceRuleSet(
             datetime.datetime(2005,3,1, tzinfo = eastern),
-            freq='weekly'            
+            freq='weekly',
+            byweekday=[WeekdayAndPositionStruct(i, 0) for i in "tuesday", "thursday"]
         )
         
         vcalendar = getVObjectData(self.view, [event.itsItem])
@@ -402,7 +406,7 @@ class ICalendarTestCase(SharedSandboxTestCase):
                          'DTSTART;TZID=America/New_York:20050201T000000\r\n')
         vcalendar.vevent = vcalendar.vevent.transformFromNative()
         self.assertEqual(vcalendar.vevent.rrule.serialize(),
-                         'RRULE:FREQ=WEEKLY;UNTIL=20050302T045900Z\r\n')
+                         'RRULE:FREQ=WEEKLY;BYDAY=TU,TH;UNTIL=20050302T045900Z\r\n')
 
         # move the second occurrence one day later
         nextEvent = event.getFirstOccurrence().getNextOccurrence()
@@ -421,9 +425,9 @@ class ICalendarTestCase(SharedSandboxTestCase):
         self.assertEqual(modified.dtstart.serialize(),
                          'DTSTART:20050209T000000\r\n')
         self.assertEqual(modified.recurrence_id.serialize(),
-                         'RECURRENCE-ID;TZID=America/New_York:20050208T000000\r\n')
+                         'RECURRENCE-ID;TZID=America/New_York:20050203T000000\r\n')
         self.assertEqual(master.exdate.serialize(),
-                         'EXDATE;TZID=America/New_York:20050215T000000\r\n')
+                         'EXDATE;TZID=America/New_York:20050210T000000\r\n')
         vcalendar.behavior.generateImplicitParameters(vcalendar)
         self.assertEqual(vcalendar.vtimezone.tzid.value, "America/New_York")
 
