@@ -935,7 +935,8 @@ class Translator:
         importer = self.importers.get(type(r))
         try:
             if importer: importer(self, r)
-            if self.failure: self.failure.raiseException()
+            if self.failure:
+                self.failure.raiseException()
         except Exception, e:
             if self.failure:
                 errors.annotate(e, "Failed to import record %s" % str(r),

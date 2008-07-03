@@ -354,7 +354,7 @@ Importing:
     ...             location = rec.location,
     ...             rrule = 'FREQ=WEEKLY;COUNT=5;BYDAY=TU,TH',
     ...             exrule = None,
-    ...             rdate = ';VALUE=DATE-TIME;TZID=America/Los_Angeles:20070223T140000,20070225T140000',
+    ...             rdate = ';VALUE=DATE-TIME;TZID=America/Los_Angeles:20070225T140000,20070223T140000',
     ...             exdate = ';VALUE=DATE-TIME;TZID=America/Los_Angeles:20070206T140000',
     ...             status = rec.status,
     ...             lastPastOccurrence = None,
@@ -378,7 +378,7 @@ Exporting:
     True
     >>> record = records[0]
     >>> record.rrule
-    u'FREQ=WEEKLY;COUNT=5;BYDAY=TU,TH'
+    u'BYDAY=TU,TH;COUNT=5;FREQ=WEEKLY'
     >>> record.exrule is None
     True
     >>> record.rdate

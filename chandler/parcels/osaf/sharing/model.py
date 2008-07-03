@@ -143,6 +143,21 @@ class TaskRecord(eim.Record):
     # Task stamp has no shared attributes, so nothing is shared other than the
     # fact that an item is stamped as a task or not
 
+rrule_field = eim.subtype(text32K)
+rdate_field = eim.subtype(text32K)
+
+def sort_factory(separator, start_sort):
+    def sort(s):
+        begin = u''
+        if start_sort: begin, x, s = s.partition(unicode(start_sort))
+        return begin + start_sort + separator.join(sorted(s.split(separator)))
+    return sort
+
+for t, separator, start_sort in zip([rrule_field, rdate_field], (';', ','), ('', ':')):
+    f = sort_factory(separator, start_sort)
+    eim.add_converter(t, str, f)
+    eim.add_converter(t, unicode, f)
+
 class EventRecord(eim.Record):
     URI = "http://osafoundation.org/eim/event/0"
 
@@ -156,10 +171,10 @@ class EventRecord(eim.Record):
     location = eim.field(text256, _(u"Location"))
 
     # EventStamp.[recurrenceID, rruleset, etc.]
-    rrule = eim.field(text32K)
-    exrule = eim.field(text32K, filters=[occurrenceDeletion])
-    rdate = eim.field(text32K)
-    exdate = eim.field(text32K, filters=[occurrenceDeletion])
+    rrule = eim.field(rrule_field)
+    exrule = eim.field(rrule_field, filters=[occurrenceDeletion])
+    rdate = eim.field(rdate_field)
+    exdate = eim.field(rdate_field, filters=[occurrenceDeletion])
 
     # EventStamp.transparency
     status = eim.field(text256, _(u"Event status"), filters=[eventStatusFilter])
