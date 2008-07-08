@@ -1,13 +1,13 @@
 
 VERSION=2.8.7.1
-SVNVER=205
+SVNVER=212
 RELVER_FLAGS=-r$(SVNVER)-$(BRANCH_REV_PREFIX)1
 RELVER=$(VERSION)$(RELVER_FLAGS)
 WX=$(BUILD_ROOT)/wx
 BUILD=build_$(SNAP)
 SRC=$(WX)/wxPython-r$(SVNVER)
 TARBALL=wxPython-$(SNAP)-$(RELVER).tar.gz
-SVNROOT=http://svn.osafoundation.org/wx/trunk
+SVNROOT=http://svn.osafoundation.org/wx/branches/chandler_1.0
 
 include $(BUILD_ROOT)/Makefile.inc
 
