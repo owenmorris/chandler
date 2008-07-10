@@ -176,8 +176,9 @@ def toICalendarDateTime(view, dt_or_dtlist, allDay, anyTime=False):
     else:
         isUTC = dtlist[0].tzinfo == view.tzinfo.UTC
         output += timedParameter
-        if not isUTC and dtlist[0].tzinfo != view.tzinfo.floating:
-            output += tzidFormat % dtlist[0].tzinfo.tzid
+        tzinfo = TimeZone.olsonizeTzinfo(view, dtlist[0].tzinfo)
+        if not isUTC and tzinfo != view.tzinfo.floating:
+            output += tzidFormat % tzinfo.tzid
 
     output += ':'
     output += ','.join(formatDateTime(view, dt, allDay, anyTime)
@@ -2890,7 +2891,7 @@ class DumpTranslator(SharingTranslator):
         yield model.PrefTimezonesRecord(
             pref.showUI,
             pref.showPrompt,
-            tzitem.default.tzid,
+            TimeZone.olsonizeTzinfo(self.rv, tzitem.default).tzid,
             ",".join(tzitem.wellKnownIDs)
         )
 

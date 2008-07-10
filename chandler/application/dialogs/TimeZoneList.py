@@ -20,7 +20,7 @@ import datetime
 import bisect
 
 #import application.Globals as Globals
-from osaf.pim.calendar.TimeZone import TimeZoneInfo
+from osaf.pim.calendar.TimeZone import TimeZoneInfo, olsonizeTzinfo
 import PyICU
 
 def pickTimeZone(view, changeDefaultTZ=False):
@@ -380,7 +380,7 @@ def buildTZChoiceList(view, control, selectedTZ=None):
     selectIndex = -1
     info = TimeZoneInfo.get(view)
     if selectedTZ is None:
-        selectedTZ = view.tzinfo.default
+        selectedTZ = olsonizeTzinfo(view, view.tzinfo.default)
     canonicalTimeZone = info.canonicalTimeZone(selectedTZ)
 
     # rebuild the list of choices

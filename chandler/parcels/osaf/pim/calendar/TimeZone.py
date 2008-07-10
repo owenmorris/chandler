@@ -25,6 +25,9 @@ import itertools
 import datetime
 from i18n import ChandlerMessageFactory
 
+# PyICU's tzids match whatever's in zoneinfo, which is essentially the Olson
+# timezone database
+olson_tzids = tuple(PyICU.TimeZone.createEnumeration())
 
 def reindexFloatingEvents(view, tzinfo):
     """
@@ -156,7 +159,7 @@ class TimeZoneInfo(schema.Item):
                         result = view.tzinfo.getInstance(equivName)
                         break
 
-            if result is None and tzinfo is not None:
+            if result is None and tzinfo is not None and tzinfo.tzid in olson_tzids:
                 self.wellKnownIDs.append(unicode(tzinfo.tzid))
                 result = tzinfo
 
@@ -316,18 +319,35 @@ def convertToICUtzinfo(view, dt):
                to convert to an ICUtzinfo instance.
     @type dt: C{datetime}
     """
+    icuTzinfo = olsonizeTzinfo(view, dt.tzinfo, dt)
 
-    oldTzinfo = getattr(dt, 'tzinfo', None)
-    if isinstance(oldTzinfo, (PyICU.ICUtzinfo, PyICU.FloatingTZ)):
-        return dt
+    if not hasattr(dt, 'hour'):
+        dt = forceToDateTime(view, dt, icuTzinfo)
+    else:
+        dt = dt.replace(tzinfo=icuTzinfo)
+
+    return dt
+
+
+def olsonizeTzinfo(view, oldTzinfo, dt=None):
+    """Turn oldTzinfo into an ICUtzinfo whose tzid matches something in the Olson db.
+    """
+    # allow view to be None
+    view_tzinfo = PyICU.ICUtzinfo if view is None else view.tzinfo
+    if (isinstance(oldTzinfo, PyICU.FloatingTZ) or
+        (isinstance(oldTzinfo, PyICU.ICUtzinfo) and oldTzinfo.tzid in olson_tzids)):
+        # if tzid isn't in olson_tzids, ICU is using a bogus timezone, bug 11784 
+        return oldTzinfo
     elif oldTzinfo is None:
         icuTzinfo = None # Will patch to floating at the end
     else:
+        year_start = 2007 if dt is None else dt.year
+        year_end = year_start + 1
 
         def getICUInstance(name):
             result = None
             if name is not None:
-                result = view.tzinfo.getInstance(name)
+                result = view_tzinfo.getInstance(name)
                 if result is not None and \
                     result.tzid == 'GMT' and \
                     name != 'GMT':
@@ -345,7 +365,7 @@ def convertToICUtzinfo(view, dt):
         icuTzinfo = getICUInstance(tzical_tzid)
 
         if tzical_tzid is not None:
-            if tzid_mapping.has_key(tzical_tzid):
+            if tzical_tzid in tzid_mapping:
                 # we've already calculated a tzinfo for this tzid
                 icuTzinfo = tzid_mapping[tzical_tzid]
 
@@ -353,7 +373,7 @@ def convertToICUtzinfo(view, dt):
             # special case UTC, because dateutil.tz.tzutc() doesn't have a TZID
             # and a VTIMEZONE isn't used for UTC
             if vobject.icalendar.tzinfo_eq(dateutil_utc, oldTzinfo):
-                icuTzinfo = view.tzinfo.UTC
+                icuTzinfo = view_tzinfo.UTC
 
         # iterate over all PyICU timezones, return the first one whose
         # offsets and DST transitions match oldTzinfo.  This is painfully
@@ -363,15 +383,15 @@ def convertToICUtzinfo(view, dt):
         if icuTzinfo is None:
             if view is not None:
                 info = TimeZoneInfo.get(view)
-                well_known = (t[1].tzid for t in info.iterTimeZones())
+                well_known = (t[1].tzid for t in info.iterTimeZones()
+                              if not isinstance(t[1], PyICU.FloatingTZ))
             else:
                 well_known = []
 
             # canonicalTimeZone doesn't help us here, because our matching
             # criteria aren't as strict as PyICU's, so iterate over well known
             # timezones first
-            for tzid in itertools.chain(well_known,
-                                        PyICU.TimeZone.createEnumeration()):
+            for tzid in itertools.chain(well_known, olson_tzids):
                 test_tzinfo = getICUInstance(tzid)
                 # only test for the DST transitions for the year of the event
                 # being converted.  This could be very wrong, but sadly it's
@@ -381,8 +401,12 @@ def convertToICUtzinfo(view, dt):
                 # but in that case, we really can't pin down a timezone
                 # definitively anyway (fortunately iCal uses standard zoneinfo
                 # tzid strings, so getICUInstance above should just work)
-                if vobject.icalendar.tzinfo_eq(test_tzinfo, oldTzinfo,
-                                               dt.year, dt.year + 1):
+                #
+                # Also, don't choose timezones in Antarctica, when we're guessing
+                # we might as well choose a location with human population > 100.
+                if (not tzid.startswith('Antarctica') and
+                    vobject.icalendar.tzinfo_eq(test_tzinfo, oldTzinfo,
+                                               year_start, year_end)):
                     icuTzinfo = test_tzinfo
                     if tzical_tzid is not None:
                         tzid_mapping[tzical_tzid] = icuTzinfo
@@ -401,21 +425,12 @@ def convertToICUtzinfo(view, dt):
                                                    2007, 2008):
                         backup = test_tzinfo
         if icuTzinfo is None and backup is not None:
-            icuTzinfo = backup            
+            icuTzinfo = backup
             if tzical_tzid is not None:
                 tzid_mapping[tzical_tzid] = icuTzinfo
+    # if we have an unknown timezone, we'll return floating
+    return view_tzinfo.floating if icuTzinfo is None else icuTzinfo
 
-    # Here, if we have an unknown timezone, we'll turn
-    # it into a floating datetime
-    if icuTzinfo is None:
-        icuTzinfo = view.tzinfo.floating
-
-    if not hasattr(dt, 'hour'):
-        dt = forceToDateTime(view, dt, icuTzinfo)
-    else:
-        dt = dt.replace(tzinfo=icuTzinfo)
-
-    return dt
 
 def shortTZ(view, dt, tzinfo=None):
     """
