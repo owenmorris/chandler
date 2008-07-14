@@ -23,6 +23,7 @@ def installParcel(parcel, oldVersion=None):
     from mainblocks import makeMainView 
     from summaryblocks import makeSummaryBlocks
     from osaf.framework.attributeEditors import AttributeEditorMapping
+    from osaf.preferences import AutoRestorePrefs
     
     makeMainEvents (parcel)
     makeMainMenus (parcel)
@@ -40,3 +41,5 @@ def installParcel(parcel, oldVersion=None):
     AttributeEditorMapping.register(parcel, 
                                     { 'Section': 'SectionAttributeEditor' }, 
                                     __name__)
+
+    AutoRestorePrefs.update(parcel, "autoRestorePrefs")

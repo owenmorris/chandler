@@ -99,3 +99,13 @@ class CalendarPrefs(Preferences):
             return self.hourPixelSize
         else:
             return (fontHeight+8) * 2
+
+class AutoRestorePrefs(Preferences):
+    """
+    When and whether data should be restored from backup to empty the
+    repository.
+
+    """
+    enabled = schema.One(schema.Boolean, defaultValue=False)
+    uptodateBackup = schema.One(schema.Boolean, defaultValue=False)
+    nextRestore = schema.One(schema.DateTime)

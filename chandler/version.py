@@ -24,7 +24,7 @@ _version = { 'release':    '1.0',
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-app_version = "497" # grant: Bug 12114 (moved scripts into debug plugin)
+app_version = "498" # jeffrey: Bug 12234 (auto-restore instead of auto-purge)
 
 
 
