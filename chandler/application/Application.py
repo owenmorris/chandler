@@ -385,7 +385,7 @@ class wxApplication (wx.App):
                 raise
 
         # check to see if we should do a time based auto-restore
-        restorePrefs = schema.ns("osaf.views.main", view).autoRestorePrefs
+        restorePrefs = schema.ns("osaf.app", view).autoRestorePrefs
         if (restorePrefs.enabled and restorePrefs.uptodateBackup and
               restorePrefs.hasLocalAttributeValue('nextRestore') and
               restorePrefs.nextRestore < datetime.now()):
@@ -401,7 +401,7 @@ class wxApplication (wx.App):
                     splash.fixedMessage(_(u"Auto-restore from backup.chex..."))
                 logger.info("Auto-restoring from backup.chex")
                 view = Utility.initRepository(repoDir, options)
-                restorePrefs = schema.ns("osaf.views.main", view).autoRestorePrefs
+                restorePrefs = schema.ns("osaf.app", view).autoRestorePrefs
 
         restorePrefs.uptodateBackup = False
 

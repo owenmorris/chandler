@@ -551,8 +551,10 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assertEqual(backupPrefs1.tipIndex, 1)
             
         finally:
-            os.remove(filename)
-
+            try:
+                os.remove(filename)
+            except:
+                pass
 
 
 

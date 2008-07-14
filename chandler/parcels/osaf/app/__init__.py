@@ -45,6 +45,16 @@ class ApplicationPrefs(preferences.Preferences):
         doc = 'Index of tip of the day to show.'
     )
 
+class AutoRestorePrefs(preferences.Preferences):
+    """
+    When and whether data should be restored from backup to empty the
+    repository.
+
+    """
+    enabled = schema.One(schema.Boolean, defaultValue=False)
+    uptodateBackup = schema.One(schema.Boolean, defaultValue=False)
+    nextRestore = schema.One(schema.DateTime)
+
 class ClientIdentifier(pim.ContentItem):
     clientID = schema.One(
         schema.Bytes,
@@ -64,6 +74,8 @@ def installParcel(parcel, oldVersion=None):
     ClientIdentifier.update(parcel, 'clientID')
 
     ApplicationPrefs.update(parcel, 'prefs')
+
+    AutoRestorePrefs.update(parcel, "autoRestorePrefs")
 
     message = _(u'User')
 

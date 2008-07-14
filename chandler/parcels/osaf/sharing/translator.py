@@ -1018,11 +1018,11 @@ class SharingTranslator(eim.Translator):
     # AutoRestorePrefsRecord
     @model.AutoRestorePrefsRecord.importer
     def import_autorestore_prefs(self, record):
-        schema.ns("osaf.views.main", self.rv).autoRestorePrefs.enabled = bool(record.enabled)
+        schema.ns("osaf.app", self.rv).autoRestorePrefs.enabled = bool(record.enabled)
 
     # Called from finishExport()
     def export_autorestore_prefs(self):
-        enabled = schema.ns("osaf.views.main", self.rv).autoRestorePrefs.enabled
+        enabled = schema.ns("osaf.app", self.rv).autoRestorePrefs.enabled
         yield model.AutoRestorePrefsRecord(int(enabled))
 
 

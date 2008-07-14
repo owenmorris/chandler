@@ -975,12 +975,12 @@ class MainView(View):
                 self.setStatusMessage(_(u"Export failed."))
 
     def onResetAutoUpdateEvent(self, event):
-        prefs = schema.ns("osaf.views.main", self).autoRestorePrefs
+        prefs = schema.ns("osaf.app", self).autoRestorePrefs
         prefs.enabled = True
         prefs.nextRestore = datetime.now()
 
     def onResetAutoUpdateEventUpdateUI(self, event):
-        prefs = schema.ns("osaf.views.main", self).autoRestorePrefs
+        prefs = schema.ns("osaf.app", self).autoRestorePrefs
         if not prefs.enabled:
             title = _("Next Restore: Never")
         elif not prefs.hasLocalAttributeValue("nextRestore"):
@@ -993,11 +993,11 @@ class MainView(View):
         event.arguments['Text'] = title
 
     def onEnableAutoUpdateEvent(self, event):
-        prefs = schema.ns("osaf.views.main", self).autoRestorePrefs
+        prefs = schema.ns("osaf.app", self).autoRestorePrefs
         prefs.enabled = not prefs.enabled
 
     def onEnableAutoUpdateEventUpdateUI(self, event):
-        prefs = schema.ns("osaf.views.main", self).autoRestorePrefs
+        prefs = schema.ns("osaf.app", self).autoRestorePrefs
         event.arguments['Check'] = prefs.enabled
 
     def TraceMainViewCloud(self, traceItem):

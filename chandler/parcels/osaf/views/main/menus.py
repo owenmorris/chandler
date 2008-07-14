@@ -967,11 +967,11 @@ def makeMainMenus(parcel):
                     ),
                     Menu.template(
                         'AutoRestore',
-                        title=_(u"Automatically Restore from Backup"),
+                        title=_(u"&Automatically Restore from Backup"),
                         childBlocks = [
                             MenuItem.template('ResetAutoUpdateItem',
                                               event = main.ResetAutoUpdate,
-                                              title = _(u'Next Restore: Never'),
+                                              title = _(u'&Next Restore: Never'),
                                               helpString = _(u'Click to restore from backup next time Chandler starts')),
                             MenuItem.template('EnableAutoUpdateItem',
                                               event = main.EnableAutoUpdate,

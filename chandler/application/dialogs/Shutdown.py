@@ -179,7 +179,7 @@ class ShutdownDialog(wx.Dialog):
         mainView.exportToChex(activity, backupPath)
 
         # note that backup was successful
-        restorePrefs = schema.ns("osaf.views.main", self.view).autoRestorePrefs
+        restorePrefs = schema.ns("osaf.app", self.view).autoRestorePrefs
         restorePrefs.uptodateBackup = True
         if restorePrefs.enabled and not restorePrefs.hasLocalAttributeValue('nextRestore'):
             restorePrefs.nextRestore = datetime.now() + timedelta(days=7)
