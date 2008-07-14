@@ -16,7 +16,7 @@
 Application utilities.
 """
 
-import os, sys, logging, logging.config, logging.handlers, string, glob
+import os, sys, logging, logging.config, logging.handlers, string, glob, tarfile
 import i18n, schema, itertools
 import M2Crypto.Rand as Rand, M2Crypto.threading as m2threading
 from optparse import OptionParser
@@ -1143,3 +1143,49 @@ def detectOldProfiles(options, repoDir):
             # or later. So let's raise a schema error, since we deal with that
             # the same way.
             raise SchemaMismatchError('Found old profiles that cannot be automatically migrated')
+
+def makeBinaryBackup(options, tarPath=None):
+    repoDir = locateRepositoryDirectory(options.profileDir, options)
+    backupDir = makeUncompressedBackup(options)
+    if tarPath is None:
+        tarPath = os.path.join(options.profileDir, "binary_backup.tgz")
+    archive = tarfile.open(tarPath, 'w:gz')
+    archive.add(repoDir, '.')
+    if backupDir != repoDir:
+        # a new repository directory was created, delete it
+        os.rmdir(backupDir)
+    archive.close()
+
+
+def makeUncompressedBackup(options, masterPassword=False):
+    """Create a backup directory, return the path to the backup.
+
+    Falls back to using the repository directory if backup fails.
+    """
+    from chandlerdb.persistence.DBRepository import DBRepository
+
+    repoDir = locateRepositoryDirectory(options.profileDir, options)
+    try:
+        repository = DBRepository(repoDir)
+        # use logged=True to prevent repo from setting up stderr logging
+        repository.open(recover=True, exclusive=False, logged=True)
+        view = repository.createView()
+        if masterPassword:
+            try:
+                MasterPassword.beforeBackup(view, self)
+            except:
+                wx.MessageBox(_(u'Failed to encrypt passwords.'),
+                              _(u'Password Protection Failed'),
+                              parent=self)
+
+        repoDir = repository.backup(os.path.join(os.path.dirname(tarPath),
+                                                 '__repository__'))
+        repository.close()
+    except:
+        # if repoDir is unchanged, the original is taken instead
+        pass
+
+    if isinstance(repoDir, unicode):
+        repoDir = repoDir.encode(sys.getfilesystemencoding())
+
+    return repoDir

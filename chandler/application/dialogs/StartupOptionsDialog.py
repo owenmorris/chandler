@@ -21,7 +21,7 @@ See: http://lists.osafoundation.org/pipermail/chandler-dev/2006-May/005901.html
 
 import os, sys, wx, tarfile
 from application import Globals
-from application.Utility import getDesktopDir, locateRepositoryDirectory
+from application.Utility import getDesktopDir, locateRepositoryDirectory, makeUncompressedBackup
 from chandlerdb.persistence.DBRepository import DBRepository
 from osaf.framework import MasterPassword
 
@@ -188,32 +188,9 @@ class StartupOptionsDialog(wx.Dialog):
         if not tarPath:
             return False # user canceled.
 
+        repoDir = makeUncompressedBackup(Globals.options, masterPassword=True)
+
         archive = tarfile.open(tarPath, 'w:gz')
-        repoDir = locateRepositoryDirectory(Globals.options.profileDir,
-                                            Globals.options)
-        try:
-            repository = DBRepository(repoDir)
-            # use logged=True to prevent repo from setting up stderr logging
-            repository.open(recover=True, exclusive=False, logged=True)
-            view = repository.createView()
-
-            try:
-                MasterPassword.beforeBackup(view, self)
-            except:
-                wx.MessageBox(_(u'Failed to encrypt passwords.'),
-                              _(u'Password Protection Failed'),
-                              parent=self)
-
-            repoDir = repository.backup(os.path.join(os.path.dirname(tarPath),
-                                                     '__repository__'))
-            repository.close()
-        except:
-            # if repoDir is unchanged, the original is taken instead
-            pass
-
-        # tar up the backup or the original repoDir + log + prefs + version.py
-        if isinstance(repoDir, unicode):
-            repoDir = repoDir.encode(sys.getfilesystemencoding())
         archive.add(repoDir, '.')
         archive.add('version.py')
         for log in ('chandler.log', 'chandler.log.1', 'chandler.log.2',

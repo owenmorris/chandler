@@ -15,6 +15,7 @@
 
 import os, sys, threading, time, logging, cStringIO
 import wx, Globals, Utility
+from datetime import datetime
 
 from new import classobj
 from i18n import ChandlerMessageFactory as _, getImage, getLocaleSet
@@ -382,7 +383,29 @@ class wxApplication (wx.App):
                 view = Utility.initRepository(repoDir, options)
             else:
                 raise
-            
+
+        # check to see if we should do a time based auto-restore
+        restorePrefs = schema.ns("osaf.views.main", view).autoRestorePrefs
+        if (restorePrefs.enabled and restorePrefs.uptodateBackup and
+              restorePrefs.hasLocalAttributeValue('nextRestore') and
+              restorePrefs.nextRestore < datetime.now()):
+            backup = os.path.join(options.profileDir, 'backup.chex')
+            if os.path.isfile(backup):
+                # Restore from backup, but first, just in case backup.chex fails,
+                # make a binary backup
+                Utility.stopRepository(view, commit=False)
+                Utility.makeBinaryBackup(options)
+                options.reload = backup
+                options.create = True
+                if splash:
+                    splash.fixedMessage(_(u"Auto-restore from backup.chex..."))
+                logger.info("Auto-restoring from backup.chex")
+                view = Utility.initRepository(repoDir, options)
+                restorePrefs = schema.ns("osaf.views.main", view).autoRestorePrefs
+                restorePrefs.enabled = True
+
+        restorePrefs.uptodateBackup = False
+
         self.repository = view.repository
 
         self.UIRepositoryView = view
@@ -1092,7 +1115,6 @@ class wxApplication (wx.App):
 
         # Optionally save a backup.chex so that automatic migration will work
         from application.dialogs.Shutdown import ShutdownDialog
-        
         # Optionally save a backup.chex so that automatic migration will work
         
         # Do not backup when running tests to save time; also prevents

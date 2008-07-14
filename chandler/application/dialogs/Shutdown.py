@@ -5,6 +5,7 @@ from i18n import ChandlerMessageFactory as _
 from osaf.activity import *
 import threading
 from application import schema
+from datetime import datetime, timedelta
 
 class ShutdownDialog(wx.Dialog):
     _cancelled = False
@@ -176,6 +177,12 @@ class ShutdownDialog(wx.Dialog):
         Block = schema.ns("osaf.framework.blocks.Block", self.view).Block
         mainView = Block.findBlockByName("MainView")
         mainView.exportToChex(activity, backupPath)
+
+        # note that backup was successful
+        restorePrefs = schema.ns("osaf.views.main", self.view).autoRestorePrefs
+        restorePrefs.uptodateBackup = True
+        if restorePrefs.enabled and not restorePrefs.hasLocalAttributeValue('nextRestore'):
+            restorePrefs.nextRestore = datetime.now() + timedelta(days=7)
 
 
 if __name__ == "__main__":
