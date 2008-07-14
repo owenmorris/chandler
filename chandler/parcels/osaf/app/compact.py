@@ -157,7 +157,7 @@ class CompactTask(startup.DurableTask):
     If declined, the compaction is rescheduled for the next day.
     """
 
-    REGULAR_INTERVAL = timedelta(days=7)
+    REGULAR_INTERVAL = timedelta(years=7)
     RETRY_INTERVAL = timedelta(days=1)
     MIN_VERSIONS = 1
 
@@ -194,6 +194,9 @@ class CompactTask(startup.DurableTask):
 
     # target implementation
     def run(self, manual=False):
+        # disable auto-compact, bug 12234
+        if not manual:
+            return False
 
         app = wx.GetApp()
         if app is None:   # no UI, retry later
