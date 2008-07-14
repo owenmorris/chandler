@@ -1015,6 +1015,17 @@ class SharingTranslator(eim.Translator):
         yield model.UpdateCheckPrefsRecord(numDays)
 
 
+    # AutoRestorePrefsRecord
+    @model.AutoRestorePrefsRecord.importer
+    def import_autorestore_prefs(self, record):
+        schema.ns("osaf.views.main", self.rv).autoRestorePrefs.enabled = bool(record.enabled)
+
+    # Called from finishExport()
+    def export_autorestore_prefs(self):
+        enabled = schema.ns("osaf.views.main", self.rv).autoRestorePrefs.enabled
+        yield model.AutoRestorePrefsRecord(int(enabled))
+
+
     #MailMessageRecord
     @model.MailMessageRecord.importer
     def import_mail(self, record):
@@ -2992,6 +3003,10 @@ class DumpTranslator(SharingTranslator):
 
             # update prefs
             for record in self.export_update_prefs():
+                yield record
+
+            # auto-restore prefs
+            for record in self.export_autorestore_prefs():
                 yield record
 
             # client id

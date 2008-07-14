@@ -402,7 +402,6 @@ class wxApplication (wx.App):
                 logger.info("Auto-restoring from backup.chex")
                 view = Utility.initRepository(repoDir, options)
                 restorePrefs = schema.ns("osaf.views.main", view).autoRestorePrefs
-                restorePrefs.enabled = True
 
         restorePrefs.uptodateBackup = False
 

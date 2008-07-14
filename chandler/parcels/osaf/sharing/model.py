@@ -590,3 +590,7 @@ class UpdateCheckPrefsRecord(eim.Record):
     numDays = eim.field(eim.IntType)
     
     
+class AutoRestorePrefsRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/preferences/autorestore/0"
+
+    enabled = eim.field(eim.IntType) # 0 = False, 1 = True
