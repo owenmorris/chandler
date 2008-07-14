@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 from time import time, strftime
 import wx, os, sys, traceback, logging, re
 import application.dialogs.Util
@@ -32,7 +32,7 @@ from osaf import (
 )
 from osaf.activity import *
 
-from osaf.pim import Contact, mail, stamp_to_command, iter_commands
+from osaf.pim import Contact, mail, stamp_to_command, iter_commands, shortDateTimeFormat
 from osaf.usercollections import UserCollection
 
 from osaf.mail import constants
@@ -974,6 +974,31 @@ class MainView(View):
                 logger.info("Failed exportFile:\n%s" % trace)
                 self.setStatusMessage(_(u"Export failed."))
 
+    def onResetAutoUpdateEvent(self, event):
+        prefs = schema.ns("osaf.views.main", self).autoRestorePrefs
+        prefs.enabled = True
+        prefs.nextRestore = datetime.now()
+
+    def onResetAutoUpdateEventUpdateUI(self, event):
+        prefs = schema.ns("osaf.views.main", self).autoRestorePrefs
+        if not prefs.enabled:
+            title = _("Next Restore: Never")
+        elif not prefs.hasLocalAttributeValue("nextRestore"):
+            title = _("Next Restore: One Week")
+        elif prefs.nextRestore < datetime.now():
+            title = _("Next Restore: Next Restart")
+        else:
+            dt = shortDateTimeFormat.format(self.itsView, prefs.nextRestore)
+            title = _("Next Restore: %(datetime)s") % dict(datetime=dt)
+        event.arguments['Text'] = title
+
+    def onEnableAutoUpdateEvent(self, event):
+        prefs = schema.ns("osaf.views.main", self).autoRestorePrefs
+        prefs.enabled = not prefs.enabled
+
+    def onEnableAutoUpdateEventUpdateUI(self, event):
+        prefs = schema.ns("osaf.views.main", self).autoRestorePrefs
+        event.arguments['Check'] = prefs.enabled
 
     def TraceMainViewCloud(self, traceItem):
         # for debugging, trace through the mainViewRoot copy cloud

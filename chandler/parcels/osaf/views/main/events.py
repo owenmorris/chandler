@@ -256,6 +256,9 @@ def makeMainEvents(parcel):
     BlockEvent.template('ImportICalendar').install(parcel)
     BlockEvent.template('ExportICalendar').install(parcel)
 
+    BlockEvent.template('EnableAutoUpdate').install(parcel)
+    BlockEvent.template('ResetAutoUpdate').install(parcel)
+
     BlockEvent.template('CollectionInvite').install(parcel)
 
     BlockEvent.template('TakeOnlineOffline',

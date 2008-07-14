@@ -965,6 +965,21 @@ def makeMainMenus(parcel):
                             methodName="onTestUpdateCheckEvent",
                         )
                     ),
+                    Menu.template(
+                        'AutoRestore',
+                        title=_(u"Automatically Restore from Backup"),
+                        childBlocks = [
+                            MenuItem.template('ResetAutoUpdateItem',
+                                              event = main.ResetAutoUpdate,
+                                              title = _(u'Next Restore: Never'),
+                                              helpString = _(u'Click to restore from backup next time Chandler starts')),
+                            MenuItem.template('EnableAutoUpdateItem',
+                                              event = main.EnableAutoUpdate,
+                                              title = _(u'&Enabled'),
+                                              helpString = _(u'Automatically restore from backup every week'),
+                                              menuItemKind = 'Check',)
+                        ],
+                    ),
                 ]),
             Menu.template('HelpMenu',
                 title = _(u'&Help'),
