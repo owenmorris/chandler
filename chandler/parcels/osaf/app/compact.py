@@ -157,7 +157,7 @@ class CompactTask(startup.DurableTask):
     If declined, the compaction is rescheduled for the next day.
     """
 
-    REGULAR_INTERVAL = timedelta(years=7)
+    REGULAR_INTERVAL = timedelta(days=700)
     RETRY_INTERVAL = timedelta(days=1)
     MIN_VERSIONS = 1
 
