@@ -51,7 +51,7 @@ class AutoRestorePrefs(preferences.Preferences):
     repository.
 
     """
-    enabled = schema.One(schema.Boolean, defaultValue=False)
+    enabled = schema.One(schema.Boolean, defaultValue=True)
     uptodateBackup = schema.One(schema.Boolean, defaultValue=False)
     nextRestore = schema.One(schema.DateTime)
 
