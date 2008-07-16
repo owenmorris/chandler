@@ -287,7 +287,10 @@ class _DropTarget(wx.DropTarget):
         return self.receiver.OnEnter(x, y, dragResult)
 
     def OnLeave(self):
-        self.receiver.OnLeave()
+        if wx.Platform == '__WXGTK__':
+            wx.CallAfter(self.receiver.OnLeave)
+        else:
+            self.receiver.OnLeave()
 
 class _ClipboardHandler(object):
     if __debug__:

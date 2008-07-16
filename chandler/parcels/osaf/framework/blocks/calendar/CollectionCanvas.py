@@ -344,7 +344,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvent)
 
-        self.dragState = self.draggedOutState = self._linuxHackDragState = None
+        self.dragState = self.draggedOutState = None
         self.coercedCanvasItem = None
 
         self.cursor = wxCollectionCanvas.defaultCursor
@@ -516,19 +516,9 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
     def OnItemPaste(self):
         """Handle the paste of an item differently if it's being dragged."""
-        # on Linux, a spurious OnLeave moves self.dragState to
-        # self._linuxHackDragState, so make sure BOTH are none
-        if self.dragState is None and self._linuxHackDragState is None:
+        if self.dragState is None:
             super(wxCollectionCanvas, self).OnItemPaste()
         else:
-            if self.dragState is None:
-                # Linux workaround
-                self.dragState = self._linuxHackDragState
-                self._linuxHackDragState = None
-                if getattr(self, '_linuxHackCoercedCanvasItem', None):
-                    self.coercedCanvasItem = self._linuxHackCoercedCanvasItem
-                if getattr(self.dragState, '_linuxHackPosition', None):
-                    self.dragState.HandleDrag(self.dragState._linuxHackPosition)
             self.dragState.HandleDragEnd()
             self.dragState = None
 
@@ -556,18 +546,14 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             if source.draggedOutState:
                 source.draggedOutState.hiddenWhileDraggedOut = False
             source.Refresh()
-            # Linux hack
-            self._linuxHackDragState = self.dragState
-            self._linuxHackCoercedCanvasItem = self.coercedCanvasItem
             
             self.dragState = None
             self.coercedCanvasItem = None
             
         elif self.dragState is not None:
             # Linux gives a spurious OnLeave, so save position just in case
-            self.dragState._linuxHackPosition = self.dragState.currentPosition
             self.dragState.DragOut()
-            self.draggedOutState = self._linuxHackDragState = self.dragState
+            self.draggedOutState = self.dragState
             self.dragState = None
             self.coercedCanvasItem = None
             
@@ -612,11 +598,6 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
           2. Dragging/moving an item
           3. Resizing an item
         """
-        # On Linux, the dragState needs to be juggled between drop and
-        # the paste handler while OnLeave happens, but this should be
-        # None at other times
-        self._linuxHackDragState = None
-        
         # ignore entering and leaving events
         if (event.Entering() or event.Leaving()):
             # resize handling should probably be transitioned to using
