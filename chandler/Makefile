@@ -140,7 +140,7 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/twisted-$(SNAP)-r18795-$(BP)3.tar.gz \
     $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.7.1-r212-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)6.tar.gz \
-    $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.6.6-r201-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.7.0-r206-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/zanshin-$(SNAP)-171-$(BP)2.tar.gz \
     $(CHANDLERARCHIVES)/logilab-astng-$(SNAP)-0.17.0-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/logilab-common-$(SNAP)-0.21.2-$(BP)1.tar.gz \
