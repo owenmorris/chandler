@@ -156,7 +156,7 @@ class Reminder(schema.Item):
             literal = [absoluteTime, userCreated, promptUser, nextPoll]
         )
     )
-    
+
     def onItemDelete(self, view, deferring):
         if self.pendingEntries:
             pending = list(self.pendingEntries)
@@ -273,7 +273,6 @@ class Reminder(schema.Item):
             # Make it tomorrow morning at 8AM (eg, 15 hours later)
             t += timedelta(hours=15)
         return t
-        
 
     @classmethod
     def getPendingTuples(cls, view, when):
@@ -404,8 +403,11 @@ class Remindable(schema.Item):
         reminder = self.getUserReminder()
         if reminder is not None:
             reminderTime = reminder.getReminderTime(self)
+            # displayDate should be base time for RelativeReminder, bug 12246
+            # for absolute reminders, getItemBaseTime matches reminderTime
+            displayDate = reminder.getItemBaseTime(self)
             if reminderTime not in (None, Reminder.farFuture):
-                dates.append((reminderTime < now and 30 or 10, reminderTime,
+                dates.append((30 if reminderTime < now else 10, displayDate,
                               'reminder'))
                               
     def reminderFired(self, reminder, when):
