@@ -33,6 +33,8 @@ class TriageColumnIndexDefinition(pim.MethodIndexDefinition):
         # sectionTriageStatus exists on the item.
         ('_triageStatus', pim.TriageEnum.now),
         ('_triageStatusChanged', 0),
+        ('displayDate', pim.Reminder.farFuture),
+        ('displayDateSource', None),
         ('_sectionTriageStatus', None),
         ('_sectionTriageStatusChanged', 0),
     )
@@ -42,9 +44,14 @@ class TriageColumnIndexDefinition(pim.MethodIndexDefinition):
         Load all four triage values, but return only the pair 
         we're supposed to use.
         """
-        values = self.itsView.findInheritedValues(uuid, *self.findParams)
+        ts, tsc, displayDate, displayDateSource, section_ts, section_tsc = \
+            self.itsView.findInheritedValues(uuid, *self.findParams)
         # We'll use sectionTriageStatus if it's there, else triageStatus
-        return values[0:2] if values[2] is None else values[2:4]
+        ts, tsc = (ts, tsc) if section_ts is None else (section_ts, section_tsc)
+        if (ts != pim.TriageEnum.later or
+            displayDateSource not in ('reminder', 'startTime')):
+            displayDate = pim.Reminder.farFuture
+        return ts, displayDate, tsc
 
     def compare(self, index, u1, u2, vals):
         if u1 in vals:
