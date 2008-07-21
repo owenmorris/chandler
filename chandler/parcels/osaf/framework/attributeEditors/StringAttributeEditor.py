@@ -23,6 +23,7 @@ from chandlerdb.util.c import Nil
 from osaf.framework.blocks import DrawingUtilities, Styles
 import logging
 from application.dialogs import RecurrenceDialog
+from application import schema
 from i18n import ChandlerMessageFactory as _
 from AETypeOverTextCtrl import AETypeOverTextCtrl, AENonTypeOverTextCtrl
 from BaseAttributeEditor import BaseAttributeEditor
@@ -212,7 +213,9 @@ class StringAttributeEditor (BaseAttributeEditor):
             except AttributeError:
                 lineStyleEnum = ""
             if lineStyleEnum == "MultiLine":
-                style |= wx.TE_MULTILINE
+                # Enable auto-url-ification in multiline textctrls only
+                style |= (wx.TE_MULTILINE | wx.TE_AUTO_URL)
+
             else:
                 style |= wx.TE_PROCESS_ENTER
 
@@ -237,6 +240,7 @@ class StringAttributeEditor (BaseAttributeEditor):
         bindToControl.Bind(wx.EVT_TEXT, self.onTextChanged)
         bindToControl.Bind(wx.EVT_SET_FOCUS, self.onGainFocus)
         bindToControl.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocus)
+        bindToControl.Bind(wx.EVT_TEXT_URL, self.onTextUrl)
 
         return control
 
@@ -275,6 +279,16 @@ class StringAttributeEditor (BaseAttributeEditor):
             self._changeTextQuietly(control, value, False, False)
         else:
             self._changeTextQuietly(control, self.sampleText, True, False)
+
+    def onTextUrl(self, event):
+        if event.MouseEvent.LeftUp():  # Handle click on a url (TE_AUTO_URL)
+            url = event.ClientData.GetValue()[event.URLStart:event.URLEnd]
+            main = schema.ns("osaf.views.main", self.parentBlock.itsView)
+            main.MainView.openURLOrDialog(url)
+        event.Skip()
+        # Could fix the cursor behavior. This notification will tell you when you are
+        # over a url, but it looks like you need a separate listener to notice when
+        # you are not over a url to set back to the default cursor.
 
     def onGainFocus(self, event):
         if self.showingSample:
