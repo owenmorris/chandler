@@ -24,6 +24,7 @@ import application
 import re
 from application import schema
 from application.dialogs import ConflictDialog, RecurrenceDialog
+from application.dialogs.CustomRecurrenceDialog import EditRecurrence
 from osaf import pim
 from osaf.pim.structs import SizeType, RectType
 from osaf.framework.attributeEditors import (
@@ -56,7 +57,6 @@ from util.triagebuttonimageprovider import TriageButtonImageProvider
 import parsedatetime.parsedatetime as parsedatetime
 import parsedatetime.parsedatetime_consts as ptc
 from i18n import getLocale
-
 
 logger = logging.getLogger(__name__)
 
@@ -1353,7 +1353,7 @@ class RecurrenceConditionalBehavior(EventConditionalBehavior):
 
                 if freq == RecurrenceAttributeEditor.customIndex:
                     # We'll show the "custom" flag only if we're custom, duh.
-                    result |= self.showCustom
+                    result |= self.showCustom | self.showEnds
                 elif freq != RecurrenceAttributeEditor.onceIndex:
                     # We're not custom and not "once": We'll show "ends" if we're 
                     # modifiable, or if we have an "ends" value.
@@ -1764,45 +1764,61 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
         else:
             # We got a frequency. Try to map it.
             index = RecurrenceAttributeEditor.menuFrequencies.index(freq)
-            if index == -1:
-                index = RecurrenceAttributeEditor.customIndex
         return index
 
+    _editingCustomRecurrence = False
+
+    def EndControlEdit(self, item, attrname, control):
+        if self._editingCustomRecurrence:
+            return
+        super(RecurrenceAttributeEditor, self).EndControlEdit(item, attrname,
+                                                              control)
+
     def onChoice(self, event):
+        """Handle the 'occurs' recurrence menu"""
+        if self._editingCustomRecurrence:
+            event.Skip()
+            return
+
         control = event.GetEventObject()
         newChoice = self.GetControlValue(control)
-        oldChoice = self.GetAttributeValue(self.item, self.attributeName)
-        if newChoice != oldChoice:
-            # If the old choice was Custom, make sure the user really wants to
-            # lose the custom setting
-            if oldChoice == RecurrenceAttributeEditor.customIndex:
-                # bug 9732, popping up wx.MessageBox triggers
-                # onLoseFocusFromWidget, which will result in an inappropriate
-                # SetAttributeValue call
-                # prematurely, so set the control back to its original value
-                # (custom) first
-                self.SetControlValue(control, oldChoice)
-                
-                msg = _(u"The custom recurrence rule will be lost if you change it. "
-                         "You will not be able to restore it.\n\n"
-                         "Are you sure you want change it?")
-                caption = _(u"Discard Custom Recurrence")
+        
+        if newChoice != RecurrenceAttributeEditor.customIndex:
+            ## Simple, not custom case
+            self.SetControlValue(control, newChoice)            
+            self.SetAttributeValue(self.item, self.attributeName, newChoice)
+        else:
+            ## Custom Case -- bring up dialog
+            # I *think* below should be out
+            #if not pim.has_stamp(item, pim.EventStamp):
+            #    return
+            
+            self._editingCustomRecurrence = True
+            eventItem = pim.EventStamp(self.item)
+            
+            try:
+                customRRuleArgs = EditRecurrence(eventItem, parent=control)
+            finally:
+                self._editingCustomRecurrence = False
 
-                if wx.MessageBox(msg, caption, style = wx.YES_NO,
-                                 parent=wx.GetApp().mainFrame) == wx.NO:
-                    # No: Reselect 'custom' in the menu
-    
-                    return
-
+            if not customRRuleArgs:
+                # Cancelling
+                # Do this to make the UI not take on a new state
+                self.parentBlock.synchronizeWidget()
+                return
+            
+            
             self.SetControlValue(control, newChoice)
-            self.SetAttributeValue(self.item, self.attributeName, 
-                                   newChoice)
+            # Trick: send the customRRuleArgs as the value as the string
+            self.SetAttributeValue(self.item, self.attributeName, customRRuleArgs)
 
-            # a bunch of new occurrences were just created, might as well commit
-            # them now rather than making some later commit take a surprisingly
-            # long time
-            self.item.itsView.commit()
-
+        
+        # a bunch of new occurrences were just created, might as well commit
+        # them now rather than making some later commit take a surprisingly
+        # long time
+        self.item.itsView.commit()
+                
+ 
     def GetAttributeValue(self, item, attributeName):
         index = RecurrenceAttributeEditor.mapRecurrenceFrequency(item)
         return index
@@ -1811,6 +1827,13 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
         """
         Set the value of the attribute given by the value.
         """
+        
+        # Trick: for a custom recurrence, the value is the custom args dict --
+        # detect that case.
+        customRRuleArgs = None
+        if type(value) == type({}):
+            customRRuleArgs = value
+        
         # Changing the recurrence period on a non-master item could delete 
         # this very 'item'; we'll try to select the "same" occurrence
         # afterwards ...
@@ -1830,10 +1853,10 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
         # If nothing has changed, return. This avoids building
         # a whole new ruleset, and the teardown of occurrences,
         # as in Bug 5526
-        if oldIndex == value:
+        if oldIndex == value and not customRRuleArgs:
             return        
 
-        assert value != RecurrenceAttributeEditor.customIndex
+        assert customRRuleArgs or value != RecurrenceAttributeEditor.customIndex
 
         master = event.getMaster()
         recurrenceID = event.recurrenceID or event.startTime
@@ -1856,22 +1879,28 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
                 # if this event is a modification, it will become the new master
                 newMaster = event            
 
-            rruleArgs = {'interval': 1}
-            if value == RecurrenceAttributeEditor.biweeklyIndex:
-                rruleArgs['interval'] = 2
-                value = RecurrenceAttributeEditor.weeklyIndex
-            elif value == RecurrenceAttributeEditor.weekdailyIndex:
-                value = RecurrenceAttributeEditor.weeklyIndex
-                rruleArgs['byweekday'] = [Recurrence.toDateUtilWeekday(day)
-                                 for day in Recurrence.RecurrenceRule.WEEKDAYS]
-
-            duFreq = Recurrence.toDateUtilFrequency(
-                RecurrenceAttributeEditor.menuFrequencies[value])
             rruleset = Recurrence.RecurrenceRuleSet(None, itsView=item.itsView)
-
-            rruleset.setRuleFromDateUtil(Recurrence.dateutil.rrule.rrule(duFreq,
-                                         **rruleArgs))
-
+            
+            # 1. It's custom -- use the sent in args
+            if customRRuleArgs:
+                rruleset.setRuleFromDateUtil(Recurrence.dateutil.rrule.rrule(**customRRuleArgs))
+            else:
+            # 2. it's biweekly or whatever, set that
+            # daily, weekdays, weekly, biweekly, monthly, yearly
+                rruleArgs = {'interval': 1}
+                if value == RecurrenceAttributeEditor.biweeklyIndex:
+                    rruleArgs['interval'] = 2
+                    value = RecurrenceAttributeEditor.weeklyIndex
+                elif value == RecurrenceAttributeEditor.weekdailyIndex:
+                    value = RecurrenceAttributeEditor.weeklyIndex
+                    rruleArgs['byweekday'] = [Recurrence.toDateUtilWeekday(day)
+                                     for day in Recurrence.RecurrenceRule.WEEKDAYS]
+    
+                duFreq = Recurrence.toDateUtilFrequency(
+                    RecurrenceAttributeEditor.menuFrequencies[value])
+                rruleset.setRuleFromDateUtil(Recurrence.dateutil.rrule.rrule(duFreq,
+                                             **rruleArgs))
+                                             
             rrule = rruleset.rrules.first()
             until = event.getLastUntil()
             if until is not None:
@@ -1909,8 +1938,6 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
         if existingValue != value or control.GetCount() == 0:
             # rebuild the list of choices
             choices = self.GetChoices()
-            if self.GetAttributeValue(self.item, self.attributeName) != RecurrenceAttributeEditor.customIndex:
-                choices = choices[:-1] # remove "custom"
             control.Clear()
             control.AppendItems(choices)
 

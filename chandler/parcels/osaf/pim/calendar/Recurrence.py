@@ -446,7 +446,7 @@ class RecurrenceRule(items.ContentItem):
         # ignore byweekday if freq is WEEKLY and day correlates with dtstart
         # because it was automatically set by dateutil
         if rrule._freq != dateutil.rrule.WEEKLY or \
-           len(rrule._byweekday) != 1 or \
+           len(rrule._byweekday or ()) != 1 or \
            rrule._dtstart.weekday() != rrule._byweekday[0]:
             listOfDayTuples = []
             if rrule._byweekday:
@@ -475,11 +475,15 @@ class RecurrenceRule(items.ContentItem):
 
         for key in self.listNames:
             # TODO: cache getattr(rrule, '_' + key)
-            if getattr(rrule, '_' + key) is not None and \
-                                        (key not in self.interpretedNames or \
-                                         len(getattr(rrule, '_' + key)) > 1):
+            value = getattr(rrule, '_' + key)
+            if key == 'bymonthday':
+                if value is not None:
+                    value += (rrule._bynmonthday or ())
+            if value is not None and \
+               (key not in self.interpretedNames or \
+               len(value) > 1):
                 # cast tuples to list
-                setattr(self, key, list(getattr(rrule, '_' + key)))
+                setattr(self, key, list(value))
         # bymonthday and bymonth may be set automatically by dateutil, if so,
         # unset them
         if rrule._freq in (dateutil.rrule.MONTHLY, dateutil.rrule.YEARLY):
