@@ -1773,9 +1773,9 @@ class RecurringEventTest(testcase.SharedSandboxTestCase):
         
         # next is in the future, so its displayDateSource is reminder
         self.failUnlessEqual(next.itsItem.displayDateSource, 'reminder')
-        # ... with its displayDate being the reminder fire datetime
-        self.failUnlessEqual(next.itsItem.displayDate,
-                             next.startTime + timedelta(minutes=-10))
+        # ... with its displayDate *not* being the reminder fire datetime,
+        # instead it should be the original startTime, bug 12246
+        self.failUnlessEqual(next.itsItem.displayDate, next.startTime)
         # first is in the past, so its reminder is considered expired,
         # and its displayDate is based off of startTime
         self.failUnlessEqual(first.itsItem.displayDateSource, 'startTime')
@@ -1786,7 +1786,7 @@ class RecurringEventTest(testcase.SharedSandboxTestCase):
         CHANGE_ALL(event).userReminderInterval = timedelta(minutes=30)
         # That makes startTime occur before fire datetime, hence displayDate
         # is equal to startTime
-        self.failUnlessEqual(next.itsItem.displayDateSource, 'startTime')
+        self.failUnlessEqual(next.itsItem.displayDateSource, 'reminder')
         self.failUnlessEqual(next.itsItem.displayDate, next.startTime)
         self.failUnlessEqual(first.itsItem.displayDateSource, 'startTime')
         self.failUnlessEqual(first.itsItem.displayDate, first.startTime)
@@ -1795,8 +1795,7 @@ class RecurringEventTest(testcase.SharedSandboxTestCase):
         # its reminder time is in the future, startTime in the past.
         CHANGE_THIS(first).startTime = now - timedelta(minutes=15)
         self.failUnlessEqual(first.itsItem.displayDateSource, 'reminder')
-        self.failUnlessEqual(first.itsItem.displayDate,
-                             first.startTime + timedelta(minutes=30))
+        self.failUnlessEqual(first.itsItem.displayDate, first.startTime)
 
         # Check that, in the course of all this, we didn't accidentally
         # assign a displayDate to a "pure" occurrence.
