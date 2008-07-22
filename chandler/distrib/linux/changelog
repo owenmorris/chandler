@@ -1,3 +1,30 @@
+Chandler (1.0-rc1) gutsy; urgency=low
+
+  * Bugs fixed in this release (tracker @ http://bugzilla.osafoundation.org):
+     - Bug#7612 Recognizing URLs in the Notes field
+     - Bug#11774 Sort LATER section by Date column
+     - Bug#11784 ""Bad Time zone"" sync error
+     - Bug#11809 Enable Share>>Publish even for OOTB collections.
+     - Bug#11839 Rename ""Chandler Tasks"" IMAP folder to ""Chandler Starred""
+     - Bug#11922 Tasks should be imported as Notes. All non-event items should be exported as Tasks.
+     - Bug#12036 Review Welcome Note, Tips, etc. for 1.0 release
+     - Bug#12049 Some menu items and buttons don't work when you're in the QE field
+     - Bug#12069 Items keep popping into NOW
+     - Bug#12100 Change messaging in export/reload dialog
+     - Bug#12114 Pressing F2 crashes Chandler
+     - Bug#12142 Tiny fonts when printing on Mac OS X 10.4.11
+     - Bug#12158 Make OOTB U.S. Holidays events read
+     - Bug#12171 mc:insufficient-privileges error when trying to publish OOTB US Holidays to personal hub account
+     - Bug#12190 Ctrl-A doesn't work in separate detail view window on Vista
+     - Bug#12191 Cannot right-click on calendar events in calendar
+     - Bug#12195 Error trying to ""Remove from Calendar"" a single occurrence
+     - Bug#12203 /s should create ""Starred"" item in QE Bar
+     - Bug#12234 Performance Hacks: Auto Export/Reload 1x a week
+     - Bug#12239 Drag-and-drop to minicalendar doesn't work on Linux
+     - Bug#12246 Event-date dependent alarms are showing up in Triage List date column
+
+ -- Grant Baillie <grant@osafoundation.org>  Tue 22 Jul 2008 08:03:15 -0700
+
 Chandler (0.7.7.dev) gutsy; urgency=low
 
   * Bugs fixed in this release (tracker @ http://bugzilla.osafoundation.org):
