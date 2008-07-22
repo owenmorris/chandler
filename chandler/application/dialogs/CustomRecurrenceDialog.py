@@ -405,9 +405,9 @@ class CustomDialog(wx.Dialog):
 
         sizer = LayoutTextWithControls(
                     self,
-                    _(u"Every %(how_often)s %(freqency)s"),
+                    _(u"Every %(how_often)s %(frequency)s"),
                     how_often=self.ctrl_interval,
-                    freqency=self.ctrl_freq)
+                    frequency=self.ctrl_freq)
         outer.Add(sizer, 0, wx.ALL, 5)
         
         ## 1. Daily (actually empty)
