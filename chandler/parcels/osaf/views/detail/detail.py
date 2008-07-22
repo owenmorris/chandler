@@ -223,7 +223,8 @@ class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
 
     def getWatchList(self):
         # Tell us if this item is modified
-        return [ (self.contents, 'lastModified') ]
+        return [ (self.contents, 'lastModified'),
+                 (self.contents, 'itsKind') ] # Track item deletions
 
     def onItemNotification(self, notificationType, data):
         self.markClean() # we'll do whatever needs to be done here.
@@ -234,9 +235,11 @@ class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
         # Ignore notifications during stamping
         (op, uuid, attributes) = data
         item = self.itsView.findUUID(uuid, False)
-        if item is None or item.isMutating():
-            #logger.debug("%s: ignoring kind change to %s during stamping.", 
-                         #debugName(self), debugName(item))
+        if pim.isDead(item):
+            # We don't want to be in the situation of having a deleted or
+            # deleting item selected in the detail view, so we broadcast
+            # a select of None
+            BroadcastSelect(self, None)
             return
 
         if pim.has_stamp(item, Mail.MailStamp):
