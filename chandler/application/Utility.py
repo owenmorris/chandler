@@ -17,6 +17,7 @@ Application utilities.
 """
 
 import os, sys, logging, logging.config, logging.handlers, string, glob, tarfile
+import shutil
 import i18n, schema, itertools
 import M2Crypto.Rand as Rand, M2Crypto.threading as m2threading
 from optparse import OptionParser
@@ -691,6 +692,7 @@ def initRepository(directory, options, allowSchemaView=False):
             if not (options.recover or e.args[0]):
                 repository.logger.warning("reopening repository with recovery")
                 kwds['recover'] = True
+                repository.close()
                 continue
             raise
         else:
@@ -1153,7 +1155,7 @@ def makeBinaryBackup(options, tarPath=None):
     archive.add(repoDir, '.')
     if backupDir != repoDir:
         # a new repository directory was created, delete it
-        os.rmdir(backupDir)
+        shutil.rmtree(backupDir)
     archive.close()
 
 
@@ -1178,8 +1180,8 @@ def makeUncompressedBackup(options, masterPassword=False):
                               _(u'Password Protection Failed'),
                               parent=self)
 
-        repoDir = repository.backup(os.path.join(os.path.dirname(tarPath),
-                                                 '__repository__'))
+        repoDir = repository.backup(os.path.join(options.profileDir,
+                                                 '__repository__.backup'))
         repository.close()
     except:
         # if repoDir is unchanged, the original is taken instead
