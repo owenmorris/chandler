@@ -661,6 +661,11 @@ def kindToMessageObject(mailStamp):
     except AttributeError:
         payload = u""
 
+    if not payload:
+        # bug 12262, Outlook doesn't like multipart/alternative if there's
+        # no payload, so add a few carriage returns to empty bodies
+        payload += "\r\n\r\n"
+
     if isTask or isEvent and payload and \
         not payload.endswith(u"\r\n\r\n"):
         # Chandler outgoing Tasks and Events contain
