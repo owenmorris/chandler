@@ -1874,13 +1874,18 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
                 itemToSelect = master.itsItem
             elif not firstOccurrence.itsItem.isDeleted():
                 itemToSelect = firstOccurrence.itsItem
+            # "is" comparison only works after unwrapping proxies
+            itemToSelect = getattr(itemToSelect, 'proxiedItem', itemToSelect)
+    
+            if itemToSelect is not item:
+                BroadcastSelect(self.control.blockItem, itemToSelect)
         else:
             if (recurrenceID == master.recurrenceID and 
                 event.modificationFor is None):
-                newMaster = master
+                eventInNewSeries = master
             else:
-                # if this event is a modification, it will become the new master
-                newMaster = event            
+                # if this event is a modification, it may become the new master
+                eventInNewSeries = event            
 
             rruleset = Recurrence.RecurrenceRuleSet(None, itsView=item.itsView)
             
@@ -1913,17 +1918,20 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
             rrule.untilIsDate = True
             
             event.rruleset = rruleset
-            newMaster.deleteOffRuleModifications()
             
-            assert not newMaster.itsItem.isDeleted()
-
-            itemToSelect = newMaster.getFirstOccurrence().itsItem
-
-        # "is" comparison only works after unwrapping proxies
-        itemToSelect = getattr(itemToSelect, 'proxiedItem', itemToSelect)
-
-        if itemToSelect is not item:
-            BroadcastSelect(self.control.blockItem, itemToSelect)
+            def cleanup(newEvent, block):
+                if not pim.isDead(getattr(newEvent, 'itsItem', None)):
+                    newMaster = newEvent.getMaster()
+                    newMaster.deleteOffRuleModifications()
+                
+                    assert not pim.isDead(newMaster.itsItem)
+    
+                    itemToSelect = newMaster.getFirstOccurrence().itsItem
+                else:
+                    itemToSelect = None
+                BroadcastSelect(block, itemToSelect)
+                
+            RecurrenceDialog.delayForRecurrenceDialog(event.itsItem, cleanup,  eventInNewSeries, self.control.blockItem)
 
     def GetControlValue(self, control):
         """
