@@ -1,7 +1,16 @@
+Chandler (1.0-rc2) gutsy; urgency=low
+
+  * Bugs fixed in this release (tracker @ http://bugzilla.osafoundation.org):
+     - Fix a problem auto-reloading user data on Windows (see Bug#11266).
+     - Bug#12256 Overzealous url detection
+     - Bug#12262 Outlook doesn't like empty body for multipart/alternative
+     - Bug#12276 Changing date and day of custom weekly event results in item's disappearance
+
 Chandler (1.0-rc1) gutsy; urgency=low
 
   * Bugs fixed in this release (tracker @ http://bugzilla.osafoundation.org):
      - Bug#7612 Recognizing URLs in the Notes field
+     - Bug#8087 Support more recurrence rules
      - Bug#11774 Sort LATER section by Date column
      - Bug#11784 ""Bad Time zone"" sync error
      - Bug#11809 Enable Share>>Publish even for OOTB collections.
