@@ -28,7 +28,7 @@ or, if you have a "debug" version:
 
 * Latest Release *
 
-Welcome to Chandler 0.7. For more details go to...
+Welcome to Chandler 1.0. For more details go to...
 
   http://chandlerproject.org
 

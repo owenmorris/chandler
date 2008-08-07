@@ -3,7 +3,7 @@ Chandler README.osx
 
 * Compatibility *
 
-Chandler runs under Mac OS X 10.3 or greater on both the PowerPC and Intel Macs
+Chandler runs under Mac OS X 10.4 or greater on both the PowerPC and Intel Macs
 
 * Running Chandler *
 
@@ -16,7 +16,7 @@ will give you a cryptic error.)
 
 * Latest Release *
 
-Welcome to Chandler 0.7. For more details go to...
+Welcome to Chandler 1.0. For more details go to...
 
   http://chandlerproject.org
 
