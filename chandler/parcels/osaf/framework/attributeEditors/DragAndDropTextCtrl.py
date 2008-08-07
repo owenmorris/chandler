@@ -98,9 +98,11 @@ class URLTrackingTextCtrl(wx.TextCtrl):
             @@@ This will almost certainly blow up for right-to-left scripts.
             
             """
-            if col == line == 0:
+            if col < 0 or col == line == 0:
                 # Bug 12256, when the cursor is past the last line of text,
-                # col, line == (0, 0), ignore this case
+                # col, line is returned as (0, 0). Similarly, Bug 12290,
+                # there are cases where the cursor is to the left of the
+                # first column. Ignore these cases.
                 return -1, -1
 
             current_and_later_lines = []
