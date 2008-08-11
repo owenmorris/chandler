@@ -267,10 +267,10 @@ class ParseRuleTestCase(unittest.TestCase):
 
     def testMonthlyByMonth(self):
         self.failUnlessParseMatches(
-            "FREQ=MONTHLY;BYMONTH=1,3,5;BYMONTHDAY=11",
+            "FREQ=MONTHLY;BYMONTH=1,3,5;BYMONTHDAY=11,12",
             False,
             {'freq':rrule.MONTHLY, 'interval':1,
-             'bymonth':(4, 7), 'bymonth':(1,3,5), 'bymonthday':(11,)},
+             'bymonth':(1,3,5), 'bymonthday':(11, 12)},
             {}
         )
 
