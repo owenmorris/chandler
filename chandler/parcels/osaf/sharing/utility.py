@@ -237,7 +237,7 @@ def splitUrl(url):
     ticket = None
     if query:
         for part in query.split('&'):
-            (arg, value) = part.split('=')
+            (arg, eq, value) = part.partition('=')
             if arg == 'ticket':
                 ticket = value.encode('utf8')
                 break
