@@ -726,7 +726,7 @@ class ICSSerializer(object):
                     if icalExtra is None:
                         icalExtra = ''
                     else:
-                        icalExtra = icalExtra.serialize()
+                        icalExtra = icalExtra.serialize().decode('utf-8')
 
                 records = [model.NoteRecord(uuid,
                                             description,  # body
