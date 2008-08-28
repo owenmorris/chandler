@@ -32,7 +32,6 @@ allTests = [
                 ("TestTriageSectioning","TestTriageSectioning"),
                 ("TestTableSelection","TestTableSelection"),
                 ("TestStamping","TestStamping"), 
-                ("TestSharing","TestSharing"), 
                 ("TestMoveToTrash","TestMoveToTrash"), 
                 ("TestDeleteCollection","TestDeleteCollection"),
                 ("TestMulti","TestMulti"), 
@@ -69,6 +68,7 @@ exclusions = {#tests to exclude on specific platfoms only
     
     'all':[ #tests to exclude on all platforms       
         ("TestDates","TestDates"), #Chandler not handling daylightsavings bug#5038
+        ("TestSharing","TestSharing"),  # qasharing.osafoundation.org decommissioned
         ("TestVisibleHours","TestVisibleHours"), # bug 8969
         ("TestNewTask", "TestNewTask"), # relies on removed menu item
         ]
