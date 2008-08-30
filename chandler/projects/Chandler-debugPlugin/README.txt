@@ -1,6 +1,6 @@
-This plugin provides support for debug menu in Chandler.
+The Debug Plug-in provides support for debug menu in Chandler.
 
-To download and install the plugin from the Chandler UI, 
+To download and install the plugin from the Chandler UI,
 use the "Plugins -> Download" and "Plugins -> Install" menus.
 
 To download and install the plugin from the command line, use Chandler's
@@ -38,7 +38,7 @@ proposal at:
 
 The svn sources for this plugin are at:
 
- http://svn.osafoundation.org/chandler/trunk/chandler/projects/Chandler-debugPlugin#egg=Chandler_debugPlugin-dev
+ http://svn.osafoundation.org/chandler/trunk/chandler/projects/Chandler-ebugPlugin#egg=Chandler_debugPlugin-dev
 
 and can be retrieved with::
 
