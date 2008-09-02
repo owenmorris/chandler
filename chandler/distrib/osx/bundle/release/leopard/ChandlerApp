@@ -20,7 +20,14 @@ os.environ['PYTHONPATH'] = '%(resdir)s/release/site-packages:%(resdir)s:%(resdir
 os.environ['DYLD_LIBRARY_PATH'] = '%(resdir)s/release/lib:%(resdir)s/release/db/lib:%(resdir)s/release/icu/lib' % locals()
 os.environ['LC_PATH'] = '%(resdir)s/release/share/locale' % locals()
 
-os.chdir(resdir)
-sys.argv.insert(1, mainprogram)
+if '-E' in sys.argv[1:]:
+    # A hack to make distutils/setuptools work during plugin
+    # installation. Note that -E is not a valid Chandler.py
+    # option.
+    executable = '/usr/bin/python'
+else:
+    os.chdir(resdir)
+    sys.argv.insert(1, mainprogram)
+    
 os.execve(executable, sys.argv, os.environ)
 

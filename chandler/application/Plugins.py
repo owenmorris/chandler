@@ -125,7 +125,12 @@ class PluginMenu(Menu):
                 _log = _global_log._log
                 _global_log._log = log
 
-                main(['--multi-version', '--install-dir', pluginsDir, archive])
+                try:
+                    main(['--multi-version', '--install-dir', pluginsDir, archive])
+                except:
+                    logger.exception("Plugin installation failed")
+                    # Could be a SystemExit exception, since we called a
+                    # main() directly.
             finally:
                 _global_log._log = _log
 

@@ -24,3 +24,11 @@ os.chdir(resdir)
 sys.argv.insert(1, mainprogram)
 os.execve(executable, sys.argv, os.environ)
 
+if '-E' in sys.argv[1:]:
+    # A hack to make distutils/setuptools work during plugin
+    # installation. Note that -E is not a valid Chandler.py
+    # option.
+    executable = '/usr/bin/python'
+else:
+    os.chdir(resdir)
+    sys.argv.insert(1, mainprogram)
