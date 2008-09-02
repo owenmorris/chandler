@@ -158,7 +158,7 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
 
         # We have timed out so do not send any more commands to
         # the server just disconnect
-        exc = errors.IMAPException(constants.MAIL_PROTOCOL_TIMEOUT_ERROR)
+        exc = errors.IMAPTimeoutException(constants.MAIL_PROTOCOL_TIMEOUT_ERROR)
         self.factory.timedOut = True
         self._raiseException(exc)
 

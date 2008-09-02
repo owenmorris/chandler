@@ -53,7 +53,10 @@ MAIL_PROTOCOL_REQUIRES_TLS = _(u"The server requires secure login. Please enable
 MAIL_PROTOCOL_OFFLINE = _(u"%(accountName)s is offline. No operation was performed.")
 MAIL_PROTOCOL_CONNECTION = _(u"%(accountName)s: Connecting to server %(serverDNSName)s...")
 MAIL_PROTOCOL_CONNECTION_ERROR = _(u"Unable to connect to server. Please try again later.")
-MAIL_PROTOCOL_TIMEOUT_ERROR = _(u"Connection to server timed out. Please try again later.")
+MAIL_PROTOCOL_TIMEOUT_ERROR = _(u"Attempt to sync '%(hostName)s' timed out after 5 minutes.\n\nServer not responding.")
+
+MAIL_PROTOCOL_TROUBLESHOOT = _(u"Troubleshoot")
+TROUBLESHOOT_URL = _(u"http://chandlerproject.org/troubleshoot")
 
 # Translatable message strings for downloads (POP, IMAP)
 DOWNLOAD_NO_MESSAGES = _(u"%(accountName)s: No new messages found.")
@@ -116,7 +119,7 @@ IMAP_COMMIT_MESSAGES = _(u"%(accountName)s: Commiting %(start)s - %(end)s of %(t
 POP_COMMIT_MESSAGES = _(u"%(accountName)s: Commiting %(start)s - %(end)s of %(total)s messages...")
 
 # Number of seconds to wait to timeout connection when downloading mail
-TIMEOUT = 30
+TIMEOUT = 300
 
 # Number of seconds to wait to timeout connection for account testing
 TESTING_TIMEOUT = 10

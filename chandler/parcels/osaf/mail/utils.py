@@ -123,7 +123,7 @@ def alert(message, args=None):
 
     NotifyUIAsync(message, cl='alertUser')
 
-def alertMailError(message, account, args=None):
+def alertMailError(message, account, args=None, helpLinkText=None):
     """
     Displays a mail specific alert dialog with a Edit Account Settings
     button which takes the user to the Account Dialog.
@@ -131,7 +131,7 @@ def alertMailError(message, account, args=None):
     if args:
         message = message % args
 
-    NotifyUIAsync(message, None, 'displayMailError', account)
+    NotifyUIAsync(message, None, 'displayMailError', account, helpLinkText)
 
 def NotifyUIAsync(message, logger=None, cl='setStatusMessage', *args, **keys):
     if logger is not None:

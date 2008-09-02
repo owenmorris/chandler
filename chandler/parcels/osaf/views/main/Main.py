@@ -91,8 +91,8 @@ class MainView(View):
     onSelectAllEventUpdateUI = _Method_CantEdit
     onDuplicateEventUpdateUI = _Method_CantEdit
 
-    def displayMailError (self, message, account):
-        application.dialogs.Util.mailAccountError(self.itsView, message, account)
+    def displayMailError(self, message, account, hintText=None):
+        application.dialogs.Util.mailAccountError(self.itsView, message, account, hintText)
 
     def displaySMTPSendError(self, mailMessage, account):
         """

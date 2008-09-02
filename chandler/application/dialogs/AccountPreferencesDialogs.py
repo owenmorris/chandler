@@ -183,6 +183,7 @@ class SharingTestDialog(ProgressDialog):
 
 class ChandlerIMAPFoldersDialog(ProgressDialog):
     ALLOW_CANCEL      = False
+    TROUBLESHOOT_TEXT = _(u"Folders not showing up?")
 
     def __init__(self, parent, account, callback):
         assert(isinstance(account, IMAPAccount))
@@ -312,6 +313,7 @@ Note: Folders may take a while to appear in your email application.""")
 
 class RemoveChandlerIMAPFoldersDialog(ProgressDialog):
     ALLOW_CANCEL      = False
+    TROUBLESHOOT_TEXT = _(u"Folders not showing up?")
 
     def __init__(self, parent, account, callback):
         assert(isinstance(account, IMAPAccount))

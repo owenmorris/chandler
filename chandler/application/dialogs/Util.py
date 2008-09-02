@@ -185,12 +185,12 @@ def promptUserAction(title, message,
 
     return val
 
-def mailAccountError(view, message, account):
+def mailAccountError(view, message, account, hintText=None):
     # importing AccountPreferences imports osaf.sharing, but Util is loaded
     # by a sharing dependency, so to avoid import loops, only import
     # AccountPreferences when we need it
     import AccountPreferences
-    win = MailAccountErrorDialog(message)
+    win = MailAccountErrorDialog(message, hintText)
     win.CenterOnScreen()
     val = win.ShowModal()
 
@@ -241,7 +241,7 @@ class MailErrorBaseDialog(wx.Dialog):
 
         self.addButtons(box)
 
-        sizer.Add(box, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        sizer.Add(box, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5)
 
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
@@ -250,8 +250,23 @@ class MailErrorBaseDialog(wx.Dialog):
     def addButtons(self, sizer):
         raise NotImplementedError()
 
+def AddTroubleshootLink(target, text, sizer):
+    """Add a troubleshoot link on the left hand side of a sizer."""
+    from osaf.mail import constants
+    link = wx.HyperlinkCtrl(target, -1, text, constants.TROUBLESHOOT_URL)
+    sizer.Add(link, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+    sizer.AddStretchSpacer()
+
+
 class MailAccountErrorDialog(MailErrorBaseDialog):
+    def __init__(self, message, hintText=None):
+        self.hintText = hintText
+        super(MailAccountErrorDialog, self).__init__(message)
+
     def addButtons(self, sizer):
+        if self.hintText:
+             AddTroubleshootLink(self, self.hintText, sizer)
+
         btn = wx.Button(self, wx.ID_CANCEL)
         btn.SetDefault()
         sizer.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
@@ -643,6 +658,7 @@ class ProgressDialog(wx.Dialog):
     DISPLAY_YES_NO        = False
     APPLY_SETTINGS        = False
     ALLOW_CANCEL          = True
+    TROUBLESHOOT_TEXT     = None
     SUCCESS_TEXT_SIZE     = (450, 100)
     ERROR_TEXT_SIZE       = (450, 100)
 
@@ -767,7 +783,7 @@ class ProgressDialog(wx.Dialog):
         self.sizer.Add(self.resultsPanel, 0, wx.GROW|wx.ALL, 5)
 
         self.resultsButtonPanel = ResultsButtonPanel(self, statusCode)
-        self.sizer.Add(self.resultsButtonPanel, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
+        self.sizer.Add(self.resultsButtonPanel, 0, wx.ALIGN_RIGHT|wx.ALL|wx.EXPAND, 5)
 
         resizeLayout(self, self.sizer)
 
@@ -881,6 +897,9 @@ class ResultsButtonPanel(wx.Panel):
         self.parent = parent
 
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        if parent.TROUBLESHOOT_TEXT:
+             AddTroubleshootLink(self, parent.TROUBLESHOOT_TEXT, self.sizer)
 
         if statusCode == self.parent.ERROR:
             self.tryAgainButton = wx.Button(self, -1, _(u"&Try Again"), name="Try Again")

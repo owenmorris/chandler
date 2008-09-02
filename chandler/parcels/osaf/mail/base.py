@@ -522,7 +522,7 @@ class AbstractDownloadClient(object):
                 d.addCallback(lambda dummy: True)
                     
             except Exception, e:
-                # This code should never be reached.
+                # This code should never be reached, and if it were, the _ would raise!
                 log.exception('Error raised in SSL Layer which requires investigation.')
                 callMethodInUIThread(self.callback, (0, _(u"SSL error.")))
 
@@ -555,8 +555,13 @@ class AbstractDownloadClient(object):
         if self.callback:
             callMethodInUIThread(self.callback, (0, errorText))
         else:
-            alertMailError(constants.MAIL_PROTOCOL_ERROR, self.account, \
-                              {'hostName': self.account.host, 'errText': errorText})
+            if isinstance(err, errors.IMAPTimeoutException):
+                alertMailError(constants.MAIL_PROTOCOL_TIMEOUT_ERROR, self.account,
+                               {'hostName': self.account.host},
+                               constants.MAIL_PROTOCOL_TROUBLESHOOT)
+            else:
+                alertMailError(constants.MAIL_PROTOCOL_ERROR, self.account,
+                               {'hostName': self.account.host, 'errText': errorText})
 
         self._actionCompleted()
 

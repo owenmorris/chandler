@@ -14,13 +14,17 @@
 
 from osaf import ChandlerException
 
-__all__ = ['MailException', 'IMAPException', 'SMTPException', 'POPException']
+__all__ = ['MailException', 'IMAPException', 'SMTPException',
+           'POPException', 'IMAPTimeoutException']
 
 class MailException(ChandlerException):
     """Base class for all Chandler mail related exceptions"""
 
 class IMAPException(MailException):
     """Base class for all Chandler IMAP based exceptions"""
+
+class IMAPTimeoutException(IMAPException):
+    """IMAP client timeout exception"""
 
 class SMTPException(MailException):
     """Base class for all Chandler SMTP based exceptions"""
