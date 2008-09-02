@@ -1021,11 +1021,12 @@ class BlockDispatchHook (DispatchHook):
             don't always have block counterparts, get a crack at handling events.
             """
             blockOrWidget = wx.Window_FindFocus()
-            if blockOrWidget is None:
+            if not blockOrWidget:
                 blockOrWidget = getattr(theApp, '_focusForContextMenu', None)
-            if blockOrWidget is None or blockOrWidget.IsTopLevel():
+            if not blockOrWidget or blockOrWidget.IsTopLevel():
                 blockOrWidget = Block.findBlockByName("MainView")
-            bubbleUpCallMethod (blockOrWidget, methodName, event)
+            if blockOrWidget:
+                bubbleUpCallMethod (blockOrWidget, methodName, event)
 
         elif dispatchEnum == 'ActiveViewBubbleUp':
             activeView = theApp.activeView
