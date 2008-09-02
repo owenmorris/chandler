@@ -487,7 +487,7 @@ class RecurrenceRule(items.ContentItem):
         # bymonthday and bymonth may be set automatically by dateutil, if so,
         # unset them
         if rrule._freq in (dateutil.rrule.MONTHLY, dateutil.rrule.YEARLY):
-            if len(rrule._bymonthday) == 1:
+            if len(rrule._bymonthday) == 1 and len(rrule._bynmonthday) == 0:
                 if rrule._bymonthday[0] == rrule._dtstart.day:
                     del self.bymonthday
         if rrule._freq == dateutil.rrule.YEARLY:

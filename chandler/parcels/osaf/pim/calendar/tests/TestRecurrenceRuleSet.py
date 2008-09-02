@@ -21,13 +21,13 @@ import unittest, os
 from datetime import datetime, timedelta
 
 import dateutil.rrule
-from dateutil.rrule import MO, TU, WE, TH, FR, SA, SU, WEEKLY
+from dateutil.rrule import MO, TU, WE, TH, FR, SA, SU, WEEKLY, MONTHLY
 from osaf.pim.calendar.Recurrence import \
      FrequencyEnum, RecurrenceRuleSet, RecurrenceRule, toDateUtil
 
-import osaf.pim.tests.TestDomainModel as TestDomainModel
+from util import testcase
 
-class RecurrenceRuleTest(TestDomainModel.DomainModelTestCase):
+class RecurrenceRuleTest(testcase.SharedSandboxTestCase):
     """ Test Recurrence Domain Model """
 
     def setUp(self):
@@ -123,6 +123,22 @@ class RecurrenceRuleTest(TestDomainModel.DomainModelTestCase):
         # compare datetimes for original rule and identityTransformedRule
         self.assertEqual(list(identityTransformedRule),
                          list(complexRule))
+
+    def testComplexMonthly(self):
+        """Bug 12252, if dtstart matches a positive BYMONTHDAY, any negative will be ignored."""
+        ruleItem = self._createBasicItem('weekly')
+        complexRule = dateutil.rrule.rrule(MONTHLY, count=5, bymonthday=[4, -1],
+                                           dtstart=self.start)
+        ruleItem.setRuleFromDateUtil(complexRule)
+        identityTransformedRule = ruleItem.createDateUtilFromRule(self.start, False)
+        
+        nextDate  = datetime(2005, 7, 31, 13,  tzinfo=self.view.tzinfo.default)
+        oneMonth  = datetime(2005, 8,  4, 13,  tzinfo=self.view.tzinfo.default)
+        
+        self.assertEqual(identityTransformedRule[0], self.start)
+        self.assertEqual(identityTransformedRule[1], nextDate)
+        self.assertEqual(identityTransformedRule[2], oneMonth)
+
 
     def testInfiniteRuleItem(self):
         """Test that infinite RecurrenceRules work."""
