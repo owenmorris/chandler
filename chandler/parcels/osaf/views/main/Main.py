@@ -982,14 +982,14 @@ class MainView(View):
     def onResetAutoUpdateEventUpdateUI(self, event):
         prefs = schema.ns("osaf.app", self).autoRestorePrefs
         if not prefs.enabled:
-            title = _("Next Restore: Never")
+            title = _("Next Reload: Never")
         elif not prefs.hasLocalAttributeValue("nextRestore"):
-            title = _("Next Restore: One Week")
+            title = _("Next Reload: One Week")
         elif prefs.nextRestore < datetime.now():
-            title = _("Next Restore: Next Restart")
+            title = _("Next Reload: Next Restart")
         else:
             dt = shortDateTimeFormat.format(self.itsView, prefs.nextRestore)
-            title = _("Next Restore: %(datetime)s") % dict(datetime=dt)
+            title = _("Next Reload: %(datetime)s") % dict(datetime=dt)
         event.arguments['Text'] = title
 
     def onEnableAutoUpdateEvent(self, event):
@@ -1145,7 +1145,7 @@ class MainView(View):
         if log in sidebar:
             menuTitle = _(u'Show Sharing Activity')
         else:
-            menuTitle = _(u'Add sharing activity log to Sidebar')
+            menuTitle = _(u'Add Sharing Activity Log to Sidebar')
         event.arguments ['Text'] = menuTitle
         event.arguments ['Enable'] = True
 

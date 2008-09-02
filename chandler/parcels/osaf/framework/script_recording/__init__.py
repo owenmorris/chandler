@@ -593,4 +593,4 @@ def installParcel(parcel, old_version=None):
                         event = BrowseScript)
                 ])
             ],
-        parentBlock = main.ToolsMenu).install(parcel)
+        parentBlock = main.ToolsMenu)#don't .install(parcel)
