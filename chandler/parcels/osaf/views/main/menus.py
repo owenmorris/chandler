@@ -796,7 +796,7 @@ def makeMainMenus(parcel):
                                     ]), # Menu LoggingLevelMenu
                             ]), # Menu LoggingMenu
                     Menu.template('RepositoryTestMenu',
-                        title=_(u'Re&pository'),
+                        title=_(u'&Repository'),
                         helpString=_(u'Repository tools'),
                         childBlocks = [
                             MenuItem.template('CheckRepositoryItem',
