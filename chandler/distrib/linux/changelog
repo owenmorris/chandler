@@ -1,3 +1,19 @@
+Chandler (1.0.1) gutsy; urgency=low
+
+  * Bugs fixed in this release (tracker @ http://bugzilla.osafoundation.org):
+     - Bug#11526 Chandler crashes with bus error on creating notes in the month view by right clicking
+     - Bug#11696 Crash when any file is dragged into Chandler window if you have 2nd display
+     - Bug#11860 Chandler suddenly exits (crashes?) after trying to install a plugin
+     - Bug#12231 Dialogs should pop up on mouse-up instead of mousedown
+     - Bug#12282 Remove remote Cosmo tests from Desktop
+     - Bug#12306 Help Users Troubleshoot IMAP issue
+     - Bug#12318 Rename ""Tools"" menu --> ""Debug"" and do something with ""Plugins"" menu
+     - Bug#12319 UnicodeDecodeError for VCALENDAR object fields including the Estonian letter U+00F5
+     - Bug#12338 Adding notes and messages from the calendar from context menu in calendar view displays error in (K)Ubuntu Hardy
+     - Bug#12342 Make Error icon in list view pop more
+
+ -- Grant Baillie <grant@osafoundation.org> Wed 03 Sep 2008 18:37:44 -0700
+
 Chandler (1.0-rc3) gutsy; urgency=low
      - Bug#12290 1.0-RC2: IndexError traceback from clicking on/typing in notes field
 
