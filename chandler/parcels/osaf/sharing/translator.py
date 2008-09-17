@@ -1952,7 +1952,12 @@ class DumpTranslator(SharingTranslator):
 
         if self.obfuscation: return
 
-        contents = share.contents.itsUUID
+        try:
+            contents = share.contents.itsUUID
+        except AttributeError:
+            # bug 12353, this should never happen, but if it does, just ignore
+            # the share
+            return
 
         conduit = share.conduit.itsUUID
 
