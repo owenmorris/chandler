@@ -319,7 +319,7 @@ def getBodyValues(mailStamp, addGT=False, usePrefix=False):
     mailStampOccurrence, mailStamp = getRecurrenceMailStamps(mailStamp)
 
     if not hasattr(mailStamp, 'dateSent'):
-        from osaf.mail.utils import dateTimeToRFC2822Date
+        from osaf.mail.utils import datetimeToRFC2822Date
         mailStamp.dateSent = datetime.now(view.tzinfo.default)
 
     date, time = formatDateAndTime(view, mailStamp.dateSent)
@@ -1725,7 +1725,7 @@ class MailStamp(stamping.Stamp):
 
     def outgoingMessage(self):
         from osaf.mail.utils import createMessageID, \
-                                    dateTimeToRFC2822Date
+                                    datetimeToRFC2822Date
 
 
         mId = getattr(self, "messageId", None)
@@ -1756,7 +1756,7 @@ class MailStamp(stamping.Stamp):
         self.messageId = createMessageID()
 
         self.dateSent = datetime.now(self.itsItem.itsView.tzinfo.default)
-        self.dateSentString = dateTimeToRFC2822Date(self.dateSent)
+        self.dateSentString = datetimeToRFC2822Date(self.dateSent)
         self.fromEIMML = False
 
         if len(self.originators) == 0:

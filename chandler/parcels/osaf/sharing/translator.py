@@ -40,7 +40,9 @@ import dateutil
 from osaf.framework.twisted import waitForDeferred
 from osaf.pim.mail import EmailAddress
 from osaf.usercollections import UserCollection
-from osaf.mail.utils import getEmptyDate, dataToBinary, binaryToData
+from osaf.mail.utils import (
+    getEmptyDate, dataToBinary, binaryToData, RFC2822DateToDatetime
+)
 from osaf.pim.structs import ColorType
 from osaf.framework.password import Password
 from twisted.internet.defer import Deferred
@@ -1116,8 +1118,7 @@ class SharingTranslator(eim.Translator):
                     mail.dateSentString = record.dateSent
 
                     timestamp = Utils.parsedate_tz(record.dateSent)
-                    mail.dateSent = datetime.fromtimestamp(Utils.mktime_tz(timestamp), \
-                                                           self.rv.tzinfo.default)
+                    mail.dateSent = RFC2822DateToDatetime(record.dateSent, self.rv.tzinfo.default)
                 else:
                     mail.dateSent = getEmptyDate(self.rv)
                     mail.dateSentString = u""

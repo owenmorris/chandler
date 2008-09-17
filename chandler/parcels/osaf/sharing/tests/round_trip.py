@@ -858,10 +858,10 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
 
         origAddr = pim.EmailAddress.getEmailAddress(view0, u"The Management")
 
-        from osaf.mail.utils import dateTimeToRFC2822Date, dataToBinary, binaryToData
+        from osaf.mail.utils import datetimeToRFC2822Date, dataToBinary, binaryToData
 
         dateSent = datetime.datetime.now(view0.tzinfo.default)
-        dateSentString = dateTimeToRFC2822Date(dateSent)
+        dateSentString = datetimeToRFC2822Date(dateSent)
 
         # Start over with a new item
         item = pim.Note(itsView=view0)

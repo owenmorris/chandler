@@ -22,7 +22,8 @@ Mail Domain (SMTP, IMAP4, POP3) and message parsing
 import email.Utils as Utils
 import os, logging, time, random
 from time import mktime
-from datetime import datetime
+from datetime import datetime, timedelta
+import PyICU
 import sys
 import sgmllib
 from twisted.mail import smtp
@@ -34,7 +35,7 @@ from i18n import ChandlerMessageFactory as _
 
 __all__ = ['log', 'trace', 'disableTwistedTLS', 'getEmptyDate',
            'dateIsEmpty', 'alert', 'alertMailError', 'NotifyUIAsync',
-           'dateTimeToRFC2822Date', 'createMessageID',
+           'datetimeToRFC2822Date', 'RFC2822DateToDatetime', 'createMessageID',
            'hasValue', 'isString', 'dataToBinary', 'binaryToData', 'stripHTML',
            'setStatusMessage', 'callMethodInUIThread']
 
@@ -154,8 +155,9 @@ def callMethodInUIThread(method, *args):
     if wxApplication is not None: # test framework has no wxApplication
         wxApplication.PostAsyncEvent(method, *args)
 
+ENGLISH_DATE_SYMBOLS = PyICU.DateFormatSymbols(PyICU.Locale.getEnglish())
 
-def dateTimeToRFC2822Date(dt):
+def datetimeToRFC2822Date(dt):
     """
     Converts a C{datetime} object to a RFC2822 Date String.
 
@@ -164,8 +166,67 @@ def dateTimeToRFC2822Date(dt):
 
     @return: RFC2822 Date String
     """
-    ticks = mktime(dt.timetuple())
-    return Utils.formatdate(ticks, True)
+    # we format this ourselves, rather than using strftime because
+    # strftime has no way of enforcing English in a thread-safe way,
+    # and because it chokes on years before 1900.
+    month = ENGLISH_DATE_SYMBOLS.getShortMonths()[dt.month - 1]
+    # ICU seems to start with an empty string at array index 0, and
+    # then values starting with Sunday. datetime.weekday() has 0<==>Monday.
+    icuWeekday = 1 + (dt.weekday() + 1) % 7
+    weekday = ENGLISH_DATE_SYMBOLS.getShortWeekdays()[icuWeekday]
+
+    if dt.tzinfo:
+        offset = dt.tzinfo.utcoffset(dt) # offset in minutes
+        offsetMinutes = offset.seconds / 60 + offset.days * 24 * 60
+        offset_part = " %+03d%02d" % (offsetMinutes/60, offsetMinutes%60)
+    else:
+        offset_part = ""
+
+    return "%s, %02d %s %04d %02d:%02d:%02d%s" % (
+                weekday, dt.day, month, dt.year,
+                dt.hour, dt.minute, dt.second, offset_part)
+
+def RFC2822DateToDatetime(dateString, tz=None):
+    """
+    Parses an RFC 2822 date value (e.g. in the Date: header) and
+    returns a C{datetime.datetime} value. Uses C{email.utils.parsedate_tz},
+    so that a variety of date formats (not all required by the RFC) can
+    be parsed.
+    
+    @param dateString: Input date value
+    @type dateString: C{basestring}
+    
+    @param tz: The timezone to use for the return value. If C{None}, and the
+               input header specified a timezone offset, the returned
+               C{datetime} will be a UTC value. If C{None}, and no timezone
+               offset was specified, the returned value will be as parsed.
+               If a non-C{None} C{tz} is passed in, the returned datetime will
+               have a C{tzinfo} of C{tz}.
+    @type tz: C{datetime.tzinfo}
+    
+    @rtype: C{datetime.datetime}
+    """
+
+    parsed = Utils.parsedate_tz(dateString)
+    
+    if parsed is None:
+        return None
+
+    result = datetime(*parsed[:6])
+    
+    if parsed[9] is not None:
+    
+        # i.e. parsed[9] is an offset. Let's convert to UTC
+        result -= timedelta(seconds=parsed[9])
+        
+        if tz is not None:
+            result = result.replace(tzinfo=PyICU.ICUtzinfo.getInstance("UTC"))
+            result = result.astimezone(tz)
+        
+    else: # (shrug) no tz
+        result = result.replace(tzinfo=tz)
+        
+    return result
 
 
 def createMessageID():

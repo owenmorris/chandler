@@ -634,7 +634,7 @@ def kindToMessageObject(mailStamp):
     if hasattr(mailStampMaster, "dateSentString"):
         date = mailStampMaster.dateSentString
     else:
-        date = dateTimeToRFC2822Date(datetime.now(view.tzinfo.default))
+        date = datetimeToRFC2822Date(datetime.now(view.tzinfo.default))
 
     messageObject["Date"] = date
 
@@ -957,19 +957,15 @@ def __parseHeaders(view, messageObject, m, decode, makeUnicode):
     date = messageObject['Date']
 
     if date is not None:
-        parsed = emailUtils.parsedate_tz(date)
+        dateSent = RFC2822DateToDatetime(date, view.tzinfo.default)
 
         # It is a non-rfc date string
-        if parsed is None:
+        if dateSent is None:
             # Set the sent date to the current Date
             m.dateSent = datetime.now(view.tzinfo.default)
 
         else:
-            try:
-                m.dateSent = datetime.fromtimestamp(emailUtils.mktime_tz(parsed),
-                                                    view.tzinfo.default)
-            except:
-                m.dateSent = datetime.now(view.tzinfo.default)
+            m.dateSent = dateSent
 
         m.dateSentString = date
 
