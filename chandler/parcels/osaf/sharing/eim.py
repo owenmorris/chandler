@@ -1113,9 +1113,15 @@ def uuid_converter(uuid):
 def item_uuid_converter(item):
     return str(item.itsUUID)
 
+def normalize_uuid_string(uuid_or_alias):
+    """Tolerate uppercase uuid strings."""
+    uuid, colon, recurrence_id = uuid_or_alias.partition(":")
+    return u"".join((uuid.lower(), colon, recurrence_id))
+
 add_converter(UUIDType, UUID, uuid_converter)
 add_converter(UUIDType, schema.Item, item_uuid_converter)
-add_converter(UUIDType, str, unicode)
+add_converter(UUIDType, str, normalize_uuid_string)
+add_converter(UUIDType, unicode, normalize_uuid_string)
 
 global_formatters = {}
 

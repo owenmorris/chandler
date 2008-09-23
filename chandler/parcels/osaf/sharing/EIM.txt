@@ -1037,6 +1037,14 @@ types::
     >>> HexRecord(None)
     HexRecord(None)
 
+The UUID type uses a converter to normalize UUID strings::
+
+    >>> demo = DemoRecord2("ED0277AF-18A2-45B1-917D-A55DC75DA776:20080922T000000Z")
+    >>> demo
+    DemoRecord2(u'ed0277af-18a2-45b1-917d-a55dc75da776:20080922T000000Z')
+    >>> DemoRecord2("ed0277af-18a2-45b1-917d-a55dc75da776:20080922T000000Z") == demo
+    True
+
 XXX Need more default encoders for primitive types; only int->IntType currently
     works
 
