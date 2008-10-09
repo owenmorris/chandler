@@ -1,4 +1,3 @@
-
 # This Makefile requires cygwin on Windows
 # It should *not* be made to depend on external/ or internal/
 
