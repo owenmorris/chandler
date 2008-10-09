@@ -243,11 +243,10 @@ PLUGIN_INST = $(C_HOME)/plugins
 LOCALE_SRC  = $(C_HOME)/localizations/
 TOOLS       = $(C_HOME)/tools/
 
-#
 # The following cygpaths are all done using
 # := (or 'simply expanded') to prevent errant
 # \ escaping that occurs when = is used
-#
+
 ifeq ($(OS),Cygwin)
     PLUGIN_INST := $(shell cygpath -aw $(PLUGIN_INST))
     LOCALE_SRC  := $(shell cygpath -aw $(LOCALE_SRC))\\
