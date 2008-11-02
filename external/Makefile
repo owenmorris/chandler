@@ -124,6 +124,10 @@ world: all binaries install
 	$(MAKE) -C ../internal DEBUG=$(DEBUG) world
 	$(MAKE) -C $(CHANDLERBIN) DEBUG=$(DEBUG) install
 
+world-no-plugins: all binaries install
+	$(MAKE) -C ../internal DEBUG=$(DEBUG) world
+	$(MAKE) -C $(CHANDLERBIN) DEBUG=$(DEBUG) install-no-plugins
+
 cleanworld: clean
 	$(MAKE) -C ../internal DEBUG=$(DEBUG) clean
 	$(MAKE) -C ../chandler DEBUG=$(DEBUG) clean

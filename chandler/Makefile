@@ -361,6 +361,8 @@ endif
 
 install: install-core py-env plugins
 
+install-no-plugins: install-core py-env
+
 distrib: install-core py-env distrib-plugins
 
 download: $(ARCHIVES)
