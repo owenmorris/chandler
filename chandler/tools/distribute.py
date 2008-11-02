@@ -159,7 +159,7 @@ def buildDistributionList(options):
                 log('Platform is [%s] -- ignoring exe request' % options.platformName)
     else:
         if options.platformID == 'linux':
-            if options.platformSubID == 'gutsy':
+            if options.platformSubID in ['gutsy', 'hardy', 'intrepid', 'jaunty']:
                 options.distribs = [ 'deb' ]
             else:
                 options.distribs = [ 'tarball' ]
@@ -176,20 +176,15 @@ def buildDistribName(mode, options):
     return 'Chandler_%s_%s%s' % (options.platformID, modeStr, options.version_info['version'])
 
 def buildDistributionImage(mode, options):
+    p = options.platformID
+    s = p
+
     if 'osx' in options.platformID:
         p = 'osx'
         s = options.platformID
-    else:
-        if options.platformID == 'linux':
-            p = 'linux'
-
-            if options.platformSubID == 'gutsy':
-                s = options.platformSubID
-            else:
-                s = p
-        else:
-            p = options.platformID
-            s = p
+    elif options.platformID == 'linux':
+        if options.platformSubID in ['gutsy', 'hardy', 'intrepid', 'jaunty']:
+            s = 'gutsy'
 
     if mode == 'release':
         manifestFile = os.path.join(options.sourceDir, 'distrib', p, 'manifest.%s' % s)
