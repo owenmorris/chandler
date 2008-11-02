@@ -128,7 +128,7 @@ ifeq ($(OS),Linux)
     DISTRIB_CODENAME=$(subst DISTRIB_CODENAME=,,$(shell cat /etc/lsb-release | grep DISTRIB_CODENAME))
     SWIG=$(PREFIX)/bin/swig
     UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
-    ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy),)
+    ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy hardy intrepid jaunty),)
         SITE=site-packages
         PYTHON_BINDIR:=/usr/bin
         PYTHON:=PYTHONPATH=$(BUILD_ROOT)/$(SNAP)/$(SITE) $(PYTHON_BINDIR)/python

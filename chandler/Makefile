@@ -46,7 +46,7 @@ ifeq ($(OS),Linux)
     ARCH             = $(shell uname -m)
     DISTRIB_CODENAME = $(subst DISTRIB_CODENAME=,,$(shell cat /etc/lsb-release | grep DISTRIB_CODENAME))
 
-    ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy),)
+    ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy hardy intrepid jaunty),)
         PLATFORM := $(PLATFORM)/$(DISTRIB_CODENAME)
     endif
     ifeq ($(ARCH),x86_64)
@@ -86,7 +86,7 @@ ifeq ($(OS),Linux)
         ZOPE       =
     endif
 
-    ifeq ($(PLATFORM),linux/gutsy)
+    ifneq ($(findstring $(DISTRIB_CODENAME),gutsy hardy intrepid jaunty),)
         OPENSSL    =
         PYTHON     =
         ICU        =
@@ -345,7 +345,7 @@ py-env:
 	python -c "from pkg_resources import require; require('configobj >= 4.3.2')"
 	python -c "from pkg_resources import require; require('zope.interface >= 0')"
 else
-ifeq ($(PLATFORM),linux/gutsy)
+ifneq ($(findstring $(DISTRIB_CODENAME),gutsy hardy intrepid jaunty),)
 py-env:
 	@echo Checking that you have required packages installed...
 	python -c "from pkg_resources import require; require('setuptools >= 0.6c6')"
