@@ -328,9 +328,12 @@ def buildDEB(mode, options):
     debPath   = os.path.join(options.buildDir, 'internal', 'installers', 'deb')
     debScript = os.path.join(debPath, 'makeinstaller.sh')
     version   = options.version_info['version'].replace('-', '~')
+    libicu    = 'libicu38'
 
-    cmd = [debScript, debPath, options.buildDir, options.distribName, version,
-           mode]
+    if options.platformSubID == 'gutsy':
+        libicu = 'libicu36'
+
+    cmd = [debScript, debPath, options.buildDir, options.distribName, version, mode, libicu]
 
     r = runCommand(cmd)
 

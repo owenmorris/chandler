@@ -3,7 +3,7 @@ Version: CHANDLER_VERSION
 Section: mail
 Priority: optional
 Architecture: CHANDLER_ARCH
-Depends: libsdl1.2debian (>= 1.2.9), libgtk2.0-0 (>= 2.10), libreadline5 (>= 5.2), openssl (>= 0.9.8), libicu36 (>= 3.6), bzip2 (>= 1.0.3), python (>= 2.5), python-setuptools (>= 0.6c6), python-docutils (>= 0.4), python-configobj (>= 4.3.2), python-zopeinterface (>= 3.3.1)
+Depends: libsdl1.2debian (>= 1.2.9), libgtk2.0-0 (>= 2.10), libreadline5 (>= 5.2), openssl (>= 0.9.8), LIBICU, bzip2 (>= 1.0.3), python (>= 2.5), python-setuptools (>= 0.6c6), python-docutils (>= 0.4), python-configobj (>= 4.3.2), python-zopeinterface (>= 3.3.1)
 Installed-Size: CHANDLER_SIZE
 Maintainer: OSAF buildmasters <buildmaster@osafoundation.org>
 Description: Open-source standards-based personal information manager

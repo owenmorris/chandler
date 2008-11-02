@@ -8,13 +8,14 @@ DISTRIB_PATH="$2"
 DISTRIB_FILE="$3"
 DISTRIB_VERSION="$4"
 DISTRIB_MODE="$5"
+LIBICU="$6"
 DISTRIB_RELEASE="1"
 
 if [ -z "$DISTRIB_MODE" ]; then
     echo
-    echo "usage: $0 <path to deb installer> <path to distrib directory> <distrib file root> <major.minor> <mode>"
+    echo "usage: $0 <path to deb installer> <path to distrib directory> <distrib file root> <major.minor> <mode> <libicu>"
     echo 
-    echo "example: $0 /home/builder/tinderbuild/internal/installers/deb/ /home/builder/tinderbuild/ Chandler_linux_foo 0.4 debug"
+    echo "example: $0 /home/builder/tinderbuild/internal/installers/deb/ /home/builder/tinderbuild/ Chandler_linux_foo 0.4 debug libicu38"
     echo
     exit 1
 fi
@@ -125,6 +126,7 @@ EOF
     sed -e "s/CHANDLER_VERSION/${DISTRIB_VERSION}-${DISTRIB_RELEASE}/" \
         -e "s/CHANDLER_SIZE/${CHANDLER_SIZE}/" \
         -e "s/CHANDLER_ARCH/${CHANDLER_ARCH}/" \
+	-e "s/LIBICU/${LIBICU}/" \
             < ${DEB_PATH}/control.in > ${DEB_PATH}/chandler/DEBIAN/control
     echo `pwd`
 
