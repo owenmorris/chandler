@@ -20,6 +20,15 @@ if [ -z "$DISTRIB_MODE" ]; then
     exit 1
 fi
 
+echo
+echo "$(basename $0) started with these arguments:"
+echo "DEB_PATH (1)=$DEB_PATH"
+echo "DISTRIB_PATH (2)=$DISTRIB_PATH"
+echo "DISTRIB_FILE (3)=$DISTRIB_FILE"
+echo "DISTRIB_VERSION (4)=$DISTRIB_VERSION"
+echo "DISTRIB_MODE (4)=$DISTRIB_MODE"
+echo "LIBICU (5)=$LIBICU"
+
 if [ "$DISTRIB_MODE" = "release" ]; then
   DISTRIB_MODE="_"
 else
@@ -45,7 +54,7 @@ mkdir -p "$PKG_ROOT"/usr/share/man/man1
 cat ${DISTRIB_PATH}/chandler/distrib/linux/chandler.1 | sed "s/CHANDLER_VERSION/${DISTRIB_VERSION}-${DISTRIB_RELEASE}/" > chandler/usr/share/man/man1/chandler.1
 gzip -9 chandler/usr/share/man/man1/chandler.1
 
-mkdir -p chandler/usr/lib
+mkdir -p chandler/usr/lib chandler/DEBIAN
 mkdir chandler/DEBIAN/
 cd chandler/usr/lib
 
