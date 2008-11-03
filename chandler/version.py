@@ -59,7 +59,7 @@ if _version['build']:
                     if item.strip().lower() == 'revision':
                         _version['revision'] = value[:-1].strip('">/')
 
-            # svn 1.4
+            # svn 1.5
             if _version['revision'] is None:
                 revisions = []
                 for line in file(svnfile):
@@ -67,8 +67,8 @@ if _version['build']:
                         revisions.append(long(line))
                     except ValueError:
                         pass
-                revisions.sort()
-                _version['revision'] = str(revisions[-1])
+                print revisions
+                _version['revision'] = str(revisions[2])
 
     if _version['revision'] is not None:
         _template += '-r%(revision)s'
