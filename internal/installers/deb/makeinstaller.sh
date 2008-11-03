@@ -141,8 +141,12 @@ sed -e "s/CHANDLER_VERSION/${DISTRIB_VERSION}-${DISTRIB_RELEASE}/" \
         < ${DEB_PATH}/control.in > ${DEB_PATH}/chandler/DEBIAN/control
 echo `pwd`
 
-echo "Calling fakeroot dpkg-deb -b chandler chandler_${DISTRIB_VERSION}-${DISTRIB_RELEASE}_i386.deb"
-fakeroot -- dpkg-deb -b chandler chandler_${DISTRIB_VERSION}-${DISTRIB_RELEASE}_i386.deb
-echo "Moving ${DEB_PATH}/chandler_${DISTRIB_VERSION}-${DISTRIB_RELEASE}_i386.deb to ${DISTRIB_PATH}/Chandler_linux${DISTRIB_MODE}${DISTRIB_VERSION}-${DISTRIB_RELEASE}_i386.deb"
-mv ${DEB_PATH}/chandler_${DISTRIB_VERSION}-${DISTRIB_RELEASE}_i386.deb ${DISTRIB_PATH}/Chandler_linux${DISTRIB_MODE}${DISTRIB_VERSION}-${DISTRIB_RELEASE}_i386.deb
+CMD="fakeroot -- dpkg-deb -b chandler chandler_${DISTRIB_VERSION}-${DISTRIB_RELEASE}_i386.deb"
+echo "Calling $CMD"
+$CMD
+
+CMD="${DEB_PATH}/chandler_${DISTRIB_VERSION}-${DISTRIB_RELEASE}_i386.deb to ${DISTRIB_PATH}/Chandler_linux${DISTRIB_MODE}${DISTRIB_VERSION}-${DISTRIB_RELEASE}_i386.deb"
+echo "Calling $CMD"
+$CMD
+
 echo "deb generation done"
