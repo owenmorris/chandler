@@ -59,10 +59,12 @@ cd chandler/usr/lib
 
 echo "Creating build tree from distribution files"
 if [ -f ${DISTRIB_PATH}/${DISTRIB_FILE}.tar.gz ]; then
-    tar xzf ${DISTRIB_PATH}/${DISTRIB_FILE}.tar.gz
+    CMD="tar xzf ${DISTRIB_PATH}/${DISTRIB_FILE}.tar.gz"
+    echo $CMD; $CMD
     mv ${DISTRIB_FILE} chandler
 else
-    cp -a ${DISTRIB_PATH}/${DISTRIB_FILE} chandler
+    CMD="cp -a ${DISTRIB_PATH}/${DISTRIB_FILE} chandler"
+    echo $CMD; $CMD
 fi
 
 echo "Creating copyright/license file"
