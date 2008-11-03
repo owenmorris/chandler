@@ -145,7 +145,7 @@ CMD="fakeroot -- dpkg-deb -b chandler chandler_${DISTRIB_VERSION}-${DISTRIB_RELE
 echo "Calling $CMD"
 $CMD
 
-CMD="${DEB_PATH}/chandler_${DISTRIB_VERSION}-${DISTRIB_RELEASE}_i386.deb to ${DISTRIB_PATH}/Chandler_linux${DISTRIB_MODE}${DISTRIB_VERSION}-${DISTRIB_RELEASE}_i386.deb"
+CMD="mv ${DEB_PATH}/chandler_${DISTRIB_VERSION}-${DISTRIB_RELEASE}_i386.deb ${DISTRIB_PATH}/Chandler_linux${DISTRIB_MODE}${DISTRIB_VERSION}-${DISTRIB_RELEASE}_i386.deb"
 echo "Calling $CMD"
 $CMD
 
