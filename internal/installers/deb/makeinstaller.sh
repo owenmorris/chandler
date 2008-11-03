@@ -99,6 +99,8 @@ mkdir -p "$PKG_ROOT"/usr/bin
 
 echo "Removing test code"
 find chandler -type d -name 'test*' -prune -exec rm -rf '{}' \;
+find chandler -type d -name 'DataFiles' -prune -exec rm -rf '{}' \;
+find chandler -type d -name 'recorded_scripts' -prune -exec rm -rf '{}' \;
 
 echo "Correcting permissions"
 for file in chandler/release/db/bin/*; do
@@ -130,12 +132,12 @@ echo "Making all files owner writable"
 find chandler -type f -perm 0444 -exec chmod u+w {} \;
 
 cd ${DEB_PATH}
-CHANDLER_SIZE=`du -c -b ${DEB_PATH}/chandler/usr/lib/chandler | tail -n1 | awk '{ print $1 }'`
+CHANDLER_SIZE=`du -c -k ${DEB_PATH}/chandler/usr/lib/chandler | tail -n1 | awk '{ print $1 }'`
 CHANDLER_ARCH=$(eval $(dpkg-architecture); echo $DEB_HOST_ARCH)
 sed -e "s/CHANDLER_VERSION/${DISTRIB_VERSION}-${DISTRIB_RELEASE}/" \
     -e "s/CHANDLER_SIZE/${CHANDLER_SIZE}/" \
     -e "s/CHANDLER_ARCH/${CHANDLER_ARCH}/" \
-	-e "s/LIBICU/${LIBICU}/" \
+    -e "s/LIBICU/${LIBICU}/" \
         < ${DEB_PATH}/control.in > ${DEB_PATH}/chandler/DEBIAN/control
 echo `pwd`
 
