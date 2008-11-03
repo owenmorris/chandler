@@ -67,7 +67,6 @@ if _version['build']:
                         revisions.append(long(line))
                     except ValueError:
                         pass
-                print revisions
                 _version['revision'] = str(revisions[2])
 
     if _version['revision'] is not None:
