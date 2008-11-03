@@ -32,16 +32,11 @@ if [ ! -d "$DEB_PATH" ]; then
 fi
 
 echo "Clearing debian chandler working image"
-if [ -d "{$DEB_PATH}/chandler" ]; then
-    rm -rf ${DEB_PATH}/chandler
-fi
+rm -rf ${DEB_PATH}/chandler
 rm -f ${DEB_PATH}/chandler_*.deb
+
 echo "Preparing build tree"
 cd ${DEB_PATH}
-if [ -d chandler ]; then
-    rm -rf chandler
-fi
-
 mkdir -p chandler
 PKG_ROOT=$(cd chandler && pwd)
 
