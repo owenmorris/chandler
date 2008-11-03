@@ -160,7 +160,7 @@ def buildDistributionList(options):
     else:
         if options.platformID == 'linux':
             if options.platformSubID in ['gutsy', 'hardy', 'intrepid', 'jaunty']:
-                options.distribs = [ 'deb' ]
+                options.distribs = [ 'tarball', 'deb' ]
             else:
                 options.distribs = [ 'tarball' ]
         elif options.platformID == 'win':
