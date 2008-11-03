@@ -16,29 +16,29 @@ Description: Manage and share events, calendars, and notes in a clean desktop ap
  conflict detection.  Both calendar and dashboard (list) views are
  available for collections, and multiple collections can be overlayed
  in the calendar view.
-
+ 
  Chandler supports a variety of protocols, including IMAP/SMTP,
  CalDAV, iCalendar/ics over HTTP and HTTPS.  You can point Chandler at
  your IMAP account and drag items into Chandler using your existing
  IMAP client.  Using SMTP, Chandler can send event invitations and
  updates via outbound email.
-
+ 
  Using either CalDAV (for full 2-way synchronization) or ICS (1-way
  subscribe or publish), you can overlay multiple calendars from almost
  Internet-bases calendar source.
-
+ 
  Chandler is a large application, integrated with many open source
  frameworks including Python, Twisted, wxPython, Lucene, Java, ICU,
  BDB and many more.  Some upstream packages have been patched and are
  redistributed with Chandler, resulting in a large package overall.
  This package does not adhere to Debian Policy, Ubuntu Policy, or the
  FHS (most everything is in /usr/lib/chandler).
-
+ 
  Chandler will manage per-user profile and database files in
  $HOME/.chandler.  Up to 150MB can be allocated in the profile
  directory immediately upon start and can also grow quite large with
  larger Chandler installations.  NFS mounts for home directories is
  not supported.
-
+ 
  See http://chandlerproject.org for more information on features,
  FAQs, and documentation.
