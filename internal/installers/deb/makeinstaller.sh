@@ -89,6 +89,15 @@ EOF
 cat chandler/LICENSE.txt chandler/NOTICE.txt >> "$COPYRIGHT_PATH"
 rm chandler/LICENSE.txt chandler/NOTICE.txt
 
+echo "Writing menu"
+mkdir -p "$PKG_ROOT"/usr/share/menu
+MENU_PATH="$PKG_ROOT"/usr/share/menu/chandler
+echo '?package(chandler): needs="X11" section="Applications/Project Management" title="Chandler" longtitle="Chandler - Note-to-Self organizer" command="/usr/bin/chandler" icon="/usr/share/icons/hicolor/scalable/apps/chandler.svg"' > $MENU_PATH
+
+echo "Writing desktop file"
+mkdir -p "$PKG_ROOT"/usr/share/applications
+cp $DEB_PATH/chandler.desktop "$PKG_ROOT"/usr/share/applications/chandler.desktop
+
 echo "Writing changelog"
 cat ${DISTRIB_PATH}/chandler/distrib/linux/changelog | 
    gzip -c -9 > "$PKG_ROOT"/usr/share/doc/chandler/changelog.Debian.gz
@@ -123,6 +132,9 @@ mv -v chandler/Chandler.egg-info/resources/images/Logos/Superdoge.svg \
 mkdir -p "$PKG_ROOT"/usr/share/icons/hicolor/64x64/apps
 mv -v chandler/Chandler.egg-info/resources/images/Logos/Chandler_64.png \
       "$PKG_ROOT"/usr/share/icons/hicolor/64x64/apps/chandler.png
+mkdir -p "$PKG_ROOT"/usr/share/pixmaps
+cp "$PKG_ROOT"/usr/share/icons/hicolor/64x64/apps/chandler.png "$PKG_ROOT"/usr/share/pixmaps/chandler.png
+
 rm -rf chandler/Chandler.egg-info/resources/images/Logos
 
 echo "Ensuring all files have a+r set"
