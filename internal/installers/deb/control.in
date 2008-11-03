@@ -6,7 +6,39 @@ Architecture: CHANDLER_ARCH
 Depends: libsdl1.2debian (>= 1.2.9), libgtk2.0-0 (>= 2.10), libreadline5 (>= 5.2), openssl (>= 0.9.8), LIBICU, bzip2 (>= 1.0.3), python (>= 2.5), python-setuptools (>= 0.6c6), python-docutils (>= 0.4), python-configobj (>= 4.3.2), python-zopeinterface (>= 3.3.1)
 Installed-Size: CHANDLER_SIZE
 Maintainer: OSAF buildmasters <buildmaster@osafoundation.org>
-Description: Open-source standards-based personal information manager
- Chandler uses small group collaboration and a core set of information
- management workflows modeled on Inbox usage patterns and David Allen's GTD
- methodology.
+Homepage: http://chandlerproject.org/
+Description: Manage and share events, calendars, and notes in a clean desktop application
+ Described as a "Note-to-Self Organizer", Chandler Desktop provides a
+ unique way to track calendars, tasks, and notes, each placed into one
+ or more collections and managed through a now/later/done triage
+ process.  Collections can be shared either read-only or with
+ read-write access to multiple other people with 2-way sync and
+ conflict detection.  Both calendar and dashboard (list) views are
+ available for collections, and multiple collections can be overlayed
+ in the calendar view.
+
+ Chandler supports a variety of protocols, including IMAP/SMTP,
+ CalDAV, iCalendar/ics over HTTP and HTTPS.  You can point Chandler at
+ your IMAP account and drag items into Chandler using your existing
+ IMAP client.  Using SMTP, Chandler can send event invitations and
+ updates via outbound email.
+
+ Using either CalDAV (for full 2-way synchronization) or ICS (1-way
+ subscribe or publish), you can overlay multiple calendars from almost
+ Internet-bases calendar source.
+
+ Chandler is a large application, integrated with many open source
+ frameworks including Python, Twisted, wxPython, Lucene, Java, ICU,
+ BDB and many more.  Some upstream packages have been patched and are
+ redistributed with Chandler, resulting in a large package overall.
+ This package does not adhere to Debian Policy, Ubuntu Policy, or the
+ FHS (most everything is in /usr/lib/chandler).
+
+ Chandler will manage per-user profile and database files in
+ $HOME/.chandler.  Up to 150MB can be allocated in the profile
+ directory immediately upon start and can also grow quite large with
+ larger Chandler installations.  NFS mounts for home directories is
+ not supported.
+
+ See http://chandlerproject.org for more information on features,
+ FAQs, and documentation.
