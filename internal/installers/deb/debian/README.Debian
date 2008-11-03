@@ -1,0 +1,8 @@
+1.1.dev for Debian
+------------------
+
+This package does not adhere to Debian Policy, the FHS (most
+everything is in /usr/lib/chandler), or the Debian Python Policy.  It
+is a work in progress.
+
+ -- Jared Rhine <jared@wordzoo.com>, Mon,  3 Nov 2008 15:17:13 -0800

@@ -1,0 +1,1 @@
+?package(chandler): needs="X11" section="Applications/Project Management" title="Chandler" longtitle="Chandler - Note-to-Self organizer" command="/usr/bin/chandler" icon="/usr/share/icons/hicolor/scalable/apps/chandler.svg"
