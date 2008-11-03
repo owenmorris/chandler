@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Encoding=UTF-8
+Name=Chandler
+Type=Application
+GenericName=PIM
+Comment=Calendars, events, and notes.
+Icon=chandler.svg
+FilePattern=chandler;
+Exec=chandler
+Terminal=false
+StartupNotify=false
+Categories=Application;Office
+GenericName[en_GB]=PIM
