@@ -55,7 +55,6 @@ cat ${DISTRIB_PATH}/chandler/distrib/linux/chandler.1 | sed "s/CHANDLER_VERSION/
 gzip -9 chandler/usr/share/man/man1/chandler.1
 
 mkdir -p chandler/usr/lib chandler/DEBIAN
-mkdir chandler/DEBIAN/
 cd chandler/usr/lib
 
 echo "Creating build tree from distribution files"
