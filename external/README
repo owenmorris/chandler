@@ -3,7 +3,7 @@ Documentation
 
 The latest, up to date documentation on how to build Chandler:
 
-  http://wiki.osafoundation.org/bin/view/Chandler/BuildingChandler
+  http://chandlerproject.org/Developers/ChandlerDesktopSource
 
 Environments
 ------------
@@ -17,23 +17,15 @@ Environments
 
 Be ready to provide lots of disk space, especially on Windows (~ 1 gb).
 
-Getting build sources with CVS
+Getting build sources with SVN
 ------------------------------
 
-   - cvs -d :pserver:<cvslogin>@cvs.osafoundation.org:/usr/local/cvsrep co external
-
-Username anonymous, login anonymous works.
+   - svn co http://svn.osafoundation.org/chandler/trunk/external
 
 Setting vital environment variables:
 ------------------------------------
   - cd external
   - export BUILD_ROOT=`pwd`
-
-On Linux also:
-  - export GCJ_HOME='path to gcj installation'
-
-For example, if the path to gcj is /usr/local/gcc-3.3.2/bin/gcj, the
-GCJ_HOME variable should be set to /usr/local/gcc-3.3.2
 
 On Windows, the usual MSVC environment variables need to be set. See VC's
 vsvars32.bat file for more information.
