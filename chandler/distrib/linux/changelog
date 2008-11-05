@@ -12,12 +12,12 @@ Chandler (1.0.1) gutsy; urgency=low
      - Bug#12338 Adding notes and messages from the calendar from context menu in calendar view displays error in (K)Ubuntu Hardy
      - Bug#12342 Make Error icon in list view pop more
 
--- Grant Baillie <grant@osafoundation.org>  Wed, 03 Sep 2008 18:37:44 -0700
+ -- Grant Baillie <grant@osafoundation.org>  Wed, 03 Sep 2008 18:37:44 -0700
 
 Chandler (1.0-rc3) gutsy; urgency=low
      - Bug#12290 1.0-RC2: IndexError traceback from clicking on/typing in notes field
 
--- Grant Baillie <grant@osafoundation.org>  Thu, 07 Aug 2008 14:54:35 -0700
+ -- Grant Baillie <grant@osafoundation.org>  Thu, 07 Aug 2008 14:54:35 -0700
 
 Chandler (1.0-rc2) gutsy; urgency=low
 
@@ -27,7 +27,7 @@ Chandler (1.0-rc2) gutsy; urgency=low
      - Bug#12262 Outlook doesn't like empty body for multipart/alternative
      - Bug#12276 Changing date and day of custom weekly event results in item's disappearance
 
--- Grant Baillie <grant@osafoundation.org>  Tue, 22 Jul 2008 08:03:15 -0700
+ -- Grant Baillie <grant@osafoundation.org>  Tue, 22 Jul 2008 08:03:15 -0700
 
 Chandler (1.0-rc1) gutsy; urgency=low
 
@@ -55,7 +55,7 @@ Chandler (1.0-rc1) gutsy; urgency=low
      - Bug#12239 Drag-and-drop to minicalendar doesn't work on Linux
      - Bug#12246 Event-date dependent alarms are showing up in Triage List date column
 
--- Grant Baillie <grant@osafoundation.org>  Tue, 22 Jul 2008 08:03:15 -0700
+ -- Grant Baillie <grant@osafoundation.org>  Tue, 22 Jul 2008 08:03:15 -0700
 
 Chandler (0.7.7.dev) gutsy; urgency=low
 
@@ -80,7 +80,7 @@ Chandler (0.7.7.dev) gutsy; urgency=low
      - Bug#12148 Error sending email of recurring event that has a lot of edits
      - Bug#12157 InstallPlugin not installed
 
--- Grant Baillie <grant@osafoundation.org>  Fri, 13 Jun 2008 10:45:49 -0700
+ -- Grant Baillie <grant@osafoundation.org>  Fri, 13 Jun 2008 10:45:49 -0700
 
 Chandler (0.7.6) gutsy; urgency=low
 
@@ -119,7 +119,7 @@ Chandler (0.7.6) gutsy; urgency=low
     - Bug#12048 By default, share Alarms when publishing/subscribing to Collections
     - Bug#12062 Weekdays should appear before Weekly
 
--- Grant Baillie <grant@osafoundation.org>  Thu, 15 May 2008 14:45:53 -0700
+ -- Grant Baillie <grant@osafoundation.org>  Thu, 15 May 2008 14:45:53 -0700
 
 Chandler (0.7.5.1) gutsy; urgency=low
 
@@ -127,7 +127,7 @@ Chandler (0.7.5.1) gutsy; urgency=low
     - Bug#11718 Auto Reload fails...thinks repository is already in use
     - Bug#11916 Exception subscribing to Google Calendar
 
--- Grant Baillie <grant@osafoundation.org>  Wed, 26 Mar 2008 13:50:29 -0700
+ -- Grant Baillie <grant@osafoundation.org>  Wed, 26 Mar 2008 13:50:29 -0700
 
 Chandler (0.7.5) gutsy; urgency=low
 
@@ -168,4 +168,4 @@ Chandler (0.7.5) gutsy; urgency=low
     - Bug#11919 Can't cancel publishing a collection
     - Bug#11954 Re-order collection doesn't work: application Internal Program Error
 
--- Grant Baillie <grant@osafoundation.org>  Thu, 15 May 2008 14:45:53 -0700
+ -- Grant Baillie <grant@osafoundation.org>  Thu, 15 May 2008 14:45:53 -0700
