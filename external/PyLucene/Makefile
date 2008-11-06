@@ -42,9 +42,15 @@ arch=i386
 vm=client
 endif
 
+ifeq ($(findstring $(DISTRIB_CODENAME), hardy intrepid jaunty),)
 JDK=$(BUILD_ROOT)/openjdk/j2sdk-image
 JRE=$(BUILD_ROOT)/openjdk/j2re-image
 ANT="$(BUILD_ROOT)/openjdk/apache-ant-1.7.0/bin/ant"
+else
+JDK=/usr/lib/jvm/java-6-openjdk
+JRE=/usr/lib/jvm/java-6-openjdk/jre
+ANT=/usr/bin/ant
+endif
 JCC_ENV=\
   JCC_INCLUDES="$(JDK)/include:$(JDK)/include/linux" \
   JCC_LFLAGS="-L$(JDK)/jre/lib/$(arch):-ljava"
@@ -94,7 +100,7 @@ build: expand
 	rm -rf $(SRC)/jcc/build
 	rm -rf $(SRC)/build
 	cd $(SRC)/jcc; $(ENV) $(JCC_ENV) \
-                       $(PYTHON) setup.py build $(DEBUG_OPT) install
+                       $(PYTHON) setup.py build $(DEBUG_OPT) install --prefix $(BUILD_ROOT)/$(SNAP)
 	$(ENV) $(MAKE) -C $(SRC) \
             PYTHON="$(PYTHON)" \
             ANT=$(ANT) \

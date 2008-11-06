@@ -34,7 +34,13 @@ else
     vm=client
 fi
 
-export LD_LIBRARY_PATH="$CHANDLERBIN"/debug/lib:"$CHANDLERBIN"/debug/db/lib:"$CHANDLERBIN"/debug/j2re-image/lib/$arch:"$CHANDLERBIN"/debug/j2re-image/lib/$arch/$vm
+if [ -d "$CHANDLERBIN"/debug/j2re-image ] ; then
+    JRE="$CHANDLERBIN"/debug/j2re-image
+else
+    JRE=/usr/lib/jvm/java-6-openjdk/jre
+fi
+ 
+export LD_LIBRARY_PATH="$CHANDLERBIN"/debug/lib:"$CHANDLERBIN"/debug/db/lib:"$JRE"/lib/$arch:"$JRE"/lib/$arch/$vm
 
 if [ -d "$CHANDLERBIN/debug/icu" ]; then
     export LD_LIBRARY_PATH="$CHANDLERBIN"/debug/icu/lib:$LD_LIBRARY_PATH

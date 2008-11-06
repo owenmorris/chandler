@@ -24,7 +24,7 @@ SYSTEMS=db \
         $(READLINE_BUILD) \
         $(PYTHON_BUILD) \
         $(SETUPTOOLS_BUILD) \
-        epydoc \
+        $(EPYDOC_BUILD) \
         PyLucene \
         PyICU \
         $(ZOPE_BUILD) \

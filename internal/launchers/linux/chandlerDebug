@@ -24,7 +24,21 @@ else
     export PYTHONBIN="$CHANDLERBIN"/debug/bin/python_d
 fi
 
-export LD_LIBRARY_PATH="$CHANDLERBIN"/debug/lib:"$CHANDLERBIN"/debug/db/lib:"$CHANDLERBIN"/debug/j2re-image/lib/i386:"$CHANDLERBIN"/debug/j2re-image/lib/i386/client
+if [ "`uname -m`" = "x86_64" ]; then
+    arch=amd64
+    vm=server
+else
+    arch=i386
+    vm=client
+fi
+
+if [ -d "$CHANDLERBIN"/debug/j2re-image ] ; then
+    JRE="$CHANDLERBIN"/debug/j2re-image
+else
+    JRE=/usr/lib/jvm/java-6-openjdk/jre
+fi
+ 
+export LD_LIBRARY_PATH="$CHANDLERBIN"/debug/lib:"$CHANDLERBIN"/debug/db/lib:"$JRE"/lib/$arch:"$JRE"/lib/$arch/$vm
 
 if [ -d "$CHANDLERBIN/debug/icu" ]; then
     export LD_LIBRARY_PATH="$CHANDLERBIN"/debug/icu/lib:"$LD_LIBRARY_PATH"

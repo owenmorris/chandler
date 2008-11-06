@@ -92,6 +92,7 @@ ifeq ($(OS),Linux)
         ICU        =
         CONFIGOBJ  =
         DOCUTILS   =
+        OPENJDK    =
         SETUPTOOLS =
         ZOPE       =
     endif

@@ -8,7 +8,7 @@ Homepage: http://chandlerproject.org/
 
 Package: chandler
 Architecture: i386
-Depends: libsdl1.2debian (>= 1.2.9), libgtk2.0-0 (>= 2.10), libreadline5 (>= 5.2), openssl (>= 0.9.8), libicu38, bzip2 (>= 1.0.3), python (>= 2.5), python-setuptools (>= 0.6c6), python-docutils (>= 0.4), python-configobj (>= 4.3.2), python-zopeinterface (>= 3.3.1)
+Depends: libsdl1.2debian (>= 1.2.9), libgtk2.0-0 (>= 2.10), libreadline5 (>= 5.2), openssl (>= 0.9.8), libicu38, bzip2 (>= 1.0.3), python (>= 2.5), python-setuptools (>= 0.6c6), python-docutils (>= 0.4), python-configobj (>= 4.3.2), python-zopeinterface (>= 3.3.1), openjdk-6-jre-headless (>=0.6b11)
 Description: Manage and share events, calendars, and notes in a clean desktop application
  Described as a "Note-to-Self Organizer", Chandler Desktop provides a
  unique way to track calendars, tasks, and notes, each placed into one

@@ -57,6 +57,8 @@ endif
 
 PYTHON_VER=2.5
 
+EPYDOC_BUILD=epydoc
+
 ifeq ($(OS),Cygwin)
     PYTHON_BINDIR:=bin
     PYTHON:=$(PREFIX)/$(PYTHON_BINDIR)/$(PYTHON).exe
@@ -128,6 +130,7 @@ ifeq ($(OS),Linux)
     DISTRIB_CODENAME=$(subst DISTRIB_CODENAME=,,$(shell cat /etc/lsb-release | grep DISTRIB_CODENAME))
     SWIG=$(PREFIX)/bin/swig
     UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
+    OPENJDK_BUILD=openjdk
     ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy hardy intrepid jaunty),)
         SITE=site-packages
         PYTHON_BINDIR:=/usr/bin
@@ -139,6 +142,7 @@ ifeq ($(OS),Linux)
         else
             OPENSSL_BUILD=
             SETUPTOOLS_BUILD=
+            OPENJDK_BUILD=
         endif
         PYTHON_BUILD=
         ICU_BUILD=
@@ -158,7 +162,6 @@ ifeq ($(OS),Linux)
         ZOPE_BUILD=zope
     endif
     READLINE_BUILD=
-    OPENJDK_BUILD=openjdk
     ifeq ($(ARCH),x86_64)
         UPLOAD:=$(UPLOAD)/$(ARCH)
     endif
