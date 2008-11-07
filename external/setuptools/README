@@ -3,4 +3,4 @@ To get the latest dev setuptools, using any other setuptools do:
   - easy_install -eb. setuptools==dev06
   - cd setuptools
   - ../../release/bin/python setup.py sdist
-  - scp dist/setuptools-0.6c6dev-r54072.tar.gz builds.osafoundation.org:/www/docs/external/
+  - scp dist/setuptools-0.6c6dev-r54072.tar.gz builder@builds.osafoundation.org:/www/builds.osafoundation.org/external/
