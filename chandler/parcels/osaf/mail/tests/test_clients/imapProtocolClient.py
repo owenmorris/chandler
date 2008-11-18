@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/python
 #   Copyright (c) 2003-2008 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
