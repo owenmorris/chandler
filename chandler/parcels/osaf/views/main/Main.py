@@ -1731,6 +1731,24 @@ class MainView(View):
                  (calendarPrefs.hourHeightMode == "visibleHours" and
                   calendarPrefs.visibleHours == event.visibleHours)
 
+    def onWeekStartEventUpdateUI(self, event):
+        from osaf.framework.blocks.calendar.CalendarUtility import GregorianCalendarInstance
+        event.arguments['Check'] = (GregorianCalendarInstance.getFirstDayOfWeek() == event.icuDay)
+
+
+    def onWeekStartEvent(self, event):
+        from osaf.framework.blocks.calendar.CalendarUtility import GregorianCalendarInstance
+
+        GregorianCalendarInstance.setFirstDayOfWeek(event.icuDay)
+        prefs = Utility.loadPrefs(Globals.options)
+        if 'options' not in prefs:
+            prefs['options'] = {}
+        prefs['options']['weekstart'] = ('', 'SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA')[event.icuDay]
+        prefs.write()
+
+        # Trigger a notification!
+        self.postEventByName('WeekStartChanged', {})
+
     def onNewBlockWindowEvent(self, event):
         rootBlock = event.treeOfBlocks
         for window in wx.GetTopLevelWindows():

@@ -49,6 +49,8 @@ chandler \- personal information manager
 .B [\-\-reset\-index]
 .B [\-\-tz
 .IB " tz"]
+.B [\-\-weekstart
+.IB " weekday"]
 .B [\-\-undo
 .IB " undo"]
 .B [\-N, \-\-nosplash]
@@ -126,6 +128,10 @@ re\-create full\-text index database and reset indexer to reindex from earliest 
 .TP
 .BI "\-\-tz" " tz"
 timezone to initialize repository with if creating a new repository
+.TP
+.BI "\-\-weekstart" " weekday"
+Set the first day of the week in the calendar. For <weekday>, specify one of
+SU,MO,TU,WE,TH,FR,SA.
 .TP
 .BI "\-\-undo" " undo"
 undo \-<n> versions or until version <n> or until <check> or <repair> pass or until <start> succeeds

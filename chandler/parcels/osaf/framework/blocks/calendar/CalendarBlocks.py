@@ -504,6 +504,9 @@ class MiniCalendar(CalendarRangeBlock):
         self.widget.SetDate(event.arguments['start'].date())
         self.widget.Refresh()
 
+    def onWeekStartChangedEvent(self, event):
+        self.widget.Refresh()
+
     def onDayModeEvent(self, event):
         self.dayMode = event.arguments['dayMode']
         if self.widget.setWeeklyOrDaily():

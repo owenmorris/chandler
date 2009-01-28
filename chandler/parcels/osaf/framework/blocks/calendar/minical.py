@@ -14,8 +14,8 @@
 
 import wx
 from i18n import ChandlerMessageFactory as _
-from PyICU import DateFormatSymbols, GregorianCalendar
-from CalendarUtility import getCalendarRange
+from PyICU import DateFormatSymbols
+from CalendarUtility import GregorianCalendarInstance, getCalendarRange
 from datetime import date, timedelta
 from calendar import monthrange
 
@@ -139,7 +139,6 @@ class PyMiniCalendar(wx.PyControl):
         self.weekdays = [unicode(d) for d in
                          dateFormatSymbols.getWeekdays(DateFormatSymbols.STANDALONE,
                                                        DateFormatSymbols.NARROW)]
-        self.firstDayOfWeek = GregorianCalendar().getFirstDayOfWeek()
         
         self.busyPercent = {}
                 
@@ -159,7 +158,11 @@ class PyMiniCalendar(wx.PyControl):
             self.Bind(wx.EVT_SIZE, self.OnMiniCalSize)
         self.Bind(wx.EVT_LEFT_DOWN, self.OnClick)
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnDClick)
-        
+
+    @property
+    def firstDayOfWeek(self):
+        return GregorianCalendarInstance.getFirstDayOfWeek()
+
     def Create(self, parent, id=-1, pos=wx.DefaultPosition,
                size=wx.DefaultSize, style=0, name="PyMiniCalendar", targetDate=None):
         # needed to get the arrow keys normally used for the dialog navigation

@@ -296,6 +296,9 @@ def makeMainEvents(parcel):
     
     BlockEvent.template('DayMode',
                         dispatchEnum = 'BroadcastEverywhere').install(parcel)
+
+    BlockEvent.template('WeekStartChanged',
+                        dispatchEnum = 'BroadcastEverywhere').install(parcel)
         
     CalendarViewEvent.template('ViewAsDayCalendar',
                                viewTemplatePath = 'osaf.views.main.CalendarSummaryViewTemplate',

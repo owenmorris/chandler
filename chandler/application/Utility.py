@@ -288,6 +288,7 @@ COMMAND_LINE_OPTIONS = {
     'wing':       ('-w', '--wing',       'b', False, None, ''),
     'komodo':     ('-k', '--komodo',     'b', False, None, ''),
     'locale':     ('-l', '--locale',     's', None,  None, 'Set the default locale'),
+    'weekstart':  ('', '--weekstart', 's', None, None, 'Set the first day of the week [SU,MO,TU,WE,TH,FR,SA]'),
     'expand':      ('',   '--expand',      's', '0', None, 'Expands the length of localized strings by the percentage specified between 0 and 100'),
     'encrypt':    ('-S', '--encrypt',    'b', False, None, 'Request prompt for password for repository encryption'),
     'logging':    ('-L', '--logging',    's', 'logging.conf',  'CHANDLERLOGCONFIG', 'The logging config file'),

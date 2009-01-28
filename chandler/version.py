@@ -24,7 +24,7 @@ _version = { 'release': '1.1',
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-app_version = "500" # jeffrey: Prune menus
+app_version = "501" # grant: Week start menu
 
 
 

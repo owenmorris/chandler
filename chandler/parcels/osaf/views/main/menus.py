@@ -58,7 +58,7 @@ def makeColorMenuItems (parcel, theClass, hues, prefix=""):
 def makeMainMenus(parcel):
 
     from osaf.framework.blocks import Menu, MenuItem, IntervalEvent
-    from osaf.framework.blocks.calendar import VisibleHoursEvent
+    from osaf.framework.blocks.calendar import VisibleHoursEvent, WeekStartEvent
     from i18n import ChandlerMessageFactory as _
     from osaf import messages
     from osaf import usercollections
@@ -147,7 +147,21 @@ def makeMainMenus(parcel):
                 menuItems.append(menuItem)
 
         return menuItems
-                                         
+
+    def iterWeekStartItems(parcel):
+        import PyICU
+
+        for dayNum, dayName in enumerate(
+                                PyICU.DateFormatSymbols().getWeekdays()):
+            if dayName:
+                event = WeekStartEvent.update(
+                            parcel,
+                            u"WeekStartEvent_%d" % (dayNum,),
+                            methodName="onWeekStartEvent",
+                            icuDay=dayNum)
+                yield MenuItem.template(u"WeekStartItem_%d" % (dayNum,),
+                                        title=dayName, menuItemKind="Check",
+                                        event=event)
 
     repositoryView = parcel.itsView
     main = schema.ns("osaf.views.main", repositoryView)
@@ -416,7 +430,7 @@ def makeMainMenus(parcel):
         fileChildren.insert(2, updateMenu)
     else:
         helpChildren.insert(1, updateMenu)
-                    
+
     menubar = Menu.template('MenuBar',
         setAsMenuBarOnFrame = True,
         childBlocks = [
@@ -563,6 +577,9 @@ def makeMainMenus(parcel):
                                   title = _(u'&Visible Hours'),
                                   childBlocks = \
                                   makeVisibleHourMenuItems(parcel)),
+                    Menu.template('WeekStartMenu',
+                                  title=_(u'&Start of Week'),
+                                  childBlocks=list(iterWeekStartItems(parcel))),
                     ]), # Menu ViewMenu
             Menu.template('ItemMenu',
                 title = _(u'&Item'),

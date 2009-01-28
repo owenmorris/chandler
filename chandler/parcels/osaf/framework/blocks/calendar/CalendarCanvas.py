@@ -1267,6 +1267,11 @@ class CalendarRangeBlock(CollectionCanvas.CollectionBlock):
 
         self.EnsureIndexes()
 
+    def onWeekStartChangedEvent(self, event):
+        self.setRange(self.selectedDate)
+        self.synchronizeWidget()
+        self.widget.Refresh()
+
     # Get items from the collection
 
     def eventIsInRange(self, event, start, end):
@@ -2409,6 +2414,9 @@ class CalendarControl(CalendarRangeBlock):
         calendar = GregorianCalendar()
         calendar.setTimeZone(view.tzinfo.default.timezone)
         calendar.setTime(date)
+        firstDay = GregorianCalendarInstance.getFirstDayOfWeek()
+        calendar.setFirstDayOfWeek(firstDay)
+
         weekstartDayShift = (calendar.get(calendar.DAY_OF_WEEK) -
                              calendar.getFirstDayOfWeek()) % 7
         delta = timedelta(weekstartDayShift)
@@ -2913,6 +2921,13 @@ class VisibleHoursEvent(BlockEvent):
     global CalendarPreferences object as described there.
     """
     visibleHours = schema.One(schema.Integer)
+
+class WeekStartEvent(BlockEvent):
+    """
+    The type of event that gets fired to change the first day of the
+    week in the calendar.
+    """
+    icuDay = schema.One(schema.Integer)
 
 
 class CalendarViewEvent(ViewEvent):

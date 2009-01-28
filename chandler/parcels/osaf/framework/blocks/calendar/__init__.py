@@ -19,6 +19,7 @@ from CalendarCanvas import (
     CalendarControl, 
     CanvasSplitterWindow,
     VisibleHoursEvent,
+    WeekStartEvent,
     CalendarViewEvent
 )
 

@@ -177,6 +177,7 @@ def makeMainView(parcel):
             main.SendMail,
             main.SelectedDateChanged,
             main.DayMode,
+            main.WeekStartChanged,
             main.ApplicationBarEvent,
             main.ApplicationBarTask,
             main.ApplicationBarAll,

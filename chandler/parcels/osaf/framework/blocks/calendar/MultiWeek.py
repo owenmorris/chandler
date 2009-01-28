@@ -82,6 +82,11 @@ class MultiWeekCanvas(TimedEventsCanvas):
         CalendarCanvasBlock.instantiateWidget(self)
         return wxMultiWeekCanvas(self.parentBlock.widget)
 
+    def onWeekStartChangedEvent(self, event):
+        self.setRange(self.selectedDate)
+        self.synchronizeWidget()
+        self.widget.Refresh()
+
 
 class MultiWeekControl(CalendarControl):
     def getWidget(self):

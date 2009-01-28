@@ -18,6 +18,20 @@ from PyICU import GregorianCalendar
 GregorianCalendarInstance = GregorianCalendar()
 ONE_WEEK = timedelta(7)
 
+def _setupCalendar(cal):
+    from application.Globals import options
+    
+    try:
+        index = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'].index(options.weekstart)
+    except ValueError:
+        pass
+    else:
+        icuValue = 1 + (index % 7)
+        cal.setFirstDayOfWeek(icuValue)
+
+_setupCalendar(GregorianCalendarInstance)
+del _setupCalendar
+
 def getCalendarRange(targetDate, rangeType='week', firstDayOfWeek=None):
     """
     For week or month ranges, find the first preceding day whose weekday matches
