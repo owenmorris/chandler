@@ -1361,7 +1361,16 @@ class ResourceRecordSetConduit(RecordSetConduit):
                 i += 1
                 activity.update(msg="Getting %d of %d" % (i, fetchCount),
                     work=1)
-            text, etag = self.getResource(path)
+            try:
+                text, etag = self.getResource(path)
+            except errors.NotFound:
+                # Google doesn't reliably provide accurate URLs, sometimes
+                # they contain extra slashes (so the resource isn't really
+                # a DEPTH:1 child), and sometimes even using the URL gives a 404
+                inbound[alias] = None
+                doLog("404 from server for [%s], deleting", path)
+                continue
+
             doLog("Received from server [%s]", text)
             records, extra = self.serializer.deserialize(self.itsView, text)
             for alias, rs in records.iteritems():
