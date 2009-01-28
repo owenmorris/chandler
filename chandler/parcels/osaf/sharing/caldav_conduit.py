@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 class CalDAVRecordSetConduit(webdav_conduit.WebDAVRecordSetConduit):
 
+    incrementSequence = True
     pathMatchesUUID   = True
 
     def _createCollectionResource(self, handle, resource, childName):

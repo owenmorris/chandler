@@ -70,6 +70,7 @@ class RecordSetConduit(conduits.BaseConduit):
     lastVersion = schema.One(schema.Long, initialValue=0)
 
     _allTickets = ()
+    incrementSequence = False
     pathMatchesUUID = False
 
     def sync(self, modeOverride=None, activity=None, forceUpdate=None,
@@ -1009,7 +1010,8 @@ class RecordSetConduit(conduits.BaseConduit):
 
             extra = { 'rootName' : 'collection',
                       'uuid' : share.contents.itsUUID.str16(),
-                      'name' : share.displayName
+                      'name' : share.displayName,
+                      'incrementSequence' : 'increment' if self.incrementSequence else ''
                     }
 
             aliases = toSend.keys()

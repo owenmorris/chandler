@@ -421,6 +421,26 @@ def hasNoteOrEvent(recordSet):
             break
     return note, event
 
+def setHigherSequence(vevents):
+    """
+    Google's CalDAV implementation insists that SEQUENCE be
+    incremented when it receives a change to an item (in some
+    circumstances, at least).  Any new modifications need to have a
+    high SEQUENCE, too.
+
+    """
+    highestSequence = 0
+    # find the highest sequence number
+    for vevent in vevents:
+        sequence = getattr(vevent, 'sequence', None)
+        if sequence:
+            highestSequence = max(int(sequence.value), highestSequence)
+        else:
+            vevent.add('sequence')
+
+    for vevent in vevents:
+        vevent.sequence.value = str(highestSequence + 1)
+
 
 class ICSSerializer(object):
 
@@ -464,6 +484,10 @@ class ICSSerializer(object):
                                    injectTopLevel)
                 # only include unrecognized content lines once per cluster
                 injectTopLevel = False
+
+        # Tweak SEQUENCE for Google
+        if extra.get('incrementSequence', False):
+            setHigherSequence(vobj_mapping.values())
 
         cal.vevent_list = [obj for obj in vobj_mapping.values()
                            if obj.name.lower() == 'vevent']
