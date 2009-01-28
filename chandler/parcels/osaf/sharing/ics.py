@@ -321,14 +321,15 @@ def extractUnrecognized(parent_component, child):
     
     return out.newComponent
 
-def injectUnrecognized(icalendarExtra, calendar, vevent):
+def injectUnrecognized(icalendarExtra, calendar, vevent, includeTopLevel=True):
     """Add unrecognized data from item.icalendarExtra to calendar and vevent."""
     if not icalendarExtra:
         # nothing to do
         return
     newCal = vobject.readOne(icalendarExtra, transform=False)
-    for line in newCal.lines():
-        calendar.contents.setdefault(line.name, []).append(line)
+    if includeTopLevel:
+        for line in newCal.lines():
+            calendar.contents.setdefault(line.name, []).append(line)
     for component in newCal.components():
         if component.name.lower() != 'vevent':
             calendar.contents.setdefault(component.name, []).append(component)
@@ -447,7 +448,8 @@ class ICSSerializer(object):
                     masterRecordSets.append( (uuid, recordSet) )
                 else:
                     nonMasterRecordSets.append( (uuid, recordSet) )
-        
+
+        injectTopLevel = True
         for uuid, recordSet in chain(masterRecordSets, nonMasterRecordSets):
             prepareVobj(view, uuid, recordSet, vobj_mapping)
             icalExtra = None
@@ -458,8 +460,11 @@ class ICSSerializer(object):
                     icalExtra = record.icalExtra
             
             if icalExtra not in translator.emptyValues:
-                injectUnrecognized(icalExtra, cal, vobj_mapping.get(uuid))
-            
+                injectUnrecognized(icalExtra, cal, vobj_mapping.get(uuid),
+                                   injectTopLevel)
+                # only include unrecognized content lines once per cluster
+                injectTopLevel = False
+
         cal.vevent_list = [obj for obj in vobj_mapping.values()
                            if obj.name.lower() == 'vevent']
         cal.vtodo_list = [obj for obj in vobj_mapping.values()
@@ -469,8 +474,7 @@ class ICSSerializer(object):
         if name is not None:
             cal.add('x-wr-calname').value = name
             
-        monolithic = extra.get('monolithic', False)
-        if monolithic:
+        if extra.get('monolithic', False):
             # don't add a METHOD to CalDAV serializations, because CalDAV
             # forbids them, but do add one when serializing monolithic ics files
             # because Outlook requires them (bug 7121)
