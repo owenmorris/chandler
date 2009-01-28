@@ -2232,12 +2232,12 @@ Issues:
         if fullName != u'':
             name = fullName
         else:
-            try:
-                address.index(u'<')
-            except ValueError:
+            index = address.rfind(u'<')
+            if index == -1:
                 name = u''
             else:
-                name, address = address.split(u'<')
+                name = address[:index]
+                address = address[index+1:]
                 address = address.strip(u'>').strip()
                 name = name.strip()
                 # ignore a name of "me"
