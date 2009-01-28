@@ -224,8 +224,13 @@ class StringAttributeEditor (BaseAttributeEditor):
             bindToControl = control
             bindToControl.Bind(wx.EVT_LEFT_DOWN, self.onClick)
 
-            # hack to work around bug 5669 until the underlying wx bug is fixed.
             if wx.Platform == "__WXMAC__": 
+                if style & wx.TE_MULTILINE:
+                    logger.info("Enabling spell checking for %s", control)
+                    control.MacCheckSpelling(True)
+
+                # hack to work around bug 5669 until the underlying
+                # wx bug is fixed.
                 def showhide(ctrl):
                     if ctrl and ctrl.IsShown():
                         ctrl.Hide()

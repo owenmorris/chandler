@@ -107,7 +107,7 @@ class wxBlockFrameWindow (wx.Frame):
             if wx.GetApp().GetComCtl32Version() >= 600 and wx.DisplayDepth() >= 32:
                 wx.SystemOptions.SetOptionInt("msw.remap", 2)
             
-
+        wx.SystemOptions.SetOption("mac.textcontrol-use-spell-checker", "1")
  
     def ShowTreeOfBlocks (self, treeOfBlocks):
         if self.treeOfBlocks:
