@@ -151,16 +151,26 @@ def makeMainMenus(parcel):
     def iterWeekStartItems(parcel):
         import PyICU
 
+        def addMnemonic(title, used):
+            for index, character in enumerate(title):
+                if (character.isalpha() and
+                    not character.lower() in usedMnemonics):
+                    usedMnemonics.add(character.lower())
+                    return u"%s&%s" % (title[:index], title[index:])
+            return title
+
+        usedMnemonics = set()
         for dayNum, dayName in enumerate(
                                 PyICU.DateFormatSymbols().getWeekdays()):
             if dayName:
+                title = addMnemonic(dayName, usedMnemonics)
                 event = WeekStartEvent.update(
                             parcel,
                             u"WeekStartEvent_%d" % (dayNum,),
                             methodName="onWeekStartEvent",
                             icuDay=dayNum)
                 yield MenuItem.template(u"WeekStartItem_%d" % (dayNum,),
-                                        title=dayName, menuItemKind="Check",
+                                        title=title, menuItemKind="Check",
                                         event=event)
 
     repositoryView = parcel.itsView
@@ -578,7 +588,7 @@ def makeMainMenus(parcel):
                                   childBlocks = \
                                   makeVisibleHourMenuItems(parcel)),
                     Menu.template('WeekStartMenu',
-                                  title=_(u'&Start of Week'),
+                                  title=_(u'&First Day Week'),
                                   childBlocks=list(iterWeekStartItems(parcel))),
                     ]), # Menu ViewMenu
             Menu.template('ItemMenu',
