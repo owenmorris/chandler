@@ -68,7 +68,7 @@ class RecordSetConduit(conduits.BaseConduit):
     syncToken = schema.One(schema.Text, defaultValue="")
     filters = schema.Many(schema.Text, initialValue=set())
     lastVersion = schema.One(schema.Long, initialValue=0)
-    
+
     _allTickets = ()
 
     def sync(self, modeOverride=None, activity=None, forceUpdate=None,
@@ -1373,17 +1373,31 @@ class ResourceRecordSetConduit(RecordSetConduit):
         return inbound, extra, False
 
 
+    def findClusters(self, toSend):
+        """
+        Return a list of tuples of (alias, deleteFlag) pairs,
+        clustering recordsets that need to be serialized together
+        (recurrence modifications and masters).  The first pair will
+        be the master.
+
+        For instance: [((master1, False), (mod1, False)), ((master2, False),)]
+
+        """
+        return [((alias, rs is None),) for alias, rs in toSend.iteritems()]
+
     def putRecords(self, toSend, extra, debug=False, activity=None):
         doLog = logger.info if debug else logger.debug
 
-        sendCount = len(toSend)
+        clusters = self.findClusters(toSend)
+        sendCount = len(clusters)
 
         if activity:
             activity.update(msg="Sending %d resources" % sendCount,
                 totalWork=sendCount, workDone=0)
 
         i = 0
-        for alias, rs in toSend.iteritems():
+        for cluster in clusters:
+            alias, deleteFlag = cluster[0]
             state = self.getState(alias)
             path = getattr(state, "path", None)
             etag = getattr(state, "etag", None)
@@ -1393,7 +1407,7 @@ class ResourceRecordSetConduit(RecordSetConduit):
                 activity.update(msg="Sending %d of %d" % (i, sendCount),
                     work=1)
 
-            if rs is None:
+            if deleteFlag:
                 # delete the resource
                 if path:
                     self.deleteResource(path, etag)
@@ -1403,12 +1417,14 @@ class ResourceRecordSetConduit(RecordSetConduit):
                     # need to compute a path
                     path = self.getPath(UUID().str16())
 
-                # rs needs to include the entire recordset, not diffs
-                rs = state.agreed + state.pending
+                clusterRecordsets = {}
+                for alias, deleteFlag in cluster:
+                    state = self.getState(alias)
+                    # recordsets needs to include the entire recordset, not diffs
+                    clusterRecordsets[alias] = state.agreed + state.pending
+                    doLog("Full resource records: %s", clusterRecordsets[alias])
 
-                doLog("Full resource records: %s", rs)
-
-                text = self.serializer.serialize(self.itsView, {alias : rs},
+                text = self.serializer.serialize(self.itsView, clusterRecordsets,
                                                  **extra)
                 doLog("Sending to server [%s]", text)
                 etag = self.putResource(text, path, etag, debug=debug)

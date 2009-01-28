@@ -20,8 +20,9 @@ import PyICU
 import webdav_conduit
 from i18n import ChandlerMessageFactory as _
 from osaf.pim.calendar.TimeZone import serializeTimeZone
+from osaf.pim import EventStamp
 import time
-
+from utility import splitUUID, getMasterAlias
 import logging
 
 logger = logging.getLogger(__name__)
@@ -29,7 +30,6 @@ logger = logging.getLogger(__name__)
 
 
 class CalDAVRecordSetConduit(webdav_conduit.WebDAVRecordSetConduit):
-
 
     def _createCollectionResource(self, handle, resource, childName):
         displayName = self.share.contents.displayName
@@ -59,3 +59,35 @@ class CalDAVRecordSetConduit(webdav_conduit.WebDAVRecordSetConduit):
         self.networkTime += (end - start)
         return resource.etag.strip('"') # .mac puts quotes around the etag
 
+    def findClusters(self, toSend):
+        """
+        Return a list of tuples of (alias, deleteFlag) pairs,
+        clustering recordsets that need to be serialized together
+        (recurrence modifications and masters).  The first pair will
+        be the master.
+
+        For instance: [((master1, False), (mod1, False)), ((master2, False),)]
+
+        """
+        mastersChanged = set()
+        mastersDeleted = set()
+
+        view = self.itsView
+        translator = self.translator(self.itsView)
+
+        for alias, rs in toSend.iteritems():
+            masterAlias, recurrenceID = splitUUID(view, alias)
+            s = mastersChanged if (rs is not None or recurrenceID) else mastersDeleted
+            s.add(masterAlias)
+
+        mastersChanged = mastersChanged - mastersDeleted
+
+        clusters = [((alias, True),) for alias in mastersDeleted]
+        for masterAlias in mastersChanged:
+            cluster = [(masterAlias, False)]
+            clusters.append(cluster)
+
+            master = view.findUUID(masterAlias)
+            for mod in getattr(EventStamp(master), 'modifications', []):
+                cluster.append((translator.getAliasForItem(mod), False))
+        return clusters
