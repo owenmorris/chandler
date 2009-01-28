@@ -70,6 +70,7 @@ class RecordSetConduit(conduits.BaseConduit):
     lastVersion = schema.One(schema.Long, initialValue=0)
 
     _allTickets = ()
+    pathMatchesUUID = False
 
     def sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):
@@ -1424,7 +1425,8 @@ class ResourceRecordSetConduit(RecordSetConduit):
             else:
                 if not path:
                     # need to compute a path
-                    path = self.getPath(UUID().str16())
+                    pathid = alias if self.pathMatchesUUID else UUID().str16()
+                    path = self.getPath(pathid)
 
                 clusterRecordsets = {}
                 for alias, deleteFlag in cluster:

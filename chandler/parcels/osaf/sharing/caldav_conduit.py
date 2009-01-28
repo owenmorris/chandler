@@ -31,6 +31,8 @@ logger = logging.getLogger(__name__)
 
 class CalDAVRecordSetConduit(webdav_conduit.WebDAVRecordSetConduit):
 
+    pathMatchesUUID   = True
+
     def _createCollectionResource(self, handle, resource, childName):
         displayName = self.share.contents.displayName
         timezone = serializeTimeZone(PyICU.ICUtzinfo.default)
