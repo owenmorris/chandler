@@ -93,14 +93,24 @@ class AlreadyExists(SharingError):
     Exception raised if a share already exists.
     """
 
-class NotFound(SharingError):
+class Sharing40XError(SharingError):
+    """
+    Base class for "No access" HTTP errors, with codes like 400, 401, 404, etc.
+    """
+
+class NotFound(Sharing40XError):
     """
     Exception raised if a share/resource wasn't found.
     """
 
-class NotAllowed(SharingError):
+class NotAllowed(Sharing40XError):
     """
     Exception raised if we don't have access.
+    """
+
+class NotSupported(Sharing40XError):
+    """
+    Exception raised if the method used isn't supported.
     """
 
 class ForbiddenItem(SharingError):
@@ -125,7 +135,7 @@ class CouldNotConnect(SharingError):
     due to DNS/network problems.
     """
 
-class IllegalOperation(SharingError):
+class IllegalOperation(Sharing40XError):
     """
     Exception raised if the entity a conduit is communicating with is
     denying an operation for some reason not covered by other exceptions.

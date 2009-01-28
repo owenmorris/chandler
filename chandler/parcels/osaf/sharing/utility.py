@@ -119,7 +119,6 @@ def inspect(rv, url, username=None, password=None):
 
 
     def _catchError(method):
-
         try:
             return method(rv, url, username=username, password=password)
 
@@ -137,25 +136,30 @@ def inspect(rv, url, username=None, password=None):
                 raise errors.NotAllowed("Not authorized (%s)" % e.message)
             elif e.status == 404: # Not Found
                 raise errors.NotFound("Not found (%s)" % e.message)
+            elif e.status == 405: # Not Supported
+                raise errors.NotSupported("Not Supported (%s)" % e.message)
             else:
                 raise e
 
-
+    result = {}
     try:
         result = _catchError(getOPTIONS)
-    except (errors.NotFound, errors.IllegalOperation, zanshin.http.HTTPError):
-        # Google returns 404 if you OPTIONS a .ics URL, or a 400 if you
-        # OPTIONS an HTML URL. Other random server error messages are possible
-        # here, so let's try move on to HEAD here.
-        return _catchError(getHEADInfo)
+    except (errors.Sharing40XError, zanshin.http.HTTPError), e:
+        # Don't fail if the server failed gracefully in response to
+        # OPTIONS, many servers don't handle OPTIONS reasonably
+        logger.error("OPTIONS failed: %s", e.message)
 
     if 'dav' in result:
-        return _catchError(getDAVInfo)
+        try:
+            return _catchError(getDAVInfo)
+        except:
+            # fall back to HEAD if the server lied about supporting
+            # DAV, apparently in some circumstances Apache will report
+            # support for DAV if the vhost supports it, even if this
+            # particular resource doesn't
+            pass
 
-    else:
-        return _catchError(getHEADInfo)
-
-
+    return _catchError(getHEADInfo)
 
 
 
