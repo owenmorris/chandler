@@ -17,28 +17,45 @@ include Makefile.inc
 BUILD_ONLY_SYSTEMS=config \
                    swig
 
-SYSTEMS=db \
+#
+# These are eggs we install if not present, once we have
+# built a working python 2.5
+#
+BUILD_ONLY_PY_SYSTEMS = \
+    setuptools \
+    zope.interface
+
+INSTALL_DIR=$(BUILD_ROOT)/$(SNAP)/$(SITE)
+ifeq ($(OS),Cygwin)
+    INSTALL_DIR := $(shell cygpath -aw $(INSTALL_DIR))
+endif
+
+setuptools:
+	$(PYTHON) -c 'from pkg_resources import require; require("setuptools>=0.6c9")' || \
+	$(PYTHON) -m easy_install -x --install '$(INSTALL_DIR)' setuptools'>=0.6c9'
+
+zope.interface:
+	$(PYTHON) -c 'from pkg_resources import require; require("zope.interface>=3.3.0b2")' || \
+	$(PYTHON) -m easy_install -x --install '$(INSTALL_DIR)' http://builds.osafoundation.org/external/zope.interface-3.3.0b2-r71371.tar.bz2
+
+BINARY_SYSTEMS = \
+        db \
         $(ICU_BUILD) \
         $(OPENSSL_BUILD) \
         $(OPENJDK_BUILD) \
         $(READLINE_BUILD) \
         $(PYTHON_BUILD) \
-        $(SETUPTOOLS_BUILD) \
-        $(EPYDOC_BUILD) \
+
+PY_SYSTEMS = \
         PyLucene \
-        PyICU \
+        $(PYICU_BUILD) \
         $(ZOPE_BUILD) \
         twisted \
-        vobject \
-        dateutil \
         m2crypto \
-        zanshin \
-        eggtranslations \
-        pylint \
-        parsedatetime \
-        $(CONFIGOBJ_BUILD) \
-        $(DOCUTILS_BUILD) \
         wx
+
+ALL_SYSTEMS = $(BUILD_ONLY_SYSTEMS) $(BINARY_SYSTEMS) $(BUILD_ONLY_PY_SYSTEMS) \
+              $(PY_SYSTEMS)
 
 SYS_TESTS=dateutil \
           m2crypto \
@@ -49,76 +66,75 @@ SYS_TESTS=dateutil \
           PyLucene \
           PyICU
 
+.PHONY: systems env binaries sources expand install clean $(ALL_SYSTEMS)
+        
 
-.PHONY: systems env binaries sources expand install clean \
-        $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)
-
-$(BUILD_ONLY_SYSTEMS) $(SYSTEMS):
+$(BUILD_ONLY_SYSTEMS) $(BINARY_SYSTEMS) $(PY_SYSTEMS):
 	$(MAKE) -C $@ DEBUG=$(DEBUG) all
 
-$(addprefix binaries-, $(SYSTEMS)):
+$(addprefix binaries-, $(BINARY_SYSTEMS) $(PY_SYSTEMS)):
 	$(MAKE) -C $(subst binaries-,,$@) binaries
 
-$(addprefix strip-, $(SYSTEMS)):
+$(addprefix strip-, $(BINARY_SYSTEMS) $(PY_SYSTEMS)):
 	$(MAKE) -C $(subst strip-,,$@) strip
 
-$(addprefix sources-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)):
+$(addprefix sources-, $(BUILD_ONLY_SYSTEMS) $(BINARY_SYSTEMS) $(PY_SYSTEMS)):
 	$(MAKE) -C $(subst sources-,,$@) sources
 
-$(addprefix expand-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)):
+$(addprefix expand-, $(BUILD_ONLY_SYSTEMS) $(BINARY_SYSTEMS) $(PY_SYSTEMS)):
 	$(MAKE) -C $(subst expand-,,$@) expand
 
-$(addprefix install-, $(SYSTEMS)):
+$(addprefix install-, $(BINARY_SYSTEMS) $(PY_SYSTEMS)):
 	$(MAKE) -C $(subst install-,,$@) install
 
 $(addprefix test-, $(SYS_TESTS)):
 	$(MAKE) -C $(subst test-,,$@) test
 
-$(addprefix clean-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)):
+$(addprefix clean-, $(BUILD_ONLY_SYSTEMS) $(BINARY_SYSTEMS) $(PY_SYSTEMS)):
 	$(MAKE) -C $(subst clean-,,$@) clean
 
-$(addprefix realclean-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)):
+$(addprefix realclean-, $(BUILD_ONLY_SYSTEMS) $(BINARY_SYSTEMS) $(PY_SYSTEMS)):
 	$(MAKE) -C $(subst realclean-,,$@) _realclean
 
 # to start build from a given system instead of from the beginning
 # for example: make from-PyLucene
 # builds PyLucene and all systems from PyLucene onwards
 
-$(addprefix from-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)):
-	$(MAKE) $(shell echo $(BUILD_ONLY_SYSTEMS) $(SYSTEMS) | sed "s=.*\($(subst from-,,$@).*\)=\1=")
+$(addprefix from-, $(ALL_SYSTEMS)):
+	$(MAKE) $(shell echo $(ALL_SYSTEMS) | sed "s=.*\($(subst from-,,$@).*\)=\1=")
 
 # to do a build up to a given system instead of until the end
 # for example: make to-PyICU
 # builds all systems up to and including PyICU
 
-$(addprefix to-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)):
-	$(MAKE) $(shell echo $(BUILD_ONLY_SYSTEMS) $(SYSTEMS) | sed "s=\(.*$(subst to-,,$@)\).*=\1=")
+$(addprefix to-, $(ALL_SYSTEMS)):
+	$(MAKE) $(shell echo $(ALL_SYSTEMS) | sed "s=\(.*$(subst to-,,$@)\).*=\1=")
 
 env::
 	mkdir -p $(PREFIX)/bin $(PREFIX)/lib $(PREFIX)/include $(CHANDLERARCHIVES)
 
-systems: $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)
+systems: $(ALL_SYSTEMS)
 
-binaries: $(addprefix binaries-, $(SYSTEMS))
+binaries: $(addprefix binaries-, $(BINARY_SYSTEMS) $(PY_SYSTEMS))
 
-strips: $(addprefix strip-, $(SYSTEMS))
+strips: $(addprefix strip-, $(BINARY_SYSTEMS) $(PY_SYSTEMS))
 
-sources: $(addprefix sources-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS))
+sources: $(addprefix sources-, $(BUILD_ONLY_SYSTEMS) $(BINARY_SYSTEMS) $(PY_SYSTEMS))
 
-expand: $(addprefix expand-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS))
+expand: $(addprefix expand-, $(BUILD_ONLY_SYSTEMS) $(BINARY_SYSTEMS) $(PY_SYSTEMS))
 
-install: $(addprefix install-, $(SYSTEMS))
+install: $(addprefix install-, $(BINARY_SYSTEMS) $(PY_SYSTEMS))
 
 test: $(addprefix test-, $(SYS_TESTS))
 
 tests: test
 
-clean: $(addprefix clean-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS))
+clean: $(addprefix clean-, $(BUILD_ONLY_SYSTEMS) $(BINARY_SYSTEMS) $(PY_SYSTEMS))
 
-realclean: $(addprefix realclean-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS))
+realclean: $(addprefix realclean-, $(BUILD_ONLY_SYSTEMS) $(BINARY_SYSTEMS) $(PY_SYSTEMS))
 	rm -rf release debug
 
-all: env sources $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)
+all: env sources $(BUILD_ONLY_SYSTEMS) $(BINARY_SYSTEMS) $(PY_SYSTEMS)
 
 world: all binaries install
 	$(MAKE) -C ../internal DEBUG=$(DEBUG) world
@@ -138,7 +154,7 @@ realcleanworld: realclean
 
 # only called by the full tbox client
 uploadstaging:
-	@for system in $(SYSTEMS); \
+	@for system in $(BINARY_SYSTEMS) $(PY_SYSTEMS); \
 	do \
 	   $(MAKE) -C $$system DEBUG=$(DEBUG) upload; \
 	done
@@ -146,14 +162,14 @@ uploadstaging:
 
 # convenience
 uploads:
-	@for system in $(SYSTEMS); \
+	@for system in $(BINARY_SYSTEMS) $(PY_SYSTEMS); \
 	do \
 	   $(MAKE) -C $$system DEBUG=$(DEBUG) upload; \
 	done
 
 # convenience
 drops:
-	@for system in $(SYSTEMS); \
+	@for system in $(BINARY_SYSTEMS) $(PY_SYSTEMS); \
 	do \
 	   echo $$system ; \
 	   $(MAKE) -C $$system DEBUG=$(DEBUG) drop; \

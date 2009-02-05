@@ -57,8 +57,6 @@ endif
 
 PYTHON_VER=2.5
 
-EPYDOC_BUILD=epydoc
-
 ifeq ($(OS),Cygwin)
     PYTHON_BINDIR:=bin
     PYTHON:=$(PREFIX)/$(PYTHON_BINDIR)/$(PYTHON).exe
@@ -70,11 +68,8 @@ ifeq ($(OS),Cygwin)
     OPENSSL_BUILD=openssl
     OPENJDK_BUILD=openjdk
     PYTHON_BUILD=python
-    SETUPTOOLS_BUILD=setuptools
     ICU_BUILD=icu
-    CONFIGOBJ_BUILD=configobj
-    DOCUTILS_BUILD=docutils
-    ZOPE_BUILD=zope
+    PYICU_BUILD=pyicu
 endif
 
 ifeq ($(OS),Darwin)
@@ -112,16 +107,12 @@ ifeq ($(OS),Darwin)
     ifeq ($(OS_MAJOR_VER),9)
         READLINE_BUILD=
         PYTHON_BUILD=
-        SETUPTOOLS_BUILD=
     else
         READLINE_BUILD=readline
         PYTHON_BUILD=python
-        SETUPTOOLS_BUILD=setuptools
     endif
     ICU_BUILD=icu
-    CONFIGOBJ_BUILD=configobj
-    DOCUTILS_BUILD=docutils
-    ZOPE_BUILD=zope
+    PYICU_BUILD=PyICU
 endif
 
 ifeq ($(OS),Linux)
@@ -138,17 +129,17 @@ ifeq ($(OS),Linux)
         UPLOAD:=$(UPLOAD)/$(DISTRIB_CODENAME)
         ifeq ($(DISTRIB_CODENAME),feisty)
             OPENSSL_BUILD=openssl
-            SETUPTOOLS_BUILD=setuptools
         else
             OPENSSL_BUILD=
-            SETUPTOOLS_BUILD=
             OPENJDK_BUILD=
         endif
         PYTHON_BUILD=
         ICU_BUILD=
-        CONFIGOBJ_BUILD=
-        DOCUTILS_BUILD=
-        ZOPE_BUILD=
+        ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy),)
+            PYICU_BUILD=PyICU
+        else
+            PYICU_BUILD=
+        endif
     else
         PYTHON_BINDIR:=bin
         PYTHON:=$(PREFIX)/$(PYTHON_BINDIR)/$(PYTHON)
@@ -156,10 +147,7 @@ ifeq ($(OS),Linux)
         OPENSSL_BUILD=openssl
         PYTHON_BUILD=python
         ICU_BUILD=icu
-        CONFIGOBJ_BUILD=configobj
-        DOCUTILS_BUILD=docutils
-        SETUPTOOLS_BUILD=setuptools
-        ZOPE_BUILD=zope
+        PYICU_BUILD=PyICU
     endif
     READLINE_BUILD=
     ifeq ($(ARCH),x86_64)

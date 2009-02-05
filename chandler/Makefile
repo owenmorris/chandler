@@ -68,13 +68,13 @@ endif
 
 READLINE   = $(CHANDLERARCHIVES)/readline-$(SNAP)-5.2-$(BP)2.tar.gz
 PYTHON     = $(CHANDLERARCHIVES)/python-$(SNAP)-2.5.1-$(BP)9.tar.gz
-SETUPTOOLS = $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6-$(BP)2.tar.gz
 ICU        = $(CHANDLERARCHIVES)/icu-$(SNAP)-3.6-$(BP)2.tar.gz
 OPENJDK    = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b21-$(BP)3.tar.gz
 OPENSSL    = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)3.tar.gz
-CONFIGOBJ  = $(CHANDLERARCHIVES)/configobj-$(SNAP)-4.3.2-$(BP)2.tar.gz
-DOCUTILS   = $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)2.tar.gz
-ZOPE       = $(CHANDLERARCHIVES)/zope.interface-$(SNAP)-3.3.0b2-r71371-$(BP)4.tar.gz
+CONFIGOBJ  = $(CHANDLERARCHIVES)/configobj-4.5.3.tar.gz
+DOCUTILS   = $(CHANDLERARCHIVES)/docutils-0.4.tar.gz
+ZOPE       = $(CHANDLERARCHIVES)/zope.interface-3.3.0b2-r71371.tar.bz2
+
 
 ifeq ($(OS),Linux)
     READLINE =
@@ -124,13 +124,16 @@ ifeq ($(PLATFORM),windows)
     READLINE   =
 endif
 
-ARCHIVES = \
+#
+# BINARY_ARCHIVES: archives we download into the CHANDLERARCHIVES
+#     directory, and install by untarring.
+#
+BINARY_ARCHIVES = \
     $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)31.tar.gz \
     $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.7-$(BP)37.tar.gz \
     $(CHANDLERARCHIVES)/db-$(SNAP)-4.6.21-$(BP)3.tar.gz \
     $(READLINE) \
     $(PYTHON) \
-    $(SETUPTOOLS) \
     $(ICU) \
     $(OPENSSL) \
     $(OPENJDK) \
@@ -139,18 +142,58 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.3.1-3-418-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/twisted-$(SNAP)-r18795-$(BP)3.tar.gz \
     $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.7.1-r218-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)6.tar.gz \
-    $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.7.0-r206-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/zanshin-$(SNAP)-171-$(BP)2.tar.gz \
-    $(CHANDLERARCHIVES)/logilab-astng-$(SNAP)-0.17.0-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/logilab-common-$(SNAP)-0.21.2-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.13.1-$(BP)2.tar.gz \
-    $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.8.6-$(BP)1.tar.gz \
+
+#
+# SOURCE_ARCHIVES: archives we download into the CHANDLERARCHIVES
+#     directory, and install by using easy_install. (It's possible
+#     we could just use pypi instead of maintaining a cache, or
+#     alternatively, we could set up a pypi-like mirror on
+#     builds.osafoundation.org.
+#
+SOURCE_ARCHIVES = \
+    $(CHANDLERARCHIVES)/setuptools-0.6c9.tar.gz \
+    $(CHANDLERARCHIVES)/python-dateutil-1.4.1.tar.gz \
+    $(CHANDLERARCHIVES)/vobject-0.8.1b.tar.gz \
+    $(CHANDLERARCHIVES)/zanshin-0.6.tar.gz \
+    $(CHANDLERARCHIVES)/logilab-astng-0.17.0.tar.gz \
+    $(CHANDLERARCHIVES)/logilab-common-0.21.2.tar.gz \
+    $(CHANDLERARCHIVES)/pylint-0.13.1.tar.gz \
+    $(CHANDLERARCHIVES)/parsedatetime-0.8.6.tar.gz \
     $(CONFIGOBJ) \
     $(DOCUTILS) \
-    $(CHANDLERARCHIVES)/epydoc-$(SNAP)-3.0beta1-$(BP)2.tar.gz \
-    $(CHANDLERARCHIVES)/eggtranslations-$(SNAP)-1.1-r10-$(BP)2.tar.gz \
-    $(ZOPE)
+    $(ZOPE) \
+    $(CHANDLERARCHIVES)/epydoc-3.0beta1.tar.gz \
+    $(CHANDLERARCHIVES)/EggTranslations-1.1.dev-r10.tar.gz
+
+#
+# SOURCE_DEPENDENCIES: these specify the minimum version of each project
+#     that we need to install. Notice that these don't exactly match
+#     what's in SOURCE_ARCHIVES: the reason is that on Linux we are
+#     prepared to pick up earlier versions from the OS. Note that we
+#     do a pre-check of your OS install in the py-env target.
+#
+SOURCE_DEPENDENCIES = \
+    setuptools>=0.6c6 \
+    zope.interface>0 \
+    python-dateutil>=1.3 \
+    vobject>=0.8.1b \
+    parsedatetime>=0.8.6 \
+    zanshin>=0.6 \
+    EggTranslations>=1.1.dev-r10 \
+    logilab-astng>=0.17.0 \
+    logilab-common>=0.21.2 \
+    pylint>=0.13.1 \
+    configobj>=4.3.2 \
+    docutils>=0.4 \
+    epydoc>=3.0beta1
+
+
+
+.PHONY: $(SOURCE_DEPENDENCIES)
+
+$(SOURCE_DEPENDENCIES): py-env download
+	$(RUN_PYTHON) -c "from pkg_resources import require; require('$@')" || \
+	$(RUN_PYTHON) -m easy_install -Z -f'$(CHANDLERARCHIVES)' -HNone -x --install-dir='$(SITE)' '$@'
 
 ifeq ($(DEBUG),1)
     SNAP         = debug
@@ -196,6 +239,7 @@ ifeq ($(CHANDLERARCHIVES),)
 endif
 
 ifeq ($(OS),Cygwin)
+    SITE       = $(shell cygpath -aw $(SNAP)/site-packages)
     SCRIPTS    = $(C_BIN)/$(SNAP)/bin/Scripts/
     RUN_PYTHON = CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(C_BIN)/$(SNAP)/RunPython.bat
     SED_MODERN = -r
@@ -203,6 +247,7 @@ endif
 
 ifeq ($(OS),Darwin)
     ifeq ($(PYTHON),)
+        SITE    = $(SNAP)/site-packages
         SCRIPTS = $(SNAP)/bin/
     else
         SITE       = $(SNAP)/lib/python$(PYTHON_VER)/site-packages
@@ -217,8 +262,10 @@ endif
 
 ifeq ($(OS),Linux)
     ifeq ($(PYTHON),)
+        SITE    = $(SNAP)/site-packages
         SCRIPTS = $(SNAP)/bin/
     else
+        SITE    = $(SNAP)/lib/python$(PYTHON_VER)/site-packages
         SCRIPTS = $(C_BIN)/$(SNAP)/bin/
     endif
     RUN_PYTHON = CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/RunPython
@@ -253,14 +300,15 @@ ifeq ($(OS),Cygwin)
     LOCALE_SRC  := $(shell cygpath -aw $(LOCALE_SRC))\\
     TOOLS       := $(shell cygpath -aw $(TOOLS))\\
     SCRIPTS     := $(shell cygpath -wa $(SCRIPTS))\\
+    SITE        := $(shell cygpath -wa $(SITE))\\
 endif
 
-ARCHIVES_INST = \
+BINARY_ARCHIVES_INST = \
     $(addsuffix .inst, \
                 $(addprefix $(C_BIN)/$(SNAP)/, \
-                            $(notdir $(ARCHIVES))))
+                            $(notdir $(BINARY_ARCHIVES))))
 
-downloads: $(ARCHIVES)
+downloads: $(BINARY_ARCHIVES) $(SOURCE_ARCHIVES)
 
 $(addprefix develop-, $(BUILD_PLUGINS)):
 	mkdir -p '$(PLUGIN_INST)'
@@ -298,13 +346,17 @@ $(addprefix install-, $(BUILD_LOCALES)):
 chandler-locale-data:
 	$(RUN_PYTHON) setup.py egg_info
 
-$(ARCHIVES):
+$(BINARY_ARCHIVES):
 	mkdir -p $(CHANDLERARCHIVES)
 	$(CURL) $@ $(P_URL)/$(notdir $@)
 
+$(SOURCE_ARCHIVES):
+	mkdir -p $(CHANDLERARCHIVES)
+	$(CURL) $@ $(URL)/$(notdir $@)
+
 # if the archive name does not contain the string 'release' or 'debug' it's
 # the same for both and needs to be installed in $(SNAP) explicitely
-$(ARCHIVES_INST):
+$(BINARY_ARCHIVES_INST):
 	@if [ $(shell echo $(notdir $@) | sed "s/-$(SNAP)[^ ]*//g") = $(notdir $@) ]; then \
             echo tar -C $(C_BIN)/$(SNAP) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@)); \
             tar -C $(C_BIN)/$(SNAP) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@)); \
@@ -324,7 +376,7 @@ else
 manifest_exe:
 endif
 
-archives: $(ARCHIVES) $(ARCHIVES_INST)
+archives: $(BINARY_ARCHIVES) $(BINARY_ARCHIVES_INST) $(SOURCE_ARCHIVES) $(SOURCE_DEPENDENCIES)
 
 install-core: archives manifest_exe chandler-locale-data install-locales
 
@@ -339,26 +391,25 @@ distrib-plugins: $(addprefix develop-u-, $(BUILD_PLUGINS)) \
 
 # On Ubuntu Feisty Fawn and Gutsy Gibbon users need to install some packages,
 # check that we have them:
+SYSTEM_REQUIREMENTS =
 ifeq ($(OS),Linux)
 ifeq ($(PLATFORM),linux/feisty)
-py-env:
-	@echo Checking that you have required packages installed...
-	python -c "from pkg_resources import require; require('configobj >= 4.3.2')"
-	python -c "from pkg_resources import require; require('zope.interface >= 0')"
+SYSTEM_REQUIREMENTS = $(subst '',check-,$(filter '(configobj|zope\.interface).*', $(SOURCE_DEPENDENCIES)))
 else
+
 ifneq ($(findstring $(DISTRIB_CODENAME),gutsy hardy intrepid jaunty),)
-py-env:
-	@echo Checking that you have required packages installed...
-	python -c "from pkg_resources import require; require('setuptools >= 0.6c6')"
-	python -c "from pkg_resources import require; require('configobj >= 4.3.2')"
-	python -c "from pkg_resources import require; require('zope.interface >= 0')"
-else
-py-env:
+SYSTEM_REQUIREMENTS = $(patsubst %,check-%, $(filter configobj% zope.interface% setuptools%, $(SOURCE_DEPENDENCIES)))
 endif
 endif
-else
-py-env:
 endif
+
+.PHONY: $(SYSTEM_REQUIREMENTS)
+
+py-env: $(SYSTEM_REQUIREMENTS)
+
+$(SYSTEM_REQUIREMENTS):
+	@echo Checking system python requirement '$(subst check-,,$@)' ...
+	@python -c "from pkg_resources import require; require('$(subst check-,,$@)')" 2>/dev/null || (echo Missing; exit 1)
 
 install: install-core py-env plugins
 
@@ -366,12 +417,12 @@ install-no-plugins: install-core py-env
 
 distrib: install-core py-env distrib-plugins
 
-download: $(ARCHIVES)
+download: $(SOURCE_ARCHIVES) $(BINARY_ARCHIVES)
 
 # to install individual binaries, for example: make chandlerdb
 
-$(notdir $(shell echo $(ARCHIVES) | sed "s/-$(SNAP)[^ ]*//g")):
-	$(MAKE) $(shell echo $(ARCHIVES) | sed "s=.*\($(CHANDLERARCHIVES)/$@-[^ ]*\).*=\1=")
+$(notdir $(shell echo $(BINARY_ARCHIVES) | sed "s/-$(SNAP)[^ ]*//g")):
+	$(MAKE) $(shell echo $(BINARY_ARCHIVES) | sed "s=.*\($(CHANDLERARCHIVES)/$@-[^ ]*\).*=\1=")
 	$(MAKE) $(shell echo $(ARCHIVES_INST) | sed "s=.*\($(C_BIN)/$(SNAP)/$@-[^ ]*\).*=\1=")
 
 
@@ -441,7 +492,7 @@ clean: distclean
 realclean: clean
 	rm -rf $(C_BIN)/release
 	rm -rf $(C_BIN)/debug
-	rm -f $(ARCHIVES)
+	rm -f $(BINARY_ARCHIVES) $(SOURCE_ARCHIVES)
 
 relocatable-distro:
 	$(MAKE) -C distrib/relocatable \
