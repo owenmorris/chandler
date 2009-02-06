@@ -30,13 +30,23 @@ ifeq ($(OS),Cygwin)
     INSTALL_DIR := $(shell cygpath -aw $(INSTALL_DIR))
 endif
 
-setuptools:
+ifeq ($(PYTHON_BUILD),)
+EASY_INSTALL_ARGS = -m easy_install
+else
+EASY_INSTALL = $(CHANDLERARCHIVES)/ez_setup.py
+EASY_INSTALL_ARGS = $(EASY_INSTALL)
+$(EASY_INSTALL):
+	cd $(CHANDLERARCHIVES) && $(CURL) http://peak.telecommunity.com/dist/ez_setup.py
+endif
+
+
+setuptools: $(EASY_INSTALL)
 	$(PYTHON) -c 'from pkg_resources import require; require("setuptools>=0.6c9")' || \
-	$(PYTHON) -m easy_install -x --install '$(INSTALL_DIR)' setuptools'>=0.6c9'
+	$(PYTHON) $(EASY_INSTALL_ARGS) -x --install '$(INSTALL_DIR)' setuptools'>=0.6c9'
 
 zope.interface:
 	$(PYTHON) -c 'from pkg_resources import require; require("zope.interface>=3.3.0b2")' || \
-	$(PYTHON) -m easy_install -x --install '$(INSTALL_DIR)' http://builds.osafoundation.org/external/zope.interface-3.3.0b2-r71371.tar.bz2
+	$(PYTHON) $(EASY_INSTALL_ARGS) -x --install '$(INSTALL_DIR)' http://builds.osafoundation.org/external/zope.interface-3.3.0b2-r71371.tar.bz2
 
 BINARY_SYSTEMS = \
         db \
@@ -134,7 +144,7 @@ clean: $(addprefix clean-, $(BUILD_ONLY_SYSTEMS) $(BINARY_SYSTEMS) $(PY_SYSTEMS)
 realclean: $(addprefix realclean-, $(BUILD_ONLY_SYSTEMS) $(BINARY_SYSTEMS) $(PY_SYSTEMS))
 	rm -rf release debug
 
-all: env sources $(BUILD_ONLY_SYSTEMS) $(BINARY_SYSTEMS) $(PY_SYSTEMS)
+all: env sources $(ALL_SYSTEMS)
 
 world: all binaries install
 	$(MAKE) -C ../internal DEBUG=$(DEBUG) world
