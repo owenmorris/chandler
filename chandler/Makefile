@@ -173,7 +173,7 @@ SOURCE_ARCHIVES = \
 #     do a pre-check of your OS install in the py-env target.
 #
 SOURCE_DEPENDENCIES = \
-    setuptools>=0.6c6 \
+    setuptools>=0.6c9 \
     zope.interface>0 \
     python-dateutil>=1.3 \
     vobject>=0.8.1b \
@@ -394,11 +394,11 @@ distrib-plugins: $(addprefix develop-u-, $(BUILD_PLUGINS)) \
 SYSTEM_REQUIREMENTS =
 ifeq ($(OS),Linux)
 ifeq ($(PLATFORM),linux/feisty)
-SYSTEM_REQUIREMENTS = $(subst '',check-,$(filter '(configobj|zope\.interface).*', $(SOURCE_DEPENDENCIES)))
+SYSTEM_REQUIREMENTS = setuptools>0.6c6  $(subst '',check-,$(filter '(configobj|zope\.interface).*', $(SOURCE_DEPENDENCIES)))
 else
 
 ifneq ($(findstring $(DISTRIB_CODENAME),gutsy hardy intrepid jaunty),)
-SYSTEM_REQUIREMENTS = $(patsubst %,check-%, $(filter configobj% zope.interface% setuptools%, $(SOURCE_DEPENDENCIES)))
+SYSTEM_REQUIREMENTS = setuptools>0.6c6 $(patsubst %,check-%, $(filter configobj% zope.interface% setuptools%, $(SOURCE_DEPENDENCIES)))
 endif
 endif
 endif
