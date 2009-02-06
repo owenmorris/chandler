@@ -64,6 +64,12 @@ endif
 
 endif
 
+INSTALL_JCC_FLAGS =
+
+ifeq ($(PYTHON_BUILD),)
+    INSTALL_JCC_FLAGS = --prefix $(BUILD_ROOT)/$(SNAP)
+endif
+
 ifeq ($(OS),Cygwin)
 
 NUM_FILES=2
@@ -100,7 +106,7 @@ build: expand
 	rm -rf $(SRC)/jcc/build
 	rm -rf $(SRC)/build
 	cd $(SRC)/jcc; $(ENV) $(JCC_ENV) \
-                       $(PYTHON) setup.py build $(DEBUG_OPT) install --prefix $(BUILD_ROOT)/$(SNAP)
+                       $(PYTHON) setup.py build $(DEBUG_OPT) install $(INSTALL_JCC_FLAGS)
 	$(ENV) $(MAKE) -C $(SRC) \
             PYTHON="$(PYTHON)" \
             ANT=$(ANT) \
