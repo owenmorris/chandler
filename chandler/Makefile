@@ -64,6 +64,11 @@ ifeq ($(findstring WINNT,$(OS)),WINNT)
     PLATFORM = windows
 endif
 
+
+ifeq ($(CHANDLERARCHIVES),)
+    CHANDLERARCHIVES = ../downloads
+endif
+
 # When a version changes, the ARCHIVES lists below need to be updated.
 
 READLINE   = $(CHANDLERARCHIVES)/readline-$(SNAP)-5.2-$(BP)2.tar.gz
@@ -242,10 +247,6 @@ else
 
     C_BIN  = $(CHANDLERBIN)
     C_HOME = $(CHANDLERHOME)
-endif
-
-ifeq ($(CHANDLERARCHIVES),)
-    CHANDLERARCHIVES = ../downloads
 endif
 
 ifeq ($(OS),Cygwin)
