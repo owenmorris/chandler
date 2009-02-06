@@ -93,7 +93,6 @@ ifeq ($(OS),Linux)
         CONFIGOBJ  =
         DOCUTILS   =
         OPENJDK    =
-        SETUPTOOLS =
         ZOPE       =
     endif
 
@@ -104,7 +103,6 @@ ifeq ($(OS),Linux)
         ICU        =
         CONFIGOBJ  =
         DOCUTILS   =
-        SETUPTOOLS =
         ZOPE       =
     endif
 endif
@@ -115,7 +113,6 @@ endif
 
 ifeq ($(findstring 10.5,$(PLATFORM)),10.5)
     PYTHON     =
-    SETUPTOOLS =
     OPENJDK    =
     READLINE   =
 endif
@@ -165,6 +162,20 @@ SOURCE_ARCHIVES = \
     $(CHANDLERARCHIVES)/epydoc-3.0beta1.tar.gz \
     $(CHANDLERARCHIVES)/EggTranslations-1.1.dev-r10.tar.gz
 
+ifeq ($(PYTHON),)
+EASY_INSTALL_ARG = --install='$(SITE)'
+SETUPTOOLS_BOOTSTRAP =
+else
+EASY_INSTALL_ARG = 
+$(CHANDLERARCHIVES)/ez_setup.py:
+	mkdir -p $(CHANDLERARCHIVES) && $(CURL) $@ http://peak.telecommunity.com/dist/ez_setup.py
+SETUPTOOLS_BOOTSTRAP = setuptools
+$(SETUPTOOLS_BOOTSTRAP): $(CHANDLERARCHIVES)/ez_setup.py $(SETUPTOOLS)
+	$(RUN_PYTHON) $(CHANDLERARCHIVES)/ez_setup.py $(SETUPTOOLS)
+endif
+
+.PHONY: $(SETUPTOOLS_BOOTSTRAP)
+
 #
 # SOURCE_DEPENDENCIES: these specify the minimum version of each project
 #     that we need to install. Notice that these don't exactly match
@@ -174,7 +185,7 @@ SOURCE_ARCHIVES = \
 #
 SOURCE_DEPENDENCIES = \
     setuptools>=0.6c9 \
-    zope.interface>0 \
+    zope.interface \
     python-dateutil>=1.3 \
     vobject>=0.8.1b \
     parsedatetime>=0.8.6 \
@@ -187,13 +198,12 @@ SOURCE_DEPENDENCIES = \
     docutils>=0.4 \
     epydoc>=3.0beta1
 
-
-
 .PHONY: $(SOURCE_DEPENDENCIES)
 
 $(SOURCE_DEPENDENCIES): py-env download
 	$(RUN_PYTHON) -c "from pkg_resources import require; require('$@')" || \
-	$(RUN_PYTHON) -m easy_install -Z -f'$(CHANDLERARCHIVES)' -HNone -x --install-dir='$(SITE)' '$@'
+	$(RUN_PYTHON) -m easy_install -Z -f'$(CHANDLERARCHIVES)' -HNone -x $(EASY_INSTALL_ARG) '$@'
+
 
 ifeq ($(DEBUG),1)
     SNAP         = debug
@@ -250,7 +260,7 @@ ifeq ($(OS),Darwin)
         SITE    = $(SNAP)/site-packages
         SCRIPTS = $(SNAP)/bin/
     else
-        SITE       = $(SNAP)/lib/python$(PYTHON_VER)/site-packages
+        SITE       = $(SNAP)/Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)/lib/python$(PYTHON_VER)/site-packages
         SCRIPTS    = $(C_BIN)/$(SNAP)/bin/
         RUN_PYTHON = CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/RunPython
         SED_MODERN = -r
@@ -376,7 +386,7 @@ else
 manifest_exe:
 endif
 
-archives: $(BINARY_ARCHIVES) $(BINARY_ARCHIVES_INST) $(SOURCE_ARCHIVES) $(SOURCE_DEPENDENCIES)
+archives: $(BINARY_ARCHIVES) $(BINARY_ARCHIVES_INST) $(SOURCE_ARCHIVES) $(SETUPTOOLS_BOOTSTRAP) $(SOURCE_DEPENDENCIES)
 
 install-core: archives manifest_exe chandler-locale-data install-locales
 
