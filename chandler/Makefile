@@ -252,7 +252,7 @@ endif
 ifeq ($(OS),Cygwin)
     SITE       = $(shell cygpath -aw $(SNAP)/site-packages)
     SCRIPTS    = $(C_BIN)/$(SNAP)/bin/Scripts/
-    RUN_PYTHON = CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(C_BIN)/$(SNAP)/RunPython.bat
+    RUN_PYTHON = CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(C_BIN)/$(SNAP)/bin/python.exe
     SED_MODERN = -r
 endif
 
