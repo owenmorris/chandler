@@ -127,7 +127,7 @@ def runCommand(cmd, env=None, timeout=-1, logger=log, ignorepreexec=False):
         else:
             output = tempfile.TemporaryFile()
 
-    if ignorepreexec:
+    if ignorepreexec or sys.platform in ('win32',):
         preexec_fn = None
     else:
         preexec_fn = setpgid_preexec_fn
