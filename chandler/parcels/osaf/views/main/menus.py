@@ -588,7 +588,7 @@ def makeMainMenus(parcel):
                                   childBlocks = \
                                   makeVisibleHourMenuItems(parcel)),
                     Menu.template('WeekStartMenu',
-                                  title=_(u'&First Day Week'),
+                                  title=_(u'&First Day of Week'),
                                   childBlocks=list(iterWeekStartItems(parcel))),
                     ]), # Menu ViewMenu
             Menu.template('ItemMenu',
