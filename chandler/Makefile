@@ -165,7 +165,7 @@ SOURCE_ARCHIVES = \
     $(DOCUTILS) \
     $(ZOPE) \
     $(CHANDLERARCHIVES)/epydoc-3.0beta1.tar.gz \
-    $(CHANDLERARCHIVES)/EggTranslations-1.1.dev-r10.tar.gz
+    $(CHANDLERARCHIVES)/EggTranslations-1.2.tar.gz
 
 ifeq ($(PYTHON),)
 EASY_INSTALL_ARG = --install='$(SITE)'
@@ -195,7 +195,7 @@ SOURCE_DEPENDENCIES = \
     vobject>=0.8.1b \
     parsedatetime>=0.8.6 \
     zanshin>=0.6 \
-    EggTranslations>=1.1.dev-r10 \
+    EggTranslations>=1.2 \
     logilab-astng>=0.17.0 \
     logilab-common>=0.21.2 \
     pylint>=0.13.1 \

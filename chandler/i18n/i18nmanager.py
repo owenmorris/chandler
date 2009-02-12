@@ -229,6 +229,36 @@ class I18nManager(EggTranslations):
             self._wx_filehandler = I18nFileSystemHandler(self)
             wx.FileSystem.AddHandler(self._wx_filehandler)
 
+    def normalizeLocale(self, locale):
+        return Locale.createCanonical(locale).getName()
+
+    def isValidLocaleForm(self, locale):
+        return (super(I18nManager, self).isValidLocaleForm(locale) or
+                locale in Locale.getAvailableLocales())
+
+    def yieldFallbackLocales(self, localeSet):
+        yielded = set()
+
+        for locale in localeSet:
+            if not locale in yielded:
+                yielded.add(locale)
+                yield locale
+            
+            localeObj = Locale(locale)
+            
+            country = localeObj.getCountry()
+            language = localeObj.getLanguage()
+            
+            if language:
+                l_plus_c = "%s_%s" % (language, country)
+                if not l_plus_c in yielded:
+                    yielded.add(l_plus_c)
+                    yield l_plus_c
+            
+            if country and not country in yielded:
+                yielded.add(country)
+                yield country
+
     def discoverLocaleSet(self):
         """
          Queries the Operating System for the current locale sets.
@@ -376,30 +406,24 @@ class I18nManager(EggTranslations):
             else:
                 localeSet = [localeSet]
 
-        found = False
-
-        for loc in localeSet:
-            # Check if the "en" locale or one of
-            # its country sub-sets such as "en_US" or
-            # "en_GB" is in the localeSet. If there
-            # is not a match then add "en" as the last
-            # locale in the the localeSet for fallback
-            # purposes. This ensures that the English
-            # localization of Chandler which contains
-            # string changes added after a localization
-            # code freeze are leveraged in the Chandler
-            # UI.
-            if loc.lower().startswith("en"):
-                found = True
-                break
-
+        # Check if the "en" locale or one of
+        # its country sub-sets such as "en_US" or
+        # "en_GB" is in the localeSet. If there
+        # is not a match then add "en" as the last
+        # locale in the the localeSet for fallback
+        # purposes. This ensures that the English
+        # localization of Chandler which contains
+        # string changes added after a localization
+        # code freeze are leveraged in the Chandler
+        # UI.
         #The locale set appending of "en"
         # must be done before the call to the
         # parent classes setLocaleSet method
         # as that method loads and initalizes the
         # the gettext .mo files for each locale in
         # the locale set.
-        if not found:
+
+        if not any(loc.lower().startswith("en") for loc in localeSet):
             localeSet.append("en_US")
 
         #XXX This can raise an Exception if an invalid locale is
@@ -409,59 +433,53 @@ class I18nManager(EggTranslations):
         # entering the locale on the command line.
         super(I18nManager, self).setLocaleSet(localeSet, fallback)
 
-        if discover:
-            # If there is not an .mo translation file loaded for any
-            # of the locales in the locale set then default to
-            # United States English to prevent wxPython and PyICU
-            # from localizing while Chandler is displaying English text.
-            primaryLocale = "en_US"
+        # If there is not an .mo translation file loaded for any
+        # of the locales in the locale set then default to
+        # United States English to prevent wxPython and PyICU
+        # from localizing while Chandler is displaying English text.
+        primaryLocale = "en_US"
 
-            if fallback:
-                # Find the first locale in the locale set that either:
-                #
-                #   1. Has a translation egg installed.
-                #
-                #   2. Has a translation egg installed for its language code only.
-                #      This preserves any country specific date / time formatting. For
-                #      example, if the locale is fr_CA and there is no fr_CA egg but
-                #      there is an fr egg then set the locale to fr_CA.
-                #
-                for lc in self._localeSet:
-                    if self.hasTranslation(self._DEFAULT_PROJECT, self._DEFAULT_CATALOG, lc) or \
-                        (hasCountryCode(lc) and \
-                         self.hasTranslation(self._DEFAULT_PROJECT, self._DEFAULT_CATALOG, stripCountryCode(lc))):
-                        primaryLocale = lc
+        if fallback:
+            # Find the first locale in the locale set that either:
+            #
+            #   1. Has a translation egg installed.
+            #
+            #   2. Has a translation egg installed for its language code only.
+            #      This preserves any country specific date / time formatting.
+            #      For example, if the locale is fr_CA and there is no fr_CA egg 
+            #      but there is an fr egg then set the locale to fr_CA.
 
-                        if primaryLocale == "en_US":
-                            # This is a bit of a hack but
-                            # not sure of a cleaner way to
-                            # implement this logic.
-                            # If the primaryLocale is "en_US"
-                            # then it means that all of the
-                            # locales in the locale set that
-                            # preceeded "en" do not have a
-                            # translation.
-                            self._localeSet = ['en_US', 'en']
-                        break
+            for lc in self._localeSet:
+                if (self.hasTranslation(self._DEFAULT_PROJECT,
+                                        self._DEFAULT_CATALOG, lc) or
+                    (hasCountryCode(lc) and
+                     self.hasTranslation(self._DEFAULT_PROJECT,
+                                         self._DEFAULT_CATALOG,
+                                         stripCountryCode(lc)))):
+                    primaryLocale = lc
 
+                    if primaryLocale == "en_US":
+                        # This is a bit of a hack but
+                        # not sure of a cleaner way to
+                        # implement this logic.
+                        # If the primaryLocale is "en_US"
+                        # then it means that all of the
+                        # locales in the locale set that
+                        # preceeded "en" do not have a
+                        # translation.
+                        self._localeSet = ['en_US', 'en']
+                    break
             else:
                 lc = self._localeSet[0]
 
-                if lc.startswith("en") or \
-                  self.hasTranslation(self._DEFAULT_PROJECT, self._DEFAULT_CATALOG, lc):
+                if (lc.startswith("en") or
+                    self.hasTranslation(self._DEFAULT_PROJECT, 
+                                        self._DEFAULT_CATALOG, lc)):
                     primaryLocale = lc
-
-        else:
-            # If one of more locales are passed
-            # (command line or prefs) then set the
-            # locale of PyICU, wxPython, and
-            # Python regardless of whether
-            # Chandler provides a localization.
-            primaryLocale = self._localeSet[0]
 
         try:
             self._setLocale(primaryLocale)
-        except I18nException, e:
+        except I18nException:
             if discover:
                 self._setLocale("en_US", ignoreError=True)
             else:
@@ -472,7 +490,7 @@ class I18nManager(EggTranslations):
                 # on the command line. In this case
                 # we do want to raise the error and
                 # not just default to "en_US".
-                raise e
+                raise
 
         # Reset the resource lookup cache
         self._lookupCache = None
@@ -486,11 +504,13 @@ class I18nManager(EggTranslations):
             # With the exception of Chinese, all
             # wx localizations use the lang
             # code exclusively.
+            # XXX [grant] Also, pt_BR is common. This just seems
+            # bogus.
             try:
                 setWxLocale(stripCountryCode(primaryLocale), self)
-            except I18nException, e:
+            except I18nException:
                 if not ignoreError:
-                    raise e
+                    raise
 
         setPyICULocale(primaryLocale)
         setEnvironmentLocale(primaryLocale)
@@ -1049,8 +1069,7 @@ def setPyICULocale(locale):
     lc = Locale(locale)
 
     if not isValidPyICULocale(lc):
-        raise I18nException("Invalid PyICU Locale: '%s'" \
-                                 % locale)
+        raise I18nException, "Invalid PyICU Locale: '%s'" % locale
 
     Locale.setDefault(lc)
 
@@ -1071,9 +1090,13 @@ def isValidPyICULocale(locale):
                otherwise False
     """
 
-    for l in locale.getAvailableLocales():
-        if str(l) == str(locale):
-            return True
+    lName = locale.getName()
+    
+    if lName in locale.getAvailableLocales():
+        return True
+    
+    if lName in ('zh_CN', 'zh_TW'): #*&$ ICU
+        return True
 
     return False
 
@@ -1206,8 +1229,7 @@ if _WX_AVAILABLE:
             lc = findWxLocale(stripCountryCode(locale), i18nMan)
 
         if lc is None or not lc.IsOk():
-            raise I18nException("Invalid wxPython Locale: " \
-                                     "'%s'" % locale)
+            raise I18nException, "Invalid wxPython Locale: '%s'" % locale
 
         # Keep a Global reference to the Wx Locale
         # To ensure it does not get unloaded during the
