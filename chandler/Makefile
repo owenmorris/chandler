@@ -28,7 +28,8 @@ BUILD_LOCALES = en \
                 fr \
                 fi \
                 sv \
-                de
+                de \
+                it
 
 ifeq ($(OS),Darwin)
     ifeq ($(shell arch),ppc)
