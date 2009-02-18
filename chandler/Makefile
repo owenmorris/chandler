@@ -75,8 +75,10 @@ endif
 READLINE   = $(CHANDLERARCHIVES)/readline-$(SNAP)-5.2-$(BP)2.tar.gz
 PYTHON     = $(CHANDLERARCHIVES)/python-$(SNAP)-2.5.1-$(BP)9.tar.gz
 ICU        = $(CHANDLERARCHIVES)/icu-$(SNAP)-3.6-$(BP)2.tar.gz
+PYICU      = $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.8-92-$(BP)1.tar.gz \
 OPENJDK    = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b21-$(BP)3.tar.gz
 OPENSSL    = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)3.tar.gz
+M2CRYPTO   = $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-0.18.2-$(BP)2.tar.gz
 CONFIGOBJ  = $(CHANDLERARCHIVES)/configobj-4.5.3.tar.gz
 DOCUTILS   = $(CHANDLERARCHIVES)/docutils-0.4.tar.gz
 ZOPE       = $(CHANDLERARCHIVES)/zope.interface-3.3.0b2-r71371.tar.bz2
@@ -100,6 +102,11 @@ ifeq ($(OS),Linux)
         DOCUTILS   =
         OPENJDK    =
         ZOPE       =
+    endif
+
+    ifneq ($(findstring $(DISTRIB_CODENAME),hardy intrepid jaunty),)
+        M2CRYPTO   =
+        PYICU      =
     endif
 
     ifeq ($(PLATFORM),linux/gutsy/x86_64)
@@ -140,8 +147,8 @@ BINARY_ARCHIVES = \
     $(ICU) \
     $(OPENSSL) \
     $(OPENJDK) \
-    $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-0.18.2-$(BP)2.tar.gz \
-    $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.8-92-$(BP)1.tar.gz \
+    $(M2CRYPTO) \
+    $(PYICU) \
     $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.3.1-3-418-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/twisted-$(SNAP)-r18795-$(BP)3.tar.gz \
     $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.7.1-r218-$(BP)1.tar.gz \
@@ -410,10 +417,11 @@ SYSTEM_REQUIREMENTS = setuptools>0.6c6  $(subst '',check-,$(filter '(configobj|z
 else
 
 ifneq ($(findstring $(DISTRIB_CODENAME),gutsy hardy intrepid jaunty),)
-SYSTEM_REQUIREMENTS = setuptools>0.6c6 $(patsubst %,check-%, $(filter configobj% zope.interface% setuptools%, $(SOURCE_DEPENDENCIES)))
+SYSTEM_REQUIREMENTS = setuptools>0.6c6 PyICU>=0.8 M2Crypto>=0.18.2 $(patsubst %,check-%, $(filter configobj% zope.interface% setuptools%, $(SOURCE_DEPENDENCIES)))
 endif
 endif
 endif
+
 
 .PHONY: $(SYSTEM_REQUIREMENTS)
 

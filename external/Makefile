@@ -61,7 +61,7 @@ PY_SYSTEMS = \
         $(PYICU_BUILD) \
         $(ZOPE_BUILD) \
         twisted \
-        m2crypto \
+        $(M2CRYPTO_BUILD) \
         wx
 
 ALL_SYSTEMS = $(BUILD_ONLY_SYSTEMS) $(BINARY_SYSTEMS) $(BUILD_ONLY_PY_SYSTEMS) \

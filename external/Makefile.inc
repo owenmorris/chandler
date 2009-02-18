@@ -69,6 +69,7 @@ ifeq ($(OS),Cygwin)
     OPENJDK_BUILD=openjdk
     PYTHON_BUILD=python
     ICU_BUILD=icu
+    M2CRYPTO_BUILD=m2crypto
     PYICU_BUILD=pyicu
 endif
 
@@ -103,6 +104,7 @@ ifeq ($(OS),Darwin)
     endif
     PYTHON:=MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON)
     OPENSSL_BUILD=openssl
+    M2CRYPTO_BUILD=
     OPENJDK_BUILD=
     ifeq ($(OS_MAJOR_VER),9)
         READLINE_BUILD=
@@ -129,9 +131,15 @@ ifeq ($(OS),Linux)
         UPLOAD:=$(UPLOAD)/$(DISTRIB_CODENAME)
         ifeq ($(DISTRIB_CODENAME),feisty)
             OPENSSL_BUILD=openssl
+            M2CRYPTO_BUILD=m2crypto
         else
             OPENSSL_BUILD=
             OPENJDK_BUILD=
+            ifeq ($(DISTRIB_CODENAME),gutsy)
+                M2CRYPTO_BUILD=m2crypto
+            else
+                M2CRYPTO_BUILD=
+            endif
         endif
         PYTHON_BUILD=
         ICU_BUILD=
@@ -145,6 +153,7 @@ ifeq ($(OS),Linux)
         PYTHON:=$(PREFIX)/$(PYTHON_BINDIR)/$(PYTHON)
         SITE=lib/python$(PYTHON_VER)/site-packages
         OPENSSL_BUILD=openssl
+        M2CRYPTO_BUILD=m2crypto
         PYTHON_BUILD=python
         ICU_BUILD=icu
         PYICU_BUILD=PyICU
