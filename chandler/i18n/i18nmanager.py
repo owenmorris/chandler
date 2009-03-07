@@ -255,9 +255,9 @@ class I18nManager(EggTranslations):
                     yielded.add(l_plus_c)
                     yield l_plus_c
             
-            if country and not country in yielded:
-                yielded.add(country)
-                yield country
+            if language and not language in yielded:
+                yielded.add(language)
+                yield language
 
     def discoverLocaleSet(self):
         """
