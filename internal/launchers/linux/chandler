@@ -2,10 +2,13 @@
 
 if [ "$CHANDLERHOME" = "" ]
 then
+    CHANDLERHOME=$(dirname "$0")
     if [ -L "$0" ] ; then
-        CHANDLERHOME=$(dirname $(readlink "$0"))
-    else
-        CHANDLERHOME=$(dirname "$0")
+        link=$(readlink "$0")
+        case "$link" in
+            /*) CHANDLERHOME="$link" ;;
+            *) CHANDLERHOME=$(cd "$CHANDLERHOME"/$(dirname "$link") && pwd) ;;
+        esac
     fi
 fi
 
@@ -27,7 +30,7 @@ else
     export PYTHONPATH="$CHANDLERHOME":"$CHANDLERHOME"/parcels
     export PYTHONBIN="$CHANDLERBIN"/release/bin/python
 fi
- 
+
 if [ "`uname -m`" = "x86_64" ]; then
     arch=amd64
     vm=server
