@@ -413,11 +413,11 @@ distrib-plugins: $(addprefix develop-u-, $(BUILD_PLUGINS)) \
 SYSTEM_REQUIREMENTS =
 ifeq ($(OS),Linux)
 ifeq ($(PLATFORM),linux/feisty)
-SYSTEM_REQUIREMENTS = setuptools>0.6c6  $(subst '',check-,$(filter '(configobj|zope\.interface).*', $(SOURCE_DEPENDENCIES)))
+SYSTEM_REQUIREMENTS = setuptools>=0.6c6  $(subst '',check-,$(filter '(configobj|zope\.interface).*', $(SOURCE_DEPENDENCIES)))
 else
 
 ifneq ($(findstring $(DISTRIB_CODENAME),gutsy hardy intrepid jaunty),)
-SYSTEM_REQUIREMENTS = setuptools>0.6c6 PyICU>=0.8 M2Crypto>=0.18.2 $(patsubst %,check-%, $(filter configobj% zope.interface% setuptools%, $(SOURCE_DEPENDENCIES)))
+SYSTEM_REQUIREMENTS = setuptools>=0.6c6 PyICU>=0.8 M2Crypto>=0.18 $(patsubst %,check-%, $(filter configobj% zope.interface%, $(SOURCE_DEPENDENCIES)))
 endif
 endif
 endif
