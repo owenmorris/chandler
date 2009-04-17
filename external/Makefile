@@ -34,7 +34,11 @@ ifeq ($(PYTHON_BUILD),)
 EASY_INSTALL_ARGS = -m easy_install
 else
 EASY_INSTALL = $(CHANDLERARCHIVES)/ez_setup.py
-EASY_INSTALL_ARGS = $(EASY_INSTALL)
+ifeq ($(OS),Cygwin)
+    EASY_INSTALL_ARGS = '$(shell cygpath -aw $(EASY_INSTALL))'
+else
+    EASY_INSTALL_ARGS = $(EASY_INSTALL)
+endif
 $(EASY_INSTALL):
 	cd $(CHANDLERARCHIVES) && $(CURL) http://peak.telecommunity.com/dist/ez_setup.py
 endif

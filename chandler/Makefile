@@ -180,11 +180,19 @@ EASY_INSTALL_ARG = --install='$(SITE)'
 SETUPTOOLS_BOOTSTRAP =
 else
 EASY_INSTALL_ARG = 
+
+EZ_SETUP_PATH = $(CHANDLERARCHIVES)/ez_setup.py
+
+ifeq ($(OS),Cygwin)
+EZ_SETUP_PATH := $(shell cygpath -aw $(EZ_SETUP_PATH))
+endif
+
 $(CHANDLERARCHIVES)/ez_setup.py:
 	mkdir -p $(CHANDLERARCHIVES) && $(CURL) $@ http://peak.telecommunity.com/dist/ez_setup.py
+
 SETUPTOOLS_BOOTSTRAP = setuptools
 $(SETUPTOOLS_BOOTSTRAP): $(CHANDLERARCHIVES)/ez_setup.py $(SETUPTOOLS)
-	$(RUN_PYTHON) $(CHANDLERARCHIVES)/ez_setup.py $(SETUPTOOLS)
+	$(RUN_PYTHON) '$(EZ_SETUP_PATH)' $(SETUPTOOLS)
 endif
 
 .PHONY: $(SETUPTOOLS_BOOTSTRAP)
