@@ -37,15 +37,19 @@ ifeq ($(OS),Darwin)
     else
         PLATFORM = maciosx
     endif
-    ifeq ($(OS_MAJOR_VER),9)
+    MACOSX_VERS = $(shell /usr/bin/sw_vers -productVersion | sed -E 's/(^[0-9]+\.[0-9]+).*/\1/')
+    DISTUTILS_PLATFORM = -py$(PYTHON_VER)-macosx-$(MACOSX_VERS)-$(shell arch)
+    ifeq ($(MACOSX_VERS),10.5)
         PLATFORM := $(PLATFORM)/10.5
     endif
+    
 endif
 
 ifeq ($(OS),Linux)
     PLATFORM         = linux
     ARCH             = $(shell uname -m)
     DISTRIB_CODENAME = $(subst DISTRIB_CODENAME=,,$(shell cat /etc/lsb-release | grep DISTRIB_CODENAME))
+    DISTUTILS_PLATFORM = -py$(PYTHON_VER)-Linux-$(ARCH)
 
     ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy hardy intrepid jaunty),)
         PLATFORM := $(PLATFORM)/$(DISTRIB_CODENAME)
@@ -58,11 +62,13 @@ endif
 ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
     OS       = Cygwin
     PLATFORM = windows
+    DISTUTILS_PLATFORM = -py$(PYTHON_VER)-win32
 endif
 
 ifeq ($(findstring WINNT,$(OS)),WINNT)
     OS       = Cygwin
     PLATFORM = windows
+    DISTUTILS_PLATFORM = -py$(PYTHON_VER)-win32-$(ARCH)
 endif
 
 
@@ -81,8 +87,8 @@ OPENSSL    = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)3.tar.gz
 M2CRYPTO   = $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-0.18.2-$(BP)2.tar.gz
 CONFIGOBJ  = $(CHANDLERARCHIVES)/configobj-4.5.3.tar.gz
 DOCUTILS   = $(CHANDLERARCHIVES)/docutils-0.4.tar.gz
-ZOPE       = $(CHANDLERARCHIVES)/zope.interface-3.3.0b2-r71371.tar.bz2
-
+ZOPE_VERS  = zope.interface-3.3.0b2
+ZOPE       = $(CHANDLERARCHIVES)/$(ZOPE_VERS)-r71371.tar.bz2
 
 ifeq ($(OS),Linux)
     READLINE =
@@ -95,6 +101,7 @@ ifeq ($(OS),Linux)
     endif
 
     ifneq ($(findstring $(DISTRIB_CODENAME),gutsy hardy intrepid jaunty),)
+        ZOPE      :=
         OPENSSL    =
         PYTHON     =
         ICU        =
@@ -121,10 +128,12 @@ ifeq ($(OS),Linux)
 endif
 
 ifneq ($(findstring $(PLATFORM),macosx maciosx),)
+    ZOPE      := $(CHANDLERARCHIVES)/$(ZOPE_VERS)$(DISTUTILS_PLATFORM).egg
     OPENJDK    =
 endif
 
 ifeq ($(findstring 10.5,$(PLATFORM)),10.5)
+    ZOPE      :=
     PYTHON     =
     OPENJDK    =
     READLINE   =
@@ -132,13 +141,14 @@ endif
 
 ifeq ($(PLATFORM),windows)
     READLINE   =
+    ZOPE      := $(CHANDLERARCHIVES)/$(ZOPE_VERS)$(DISTUTILS_PLATFORM).egg
 endif
 
 #
-# BINARY_ARCHIVES: archives we download into the CHANDLERARCHIVES
+# TAR_ARCHIVES: archives we download into the CHANDLERARCHIVES
 #     directory, and install by untarring.
 #
-BINARY_ARCHIVES = \
+TAR_ARCHIVES = \
     $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)31.tar.gz \
     $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.7-$(BP)37.tar.gz \
     $(CHANDLERARCHIVES)/db-$(SNAP)-4.6.21-$(BP)3.tar.gz \
@@ -154,13 +164,13 @@ BINARY_ARCHIVES = \
     $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.7.1-r218-$(BP)1.tar.gz \
 
 #
-# SOURCE_ARCHIVES: archives we download into the CHANDLERARCHIVES
+# EZ_INSTALL_ARCHIVES: archives we download into the CHANDLERARCHIVES
 #     directory, and install by using easy_install. (It's possible
 #     we could just use pypi instead of maintaining a cache, or
 #     alternatively, we could set up a pypi-like mirror on
 #     builds.osafoundation.org.
 #
-SOURCE_ARCHIVES = \
+EZ_INSTALL_ARCHIVES = \
     $(CHANDLERARCHIVES)/setuptools-0.6c9.tar.gz \
     $(CHANDLERARCHIVES)/python-dateutil-1.4.1.tar.gz \
     $(CHANDLERARCHIVES)/vobject-0.8.1b.tar.gz \
@@ -200,7 +210,7 @@ endif
 #
 # SOURCE_DEPENDENCIES: these specify the minimum version of each project
 #     that we need to install. Notice that these don't exactly match
-#     what's in SOURCE_ARCHIVES: the reason is that on Linux we are
+#     what's in EZ_INSTALL_ARCHIVES: the reason is that on Linux we are
 #     prepared to pick up earlier versions from the OS. Note that we
 #     do a pre-check of your OS install in the py-env target.
 #
@@ -330,12 +340,12 @@ ifeq ($(OS),Cygwin)
     SITE        := $(shell cygpath -wa $(SITE))\\
 endif
 
-BINARY_ARCHIVES_INST = \
+TAR_ARCHIVES_INST = \
     $(addsuffix .inst, \
                 $(addprefix $(C_BIN)/$(SNAP)/, \
-                            $(notdir $(BINARY_ARCHIVES))))
+                            $(notdir $(TAR_ARCHIVES))))
 
-downloads: $(BINARY_ARCHIVES) $(SOURCE_ARCHIVES)
+downloads: $(TAR_ARCHIVES) $(EZ_INSTALL_ARCHIVES)
 
 $(addprefix develop-, $(BUILD_PLUGINS)):
 	mkdir -p '$(PLUGIN_INST)'
@@ -373,17 +383,17 @@ $(addprefix install-, $(BUILD_LOCALES)):
 chandler-locale-data:
 	$(RUN_PYTHON) setup.py egg_info
 
-$(BINARY_ARCHIVES):
+$(TAR_ARCHIVES):
 	mkdir -p $(CHANDLERARCHIVES)
 	$(CURL) $@ $(P_URL)/$(notdir $@)
 
-$(SOURCE_ARCHIVES):
+$(EZ_INSTALL_ARCHIVES):
 	mkdir -p $(CHANDLERARCHIVES)
 	$(CURL) $@ $(URL)/$(notdir $@)
 
 # if the archive name does not contain the string 'release' or 'debug' it's
 # the same for both and needs to be installed in $(SNAP) explicitely
-$(BINARY_ARCHIVES_INST):
+$(TAR_ARCHIVES_INST):
 	@if [ $(shell echo $(notdir $@) | sed "s/-$(SNAP)[^ ]*//g") = $(notdir $@) ]; then \
             echo tar -C $(C_BIN)/$(SNAP) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@)); \
             tar -C $(C_BIN)/$(SNAP) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@)); \
@@ -403,7 +413,7 @@ else
 manifest_exe:
 endif
 
-archives: $(BINARY_ARCHIVES) $(BINARY_ARCHIVES_INST) $(SOURCE_ARCHIVES) $(SETUPTOOLS_BOOTSTRAP) $(SOURCE_DEPENDENCIES)
+archives: $(TAR_ARCHIVES) $(TAR_ARCHIVES_INST) $(EZ_INSTALL_ARCHIVES) $(SETUPTOOLS_BOOTSTRAP) $(SOURCE_DEPENDENCIES)
 
 install-core: archives manifest_exe chandler-locale-data install-locales
 
@@ -445,12 +455,12 @@ install-no-plugins: install-core py-env
 
 distrib: install-core py-env distrib-plugins
 
-download: $(SOURCE_ARCHIVES) $(BINARY_ARCHIVES)
+download: $(EZ_INSTALL_ARCHIVES) $(TAR_ARCHIVES)
 
 # to install individual binaries, for example: make chandlerdb
 
-$(notdir $(shell echo $(BINARY_ARCHIVES) | sed "s/-$(SNAP)[^ ]*//g")):
-	$(MAKE) $(shell echo $(BINARY_ARCHIVES) | sed "s=.*\($(CHANDLERARCHIVES)/$@-[^ ]*\).*=\1=")
+$(notdir $(shell echo $(TAR_ARCHIVES) | sed "s/-$(SNAP)[^ ]*//g")):
+	$(MAKE) $(shell echo $(TAR_ARCHIVES) | sed "s=.*\($(CHANDLERARCHIVES)/$@-[^ ]*\).*=\1=")
 	$(MAKE) $(shell echo $(ARCHIVES_INST) | sed "s=.*\($(C_BIN)/$(SNAP)/$@-[^ ]*\).*=\1=")
 
 
@@ -520,7 +530,7 @@ clean: distclean
 realclean: clean
 	rm -rf $(C_BIN)/release
 	rm -rf $(C_BIN)/debug
-	rm -f $(BINARY_ARCHIVES) $(SOURCE_ARCHIVES)
+	rm -f $(TAR_ARCHIVES) $(EZ_INSTALL_ARCHIVES)
 
 relocatable-distro:
 	$(MAKE) -C distrib/relocatable \
