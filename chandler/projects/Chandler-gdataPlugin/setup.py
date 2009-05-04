@@ -23,7 +23,7 @@ setup(
     test_suite = "gdatasync.tests",
     packages = ["gdatasync"],
     include_package_data = True,
-    install_requires = ["gdata.py>=1.0.7, !=1.0.10"],
+    install_requires = ["gdata>=1.3.1"],
     entry_points = {
         "chandler.parcels": ["Google Data Sync = gdatasync"],
         "chandler.chex_mixins": ["Google Data Sync = gdatasync:GDataTranslator"],
