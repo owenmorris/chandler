@@ -88,7 +88,6 @@ def installParcel(parcel, oldName=None):
                                 commitAfterDispatch = True).install(parcel),
     
             BlockEvent.template('Delete',
-                                commitAfterDispatch = True,
                                 dispatchEnum = 'FocusBubbleUp',
                                 commitAfterDispatch = True).install(parcel),
 
