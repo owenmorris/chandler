@@ -82,7 +82,10 @@ class TestReactor(selectreactor.SelectReactor):
         self.__init__()
         self._simulated_time = realtime()
         self._use_realtime = None
-        
+        self._started = True
+        self._stopped = False
+        self.fireSystemEvent('startup')
+
 
     def waitFor(self, seconds, early_ok=True):
         """Run the event loop for `seconds` of simulated time
@@ -91,6 +94,7 @@ class TestReactor(selectreactor.SelectReactor):
         exits before the time expires.
         """
         finish = self.callLater(seconds, self.crash)
+        self._started = True
         self.running = 1
         self.mainLoop()
         if finish.active():
@@ -124,6 +128,7 @@ class TestReactor(selectreactor.SelectReactor):
         deferred.addCallbacks(callback, callback) # call it either way
 
         if not result:  # don't infinite loop if the deferred has already fired
+            self._started = True
             self.running = 1
             self.mainLoop()
 
@@ -145,6 +150,8 @@ class TestReactor(selectreactor.SelectReactor):
             return realtime()
         self._use_realtime = False  # once we've read it, disallow changing it
         return self._simulated_time
+
+    seconds = getTime
 
     def setTime(self,seconds):
         """Set the current simulated time"""
@@ -196,8 +203,7 @@ def install():
 
     # If Twisted defined these as methods on reactors, we wouldn't
     # need to monkeypatch their globals like this.  :(
-    base.seconds = reactor.getTime
-    task.seconds = reactor.getTime
+    task.Clock.seconds = lambda c: reactor.seconds
     selectreactor.sleep = reactor.sleep
     selectreactor._select = reactor.select
 

@@ -64,7 +64,6 @@ PY_SYSTEMS = \
         PyLucene \
         $(PYICU_BUILD) \
         $(ZOPE_BUILD) \
-        twisted \
         $(M2CRYPTO_BUILD) \
         wx
 

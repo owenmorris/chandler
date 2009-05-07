@@ -168,7 +168,7 @@ condition occurs, or raises an error if it seems to be taking too long::
 
     >>> def wait_until(condition):
     ...     ms = 1
-    ...     while ms<=10000:  # Wait a maximum of 11.111 seconds
+    ...     while ms<=1000000:  # Wait a maximum of 11.111 seconds
     ...         if condition():
     ...             return
     ...         sleep(ms/1000.0)    # sleep for ms milliseconds
@@ -389,7 +389,7 @@ For our example, we'll create a simple class suitable for use as a periodic
 task::
 
     >>> run_count = 0
-    >>> class Counter:
+    >>> class Counter(object):
     ...     def __init__(self, item):
     ...         self.item = item
     ...         print "__init__",
@@ -421,11 +421,11 @@ per microsecond (so the test runs quickly!)::
 
     >>> run_startup(rv); wait_until(lambda: run_count==5)
     __init__ running ... in <RepositoryThread(reactor,...)>
-    run() call 1 running ... in <RepositoryThread(RepositoryPoolThread...)>
-    run() call 2 running ... in <RepositoryThread(RepositoryPoolThread...)>
-    run() call 3 running ... in <RepositoryThread(RepositoryPoolThread...)>
-    run() call 4 running ... in <RepositoryThread(RepositoryPoolThread...)>
-    run() call 5 running ... in <RepositoryThread(RepositoryPoolThread...)>
+    run() call 1 running ... in <RepositoryThread(...)>
+    run() call 2 running ... in <RepositoryThread(...)>
+    run() call 3 running ... in <RepositoryThread(...)>
+    run() call 4 running ... in <RepositoryThread(...)>
+    run() call 5 running ... in <RepositoryThread(...)>
 
 Notice that the ``__init__`` method is called at startup time in the reactor
 thread, but subsequent ``run()`` calls occur in various "pool" threads managed
@@ -445,7 +445,8 @@ To demonstrate, we'll set the delay interval to a year::
     >>> counter.interval = timedelta(days=365)
     >>> run_count = 0   # reset the counter
     >>> run_startup(rv); wait_until(lambda: run_count)
-    run() call 1 running ... in <RepositoryThread(RepositoryPoolThread...)>
+    __init__ running ... in <RepositoryThread(reactor,...)>
+    run() call 1 running ... in <RepositoryThread(...)>
 
 Notice that call 1 ran, even though there's a year between runs.
 
@@ -453,7 +454,7 @@ This is probably a good time to mention that we can manually force a task to
 be run immediately using the ``run_once()`` method::
 
     >>> counter.run_once(); wait_until(lambda: run_count==2)
-    run() call 2 running ... in <RepositoryThread(RepositoryPoolThread...)>
+    run() call 2 running ... in <RepositoryThread(...)>
 
 and that we can change the interval of a running ``PeriodicTask``, using the
 ``reschedule()`` method::
@@ -461,9 +462,9 @@ and that we can change the interval of a running ``PeriodicTask``, using the
     >>> interval = counter.reschedule(
     ...     timedelta(microseconds=1)
     ... ); wait_until(lambda: run_count==5)
-    run() call 3 running ... in <RepositoryThread(RepositoryPoolThread...)>
-    run() call 4 running ... in <RepositoryThread(RepositoryPoolThread...)>
-    run() call 5 running ... in <RepositoryThread(RepositoryPoolThread...)>
+    run() call 3 running ... in <RepositoryThread(...)>
+    run() call 4 running ... in <RepositoryThread(...)>
+    run() call 5 running ... in <RepositoryThread(...)>
 
 There's also a ``stop()`` method, which will prevent any further invocations
 from occurring, until/unless you call ``reschedule()`` again.  If you don't
@@ -473,7 +474,7 @@ provide an interval argument to ``reschedule()``, it defaults to the current
     >>> counter.stop()
     >>> interval = counter.reschedule(); wait_until(lambda: run_count==6)
     __init__ running ... in <RepositoryThread(reactor,...)>
-    run() call 6 running ... in <RepositoryThread(RepositoryPoolThread...)>
+    run() call 6 running ... in <RepositoryThread(...)>
 
 (Note that if you ``stop()`` your periodic task, the task object (e.g. the
 ``Counter`` instance in our examples above) may be garbage collected by

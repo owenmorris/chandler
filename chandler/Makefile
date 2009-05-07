@@ -38,7 +38,8 @@ ifeq ($(OS),Darwin)
         PLATFORM = maciosx
     endif
     MACOSX_VERS = $(shell /usr/bin/sw_vers -productVersion | sed -E 's/(^[0-9]+\.[0-9]+).*/\1/')
-    DISTUTILS_PLATFORM = -py$(PYTHON_VER)-macosx-$(MACOSX_VERS)-$(shell arch)
+    DISTUTILS_PLATFORM :=-py$(PYTHON_VER)-macosx-$(MACOSX_VERS)-$(shell arch)
+
     ifeq ($(MACOSX_VERS),10.5)
         PLATFORM := $(PLATFORM)/10.5
     endif
@@ -68,7 +69,13 @@ endif
 ifeq ($(findstring WINNT,$(OS)),WINNT)
     OS       = Cygwin
     PLATFORM = windows
-    DISTUTILS_PLATFORM = -py$(PYTHON_VER)-win32-$(ARCH)
+    DISTUTILS_PLATFORM = -py$(PYTHON_VER)-win32
+endif
+
+ifeq ($(PYTHON),)
+    ifneq ($(DISTUTILS_PLATFORM),-py$(PYTHON_VER)-$(shell python -c 'import distutils.util as du; print du.get_platform()'))
+       DISTUTILS_PLATFORM :=
+    endif
 endif
 
 
@@ -89,6 +96,12 @@ CONFIGOBJ  = $(CHANDLERARCHIVES)/configobj-4.5.3.tar.gz
 DOCUTILS   = $(CHANDLERARCHIVES)/docutils-0.4.tar.gz
 ZOPE_VERS  = zope.interface-3.3.0b2
 ZOPE       = $(CHANDLERARCHIVES)/$(ZOPE_VERS)-r71371.tar.bz2
+TWISTED    = $(CHANDLERARCHIVES)/Twisted-8.2.0$(DISTUTILS_PLATFORM).egg
+
+# Build twisted egg from source if we have no DISTUTILS_PLATFORM
+ifeq ($(DISTUTILS_PLATFORM),)
+    TWISTED := $(CHANDLERARCHIVES)/Twisted-8.2.0.tar.bz2
+endif
 
 ifeq ($(OS),Linux)
     READLINE =
@@ -114,8 +127,9 @@ ifeq ($(OS),Linux)
     ifneq ($(findstring $(DISTRIB_CODENAME),hardy intrepid jaunty),)
         M2CRYPTO   =
         PYICU      =
+        TWISTED   :=
     endif
-
+    
     ifeq ($(PLATFORM),linux/gutsy/x86_64)
         OPENJDK    = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b23-$(BP)3.tar.gz
         OPENSSL    =
@@ -160,7 +174,6 @@ TAR_ARCHIVES = \
     $(M2CRYPTO) \
     $(PYICU) \
     $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.3.1-3-418-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/twisted-$(SNAP)-r18795-$(BP)3.tar.gz \
     $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.7.1-r218-$(BP)1.tar.gz \
 
 #
@@ -182,6 +195,7 @@ EZ_INSTALL_ARCHIVES = \
     $(CONFIGOBJ) \
     $(DOCUTILS) \
     $(ZOPE) \
+    $(TWISTED) \
     $(CHANDLERARCHIVES)/epydoc-3.0beta1.tar.gz \
     $(CHANDLERARCHIVES)/EggTranslations-1.2.tar.gz
 
@@ -208,15 +222,16 @@ endif
 .PHONY: $(SETUPTOOLS_BOOTSTRAP)
 
 #
-# SOURCE_DEPENDENCIES: these specify the minimum version of each project
+# PROJECT_DEPENDENCIES: these specify the minimum version of each project
 #     that we need to install. Notice that these don't exactly match
 #     what's in EZ_INSTALL_ARCHIVES: the reason is that on Linux we are
 #     prepared to pick up earlier versions from the OS. Note that we
 #     do a pre-check of your OS install in the py-env target.
 #
-SOURCE_DEPENDENCIES = \
+PROJECT_DEPENDENCIES = \
     setuptools>=0.6c9 \
     zope.interface \
+    twisted>=8.1.0 \
     python-dateutil>=1.3 \
     vobject>=0.8.1b \
     parsedatetime>=0.8.6 \
@@ -229,9 +244,9 @@ SOURCE_DEPENDENCIES = \
     docutils>=0.4 \
     epydoc>=3.0beta1
 
-.PHONY: $(SOURCE_DEPENDENCIES)
+.PHONY: $(PROJECT_DEPENDENCIES)
 
-$(SOURCE_DEPENDENCIES): py-env download
+$(PROJECT_DEPENDENCIES): py-env download
 	$(RUN_PYTHON) -c "from pkg_resources import require; require('$@')" || \
 	$(RUN_PYTHON) -m easy_install -Z -f'$(CHANDLERARCHIVES)' -HNone -x $(EASY_INSTALL_ARG) '$@'
 
@@ -413,7 +428,7 @@ else
 manifest_exe:
 endif
 
-archives: $(TAR_ARCHIVES) $(TAR_ARCHIVES_INST) $(EZ_INSTALL_ARCHIVES) $(SETUPTOOLS_BOOTSTRAP) $(SOURCE_DEPENDENCIES)
+archives: $(TAR_ARCHIVES) $(TAR_ARCHIVES_INST) $(EZ_INSTALL_ARCHIVES) $(SETUPTOOLS_BOOTSTRAP) $(PROJECT_DEPENDENCIES)
 
 install-core: archives manifest_exe chandler-locale-data install-locales
 
@@ -431,11 +446,11 @@ distrib-plugins: $(addprefix develop-u-, $(BUILD_PLUGINS)) \
 SYSTEM_REQUIREMENTS =
 ifeq ($(OS),Linux)
 ifeq ($(PLATFORM),linux/feisty)
-SYSTEM_REQUIREMENTS = setuptools>=0.6c6  $(subst '',check-,$(filter '(configobj|zope\.interface).*', $(SOURCE_DEPENDENCIES)))
+SYSTEM_REQUIREMENTS = setuptools>=0.6c6  $(subst '',check-,$(filter '(configobj|zope\.interface).*', $(PROJECT_DEPENDENCIES)))
 else
 
 ifneq ($(findstring $(DISTRIB_CODENAME),gutsy hardy intrepid jaunty),)
-SYSTEM_REQUIREMENTS = setuptools>=0.6c6 PyICU>=0.8 M2Crypto>=0.18 $(patsubst %,check-%, $(filter configobj% zope.interface%, $(SOURCE_DEPENDENCIES)))
+SYSTEM_REQUIREMENTS = setuptools>=0.6c6 PyICU>=0.8 M2Crypto>=0.18 $(patsubst %,check-%, $(filter configobj% zope.interface%, $(PROJECT_DEPENDENCIES)))
 endif
 endif
 endif

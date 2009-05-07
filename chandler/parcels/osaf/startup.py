@@ -392,19 +392,15 @@ def run_reactor(in_thread=True):
     """
     global reactor
     global _reactor_thread
-
+    
     from osaf.framework.twisted import TwistedThreadPool  # initializes threads
-    from twisted.python import threadpool
-    threadpool.ThreadPool = TwistedThreadPool.RepositoryThreadPool
 
     from twisted.internet import reactor
 
     if not in_thread:
         if reactor.running:
             raise AssertionError("Reactor is already running")
-        # enable repeated reactor runs
-        def _del_pool(): reactor.threadpool = None
-        for evt in reactor.crash, reactor.disconnectAll, _del_pool:
+        for evt in reactor.crash, reactor.disconnectAll:
             reactor.addSystemEventTrigger('during', 'shutdown', evt)
         reactor.run(0)
         return
