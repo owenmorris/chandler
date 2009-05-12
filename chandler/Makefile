@@ -50,7 +50,7 @@ ifeq ($(OS),Linux)
     PLATFORM         = linux
     ARCH             = $(shell uname -m)
     DISTRIB_CODENAME = $(subst DISTRIB_CODENAME=,,$(shell cat /etc/lsb-release | grep DISTRIB_CODENAME))
-    DISTUTILS_PLATFORM = -py$(PYTHON_VER)-Linux-$(ARCH)
+    DISTUTILS_PLATFORM = -py$(PYTHON_VER)-linux-$(ARCH)
 
     ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy hardy intrepid jaunty),)
         PLATFORM := $(PLATFORM)/$(DISTRIB_CODENAME)
@@ -127,6 +127,10 @@ ifeq ($(OS),Linux)
     ifneq ($(findstring $(DISTRIB_CODENAME),hardy intrepid jaunty),)
         M2CRYPTO   =
         PYICU      =
+    endif
+
+    # hardy has twisted-2.5.0, which is not recent enough
+    ifneq ($(findstring $(DISTRIB_CODENAME),intrepid jaunty),)
         TWISTED   :=
     endif
     
