@@ -23,7 +23,7 @@ from osaf.pim.triage import Triageable
 from chandlerdb.util.c import UUID, Empty, Nil
 from chandlerdb.persistence.RepositoryView import currentview
 from i18n import ChandlerMessageFactory as _
-import md5
+from hashlib import md5
 from itertools import chain
 import logging
 

@@ -351,6 +351,10 @@ class Calculated(property, ActiveDescriptor):
 class Endpoint(object):
     """Represent an endpoint"""
 
+    def __new__(cls, *args, **kw):
+        # Silence python 2.6 warning
+        return object.__new__(cls)
+
     def __init__(self, name, attribute, includePolicy="byValue",
         cloudAlias=None, method = None
     ):

@@ -270,7 +270,7 @@ class UserChangeProxy(object):
         if reminders.isDead(itemOrAnnotation):
             return None
         
-        return object.__new__(proxyClass, item)
+        return object.__new__(proxyClass)
 
     def __init__(self, item):
         """

@@ -37,7 +37,7 @@ from i18n import ChandlerMessageFactory as _
 import os, logging
 import bisect
 from chandlerdb.util.c import UUID
-import md5
+from hashlib import md5
 from application.dialogs.TurnOnTimezones import ShowTurnOnTimezonesDialog
 import wx
 
