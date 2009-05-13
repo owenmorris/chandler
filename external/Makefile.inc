@@ -164,6 +164,11 @@ ifeq ($(OS),Linux)
     endif
 endif
 
+ifeq ($(PYTHON_BUILD),)
+    PYTHON_VER := $(shell python -c 'import sys; print "%d.%d" % sys.version_info[:2]')
+endif
+
+
 ifeq ($(CHANDLERHOME),)
 CHANDLERHOME=$(BUILD_ROOT)/../chandler
 endif

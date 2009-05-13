@@ -52,6 +52,10 @@ ifeq ($(OS),Linux)
     DISTRIB_CODENAME = $(subst DISTRIB_CODENAME=,,$(shell cat /etc/lsb-release | grep DISTRIB_CODENAME))
     DISTUTILS_PLATFORM = -py$(PYTHON_VER)-linux-$(ARCH)
 
+    ifneq ($(findstring $(DISTRIB_CODENAME), gutsy hardy intrepid jaunty),)
+        PYTHON_VER := $(shell python -c 'import sys; print "%d.%d" % sys.version_info[:2]')
+    endif
+
     ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy hardy intrepid jaunty),)
         PLATFORM := $(PLATFORM)/$(DISTRIB_CODENAME)
     endif
@@ -104,6 +108,7 @@ ifeq ($(DISTUTILS_PLATFORM),)
 endif
 
 ifeq ($(OS),Linux)
+    PYTHON_VER := $(shell python -c 'import sys; print "%d.%d" % sys.version_info[:2]')
     READLINE =
     ifeq ($(PLATFORM),linux/feisty)
         PYTHON     =
@@ -204,7 +209,7 @@ EZ_INSTALL_ARCHIVES = \
     $(CHANDLERARCHIVES)/EggTranslations-1.2.tar.gz
 
 ifeq ($(PYTHON),)
-EASY_INSTALL_ARG = --install='$(SITE)'
+EASY_INSTALL_ARG = --install-dir='$(SITE)'
 SETUPTOOLS_BOOTSTRAP =
 else
 EASY_INSTALL_ARG = 
@@ -237,7 +242,7 @@ PROJECT_DEPENDENCIES = \
     zope.interface \
     twisted>=8.1.0 \
     python-dateutil>=1.3 \
-    vobject>=0.8.1b \
+    vobject>=0.5 \
     parsedatetime>=0.8.6 \
     zanshin>=0.6 \
     EggTranslations>=1.2 \

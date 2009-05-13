@@ -110,7 +110,7 @@ build: expand
 	$(ENV) $(MAKE) -C $(SRC) \
             PYTHON="$(PYTHON)" \
             ANT=$(ANT) \
-            JCC="$(PYTHON) -m jcc" \
+            JCC="$(PYTHON) -m jcc.__init__" \
             NUM_FILES=$(NUM_FILES) \
             DEBUG=$(DEBUG) \
           compile install
@@ -119,7 +119,7 @@ test:
 	$(ENV) $(MAKE) -C $(SRC) \
             PYTHON="$(PYTHON)" \
             ANT=$(ANT) \
-            JCC="$(PYTHON) -m jcc" \
+            JCC="$(PYTHON) -m jcc.__init__" \
             NUM_FILES=$(NUM_FILES) \
             DEBUG=$(DEBUG) \
           test
