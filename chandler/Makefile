@@ -76,12 +76,6 @@ ifeq ($(findstring WINNT,$(OS)),WINNT)
     DISTUTILS_PLATFORM = -py$(PYTHON_VER)-win32
 endif
 
-ifeq ($(PYTHON),)
-    ifneq ($(DISTUTILS_PLATFORM),-py$(PYTHON_VER)-$(shell python -c 'import distutils.util as du; print du.get_platform()'))
-       DISTUTILS_PLATFORM :=
-    endif
-endif
-
 
 ifeq ($(CHANDLERARCHIVES),)
     CHANDLERARCHIVES = ../downloads
@@ -100,12 +94,7 @@ CONFIGOBJ  = $(CHANDLERARCHIVES)/configobj-4.5.3.tar.gz
 DOCUTILS   = $(CHANDLERARCHIVES)/docutils-0.4.tar.gz
 ZOPE_VERS  = zope.interface-3.3.0b2
 ZOPE       = $(CHANDLERARCHIVES)/$(ZOPE_VERS)-r71371.tar.bz2
-TWISTED    = $(CHANDLERARCHIVES)/Twisted-8.2.0$(DISTUTILS_PLATFORM).egg
-
-# Build twisted egg from source if we have no DISTUTILS_PLATFORM
-ifeq ($(DISTUTILS_PLATFORM),)
-    TWISTED := $(CHANDLERARCHIVES)/Twisted-8.2.0.tar.bz2
-endif
+TWISTED    = $(CHANDLERARCHIVES)/Twisted-8.2.0.tar.bz2
 
 ifeq ($(OS),Linux)
     PYTHON_VER := $(shell python -c 'import sys; print "%d.%d" % sys.version_info[:2]')
@@ -162,9 +151,23 @@ ifeq ($(findstring 10.5,$(PLATFORM)),10.5)
     READLINE   =
 endif
 
+ifeq ($(PYTHON),)
+    $(shell echo PYTHON=$(PYTHON) 1>&2)
+    ifneq ($(DISTUTILS_PLATFORM),-py$(PYTHON_VER)-$(shell python -c 'import distutils.util as du; print du.get_platform()'))
+       DISTUTILS_PLATFORM :=
+    endif
+endif
+
+
+# Use binary twisted egg if we have a DISTUTILS_PLATFORM
+ifneq ($(DISTUTILS_PLATFORM),)
+    TWISTED   := $(CHANDLERARCHIVES)/Twisted-8.2.0$(DISTUTILS_PLATFORM).egg
+endif
+
 ifeq ($(PLATFORM),windows)
     READLINE   =
     ZOPE      := $(CHANDLERARCHIVES)/$(ZOPE_VERS)$(DISTUTILS_PLATFORM).egg
+    TWISTED   := $(CHANDLERARCHIVES)/Twisted-8.2.0_r26634$(DISTUTILS_PLATFORM).egg
 endif
 
 #

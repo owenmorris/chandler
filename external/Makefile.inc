@@ -69,6 +69,7 @@ ifeq ($(OS),Cygwin)
     OPENJDK_BUILD=openjdk
     PYTHON_BUILD=python
     ICU_BUILD=icu
+    TWISTED_BUILD=twisted
     M2CRYPTO_BUILD=m2crypto
     PYICU_BUILD=pyicu
 endif
@@ -104,6 +105,7 @@ ifeq ($(OS),Darwin)
     endif
     PYTHON:=MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON)
     OPENSSL_BUILD=openssl
+    TWISTED_BUILD=twisted
     M2CRYPTO_BUILD=m2crypto
     OPENJDK_BUILD=
     ifeq ($(OS_MAJOR_VER),9)
@@ -132,13 +134,20 @@ ifeq ($(OS),Linux)
         ifeq ($(DISTRIB_CODENAME),feisty)
             OPENSSL_BUILD=openssl
             M2CRYPTO_BUILD=m2crypto
+            TWISTED_BUILD=twisted
         else
             OPENSSL_BUILD=
             OPENJDK_BUILD=
             ifeq ($(DISTRIB_CODENAME),gutsy)
                 M2CRYPTO_BUILD=m2crypto
+                TWISTED_BUILD=twisted
             else
                 M2CRYPTO_BUILD=
+                ifeq ($(DISTRIB_CODENAME),hardy)
+                    TWISTED_BUILD=twisted
+                else
+                    TWISTED_BUILD=
+                endif
             endif
         endif
         PYTHON_BUILD=
@@ -153,6 +162,7 @@ ifeq ($(OS),Linux)
         PYTHON:=$(PREFIX)/$(PYTHON_BINDIR)/$(PYTHON)
         SITE=lib/python$(PYTHON_VER)/site-packages
         OPENSSL_BUILD=openssl
+        TWISTED_BUILD=twisted
         M2CRYPTO_BUILD=m2crypto
         PYTHON_BUILD=python
         ICU_BUILD=icu
@@ -241,6 +251,24 @@ else
             echo LIB for MSVC is `echo $$LIB`; \
 	fi
 endif
+endif
+
+INSTALL_DIR=$(BUILD_ROOT)/$(SNAP)/$(SITE)
+ifeq ($(OS),Cygwin)
+    INSTALL_DIR := $(shell cygpath -aw $(INSTALL_DIR))
+endif
+
+ifeq ($(PYTHON_BUILD),)
+EASY_INSTALL_ARGS = -m easy_install
+else
+EASY_INSTALL = $(CHANDLERARCHIVES)/ez_setup.py
+ifeq ($(OS),Cygwin)
+    EASY_INSTALL_ARGS = '$(shell cygpath -aw $(EASY_INSTALL))'
+else
+    EASY_INSTALL_ARGS = $(EASY_INSTALL)
+endif
+$(EASY_INSTALL):
+	cd $(CHANDLERARCHIVES) && $(CURL) http://peak.telecommunity.com/dist/ez_setup.py
 endif
 
 all: build

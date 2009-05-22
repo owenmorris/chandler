@@ -25,25 +25,6 @@ BUILD_ONLY_PY_SYSTEMS = \
     setuptools \
     zope.interface
 
-INSTALL_DIR=$(BUILD_ROOT)/$(SNAP)/$(SITE)
-ifeq ($(OS),Cygwin)
-    INSTALL_DIR := $(shell cygpath -aw $(INSTALL_DIR))
-endif
-
-ifeq ($(PYTHON_BUILD),)
-EASY_INSTALL_ARGS = -m easy_install
-else
-EASY_INSTALL = $(CHANDLERARCHIVES)/ez_setup.py
-ifeq ($(OS),Cygwin)
-    EASY_INSTALL_ARGS = '$(shell cygpath -aw $(EASY_INSTALL))'
-else
-    EASY_INSTALL_ARGS = $(EASY_INSTALL)
-endif
-$(EASY_INSTALL):
-	cd $(CHANDLERARCHIVES) && $(CURL) http://peak.telecommunity.com/dist/ez_setup.py
-endif
-
-
 setuptools: $(EASY_INSTALL)
 	$(PYTHON) -c 'from pkg_resources import require; require("setuptools>=0.6c9")' || \
 	$(PYTHON) $(EASY_INSTALL_ARGS) -x --install '$(INSTALL_DIR)' setuptools'>=0.6c9'
@@ -65,6 +46,7 @@ PY_SYSTEMS = \
         $(PYICU_BUILD) \
         $(ZOPE_BUILD) \
         $(M2CRYPTO_BUILD) \
+        $(TWISTED_BUILD) \
         wx
 
 ALL_SYSTEMS = $(BUILD_ONLY_SYSTEMS) $(BINARY_SYSTEMS) $(BUILD_ONLY_PY_SYSTEMS) \
