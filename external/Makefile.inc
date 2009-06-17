@@ -63,7 +63,7 @@ ifeq ($(OS),Cygwin)
     SITE=bin/Lib/site-packages
     PLATFORM=windows
     SWIG=$(PREFIX)/bin/swig/swig.exe
-    UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
+    UPLOAD=builder@builds.osafoundation.org:/www/builds.osafoundation.org/external/$(PLATFORM)
     READLINE_BUILD=readline
     OPENSSL_BUILD=openssl
     OPENJDK_BUILD=openjdk
@@ -79,9 +79,9 @@ ifeq ($(OS),Darwin)
     SWIG=$(PREFIX)/bin/swig
     ARCH=$(shell arch)
     ifeq ($(ARCH),i386)
-        UPLOAD=builder@builds.osafoundation.org:/www/docs/external/maciosx
+        UPLOAD=builder@builds.osafoundation.org:/www/builds.osafoundation.org/external/maciosx
     else
-        UPLOAD=builder@builds.osafoundation.org:/www/docs/external/macosx
+        UPLOAD=builder@builds.osafoundation.org:/www/builds.osafoundation.org/external/macosx
     endif
     ifeq ($(OS_MAJOR_VER),9)
         MACOSX_DEPLOYMENT_TARGET=10.5
@@ -124,7 +124,7 @@ ifeq ($(OS),Linux)
     ARCH=$(shell uname -m)
     DISTRIB_CODENAME=$(subst DISTRIB_CODENAME=,,$(shell cat /etc/lsb-release | grep DISTRIB_CODENAME))
     SWIG=$(PREFIX)/bin/swig
-    UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
+    UPLOAD=builder@builds.osafoundation.org:/www/builds.osafoundation.org/external/$(PLATFORM)
     OPENJDK_BUILD=openjdk
     ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy hardy intrepid jaunty),)
         SITE=site-packages
