@@ -152,16 +152,18 @@ ifeq ($(findstring 10.5,$(PLATFORM)),10.5)
 endif
 
 ifeq ($(PYTHON),)
-    $(shell echo PYTHON=$(PYTHON) 1>&2)
     ifneq ($(DISTUTILS_PLATFORM),-py$(PYTHON_VER)-$(shell python -c 'import distutils.util as du; print du.get_platform()'))
        DISTUTILS_PLATFORM :=
     endif
 endif
 
 
-# Use binary twisted egg if we have a DISTUTILS_PLATFORM
-ifneq ($(DISTUTILS_PLATFORM),)
-    TWISTED   := $(CHANDLERARCHIVES)/Twisted-8.2.0$(DISTUTILS_PLATFORM).egg
+# If we're downloading twisted (as opposed to relying on OS version),
+# use binary twisted egg if we have a DISTUTILS_PLATFORM
+ifneq ($(TWISTED),)
+    ifneq ($(DISTUTILS_PLATFORM),)
+        TWISTED   := $(CHANDLERARCHIVES)/Twisted-8.2.0$(DISTUTILS_PLATFORM).egg
+    endif
 endif
 
 ifeq ($(PLATFORM),windows)
