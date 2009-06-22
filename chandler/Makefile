@@ -188,7 +188,7 @@ TAR_ARCHIVES = \
     $(M2CRYPTO) \
     $(PYICU) \
     $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.3.1-3-418-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.7.1-r218-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.7.1-r219-$(BP)1.tar.gz \
 
 #
 # EZ_INSTALL_ARCHIVES: archives we download into the CHANDLERARCHIVES
