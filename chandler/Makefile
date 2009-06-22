@@ -97,7 +97,6 @@ ZOPE       = $(CHANDLERARCHIVES)/$(ZOPE_VERS)-r71371.tar.bz2
 TWISTED    = $(CHANDLERARCHIVES)/Twisted-8.2.0.tar.bz2
 
 ifeq ($(OS),Linux)
-    PYTHON_VER := $(shell python -c 'import sys; print "%d.%d" % sys.version_info[:2]')
     READLINE =
     ifeq ($(PLATFORM),linux/feisty)
         PYTHON     =
@@ -121,6 +120,10 @@ ifeq ($(OS),Linux)
     ifneq ($(findstring $(DISTRIB_CODENAME),hardy intrepid jaunty),)
         M2CRYPTO   =
         PYICU      =
+    endif
+
+    ifeq ($(PYTHON),)
+        PYTHON_VER := $(shell python -c 'import sys; print "%d.%d" % sys.version_info[:2]')
     endif
 
     # hardy has twisted-2.5.0, which is not recent enough
