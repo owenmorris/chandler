@@ -277,7 +277,7 @@ class I18nManager(EggTranslations):
          @return: c{str} The Operating System primary locale
 
         """
-        assert(self._init, True)
+        assert self._init
 
         locale = None
 
@@ -716,7 +716,7 @@ class I18nManager(EggTranslations):
         @return: The translated unicode string for key msgid
                   or msgid if no translation found
         """
-        assert(self._init, True)
+        assert self._init
 
         if wxIsAvailable():
             res = wx.GetTranslation(msgid)
@@ -836,7 +836,7 @@ class I18nManager(EggTranslations):
          @return: An c{file} handle to the image resource or None
         """
 
-        assert(self._init, True)
+        assert self._init
 
         if project is None:
             project = self._DEFAULT_PROJECT
@@ -954,7 +954,7 @@ class I18nManager(EggTranslations):
          @return: An c{file} handle to the html resource or None
         """
 
-        assert(self._init, True)
+        assert self._init
 
         if project is None:
             project = self._DEFAULT_PROJECT
@@ -1272,7 +1272,7 @@ if _WX_AVAILABLE:
 
     class I18nFileSystemHandler(wx.FileSystemHandler):
         def __init__(self, i18nMan):
-            assert(isinstance(i18nMan, I18nManager))
+            assert isinstance(i18nMan, I18nManager)
 
             super(I18nFileSystemHandler, self).__init__()
             self.i18nMan = i18nMan
@@ -1315,7 +1315,7 @@ if _WX_AVAILABLE:
                       the file type otherwise False.
             """
 
-            assert(self.i18nMan._init, True)
+            assert self.i18nMan._init
 
             project = self.GetLeftLocation(location)
             name = self.GetRightLocation(location)
@@ -1351,7 +1351,7 @@ if _WX_AVAILABLE:
               @return: c{file} handle
             """
 
-            assert(self.i18nMan._init, True)
+            assert self.i18nMan._init
 
             protocol = self.GetProtocol(location).lower(
                                                  ).strip()
@@ -1382,7 +1382,7 @@ if _WX_AVAILABLE:
         def __init__(self, language=-1, flags=wx.LOCALE_LOAD_DEFAULT|wx.LOCALE_CONV_ENCODING,
                      i18nMan=None):
             wx.PyLocale.__init__(self, language, flags)
-            assert(isinstance(i18nMan, I18nManager))
+            assert isinstance(i18nMan, I18nManager)
             self.i18nMan = i18nMan
 
         def GetSingularString(self, msgid, project=None):
