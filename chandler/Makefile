@@ -214,7 +214,7 @@ EZ_INSTALL_ARCHIVES = \
     $(ZOPE) \
     $(TWISTED) \
     $(CHANDLERARCHIVES)/epydoc-3.0beta1.tar.gz \
-    $(CHANDLERARCHIVES)/EggTranslations-1.2.tar.gz
+    $(CHANDLERARCHIVES)/EggTranslations-1.2.1.tar.gz
 
 ifeq ($(PYTHON),)
 EASY_INSTALL_ARG = --install-dir='$(SITE)'
