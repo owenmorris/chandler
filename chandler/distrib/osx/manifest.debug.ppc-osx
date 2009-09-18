@@ -102,7 +102,7 @@ Chandler.icns
 
 src=chandler/distrib/osx/bundle/debug
 dest=Contents/MacOS
-ChandlerApp
+Chandler
 
 src=chandler/debug
 dest=Contents/Resources/debug

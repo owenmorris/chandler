@@ -111,6 +111,7 @@ ifeq ($(OS),Darwin)
     ifeq ($(OS_MAJOR_VER),9)
         READLINE_BUILD=
         PYTHON_BUILD=
+        OPENSSL_BUILD=
     else
         READLINE_BUILD=readline
         PYTHON_BUILD=python

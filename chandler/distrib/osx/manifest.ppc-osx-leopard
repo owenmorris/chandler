@@ -88,9 +88,10 @@ src=chandler/distrib/osx/bundle
 dest=Contents/Resources
 Chandler.icns
 
-src=chandler/distrib/osx/bundle/release/leopard
+# .app binary
+src=chandler/release
 dest=Contents/MacOS
-ChandlerApp
+Chandler
 
 src=chandler/release
 dest=Contents/Resources/release

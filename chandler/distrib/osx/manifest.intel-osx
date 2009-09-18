@@ -101,7 +101,7 @@ Chandler.icns
 
 src=chandler/distrib/osx/bundle/release
 dest=Contents/MacOS
-ChandlerApp
+Chandler
 
 src=chandler/release
 dest=Contents/Resources/release

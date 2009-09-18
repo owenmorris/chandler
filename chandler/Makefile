@@ -152,6 +152,7 @@ ifeq ($(findstring 10.5,$(PLATFORM)),10.5)
     PYTHON     =
     OPENJDK    =
     READLINE   =
+    OPENSSL    =
 endif
 
 ifeq ($(PYTHON),)
@@ -180,7 +181,7 @@ endif
 #     directory, and install by untarring.
 #
 TAR_ARCHIVES = \
-    $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)31.tar.gz \
+    $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)32.tar.gz \
     $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.7-$(BP)37.tar.gz \
     $(CHANDLERARCHIVES)/db-$(SNAP)-4.6.21-$(BP)3.tar.gz \
     $(READLINE) \

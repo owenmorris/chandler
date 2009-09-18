@@ -7,7 +7,7 @@
 	<key>CFBundleDocumentTypes</key>
 	<array/>
 	<key>CFBundleExecutable</key>
-	<string>ChandlerApp</string>
+	<string>Chandler</string>
 	<key>CFBundleGetInfoString</key>
 	<string>Chandler 1.0.4.dev from the Open Source Applications Foundation</string>
 	<key>CFBundleIconFile</key>

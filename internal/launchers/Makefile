@@ -1,5 +1,5 @@
 
-RELVER=0.9-$(BRANCH_REV_PREFIX)31
+RELVER=0.9-$(BRANCH_REV_PREFIX)32
 LAUNCHERS=$(INTERNAL)/launchers
 SRC=$(LAUNCHERS)
 BUILD=build_$(SNAP)
@@ -13,11 +13,24 @@ ifeq ($(OS),Darwin)
 
 SCRIPT_EXTENSION=
 LIB_FILES=
+
+ifneq ($(OS_MAJOR_VER),9)
+
 LAUNCHER_FILES=
+
+else
+
+LAUNCHER_FILES=$(BUILD_ROOT)/$(SNAP)/Chandler
+
+build:
+	$(MAKE) -C $(LAUNCHERS)/osx build
+
+endif
 
 build: scripts
 
 clean:
+	make -C osx clean
 	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 
 endif
