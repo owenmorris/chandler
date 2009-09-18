@@ -110,15 +110,34 @@ int main(int argc, char *argv[]) {
     Py_VerboseFlag = 1;
 #endif
     
-    // OK, we have the right DYLD_ and PYTHONPATH set up. Let's invoke
-    // the python interpreter by calling Py_Main.
-    
-    // Stash the (C) path to Chandler.py in a buffer, so we can
-    // hand it off to Python.
+    // Now that we have the right DYLD_LIBRARY_PATH and PYTHONPATH set up,
+    // we're aiming to invoke the python interpreter programmatically by
+    // calling Py_Main.
+
+    // Stash the (C) path to Chandler.py in a main_cpath, so we can
+    // hand it off to Py_Main later.
     char main_cpath[MAXPATHLEN+1];
 
     [mainPath getFileSystemRepresentation:main_cpath maxLength:sizeof(main_cpath)];
     main_cpath[sizeof(main_cpath)-1] = '\0';
+
+    // To support restarting, we will have to ensure that sys.executable
+    // in python points at the app binary (i.e. this program, compiled).
+    // We'll use PyRun_SimpleString() to pass in the python code to set
+    // it before running Chandler.py as the main program.
+    
+    // First, figure out the path to the compiled binary via
+    // -[NSBundle executablePath], and stash it in a char[] buffer.
+    char executable_cpath[MAXPATHLEN+1];
+    [[bundle executablePath] getFileSystemRepresentation:executable_cpath maxLength:sizeof(executable_cpath)];
+    executable_cpath[sizeof(executable_cpath)-1] = '\0';
+    
+    // Next, store the python code to set sys.executable in a
+    // separate buffer, exec_cstring.
+    const char EXEC_FORMAT[] = "import sys\nsys.executable=\"%s\"\n";
+    char exec_cstring[sizeof(EXEC_FORMAT) + sizeof(executable_cpath)];
+
+    snprintf(exec_cstring, sizeof(exec_cstring) - 1, EXEC_FORMAT, executable_cpath);    
     
     // Done with Foundation stuff
     [pool release];
@@ -137,8 +156,11 @@ int main(int argc, char *argv[]) {
     for(i=2; i<= newArgc; i++) {
         newArgv[i] = argv[i-1];
     }
-    
-    // ... and let Python take it from here.
+
+    // Set up sys.executable    
+    PyRun_SimpleString(exec_cstring);
+
+    // ... and let Python run Chandler.py as the main program.
     exit(Py_Main(newArgc, newArgv));
     
 }
