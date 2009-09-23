@@ -20,7 +20,7 @@ LAUNCHER_FILES=
 
 else
 
-LAUNCHER_FILES=$(BUILD_ROOT)/$(SNAP)/Chandler
+LAUNCHER_FILES=$(SNAP)/Chandler
 
 build:
 	$(MAKE) -C $(LAUNCHERS)/osx build
