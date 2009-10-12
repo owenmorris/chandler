@@ -1302,6 +1302,12 @@ class wxApplication (wx.App):
         windows = os.name == 'nt'
         mac = sys.platform == 'darwin'
         linux = sys.platform.startswith('linux')
+        # [grant] Bug 12879:
+        # On the Mac, we fork() to create a new process (it's not
+        # 100% clear why), but in this case we should not execl() from
+        # the parent process, or we could have a race condition with
+        # two processes trying to open the repository exclusively.
+        do_execl = True
 
         try:
             executable = sys.executable
@@ -1309,9 +1315,11 @@ class wxApplication (wx.App):
                 executable = '"%s"' %(executable)
 
             if mac:
-                os.fork()
+                # 0 return from fork() <==> we're in the child process
+                do_execl = (0 == os.fork())
             argv.append(self.startenv)
-            os.execle(sys.executable, executable, *argv)
+            if do_execl:
+                os.execle(sys.executable, executable, *argv)
         except OSError, e:
             from errno import EOPNOTSUPP
             if not mac or e.args[0] != EOPNOTSUPP:
