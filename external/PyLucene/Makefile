@@ -42,7 +42,7 @@ arch=i386
 vm=client
 endif
 
-ifeq ($(findstring $(DISTRIB_CODENAME), hardy intrepid jaunty),)
+ifeq ($(findstring $(DISTRIB_CODENAME), hardy intrepid jaunty karmic),)
 JDK=$(BUILD_ROOT)/openjdk/j2sdk-image
 JRE=$(BUILD_ROOT)/openjdk/j2re-image
 ANT="$(BUILD_ROOT)/openjdk/apache-ant-1.7.0/bin/ant"

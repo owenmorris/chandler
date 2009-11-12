@@ -127,7 +127,7 @@ ifeq ($(OS),Linux)
     SWIG=$(PREFIX)/bin/swig
     UPLOAD=builder@builds.osafoundation.org:/www/builds.osafoundation.org/external/$(PLATFORM)
     OPENJDK_BUILD=openjdk
-    ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy hardy intrepid jaunty),)
+    ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy hardy intrepid jaunty karmic),)
         SITE=site-packages
         PYTHON_BINDIR:=/usr/bin
         PYTHON:=PYTHONPATH=$(BUILD_ROOT)/$(SNAP)/$(SITE) $(PYTHON_BINDIR)/python

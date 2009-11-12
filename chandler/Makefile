@@ -52,11 +52,11 @@ ifeq ($(OS),Linux)
     DISTRIB_CODENAME = $(subst DISTRIB_CODENAME=,,$(shell cat /etc/lsb-release | grep DISTRIB_CODENAME))
     DISTUTILS_PLATFORM = -py$(PYTHON_VER)-linux-$(ARCH)
 
-    ifneq ($(findstring $(DISTRIB_CODENAME), gutsy hardy intrepid jaunty),)
+    ifneq ($(findstring $(DISTRIB_CODENAME), gutsy hardy intrepid jaunty karmic),)
         PYTHON_VER := $(shell python -c 'import sys; print "%d.%d" % sys.version_info[:2]')
     endif
 
-    ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy hardy intrepid jaunty),)
+    ifneq ($(findstring $(DISTRIB_CODENAME),feisty gutsy hardy intrepid jaunty karmic),)
         PLATFORM := $(PLATFORM)/$(DISTRIB_CODENAME)
     endif
     ifeq ($(ARCH),x86_64)
@@ -106,7 +106,7 @@ ifeq ($(OS),Linux)
         ZOPE       =
     endif
 
-    ifneq ($(findstring $(DISTRIB_CODENAME),gutsy hardy intrepid jaunty),)
+    ifneq ($(findstring $(DISTRIB_CODENAME),gutsy hardy intrepid jaunty karmic),)
         ZOPE      :=
         OPENSSL    =
         PYTHON     =
@@ -117,7 +117,7 @@ ifeq ($(OS),Linux)
         ZOPE       =
     endif
 
-    ifneq ($(findstring $(DISTRIB_CODENAME),hardy intrepid jaunty),)
+    ifneq ($(findstring $(DISTRIB_CODENAME),hardy intrepid jaunty karmic),)
         M2CRYPTO   =
         PYICU      =
     endif
@@ -127,7 +127,7 @@ ifeq ($(OS),Linux)
     endif
 
     # hardy has twisted-2.5.0, which is not recent enough
-    ifneq ($(findstring $(DISTRIB_CODENAME),intrepid jaunty),)
+    ifneq ($(findstring $(DISTRIB_CODENAME),intrepid jaunty karmic),)
         TWISTED   :=
     endif
     
@@ -192,7 +192,7 @@ TAR_ARCHIVES = \
     $(M2CRYPTO) \
     $(PYICU) \
     $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.3.1-3-418-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.7.1-r219-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.7.1-r220-$(BP)1.tar.gz \
 
 #
 # EZ_INSTALL_ARCHIVES: archives we download into the CHANDLERARCHIVES
@@ -467,7 +467,7 @@ ifeq ($(PLATFORM),linux/feisty)
 SYSTEM_REQUIREMENTS = setuptools>=0.6c6  $(subst '',check-,$(filter '(configobj|zope\.interface).*', $(PROJECT_DEPENDENCIES)))
 else
 
-ifneq ($(findstring $(DISTRIB_CODENAME),gutsy hardy intrepid jaunty),)
+ifneq ($(findstring $(DISTRIB_CODENAME),gutsy hardy intrepid jaunty karmic),)
 SYSTEM_REQUIREMENTS = setuptools>=0.6c6 PyICU>=0.8 M2Crypto>=0.18 $(patsubst %,check-%, $(filter configobj% zope.interface%, $(PROJECT_DEPENDENCIES)))
 endif
 endif
