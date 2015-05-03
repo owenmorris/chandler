@@ -95,8 +95,6 @@ struct Db
 	Db(DB_ENV *dbenv, u_int32_t flags) {
 		DB *self = NULL;
 		errno = db_create(&self, dbenv, flags);
-		if (errno == 0 && dbenv == NULL)
-			self->dbenv->dbt_usercopy = __dbj_dbt_memcopy;
 		return self;
 	}
 
@@ -582,8 +580,6 @@ struct DbEnv
 	DbEnv(u_int32_t flags) {
 		DB_ENV *self = NULL;
 		errno = db_env_create(&self, flags);
-		if (errno == 0)
-			self->dbt_usercopy = __dbj_dbt_memcopy;
 		return self;
 	}
 

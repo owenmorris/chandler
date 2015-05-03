@@ -1434,8 +1434,10 @@ static int __dbj_dbt_copyin(
 		    ldbt->jarr, NULL)) == NULL)
 			return (EINVAL); /* an exception will be pending */
 		dbt->data = (u_int8_t *)dbt->data + ldbt->offset;
-	} else
+	} else {
 		F_SET(dbt, DB_DBT_USERCOPY);
+		dbt->usercopy = __dbj_dbt_memcopy;
+        }
 	dbt->app_data = ldbt;
 
 	return (0);
@@ -2347,8 +2349,6 @@ void *unused = SWIG_JavaThrowException;
 SWIGINTERN struct Db *new_Db(DB_ENV *dbenv,u_int32_t flags){
 		DB *self = NULL;
 		errno = db_create(&self, dbenv, flags);
-		if (errno == 0 && dbenv == NULL)
-			self->dbenv->dbt_usercopy = __dbj_dbt_memcopy;
 		return self;
 	}
 SWIGINTERN db_ret_t Db_associate(struct Db *self,DB_TXN *txnid,DB *secondary,int (*callback)(DB *,DBT const *,DBT const *,DBT *),u_int32_t flags){
@@ -2648,8 +2648,6 @@ SWIGINTERN db_ret_t Dbc_set_priority(struct Dbc *self,DB_CACHE_PRIORITY priority
 SWIGINTERN struct DbEnv *new_DbEnv(u_int32_t flags){
 		DB_ENV *self = NULL;
 		errno = db_env_create(&self, flags);
-		if (errno == 0)
-			self->dbt_usercopy = __dbj_dbt_memcopy;
 		return self;
 	}
 SWIGINTERN db_ret_t DbEnv_close(struct DbEnv *self,u_int32_t flags){

@@ -203,6 +203,12 @@ struct __db_dbt {
 #define	DB_DBT_USERCOPY		0x080	/* Use the user-supplied callback. */
 #define	DB_DBT_USERMEM		0x100	/* Return in user's memory. */
 	u_int32_t flags;
+
+	/* Application callback to copy data to/from a custom data source. */
+#define	DB_USERCOPY_GETDATA	0x0001
+#define	DB_USERCOPY_SETDATA	0x0002
+	int (*usercopy)
+	    __P((DBT *, u_int32_t, void *, u_int32_t, u_int32_t));
 };
 
 /*
@@ -2087,12 +2093,6 @@ struct __db_env {
 	void *(*db_malloc) __P((size_t));
 	void *(*db_realloc) __P((void *, size_t));
 	void (*db_free) __P((void *));
-
-	/* Application callback to copy data to/from a custom data source. */
-#define	DB_USERCOPY_GETDATA	0x0001
-#define	DB_USERCOPY_SETDATA	0x0002
-	int (*dbt_usercopy)
-	    __P((DBT *, u_int32_t, void *, u_int32_t, u_int32_t));
 
 	/*
 	 * Currently, the verbose list is a bit field with room for 32

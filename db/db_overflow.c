@@ -162,7 +162,7 @@ skip_alloc:
 				 * needs to be taken if doing a partial copy
 				 * beginning at an offset other than 0.
 				 */
-				if ((ret = dbenv->dbt_usercopy(
+				if ((ret = dbt->usercopy(
 				    dbt, dbt->size - needed,
 				    src, bytes, DB_USERCOPY_SETDATA)) != 0) {
 					(void)__memp_fput(mpf,

@@ -2652,7 +2652,7 @@ __dbt_usercopy(dbenv, dbt)
 
 	buf = NULL;
 	if ((ret = __os_umalloc(dbenv, dbt->size, &buf)) != 0 ||
-	    (ret = dbenv->dbt_usercopy(dbt, 0, buf, dbt->size,
+	    (ret = dbt->usercopy(dbt, 0, buf, dbt->size,
 	    DB_USERCOPY_GETDATA)) != 0)
 		goto err;
 	dbt->data = buf;

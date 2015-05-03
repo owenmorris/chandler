@@ -115,7 +115,7 @@ __db_retcopy(dbenv, dbt, data, len, memp, memsize)
 	 */
 	if (F_ISSET(dbt, DB_DBT_USERCOPY)) {
 		dbt->size = len;
-		return (len == 0 ? 0 : dbenv->dbt_usercopy(dbt, 0, data,
+		return (len == 0 ? 0 : dbt->usercopy(dbt, 0, data,
 		    len, DB_USERCOPY_SETDATA));
 
 	} else if (F_ISSET(dbt, DB_DBT_MALLOC))
