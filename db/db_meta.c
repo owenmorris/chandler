@@ -715,8 +715,7 @@ __db_free_truncate(dbp, txn, flags, c_data, listp, nelemp, last_pgnop)
 	if ((ret = __db_lget(dbc,
 	    LCK_ALWAYS, pgno, DB_LOCK_WRITE, 0, &metalock)) != 0)
 		goto err;
-	if ((ret = __memp_fget(mpf, &pgno, dbc->txn,
-	    DB_MPOOL_DIRTY, &meta)) != 0)
+	if ((ret = __memp_fget(mpf, &pgno, dbc->txn, 0, &meta)) != 0)
 		goto err;
 
 	if (last_pgnop != NULL)
@@ -748,6 +747,9 @@ __db_free_truncate(dbp, txn, flags, c_data, listp, nelemp, last_pgnop)
 		lp++;
 	} while (pgno != PGNO_INVALID);
 	nelems = (u_int32_t)(lp - list);
+
+	if ((ret = __memp_dirty(mpf, &meta, dbc->txn, dbc->priority, 0)) != 0)
+		goto err;
 
 	/* Log the current state of the free list */
 	if (DBC_LOGGING(dbc)) {
