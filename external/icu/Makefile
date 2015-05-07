@@ -1,5 +1,5 @@
 
-VERSION=3.6
+VERSION=55_1
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
 ICU=$(BUILD_ROOT)/icu
 SRC=$(ICU)/icu-$(VERSION)
@@ -79,14 +79,14 @@ binaries: strip
 
 endif
 
-icu-$(VERSION).tgz:
-	$(CURL) http://builds.osafoundation.org/external/icu-$(VERSION).tgz
+icu4c-$(VERSION)-src.tgz:
+	$(CURL) http://download.icu-project.org/files/icu4c/55.1/icu4c-55_1-src.tgz
 
-sources: icu-$(VERSION).tgz
+sources: icu4c-$(VERSION)-src.tgz
 
-icu-$(VERSION)-expanded: icu-$(VERSION).tgz
+icu-$(VERSION)-src-expanded: icu4c-$(VERSION)-src.tgz
 	mkdir -p $(ICU)/icu-$(VERSION)
-	tar -C $(ICU)/icu-$(VERSION) -xvzf icu-$(VERSION).tgz
+	tar -C $(ICU)/icu-$(VERSION) -xvzf icu4c-$(VERSION)-src.tgz
 	touch icu-$(VERSION)-expanded
 
 expand: icu-$(VERSION)-expanded
