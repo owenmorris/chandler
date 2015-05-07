@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-VERSION=1.3.29
+VERSION=3.0.5
 SWIG=$(BUILD_ROOT)/swig
 SRC=$(SWIG)/swig-$(VERSION)
 TARBALL=
@@ -40,9 +40,6 @@ endif
 
 endif
 
-apply: patches-$(VERSION)
-	patch -Nup0 < patches-$(VERSION); echo ok
-
 # Nothing to do
 binaries:
 
@@ -53,7 +50,7 @@ upload:
 install:
 
 swig-$(VERSION).tar.gz:
-	$(CURL) http://builds.osafoundation.org/external/swig-$(VERSION).tar.gz 
+	$(CURL) http://downloads.sourceforge.net/project/swig/swig/swig-3.0.5/swig-3.0.5.tar.gz
 
 sources: swig-$(VERSION).tar.gz
 
@@ -63,5 +60,5 @@ swig-$(VERSION)-expanded: swig-$(VERSION).tar.gz
 
 expand: swig-$(VERSION)-expanded
 
-build: expand apply swig
+build: expand swig
 
