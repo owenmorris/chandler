@@ -55,7 +55,7 @@ ifeq ($(CURL),)
 CURL=curl -f -L -O $(CHANDLER_CURL_OPTIONS)
 endif
 
-PYTHON_VER=2.5
+PYTHON_VER=2.7
 
 ifeq ($(OS),Cygwin)
     PYTHON_BINDIR:=bin
@@ -83,41 +83,22 @@ ifeq ($(OS),Darwin)
     else
         UPLOAD=builder@builds.osafoundation.org:/www/builds.osafoundation.org/external/macosx
     endif
-    ifeq ($(OS_MAJOR_VER),9)
-        MACOSX_DEPLOYMENT_TARGET=10.5
-        FRAMEWORK=/System/Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
-        SITE=site-packages
-        PYTHON_BINDIR:=$(FRAMEWORK)/bin
-        PYTHON:=PYTHONPATH=$(BUILD_ROOT)/$(SNAP)/$(SITE) $(PYTHON_BINDIR)/python
-        UPLOAD:=$(UPLOAD)/10.5
-    else
-        ifeq ($(MACOSX_DEPLOYMENT_TARGET),)
-            ifeq ($(ARCH),ppc)
-                MACOSX_DEPLOYMENT_TARGET=10.3
-            else
-                MACOSX_DEPLOYMENT_TARGET=10.4
-            endif
-        endif
-        FRAMEWORK=Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
-        SITE=$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
-        PYTHON_BINDIR:=$(FRAMEWORK)/bin
-        PYTHON:=$(PREFIX)/$(PYTHON_BINDIR)/$(PYTHON)
-    endif
+    MACOSX_DEPLOYMENT_TARGET=10.9
+    FRAMEWORK=/System/Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
+    SITE=site-packages
+    PYTHON_BINDIR:=$(FRAMEWORK)/bin
+    PYTHON:=PYTHONPATH=$(BUILD_ROOT)/$(SNAP)/$(SITE) $(PYTHON_BINDIR)/python
+    UPLOAD:=$(UPLOAD)/10.7
     PYTHON:=MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON)
-    OPENSSL_BUILD=openssl
-    TWISTED_BUILD=twisted
-    M2CRYPTO_BUILD=m2crypto
+    OPENSSL_BUILD=
+    TWISTED_BUILD=
+    M2CRYPTO_BUILD=
     OPENJDK_BUILD=
-    ifeq ($(OS_MAJOR_VER),9)
-        READLINE_BUILD=
-        PYTHON_BUILD=
-        OPENSSL_BUILD=
-    else
-        READLINE_BUILD=readline
-        PYTHON_BUILD=python
-    endif
+    READLINE_BUILD=
+    PYTHON_BUILD=
+    OPENSSL_BUILD=
     ICU_BUILD=icu
-    PYICU_BUILD=PyICU
+    PYICU_BUILD=
 endif
 
 ifeq ($(OS),Linux)
