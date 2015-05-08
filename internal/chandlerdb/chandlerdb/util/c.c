@@ -218,6 +218,8 @@ static PyObject *getPlatformName(PyObject *self)
 {
 #if defined(__MACH__) && defined(__i386__)
     return PyString_FromString("darwin-i386");
+#elif defined(__MACH__) && defined(__x86_64__)
+    return PyString_FromString("darwin-x86_64");
 #elif defined(__MACH__) && defined(__ppc__)
     return PyString_FromString("darwin-ppc");
 #elif defined(linux) && defined(__i386__)
